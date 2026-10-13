@@ -23,7 +23,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   carrot: 180,
 };
 
-export const STAGE_BACKGROUND: Record<EnemyKind, number> = {
+const BACKGROUND: Record<EnemyKind, number> = {
   slime: images.battleBackground,
   mushroom: images.battleBackgroundMushroom,
   carrot: images.battleBackgroundFarm,
@@ -80,7 +80,7 @@ export function BattleScene({
   return (
     <View style={styles.scene}>
       <Pressable onPress={manualEnabled ? onManualAttack : undefined} disabled={!manualEnabled}>
-        <ImageBackground source={STAGE_BACKGROUND[enemyKind]} resizeMode="cover" style={styles.sky} imageStyle={styles.skyImage}>
+        <ImageBackground source={BACKGROUND[enemyKind]} resizeMode="cover" style={styles.sky} imageStyle={styles.skyImage}>
           <LinearGradient
             colors={["#17321b1f", "#17291400", "#17291424"]}
             locations={[0, 0.42, 1]}

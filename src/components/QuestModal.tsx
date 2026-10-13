@@ -1,5 +1,6 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
+import { uiImages } from "../assets";
 import { formatGameNumber } from "../state/gameMath";
 import { GameButton } from "./GameButton";
 import type { Quest } from "../types";
@@ -37,17 +38,25 @@ export function QuestModal({
                 const progress = Math.min(100, (quest.current / quest.target) * 100);
                 return (
                   <View style={styles.item} key={quest.id}>
-                    <View style={styles.symbol}>
-                      <Text style={styles.symbolText}>{complete ? "✓" : "!"}</Text>
-                    </View>
+                    {complete ? (
+                      <View style={styles.symbol}>
+                        <Text style={styles.symbolText}>✓</Text>
+                      </View>
+                    ) : (
+                      <Image source={uiImages.badgeAlert} style={styles.symbolImage} />
+                    )}
                     <View style={styles.info}>
                       <Text style={styles.infoTitle}>{quest.title}</Text>
                       <View style={styles.track}>
                         <View style={[styles.trackFill, { width: `${progress}%` }]} />
                       </View>
-                      <Text style={styles.infoSub}>
-                        {formatGameNumber(Math.min(quest.current, quest.target))} / {formatGameNumber(quest.target)} · 보상 {formatGameNumber(quest.reward)} G
-                      </Text>
+                      <View style={styles.infoSubRow}>
+                        <Text style={styles.infoSub}>
+                          {formatGameNumber(Math.min(quest.current, quest.target))} / {formatGameNumber(quest.target)} · 보상
+                        </Text>
+                        <Image source={uiImages.coin} style={styles.rewardCoin} />
+                        <Text style={styles.infoSub}>{formatGameNumber(quest.reward)} G</Text>
+                      </View>
                     </View>
                     <GameButton
                       disabled={!complete || quest.claimed}
@@ -120,8 +129,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   symbolText: { color: "white", fontWeight: "900", fontFamily: fonts.bold },
+  symbolImage: { width: 30, height: 30 },
   info: { flex: 1 },
   infoTitle: { fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  infoSubRow: { flexDirection: "row", alignItems: "center", gap: 2 },
+  rewardCoin: { width: 10, height: 10 },
   infoSub: { color: colors.muted, fontSize: 8, fontWeight: "700", fontFamily: fonts.bold },
   track: { height: 6, marginVertical: 4, overflow: "hidden", backgroundColor: "#d8cebb", borderRadius: 5 },
   trackFill: { height: "100%", backgroundColor: colors.green },

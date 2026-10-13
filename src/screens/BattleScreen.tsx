@@ -1,7 +1,6 @@
 import { StageHeader } from "../components/StageHeader";
 import { RewardPanel } from "../components/RewardPanel";
-import { ImageBackground, StyleSheet, View } from "react-native";
-import { BattleScene, STAGE_BACKGROUND } from "./BattleScene";
+import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
 import { getEnemyKind } from "../state/stages";
@@ -36,30 +35,21 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
       />
-      <ImageBackground source={STAGE_BACKGROUND[regularEnemyKind]} resizeMode="cover" style={styles.lower} imageStyle={styles.lowerImage}>
-        <View style={styles.lowerShade} pointerEvents="none" />
-        <RewardPanel
-          earned={pendingReward}
-          onClaim={claimReward}
-          isAutoBattle={battle.isAutoBattle}
-          onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
-        />
-        <StatUpgradePanel
-          state={state}
-          upgradeMode={upgradeMode}
-          onUpgradeModeChange={setUpgradeMode}
-          onUpgrade={upgradeStat}
-          compact
-          upgraded={upgraded}
-        />
-      </ImageBackground>
+      <RewardPanel
+        earned={pendingReward}
+        onClaim={claimReward}
+        isAutoBattle={battle.isAutoBattle}
+        onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
+      />
+      <StatUpgradePanel
+        state={state}
+        upgradeMode={upgradeMode}
+        onUpgradeModeChange={setUpgradeMode}
+        onUpgrade={upgradeStat}
+        compact
+        upgraded={upgraded}
+      />
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  lower: { flexGrow: 1, marginTop: 6 },
-  lowerImage: { opacity: 0.85 },
-  // Knocks the busy forest art back so the parchment panels read first.
-  lowerShade: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "#1d2a1a40" },
-});

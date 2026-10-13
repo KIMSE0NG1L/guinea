@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
-import { GemIcon } from "../components/GemIcon";
+import { uiImages } from "../assets";
 import { formatGameNumber } from "../state/gameMath";
 
 const products = [
@@ -19,15 +19,11 @@ export function ShopScreen() {
         {products.map((product) => (
           <View style={styles.card} key={product.group}>
             {product.tone === "gem" ? (
-              <View style={styles.gemIconWrap}>
-                <GemIcon width={45} height={41} />
-              </View>
+              <Image source={uiImages.crystal} style={styles.productIcon} />
             ) : product.tone === "carrot" ? (
               <View style={styles.carrotIcon} />
             ) : (
-              <View style={styles.goldIcon}>
-                <Text style={styles.goldIconText}>$</Text>
-              </View>
+              <Image source={uiImages.coins} style={styles.productIcon} />
             )}
             <View style={styles.cardCopy}>
               <Text style={styles.cardSmall}>{product.group}</Text>
@@ -58,10 +54,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 13,
   },
-  goldIcon: { width: 58, height: 58, alignItems: "center", justifyContent: "center", backgroundColor: colors.gold, borderWidth: 3, borderColor: colors.line, borderRadius: 29 },
-  goldIconText: { color: "#71491b", fontSize: 20, fontWeight: "900", fontFamily: fonts.bold },
+  productIcon: { width: 58, height: 58, resizeMode: "contain" },
   carrotIcon: { width: 32, height: 57, backgroundColor: "#db7846", borderRadius: 16, transform: [{ rotate: "20deg" }] },
-  gemIconWrap: { width: 58, height: 58, alignItems: "center", justifyContent: "center" },
   cardCopy: { flex: 1 },
   cardSmall: { color: colors.brown, fontSize: 8 },
   cardStrong: { marginVertical: 2, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },

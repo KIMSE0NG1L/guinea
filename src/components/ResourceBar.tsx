@@ -1,21 +1,17 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
+import { uiImages } from "../assets";
 import { formatGameNumber } from "../state/gameMath";
-import { GemIcon } from "./GemIcon";
 
 export function ResourceBar({ gold, gems }: { gold: number; gems: number }) {
   return (
     <View style={styles.bar}>
       <View style={styles.chip}>
-        <View style={styles.coinIcon}>
-          <Text style={styles.coinIconText}>$</Text>
-        </View>
+        <Image source={uiImages.coin} style={styles.icon} />
         <Text style={styles.chipValue}>{formatGameNumber(gold)}</Text>
       </View>
       <View style={styles.chip}>
-        <View style={styles.gemIcon}>
-          <GemIcon width={18} height={16} />
-        </View>
+        <Image source={uiImages.crystal} style={styles.icon} />
         <Text style={styles.chipValue}>{formatGameNumber(gems)}</Text>
       </View>
     </View>
@@ -39,17 +35,6 @@ const styles = StyleSheet.create({
     borderColor: "#819073",
     borderRadius: 8,
   },
-  coinIcon: {
-    width: 18,
-    height: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.gold,
-    borderWidth: 2,
-    borderColor: "#b17525",
-    borderRadius: 9,
-  },
-  coinIconText: { color: "#6b4517", fontWeight: "900", fontFamily: fonts.bold, fontSize: 10 },
-  gemIcon: { width: 18, height: 18, alignItems: "center", justifyContent: "center" },
+  icon: { width: 20, height: 20, resizeMode: "contain" },
   chipValue: { color: colors.cream, fontWeight: "900", fontFamily: fonts.bold, fontSize: 11, flexShrink: 1 },
 });

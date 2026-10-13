@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
+import { uiImages } from "../assets";
 import { GameButton } from "./GameButton";
 import { ResourceBar } from "./ResourceBar";
 import type { GameState } from "../types";
@@ -21,7 +22,7 @@ export function GameHeader({ state, onQuest }: { state: GameState; onQuest: () =
             </View>
           </GameButton>
           <GameButton accessibilityLabel="설정" style={styles.iconButton}>
-            <View style={styles.gearIcon} />
+            <Image source={uiImages.gear} style={styles.gearIcon} />
           </GameButton>
         </View>
       </View>
@@ -66,14 +67,7 @@ const styles = StyleSheet.create({
   },
   alertDotText: { color: "white", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold },
   iconButton: { width: 34, height: 32 },
-  gearIcon: {
-    width: 15,
-    height: 15,
-    borderRadius: 8,
-    borderWidth: 4,
-    borderColor: colors.brown,
-    borderStyle: "dotted",
-  },
+  gearIcon: { width: 20, height: 20 },
   statusRow: { marginTop: 11, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   headerTitle: { flex: 1 },
   eyebrow: { color: "#d7dfab", fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5, marginBottom: 1 },
