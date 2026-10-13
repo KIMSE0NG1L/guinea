@@ -1,4 +1,4 @@
-export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "shop";
+export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "shop" | "milestone";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
@@ -28,6 +28,8 @@ export interface GameState {
   currentStage: string;
   stageNumber: number;
   stageKills: number;
+  // Furthest stage reached — every stage up to it can be revisited from the milestone map.
+  highestStageNumber?: number;
   equippedOutfit: Outfit;
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];

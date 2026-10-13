@@ -1,28 +1,17 @@
 import { useEffect } from "react";
-import { ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { images } from "../assets";
+import { icons, images } from "../assets";
 import { CharacterSprite } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
 import { DamageNumber } from "../components/DamageNumber";
 import { CoinPopup } from "../components/CoinPopup";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
 import { formatGameNumber } from "../state/gameMath";
+import { BOSS_NAME, ENEMY_NAME } from "../state/stages";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
-
-const ENEMY_NAME: Record<EnemyKind, string> = {
-  slime: "골목 슬라임",
-  mushroom: "습지 버섯",
-  carrot: "밭 당근토끼",
-};
-
-const BOSS_NAME: Record<EnemyKind, string> = {
-  slime: "왕 슬라임",
-  mushroom: "버섯 대왕",
-  carrot: "감자 골렘",
-};
 
 // Each boss art source fills a different fraction of its 228px frame (the original
 // boss-slime asset nearly fills it edge to edge; the mushroom/potato ones were cropped
@@ -34,7 +23,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   carrot: 180,
 };
 
-const BACKGROUND: Record<EnemyKind, number> = {
+export const STAGE_BACKGROUND: Record<EnemyKind, number> = {
   slime: images.battleBackground,
   mushroom: images.battleBackgroundMushroom,
   carrot: images.battleBackgroundFarm,
@@ -56,6 +45,7 @@ export function BattleScene({
   outfit,
   manualEnabled,
   onManualAttack,
+  onOpenMap,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean }[];
@@ -72,6 +62,7 @@ export function BattleScene({
   outfit: Outfit;
   manualEnabled: boolean;
   onManualAttack: () => void;
+  onOpenMap: () => void;
 }) {
   const playerAnimation: PlayerAnimation =
     phase === "attacking"
@@ -89,7 +80,7 @@ export function BattleScene({
   return (
     <View style={styles.scene}>
       <Pressable onPress={manualEnabled ? onManualAttack : undefined} disabled={!manualEnabled}>
-        <ImageBackground source={BACKGROUND[enemyKind]} resizeMode="cover" style={styles.sky} imageStyle={styles.skyImage}>
+        <ImageBackground source={STAGE_BACKGROUND[enemyKind]} resizeMode="cover" style={styles.sky} imageStyle={styles.skyImage}>
           <LinearGradient
             colors={["#17321b1f", "#17291400", "#17291424"]}
             locations={[0, 0.42, 1]}
@@ -115,15 +106,6 @@ export function BattleScene({
           <View style={styles.fighters}>
             <PlayerFighter animation={playerAnimation} outfit={outfit} boss={boss} />
 
-            {/* Pinned above whatever the current enemy's head height is, so a much
-                taller boss doesn't bury its own damage numbers behind its body. */}
-            <View style={[styles.effects, { bottom: enemySize + 30 }]} pointerEvents="none">
-              {damageEvents.map((event) => (
-                <DamageNumber key={event.id} amount={event.amount} critical={event.critical} />
-              ))}
-              {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
-            </View>
-
             <EnemyFighter
               animation={enemyAnimation}
               boss={boss}
@@ -131,11 +113,29 @@ export function BattleScene({
               enemyId={enemyId}
               currentHp={enemyHp}
               maxHp={enemyMaxHp}
-              manualEnabled={manualEnabled}
               phase={phase}
               size={enemySize}
             />
+
+            {/* Kept below the enemy nameplate (fixed at bottom: 112) so numbers never cover
+                the name or HP bar — they float up over the sprite's body instead. */}
+            <View style={styles.effects} pointerEvents="none">
+              {damageEvents.map((event) => (
+                <DamageNumber key={event.id} amount={event.amount} critical={event.critical} />
+              ))}
+              {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
+            </View>
           </View>
+
+          <Pressable
+            onPress={onOpenMap}
+            accessibilityRole="button"
+            accessibilityLabel="마일스톤 지도 열기"
+            hitSlop={8}
+            style={({ pressed }) => [styles.mapButton, pressed && styles.mapButtonPressed]}
+          >
+            <Image source={icons.map} style={styles.mapIcon} />
+          </Pressable>
         </ImageBackground>
       </Pressable>
     </View>
@@ -189,7 +189,6 @@ function EnemyFighter({
   enemyId,
   currentHp,
   maxHp,
-  manualEnabled,
   phase,
   size,
 }: {
@@ -199,7 +198,6 @@ function EnemyFighter({
   enemyId: number;
   currentHp: number;
   maxHp: number;
-  manualEnabled: boolean;
   phase: BattlePhase;
   size: number;
 }) {
@@ -246,11 +244,6 @@ function EnemyFighter({
         </View>
       </View>
       <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
-      {manualEnabled && (
-        <View style={styles.touchHint}>
-          <Text style={styles.touchHintText}>터치 공격</Text>
-        </View>
-      )}
     </Animated.View>
   );
 }
@@ -292,7 +285,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
-  effects: { position: "absolute", right: 96 },
+  mapButton: { position: "absolute", right: 8, bottom: 8 },
+  mapButtonPressed: { transform: [{ scale: 0.92 }] },
+  mapIcon: { width: 52, height: 52 },
+  effects: { position: "absolute", right: 96, bottom: 30, zIndex: 10 },
   characterWrap: { width: 108, alignItems: "center", position: "relative" },
   unitLabel: {
     marginBottom: 4,
@@ -309,16 +305,4 @@ const styles = StyleSheet.create({
   enemyNameplateBoss: { width: 116 },
   unitHealthTrack: { width: "100%", height: 6, overflow: "hidden", backgroundColor: "#211a16", borderWidth: 1, borderColor: "#f7ecd066", borderRadius: 5 },
   unitHealthFill: { height: "100%", backgroundColor: "#dc6048" },
-  touchHint: {
-    position: "absolute",
-    right: 8,
-    bottom: -16,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    backgroundColor: colors.greenDark,
-    borderWidth: 2,
-    borderColor: colors.line,
-    borderRadius: 7,
-  },
-  touchHintText: { color: colors.cream, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
 });
