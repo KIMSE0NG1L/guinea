@@ -18,12 +18,14 @@ export function CharacterSprite({
   animation,
   size = 108,
   scale = 1,
+  repeat = 1,
   restartKey,
 }: {
   outfit: Outfit;
   animation: PlayerAnimation;
   size?: number;
   scale?: number;
+  repeat?: number;
   restartKey?: string | number;
 }) {
   const source = spriteSheets.guinea[outfit][animation];
@@ -40,6 +42,7 @@ export function CharacterSprite({
         displaySize={size}
         durationMs={durationMs}
         mode={animation === "idle" ? "loop" : "once"}
+        repeat={repeat}
         restartKey={restartKey}
       />
     </View>

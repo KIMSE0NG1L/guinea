@@ -5,12 +5,19 @@ import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
 import type { EnemyKind } from "../types";
 
+// Stage 1 (stageNumber 0) is the alley slime, stage 2 the mushroom swamp, stage 3+
+// (stageNumber >= 2) the giant-vegetable farm's carrot rabbit.
+function getEnemyKind(stageNumber: number): EnemyKind {
+  return stageNumber >= 2 ? "carrot" : stageNumber >= 1 ? "mushroom" : "slime";
+}
+
 export function BattleScreen({ game }: { game: UseGameState }) {
-  const { state, battle, onBoss, pendingReward, claimReward, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, defeatedBoss } = game;
-  // Stage 1 (stageNumber 0) is the alley slime, stage 2 the mushroom swamp, stage 3+
-  // (stageNumber >= 2) the giant-vegetable farm's carrot rabbit.
-  const regularEnemyKind: EnemyKind =
-    state.stageNumber >= 2 ? "carrot" : state.stageNumber >= 1 ? "mushroom" : "slime";
+  const { state, battle, onBoss, pendingReward, claimReward, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, defeatedBoss, defeatedStageNumber } = game;
+  // stageNumber advances the instant a boss dies, before its ~650ms death clip finishes —
+  // keep showing the stage it died in (not the next one) for the rest of that clip, same
+  // as the `boss` flag below already does, or the die animation flashes the next boss.
+  const isDefeatFlash = battle.phase === "defeated" && defeatedBoss;
+  const regularEnemyKind: EnemyKind = getEnemyKind(isDefeatFlash ? defeatedStageNumber : state.stageNumber);
 
   return (
     <>
@@ -20,7 +27,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         damageEvents={battle.damageEvents}
         enemyHp={battle.enemyHp}
         enemyMaxHp={enemyMaxHp}
-        boss={boss || (battle.phase === "defeated" && defeatedBoss)}
+        boss={boss || isDefeatFlash}
         enemyKind={regularEnemyKind}
         phase={battle.phase}
         enemyId={battle.enemyId}

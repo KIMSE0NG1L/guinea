@@ -21,7 +21,17 @@ const ENEMY_NAME: Record<EnemyKind, string> = {
 const BOSS_NAME: Record<EnemyKind, string> = {
   slime: "왕 슬라임",
   mushroom: "버섯 대왕",
-  carrot: "감자 대왕",
+  carrot: "감자 골렘",
+};
+
+// Each boss art source fills a different fraction of its 228px frame (the original
+// boss-slime asset nearly fills it edge to edge; the mushroom/potato ones were cropped
+// with more headroom), so a flat displaySize makes them wildly inconsistent in size —
+// scale each down to read as roughly the same on-screen height.
+const BOSS_SIZE: Record<EnemyKind, number> = {
+  slime: 128,
+  mushroom: 180,
+  carrot: 180,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -74,6 +84,7 @@ export function BattleScene({
 
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
+  const enemySize = boss ? BOSS_SIZE[enemyKind] : 108;
 
   return (
     <View style={styles.scene}>
@@ -102,9 +113,11 @@ export function BattleScene({
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
 
           <View style={styles.fighters}>
-            <PlayerFighter animation={playerAnimation} outfit={outfit} />
+            <PlayerFighter animation={playerAnimation} outfit={outfit} boss={boss} />
 
-            <View style={styles.effects} pointerEvents="none">
+            {/* Pinned above whatever the current enemy's head height is, so a much
+                taller boss doesn't bury its own damage numbers behind its body. */}
+            <View style={[styles.effects, { bottom: enemySize + 30 }]} pointerEvents="none">
               {damageEvents.map((event) => (
                 <DamageNumber key={event.id} amount={event.amount} critical={event.critical} />
               ))}
@@ -120,6 +133,7 @@ export function BattleScene({
               maxHp={enemyMaxHp}
               manualEnabled={manualEnabled}
               phase={phase}
+              size={enemySize}
             />
           </View>
         </ImageBackground>
@@ -128,7 +142,7 @@ export function BattleScene({
   );
 }
 
-function PlayerFighter({ animation, outfit }: { animation: PlayerAnimation; outfit: Outfit }) {
+function PlayerFighter({ animation, outfit, boss }: { animation: PlayerAnimation; outfit: Outfit; boss: boolean }) {
   const isAttacking = animation === "attack" || animation === "critical";
   const shake = useSharedValue(0);
   const lunge = useSharedValue(0);
@@ -158,7 +172,12 @@ function PlayerFighter({ animation, outfit }: { animation: PlayerAnimation; outf
       <View style={styles.unitLabel}>
         <Text style={styles.unitLabelText}>기니</Text>
       </View>
-      <CharacterSprite outfit={outfit} animation={animation} restartKey={`${outfit}-${animation}`} />
+      <CharacterSprite
+        outfit={outfit}
+        animation={animation}
+        repeat={animation === "win" && boss ? 3 : 1}
+        restartKey={`${outfit}-${animation}`}
+      />
     </Animated.View>
   );
 }
@@ -172,6 +191,7 @@ function EnemyFighter({
   maxHp,
   manualEnabled,
   phase,
+  size,
 }: {
   animation: EnemyAnimation;
   boss: boolean;
@@ -181,6 +201,7 @@ function EnemyFighter({
   maxHp: number;
   manualEnabled: boolean;
   phase: BattlePhase;
+  size: number;
 }) {
   const shake = useSharedValue(0);
   const defeat = useSharedValue(0);
@@ -216,13 +237,15 @@ function EnemyFighter({
 
   return (
     <Animated.View style={[styles.characterWrap, style]}>
-      <View style={[styles.unitLabel, styles.enemyNameplate, boss && styles.enemyNameplateBoss]}>
+      {/* Fixed position regardless of sprite size, so the boss's HP bar lines up with a
+          regular mob's — the (much taller) boss sprite grows upward behind it instead. */}
+      <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, boss && styles.enemyNameplateBoss]}>
         <Text style={styles.unitLabelText}>{boss ? BOSS_NAME[enemyKind] : `${ENEMY_NAME[enemyKind]} ${enemyId}`}</Text>
         <View style={styles.unitHealthTrack}>
           <View style={[styles.unitHealthFill, { width: `${(currentHp / maxHp) * 100}%` }]} />
         </View>
       </View>
-      <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={boss ? 180 : 108} restartKey={`${animation}-${enemyId}`} />
+      <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
       {manualEnabled && (
         <View style={styles.touchHint}>
           <Text style={styles.touchHintText}>터치 공격</Text>
@@ -269,8 +292,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
-  effects: { position: "absolute", top: "42%", right: 96 },
-  characterWrap: { width: 108, alignItems: "center" },
+  effects: { position: "absolute", right: 96 },
+  characterWrap: { width: 108, alignItems: "center", position: "relative" },
   unitLabel: {
     marginBottom: 4,
     paddingHorizontal: 6,
@@ -280,6 +303,9 @@ const styles = StyleSheet.create({
   },
   unitLabelText: { color: colors.cream, fontSize: 8, fontWeight: "800", fontFamily: fonts.bold },
   enemyNameplate: { width: 104, paddingHorizontal: 6, paddingTop: 4, paddingBottom: 5, gap: 3, alignItems: "center" },
+  // Pinned at the regular mob's natural nameplate position (108px sprite + its 4px gap)
+  // so a much taller boss sprite doesn't drag its HP bar up with it.
+  enemyNameplateFixed: { position: "absolute", bottom: 112 },
   enemyNameplateBoss: { width: 116 },
   unitHealthTrack: { width: "100%", height: 6, overflow: "hidden", backgroundColor: "#211a16", borderWidth: 1, borderColor: "#f7ecd066", borderRadius: 5 },
   unitHealthFill: { height: "100%", backgroundColor: "#dc6048" },

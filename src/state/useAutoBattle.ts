@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BattlePhase } from "../types";
 
+// Player's win animation is 480ms/cycle and plays 3x on a boss kill (see BattleScene's
+// PlayerFighter) — the defeated-phase delay needs to be at least that long so the
+// celebration isn't cut short by the regular-mob respawn timing.
+const BOSS_RESPAWN_DELAY = 1500;
+const MOB_RESPAWN_DELAY = 650;
+
 export function useAutoBattle({
   attack,
   criticalDamage,
   criticalChance,
   goldBonus,
   enemyMaxHp,
+  boss,
   onDefeat,
 }: {
   attack: number;
@@ -14,6 +21,7 @@ export function useAutoBattle({
   criticalChance: number;
   goldBonus: number;
   enemyMaxHp: number;
+  boss: boolean;
   onDefeat: (goldReward: number) => void;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
@@ -30,6 +38,7 @@ export function useAutoBattle({
   const criticalChanceRef = useRef(criticalChance);
   const goldBonusRef = useRef(goldBonus);
   const maxHpRef = useRef(enemyMaxHp);
+  const bossRef = useRef(boss);
   const onDefeatRef = useRef(onDefeat);
   const manualTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const damageEventIdRef = useRef(0);
@@ -52,6 +61,7 @@ export function useAutoBattle({
   criticalChanceRef.current = criticalChance;
   goldBonusRef.current = goldBonus;
   maxHpRef.current = enemyMaxHp;
+  bossRef.current = boss;
   onDefeatRef.current = onDefeat;
   phaseRef.current = phase;
 
@@ -98,7 +108,7 @@ export function useAutoBattle({
                 setPhase("idle");
                 queueAttack(550);
               }, 220);
-            }, 650);
+            }, bossRef.current ? BOSS_RESPAWN_DELAY : MOB_RESPAWN_DELAY);
           } else {
             setPhase("hit");
             later(() => {
@@ -158,7 +168,7 @@ export function useAutoBattle({
           setPhase("idle");
         }, 220);
         manualTimersRef.current.push(readyTimer);
-      }, 650);
+      }, bossRef.current ? BOSS_RESPAWN_DELAY : MOB_RESPAWN_DELAY);
       manualTimersRef.current.push(respawnTimer);
       return;
     }
@@ -196,7 +206,17 @@ export function useAutoBattle({
     maxHpRef.current = nextMaxHp;
     setEnemyHp(nextMaxHp);
     setEnemyId((value) => value + 1);
+    phaseRef.current = "entering";
     setPhase("entering");
+
+    // Nothing else ever clears "entering" back to "idle" outside of a defeat's own timer
+    // chain — without this, manualAttack's phase guard would block every tap forever
+    // whenever the boss toggle (or anything else) calls resetEnemy while not auto-battling.
+    const readyTimer = setTimeout(() => {
+      phaseRef.current = "idle";
+      setPhase("idle");
+    }, 220);
+    manualTimersRef.current.push(readyTimer);
   }, []);
 
   return {

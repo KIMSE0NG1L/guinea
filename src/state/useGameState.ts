@@ -6,16 +6,26 @@ import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMat
 import { useAutoBattle } from "./useAutoBattle";
 import { loadSave, writeSave } from "./storage";
 
+// Matches BattleScreen's regularEnemyKind cutoff (stageNumber >= 2 is the farm/carrot
+// tier) — stage 3 is the last stage with a theme, mob, and boss implemented so far.
+const LAST_STAGE_NUMBER = 2;
+
 export function useGameState() {
   const [state, setState] = useState(initialState);
   const [pendingReward, setPendingReward] = useState(220);
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
   const [defeatedBoss, setDefeatedBoss] = useState(false);
+  // The stage theme (and therefore boss sprite) a dying boss should keep showing until
+  // its death animation finishes — stageNumber itself advances immediately on defeat,
+  // which would otherwise swap the die animation to the *next* stage's boss mid-clip.
+  const [defeatedStageNumber, setDefeatedStageNumber] = useState(0);
   const [stageAnnouncement, setStageAnnouncement] = useState<string | null>(null);
   const [upgradeMode, setUpgradeMode] = useState<UpgradeMode>(1);
   const [upgraded, setUpgraded] = useState<StatKey | null>(null);
-  const enemyMaxHp = boss ? 220 : 80;
+  // Enemies get tougher each stage so progression isn't flat — tune the multiplier here.
+  const stageHpMultiplier = 1 + state.stageNumber * 1.2;
+  const enemyMaxHp = Math.round((boss ? 220 : 80) * stageHpMultiplier);
 
   // Gates the autosave effect below until the saved-game load (or its absence) has
   // resolved — otherwise the fresh `initialState` would autosave over a real save
@@ -68,15 +78,19 @@ export function useGameState() {
     if (boss) setBoss(false);
 
     setState((previous) => {
+      if (boss) setDefeatedStageNumber(previous.stageNumber);
+
       const kills = previous.kills + 1;
       const experience = previous.experience + 8;
       const totalGoldEarned = previous.totalGoldEarned + goldReward;
-      const stageNumber = boss ? previous.stageNumber + 1 : previous.stageNumber;
+      // Stage 3 (stageNumber 2) is the last one with content — clearing its boss loops
+      // back to stage 1 instead of advancing into an unthemed stage 4.
+      const stageNumber = boss ? (previous.stageNumber >= LAST_STAGE_NUMBER ? 0 : previous.stageNumber + 1) : previous.stageNumber;
       return {
         ...previous,
         gold: previous.gold + goldReward,
         kills,
-        currentStage: boss ? `+${stageNumber} 스테이지` : previous.currentStage,
+        currentStage: boss ? (stageNumber === 0 ? initialState.currentStage : `+${stageNumber} 스테이지`) : previous.currentStage,
         stageNumber,
         stageKills: boss ? 0 : previous.stageKills + 1,
         totalGoldEarned,
@@ -97,6 +111,7 @@ export function useGameState() {
     criticalChance: state.criticalChance ?? 5,
     goldBonus: state.goldBonus,
     enemyMaxHp,
+    boss,
     onDefeat: handleEnemyDefeat,
   });
 
@@ -164,7 +179,7 @@ export function useGameState() {
     const nextBoss = !boss;
     setDefeatedBoss(false);
     setBoss(nextBoss);
-    battle.resetEnemy(nextBoss ? 220 : 80);
+    battle.resetEnemy(Math.round((nextBoss ? 220 : 80) * stageHpMultiplier));
   };
 
   return {
@@ -175,6 +190,7 @@ export function useGameState() {
     setQuestOpen,
     boss,
     defeatedBoss,
+    defeatedStageNumber,
     stageAnnouncement,
     upgradeMode,
     setUpgradeMode,
