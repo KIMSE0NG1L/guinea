@@ -12,6 +12,7 @@ import { CompanionsScreen } from "./screens/CompanionsScreen";
 import { InventoryScreen } from "./screens/InventoryScreen";
 import { WardrobeScreen } from "./screens/WardrobeScreen";
 import { ShopScreen } from "./screens/ShopScreen";
+import { MilestoneScreen } from "./screens/MilestoneScreen";
 import type { Tab } from "./types";
 
 export function GameScreen() {
@@ -39,6 +40,15 @@ export function GameScreen() {
         );
       case "shop":
         return <ShopScreen />;
+      case "milestone":
+        return (
+          <MilestoneScreen
+            stageNumber={state.stageNumber}
+            highestStageNumber={state.highestStageNumber ?? state.stageNumber}
+            onSelectStage={game.selectStage}
+            onBack={() => onSelectTab("battle")}
+          />
+        );
       default:
         return <BattleScreen game={game} />;
     }

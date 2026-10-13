@@ -1,15 +1,11 @@
 import { StageHeader } from "../components/StageHeader";
 import { RewardPanel } from "../components/RewardPanel";
-import { BattleScene } from "./BattleScene";
+import { ImageBackground, StyleSheet, View } from "react-native";
+import { BattleScene, STAGE_BACKGROUND } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
+import { getEnemyKind } from "../state/stages";
 import type { EnemyKind } from "../types";
-
-// Stage 1 (stageNumber 0) is the alley slime, stage 2 the mushroom swamp, stage 3+
-// (stageNumber >= 2) the giant-vegetable farm's carrot rabbit.
-function getEnemyKind(stageNumber: number): EnemyKind {
-  return stageNumber >= 2 ? "carrot" : stageNumber >= 1 ? "mushroom" : "slime";
-}
 
 export function BattleScreen({ game }: { game: UseGameState }) {
   const { state, battle, onBoss, pendingReward, claimReward, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, defeatedBoss, defeatedStageNumber } = game;
@@ -38,21 +34,32 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         outfit={state.equippedOutfit}
         manualEnabled={!battle.isAutoBattle}
         onManualAttack={battle.manualAttack}
+        onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
       />
-      <RewardPanel
-        earned={pendingReward}
-        onClaim={claimReward}
-        isAutoBattle={battle.isAutoBattle}
-        onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
-      />
-      <StatUpgradePanel
-        state={state}
-        upgradeMode={upgradeMode}
-        onUpgradeModeChange={setUpgradeMode}
-        onUpgrade={upgradeStat}
-        compact
-        upgraded={upgraded}
-      />
+      <ImageBackground source={STAGE_BACKGROUND[regularEnemyKind]} resizeMode="cover" style={styles.lower} imageStyle={styles.lowerImage}>
+        <View style={styles.lowerShade} pointerEvents="none" />
+        <RewardPanel
+          earned={pendingReward}
+          onClaim={claimReward}
+          isAutoBattle={battle.isAutoBattle}
+          onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
+        />
+        <StatUpgradePanel
+          state={state}
+          upgradeMode={upgradeMode}
+          onUpgradeModeChange={setUpgradeMode}
+          onUpgrade={upgradeStat}
+          compact
+          upgraded={upgraded}
+        />
+      </ImageBackground>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  lower: { flexGrow: 1, marginTop: 6 },
+  lowerImage: { opacity: 0.85 },
+  // Knocks the busy forest art back so the parchment panels read first.
+  lowerShade: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "#1d2a1a40" },
+});

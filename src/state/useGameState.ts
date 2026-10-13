@@ -1,14 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 import { initialState } from "./initialState";
 import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { loadSave, writeSave } from "./storage";
+import { getStageCode, LAST_STAGE_NUMBER } from "./stages";
 
-// Matches BattleScreen's regularEnemyKind cutoff (stageNumber >= 2 is the farm/carrot
-// tier) — stage 3 is the last stage with a theme, mob, and boss implemented so far.
-const LAST_STAGE_NUMBER = 2;
+function getStageLabel(stageNumber: number) {
+  return stageNumber === 0 ? initialState.currentStage : getStageCode(stageNumber);
+}
+
+function getStageHpMultiplier(stageNumber: number) {
+  return 1 + stageNumber * 1.2;
+}
 
 export function useGameState() {
   const [state, setState] = useState(initialState);
@@ -23,8 +28,11 @@ export function useGameState() {
   const [stageAnnouncement, setStageAnnouncement] = useState<string | null>(null);
   const [upgradeMode, setUpgradeMode] = useState<UpgradeMode>(1);
   const [upgraded, setUpgraded] = useState<StatKey | null>(null);
+  // Set when the player jumps stages from the milestone map, so the stageNumber change
+  // below doesn't flash the "STAGE CLEAR" banner for a stage they didn't clear.
+  const skipStageAnnouncement = useRef(false);
   // Enemies get tougher each stage so progression isn't flat — tune the multiplier here.
-  const stageHpMultiplier = 1 + state.stageNumber * 1.2;
+  const stageHpMultiplier = getStageHpMultiplier(state.stageNumber);
   const enemyMaxHp = Math.round((boss ? 220 : 80) * stageHpMultiplier);
 
   // Gates the autosave effect below until the saved-game load (or its absence) has
@@ -67,8 +75,12 @@ export function useGameState() {
   }, [state, pendingReward, loaded]);
 
   useEffect(() => {
+    if (skipStageAnnouncement.current) {
+      skipStageAnnouncement.current = false;
+      return;
+    }
     if (state.stageNumber === 0) return;
-    setStageAnnouncement(`+${state.stageNumber} 스테이지`);
+    setStageAnnouncement(getStageCode(state.stageNumber));
     const timer = setTimeout(() => setStageAnnouncement(null), 1500);
     return () => clearTimeout(timer);
   }, [state.stageNumber]);
@@ -90,8 +102,10 @@ export function useGameState() {
         ...previous,
         gold: previous.gold + goldReward,
         kills,
-        currentStage: boss ? (stageNumber === 0 ? initialState.currentStage : `+${stageNumber} 스테이지`) : previous.currentStage,
+        currentStage: boss ? getStageLabel(stageNumber) : previous.currentStage,
         stageNumber,
+        // Saves from before the milestone map have no record — what they're on is the floor.
+        highestStageNumber: Math.max(previous.highestStageNumber ?? previous.stageNumber, stageNumber),
         stageKills: boss ? 0 : previous.stageKills + 1,
         totalGoldEarned,
         level: experience >= 100 ? previous.level + 1 : previous.level,
@@ -182,6 +196,24 @@ export function useGameState() {
     battle.resetEnemy(Math.round((nextBoss ? 220 : 80) * stageHpMultiplier));
   };
 
+  const selectStage = (stageNumber: number) => {
+    const highestStageNumber = state.highestStageNumber ?? state.stageNumber;
+    if (stageNumber > highestStageNumber) return;
+    if (stageNumber !== state.stageNumber) skipStageAnnouncement.current = true;
+    setStageAnnouncement(null);
+    setBoss(false);
+    setDefeatedBoss(false);
+    setState((previous) => ({
+      ...previous,
+      currentStage: getStageLabel(stageNumber),
+      stageNumber,
+      stageKills: 0,
+      highestStageNumber,
+      selectedTab: "battle",
+    }));
+    battle.resetEnemy(Math.round(80 * getStageHpMultiplier(stageNumber)));
+  };
+
   return {
     state,
     setState,
@@ -201,6 +233,7 @@ export function useGameState() {
     upgradeStat,
     claimQuest,
     onBoss,
+    selectStage,
   };
 }
 

@@ -13,6 +13,7 @@ export const initialState: GameState = {
   currentStage: "1-1 골목",
   stageNumber: 0,
   stageKills: 0,
+  highestStageNumber: 0,
   equippedOutfit: "default",
   selectedTab: "battle",
   inventory: [

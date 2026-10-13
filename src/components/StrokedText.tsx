@@ -25,7 +25,9 @@ export function StrokedText({
       {OFFSETS.map(([dx, dy]) => (
         <Text
           key={`${dx}-${dy}`}
-          style={[style, styles.layer, { color: strokeColor, left: dx * strokeWidth, top: dy * strokeWidth }]}
+          // Pin both edges so each layer is exactly as wide as the real text — with only
+          // `left`, web can shrink-wrap an absolute layer and wrap it into a block below.
+          style={[style, styles.layer, { color: strokeColor, left: dx * strokeWidth, right: -dx * strokeWidth, top: dy * strokeWidth }]}
         >
           {children}
         </Text>
