@@ -13,7 +13,7 @@ import { formatGameNumber } from "../state/gameMath";
 import { BOSS_NAME, ENEMY_NAME } from "../state/stages";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
 
-// Each boss art source fills a different fraction of its 228px frame (the original
+// Each boss art source fills a different fraction of its 160px frame (the original
 // boss-slime asset nearly fills it edge to edge; the mushroom/potato ones were cropped
 // with more headroom), so a flat displaySize makes them wildly inconsistent in size —
 // scale each down to read as roughly the same on-screen height.

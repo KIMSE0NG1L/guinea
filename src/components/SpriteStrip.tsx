@@ -3,7 +3,7 @@ import { Image, View, type ImageSourcePropType } from "react-native";
 
 type Props = {
   source: ImageSourcePropType;
-  frameSize: number; // native px per frame in the source strip (228 for all current strips)
+  frameSize: number; // native px per frame in the source strip (160 for all current strips)
   frameCount: number; // 5 for guinea strips, 4 for boss strips
   displaySize: number; // rendered box size on screen, e.g. 108
   durationMs: number; // full-cycle duration, ported verbatim from the web CSS animation-duration

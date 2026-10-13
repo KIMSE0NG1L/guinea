@@ -8,8 +8,6 @@ import type { Outfit } from "../types";
 
 const wardrobeItems: { outfit: Outfit; name: string; detail: string; swatch: string }[] = [
   { outfit: "default", name: "기본 빨간 망토", detail: "기니의 첫 모험복", swatch: "#b84e3c" },
-  { outfit: "acorn", name: "도토리 탐험복", detail: "도토리 향이 나는 탐험복", swatch: "#a97a43" },
-  { outfit: "pauper", name: "빈곤 모험가 로브", detail: "동전 한 닢 없어도 모험은 계속된다", swatch: "#8a7a63" },
 ];
 
 // Matches web: `.wardrobe-preview .guinea-sprite { scale: 1.18 }`. The sprite's own

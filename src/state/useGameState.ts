@@ -45,7 +45,7 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "acorn", "pauper"];
+        const validOutfits = ["default"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";

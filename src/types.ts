@@ -4,7 +4,7 @@ export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering"
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
 export type EnemyKind = "slime" | "mushroom" | "carrot";
-export type Outfit = "default" | "acorn" | "pauper";
+export type Outfit = "default";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 
 export interface Quest {

@@ -9,18 +9,6 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-critical-strip.png"),
       win: require("../assets/sprites/guinea-win-strip.png"),
     },
-    acorn: {
-      idle: require("../assets/sprites/guinea-acorn-idle-strip.png"),
-      attack: require("../assets/sprites/guinea-acorn-attack-strip.png"),
-      critical: require("../assets/sprites/guinea-acorn-critical-strip.png"),
-      win: require("../assets/sprites/guinea-acorn-win-strip.png"),
-    },
-    pauper: {
-      idle: require("../assets/sprites/guinea-pauper-idle-strip.png"),
-      attack: require("../assets/sprites/guinea-pauper-attack-strip.png"),
-      critical: require("../assets/sprites/guinea-pauper-critical-strip.png"),
-      win: require("../assets/sprites/guinea-pauper-win-strip.png"),
-    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.png"),
@@ -108,5 +96,5 @@ export const uiImages = {
   flower: require("../assets/ui/flower.png"),
 };
 
-// Every strip frame is 228x228px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
-export const FRAME_SIZE = 228;
+// Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
+export const FRAME_SIZE = 160;
