@@ -60,6 +60,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-potato-hit-strip.png"),
     die: require("../assets/sprites/boss-potato-die-strip.png"),
   },
+  mouse: {
+    idle: require("../assets/sprites/city-mouse-idle-strip.png"),
+    hit: require("../assets/sprites/city-mouse-hit-strip.png"),
+    die: require("../assets/sprites/city-mouse-die-strip.png"),
+  },
+  bossFatCat: {
+    idle: require("../assets/sprites/boss-fatcat-idle-strip.png"),
+    hit: require("../assets/sprites/boss-fatcat-hit-strip.png"),
+    die: require("../assets/sprites/boss-fatcat-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -68,6 +78,7 @@ export const images = {
   battleBackgroundFarm: require("../assets/sprites/battle-farm.png"),
   battleBackgroundChicken: require("../assets/sprites/battle-chicken-farm.png"),
   battleBackgroundPotatoCave: require("../assets/sprites/battle-potato-cave.png"),
+  battleBackgroundVillage: require("../assets/sprites/battle-village.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

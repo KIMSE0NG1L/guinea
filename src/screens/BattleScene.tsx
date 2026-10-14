@@ -33,6 +33,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   carrot: 180,
   chicken: 165,
   potato: 165,
+  mouse: 175,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -41,6 +42,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   carrot: images.battleBackgroundFarm,
   chicken: images.battleBackgroundChicken,
   potato: images.battleBackgroundPotatoCave,
+  mouse: images.battleBackgroundVillage,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
