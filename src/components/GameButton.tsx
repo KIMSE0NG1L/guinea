@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, type GestureResponderEvent, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
+import { kit, shopKit } from "../assets";
 import { NineSlice } from "./NineSlice";
 
-export type ButtonVariant = "cream" | "green" | "beige" | "gray" | "brown";
+export type ButtonVariant = "cream" | "green" | "beige" | "gray" | "brown" | "red" | "pillCream" | "pillGray";
 
 const SLICES = {
   cream: kit.buttonCream,
@@ -11,6 +11,9 @@ const SLICES = {
   beige: kit.buttonBeige,
   gray: kit.buttonGray,
   brown: kit.buttonBrown,
+  red: shopKit.pillRed,
+  pillCream: shopKit.pillCream,
+  pillGray: shopKit.pillGray,
 } as const;
 
 // Label colour that reads on each button face.
@@ -20,6 +23,9 @@ const LABEL_COLORS: Record<ButtonVariant, string> = {
   beige: colors.ink,
   gray: "#4f463c",
   brown: colors.cream,
+  red: colors.cream,
+  pillCream: colors.ink,
+  pillGray: "#4f463c",
 };
 
 export function GameButton({

@@ -1,4 +1,4 @@
-export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "shop" | "milestone" | "kitchen";
+export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
@@ -30,6 +30,8 @@ export interface GameState {
   stageKills: number;
   // Furthest stage reached — every stage up to it can be revisited from the milestone map.
   highestStageNumber?: number;
+  // Recipe ids the player has learned; missing on saves from before the recipe shop.
+  knownRecipes?: string[];
   equippedOutfit: Outfit;
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];

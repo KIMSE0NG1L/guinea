@@ -6,7 +6,7 @@ import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMat
 import { useAutoBattle } from "./useAutoBattle";
 import { loadSave, writeSave } from "./storage";
 import { getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
-import { canCook, RECIPES } from "./recipes";
+import { canCook, getKnownRecipes, RECIPES } from "./recipes";
 
 function getStageHpMultiplier(stageNumber: number) {
   return 1 + stageNumber * 1.2;
@@ -212,7 +212,7 @@ export function useGameState() {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     if (!recipe) return;
     setState((previous) => {
-      if (!canCook(previous.inventory, recipe)) return previous;
+      if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return previous;
       const inventory = previous.inventory
         .map((item) => {
           const used = recipe.ingredients.find((ingredient) => ingredient.name === item.name)?.quantity ?? 0;
@@ -227,6 +227,36 @@ export function useGameState() {
           : [...inventory, { name: recipe.name, quantity: 1, type: "dish" }],
       };
     });
+  };
+
+  // Returns whether the purchase went through, so the shop can react either way.
+  const buyIngredient = (name: string, price: number) => {
+    if (state.gold < price) return false;
+    setState((previous) => {
+      if (previous.gold < price) return previous;
+      const owned = previous.inventory.find((item) => item.name === name);
+      return {
+        ...previous,
+        gold: previous.gold - price,
+        inventory: owned
+          ? previous.inventory.map((item) => (item === owned ? { ...item, quantity: item.quantity + 1 } : item))
+          : [...previous.inventory, { name, quantity: 1, type: "food" }],
+      };
+    });
+    return true;
+  };
+
+  // Returns whether the recipe was learned, so the shop can react either way.
+  const learnRecipe = (recipeId: string) => {
+    const recipe = RECIPES.find((item) => item.id === recipeId);
+    const known = getKnownRecipes(state.knownRecipes);
+    if (!recipe || known.includes(recipeId) || state.gold < recipe.price) return false;
+    setState((previous) => {
+      const previousKnown = getKnownRecipes(previous.knownRecipes);
+      if (previousKnown.includes(recipeId) || previous.gold < recipe.price) return previous;
+      return { ...previous, gold: previous.gold - recipe.price, knownRecipes: [...previousKnown, recipeId] };
+    });
+    return true;
   };
 
   return {
@@ -249,6 +279,8 @@ export function useGameState() {
     claimQuest,
     selectStage,
     cook,
+    buyIngredient,
+    learnRecipe,
   };
 }
 

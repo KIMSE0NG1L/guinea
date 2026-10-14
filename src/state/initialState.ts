@@ -15,6 +15,7 @@ export const initialState: GameState = {
   stageNumber: 0,
   stageKills: 0,
   highestStageNumber: 0,
+  knownRecipes: ["carrot-soup"],
   equippedOutfit: "default",
   selectedTab: "battle",
   inventory: [

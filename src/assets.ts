@@ -148,6 +148,57 @@ export const kit = {
   track: slice(require("../assets/ui/kit-track.png"), 362, 47, [20, 24, 20, 24], "#f8eac7"),
 };
 
+// Grandma's grocery: warmer wood-and-linen frames from the shop sheet.
+export const shopKit = {
+  cardWood: slice(require("../assets/shop/card-wood.png"), 184, 253, [36, 36, 40, 36], "#fcf1d5"),
+  frameWide: slice(require("../assets/shop/frame-wide.png"), 598, 237, [70, 60, 70, 70], "#faedd1"),
+  // Tail hangs off the bottom-left, so those insets are wide enough to keep it whole.
+  bubble: slice(require("../assets/shop/bubble.png"), 347, 206, [40, 40, 60, 80], "#fcf2d9"),
+  // Coin is baked into the left end.
+  coinPill: slice(require("../assets/shop/coin-pill.png"), 331, 104, [30, 50, 36, 100]),
+  pillRed: slice(require("../assets/shop/pill-red.png"), 225, 74, [30, 40, 34, 40]),
+  pillCream: slice(require("../assets/shop/pill-cream.png"), 225, 72, [30, 40, 34, 40]),
+  pillGray: slice(require("../assets/shop/pill-gray.png"), 188, 74, [30, 40, 34, 40]),
+};
+
+export const shopImages = {
+  background: require("../assets/shop/background.jpg"),
+  tabCream: require("../assets/shop/tab-cream.png"),
+  tabRed: require("../assets/shop/tab-red.png"),
+  arrowBack: require("../assets/shop/arrow-back.png"),
+};
+
+export const chef = {
+  spoon: require("../assets/npc/chef-spoon.png"),
+  cheer: require("../assets/npc/chef-cheer.png"),
+  serve: require("../assets/npc/chef-serve.png"),
+  book: require("../assets/npc/chef-book.png"),
+  wok: require("../assets/npc/chef-wok.png"),
+};
+
+export const recipeArt = {
+  bookBrown: require("../assets/recipes/book-brown.png"),
+  bookRed: require("../assets/recipes/book-red.png"),
+  scrollClosed: require("../assets/recipes/scroll-closed.png"),
+  scrollGold: require("../assets/recipes/scroll-gold.png"),
+  scrollSoup: require("../assets/recipes/scroll-soup.png"),
+  carrotSoup: require("../assets/recipes/scroll-carrot-soup.png"),
+  friedEgg: require("../assets/recipes/card-fried-egg.png"),
+  veggieStew: require("../assets/recipes/scroll-veggie-stew.png"),
+  mushroomSoup: require("../assets/recipes/scroll-mushroom-soup.png"),
+  pumpkin: require("../assets/recipes/card-pumpkin.png"),
+  pudding: require("../assets/recipes/card-pudding.png"),
+  special: require("../assets/recipes/scroll-special.png"),
+};
+
+export const grandma = {
+  happy: require("../assets/npc/grandma-happy.png"),
+  wave: require("../assets/npc/grandma-wave.png"),
+  basket: require("../assets/npc/grandma-basket.png"),
+  menu: require("../assets/npc/grandma-menu.png"),
+  counter: require("../assets/npc/grandma-counter.png"),
+};
+
 export const kitImages = {
   toggleOn: require("../assets/ui/kit-toggle-on.png"),
   toggleOff: require("../assets/ui/kit-toggle-off.png"),

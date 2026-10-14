@@ -1,19 +1,53 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { food, kit } from "../assets";
+import { chef, grandma, kit, recipeArt } from "../assets";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
-import { canCook, getItemQuantity, ITEM_IMAGES, RECIPES } from "../state/recipes";
+import { canCook, getItemQuantity, getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
 import type { GameState } from "../types";
 
-export function KitchenScreen({ inventory, onCook }: { inventory: GameState["inventory"]; onCook: (recipeId: string) => void }) {
+export function KitchenScreen({
+  inventory,
+  knownRecipes,
+  onCook,
+  onOpenGrocery,
+  onOpenRecipes,
+}: {
+  inventory: GameState["inventory"];
+  knownRecipes: string[] | undefined;
+  onCook: (recipeId: string) => void;
+  onOpenGrocery: () => void;
+  onOpenRecipes: () => void;
+}) {
+  const known = getKnownRecipes(knownRecipes);
+  const recipes = RECIPES.filter((recipe) => known.includes(recipe.id));
+  const unlearned = RECIPES.length - recipes.length;
+
   return (
     <View style={styles.page}>
-      <PageHeading kicker="COOKING" title="기니의 부엌" description="재료를 모아 배고픈 기니에게 한 끼를." />
+      <View style={styles.headingRow}>
+        <View style={styles.heading}>
+          <PageHeading kicker="COOKING" title="기니의 부엌" description="재료를 모아 배고픈 기니에게 한 끼를." />
+        </View>
+        <View style={styles.shopButtons}>
+          <GameButton variant="red" onPress={onOpenGrocery} accessibilityLabel="재료 상점 열기" style={styles.shopButton}>
+            <View style={styles.shopContent}>
+              <Image source={grandma.basket} style={styles.shopImage} />
+              <Text style={styles.shopText}>재료</Text>
+            </View>
+          </GameButton>
+          <GameButton variant="pillCream" onPress={onOpenRecipes} accessibilityLabel="레시피 상점 열기" style={styles.shopButton}>
+            <View style={styles.shopContent}>
+              <Image source={chef.spoon} style={styles.shopImage} />
+              <Text style={[styles.shopText, styles.shopTextDark]}>레시피</Text>
+            </View>
+          </GameButton>
+        </View>
+      </View>
 
       <Panel slice={kit.panelParchment} style={styles.hero}>
-        <Image source={food.kitchen} style={styles.heroImage} />
+        <Image source={chef.wok} style={styles.heroImage} />
         <View style={styles.heroCopy}>
           <Text style={styles.heroLabel}>오늘의 주방</Text>
           <Text style={styles.heroTitle}>보글보글 끓는 중</Text>
@@ -22,7 +56,7 @@ export function KitchenScreen({ inventory, onCook }: { inventory: GameState["inv
       </Panel>
 
       <View style={styles.list}>
-        {RECIPES.map((recipe) => {
+        {recipes.map((recipe) => {
           const ready = canCook(inventory, recipe);
           const owned = getItemQuantity(inventory, recipe.name);
           return (
@@ -63,6 +97,15 @@ export function KitchenScreen({ inventory, onCook }: { inventory: GameState["inv
             </Panel>
           );
         })}
+        {unlearned > 0 && (
+          <Panel slice={kit.inset} style={styles.more}>
+            <Image source={recipeArt.scrollGold} style={styles.moreImage} />
+            <Text style={styles.moreText}>아직 배우지 않은 레시피가 {unlearned}개 있어요.</Text>
+            <GameButton variant="red" onPress={onOpenRecipes} style={styles.cookButton} textStyle={styles.cookButtonText}>
+              배우러 가기
+            </GameButton>
+          </Panel>
+        )}
       </View>
     </View>
   );
@@ -70,6 +113,18 @@ export function KitchenScreen({ inventory, onCook }: { inventory: GameState["inv
 
 const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  headingRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  heading: { flex: 1 },
+  shopButtons: { marginTop: 8, flexDirection: "row", gap: 5 },
+  shopButton: { paddingLeft: 4, paddingRight: 12, minHeight: 40 },
+  shopContent: { flexDirection: "row", alignItems: "center", gap: 3 },
+  // Pokes up out of the pill a little, like the shopkeeper is peeking over it.
+  shopImage: { width: 34, height: 34, marginTop: -10 },
+  shopText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  shopTextDark: { color: colors.brown },
+  more: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
+  moreImage: { width: 50, height: 50 },
+  moreText: { flex: 1, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   hero: { marginBottom: 12, paddingHorizontal: 16, paddingVertical: 14, flexDirection: "row", alignItems: "center", gap: 12 },
   heroImage: { width: 72, height: 72 },
   heroCopy: { flex: 1 },

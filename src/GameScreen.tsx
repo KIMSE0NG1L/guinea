@@ -14,6 +14,8 @@ import { WardrobeScreen } from "./screens/WardrobeScreen";
 import { ShopScreen } from "./screens/ShopScreen";
 import { MilestoneScreen } from "./screens/MilestoneScreen";
 import { KitchenScreen } from "./screens/KitchenScreen";
+import { GroceryScreen } from "./screens/GroceryScreen";
+import { RecipeShopScreen } from "./screens/RecipeShopScreen";
 import type { Tab } from "./types";
 
 export function GameScreen() {
@@ -42,7 +44,33 @@ export function GameScreen() {
       case "shop":
         return <ShopScreen />;
       case "kitchen":
-        return <KitchenScreen inventory={state.inventory} onCook={game.cook} />;
+        return (
+          <KitchenScreen
+            inventory={state.inventory}
+            knownRecipes={state.knownRecipes}
+            onCook={game.cook}
+            onOpenGrocery={() => onSelectTab("grocery")}
+            onOpenRecipes={() => onSelectTab("recipes")}
+          />
+        );
+      case "recipes":
+        return (
+          <RecipeShopScreen
+            knownRecipes={state.knownRecipes}
+            gold={state.gold}
+            onLearn={game.learnRecipe}
+            onBack={() => onSelectTab("kitchen")}
+          />
+        );
+      case "grocery":
+        return (
+          <GroceryScreen
+            inventory={state.inventory}
+            gold={state.gold}
+            onBuy={game.buyIngredient}
+            onBack={() => onSelectTab("kitchen")}
+          />
+        );
       case "milestone":
         return (
           <MilestoneScreen
