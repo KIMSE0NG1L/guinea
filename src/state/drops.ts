@@ -66,6 +66,17 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "양파", chance: 0.25 },
     ],
   },
+  cauldron: {
+    mob: [
+      { name: "우유", chance: 0.35 },
+      { name: "계란", chance: 0.15 },
+    ],
+    boss: [
+      { name: "우유", chance: 1, quantity: 3 },
+      { name: "치즈", chance: 0.5 },
+      { name: "계란", chance: 0.25 },
+    ],
+  },
 };
 
 export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {

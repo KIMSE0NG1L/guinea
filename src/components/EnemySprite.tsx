@@ -13,7 +13,7 @@ import type { EnemyAnimation, EnemyKind } from "../types";
 // carrot (stage 3's regular mob), chicken (stage 4's regular mob), potato (stage 5's
 // regular mob), bossMushroom, bossCarrotGiant, bossChicken, and bossPotato are 4-frame
 // sheets for every animation.
-const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
+const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
   slime: {
     idle: { frameCount: 5, durationMs: 650, mode: "loop" },
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
@@ -74,15 +74,26 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
+  cauldron: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossFridge: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
 };
 
-const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat"> = {
+const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge"> = {
   slime: "bossSlime",
   mushroom: "bossMushroom",
   carrot: "bossCarrotGiant",
   chicken: "bossChicken",
   potato: "bossPotato",
   mouse: "bossFatCat",
+  cauldron: "bossFridge",
 };
 
 export function EnemySprite({
