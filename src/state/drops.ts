@@ -102,6 +102,30 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "토마토", chance: 0.3 },
     ],
   },
+  // 침몰선 산호초: fish meat from the shoal; the shark guards an even richer catch.
+  bluefish: {
+    mob: [
+      { name: "결 고운 생선살", chance: 0.3 },
+      { name: "치즈", chance: 0.1 },
+    ],
+    boss: [
+      { name: "결 고운 생선살", chance: 1, quantity: 3 },
+      { name: "두툼 살코기", chance: 0.4 },
+      { name: "양배추", chance: 0.3 },
+    ],
+  },
+  // 화산섬: tough cuts seared by the heat; the lava slime melts down the richest ones.
+  salamander: {
+    mob: [
+      { name: "뼈 갈빗살", chance: 0.25 },
+      { name: "호박", chance: 0.1 },
+    ],
+    boss: [
+      { name: "뼈 갈빗살", chance: 1, quantity: 2 },
+      { name: "두툼 살코기", chance: 0.5 },
+      { name: "버섯", chance: 0.3 },
+    ],
+  },
 };
 
 export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {

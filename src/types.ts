@@ -3,7 +3,7 @@ export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonu
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
-export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper";
+export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander";
 export type Outfit = "default";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 

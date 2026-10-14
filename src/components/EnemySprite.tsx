@@ -13,7 +13,7 @@ import type { EnemyAnimation, EnemyKind } from "../types";
 // carrot (stage 3's regular mob), chicken (stage 4's regular mob), potato (stage 5's
 // regular mob), bossMushroom, bossCarrotGiant, bossChicken, and bossPotato are 4-frame
 // sheets for every animation.
-const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
+const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
   slime: {
     idle: { frameCount: 5, durationMs: 650, mode: "loop" },
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
@@ -94,9 +94,29 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
+  bluefish: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossShark: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  salamander: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossLavaSlime: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
 };
 
-const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab"> = {
+const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime"> = {
   slime: "bossSlime",
   mushroom: "bossMushroom",
   carrot: "bossCarrotGiant",
@@ -105,6 +125,8 @@ const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarr
   mouse: "bossFatCat",
   cauldron: "bossFridge",
   mudskipper: "bossKingCrab",
+  bluefish: "bossShark",
+  salamander: "bossLavaSlime",
 };
 
 export function EnemySprite({

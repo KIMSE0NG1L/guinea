@@ -90,6 +90,26 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-kingcrab-hit-strip.png"),
     die: require("../assets/sprites/boss-kingcrab-die-strip.png"),
   },
+  bluefish: {
+    idle: require("../assets/sprites/bluefish-idle-strip.png"),
+    hit: require("../assets/sprites/bluefish-hit-strip.png"),
+    die: require("../assets/sprites/bluefish-die-strip.png"),
+  },
+  bossShark: {
+    idle: require("../assets/sprites/boss-shark-idle-strip.png"),
+    hit: require("../assets/sprites/boss-shark-hit-strip.png"),
+    die: require("../assets/sprites/boss-shark-die-strip.png"),
+  },
+  salamander: {
+    idle: require("../assets/sprites/lava-salamander-idle-strip.png"),
+    hit: require("../assets/sprites/lava-salamander-hit-strip.png"),
+    die: require("../assets/sprites/lava-salamander-die-strip.png"),
+  },
+  bossLavaSlime: {
+    idle: require("../assets/sprites/boss-lavaslime-idle-strip.png"),
+    hit: require("../assets/sprites/boss-lavaslime-hit-strip.png"),
+    die: require("../assets/sprites/boss-lavaslime-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -101,6 +121,8 @@ export const images = {
   battleBackgroundVillage: require("../assets/sprites/battle-village.png"),
   battleBackgroundMansionKitchen: require("../assets/sprites/battle-mansion-kitchen.png"),
   battleBackgroundHarborBeach: require("../assets/sprites/battle-harbor-beach.png"),
+  battleBackgroundSunkenReef: require("../assets/sprites/battle-sunken-reef.png"),
+  battleBackgroundVolcanoIsland: require("../assets/sprites/battle-volcano-island.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
