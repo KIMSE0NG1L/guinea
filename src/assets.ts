@@ -275,6 +275,13 @@ export const grandma = {
   counter: require("../assets/npc/grandma-counter.png"),
 };
 
+export const statIcons = {
+  attack: require("../assets/stats/attack.png"),
+  criticalDamage: require("../assets/stats/critical-damage.png"),
+  criticalChance: require("../assets/stats/critical-chance.png"),
+  goldBonus: require("../assets/stats/gold.png"),
+};
+
 export const kitImages = {
   toggleOn: require("../assets/ui/kit-toggle-on.png"),
   toggleOff: require("../assets/ui/kit-toggle-off.png"),

@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { kit, icons, uiImages } from "../assets";
 import { NineSlice, Panel } from "./NineSlice";
 import { GameButton } from "./GameButton";
+import { AdUnavailableModal } from "./AdUnavailableModal";
 import { formatGameNumber } from "../state/gameMath";
 import type { OfflineSummary } from "../state/offline";
 
@@ -14,7 +16,27 @@ function formatTimeAway(ms: number) {
   return `${minutes}분`;
 }
 
-export function OfflineRewardModal({ summary, onClaim }: { summary: OfflineSummary; onClaim: () => void }) {
+export function OfflineRewardModal({
+  summary,
+  onClaim,
+  onClaimDouble,
+}: {
+  summary: OfflineSummary;
+  onClaim: () => void;
+  onClaimDouble: () => void;
+}) {
+  const [adOpen, setAdOpen] = useState(false);
+
+  if (adOpen) {
+    return (
+      <AdUnavailableModal
+        message={`대신 섭섭하지 않게 골드 2배는 그대로 챙겨드릴게요.\n+${formatGameNumber(summary.goldEarned * 2)} 골드`}
+        claimLabel="2배 받기"
+        onClaim={onClaimDouble}
+      />
+    );
+  }
+
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClaim}>
       <Pressable style={styles.backdrop} onPress={onClaim}>
@@ -47,7 +69,17 @@ export function OfflineRewardModal({ summary, onClaim }: { summary: OfflineSumma
 
           {summary.bossReady && <Text style={styles.bossNote}>보스가 기다리고 있어요 — 직접 잡으러 가볼까요?</Text>}
 
-          <GameButton variant="green" onPress={onClaim} style={styles.claimButton}>받기</GameButton>
+          <View style={styles.buttons}>
+            <GameButton variant="beige" onPress={onClaim} style={styles.claimButton}>받기</GameButton>
+            {summary.goldEarned > 0 && (
+              <GameButton variant="green" onPress={() => setAdOpen(true)} accessibilityLabel="광고 보고 골드 2배 받기" style={styles.claimButton}>
+                <View style={styles.doubleContent}>
+                  <Text style={styles.doubleSmall}>광고 보고</Text>
+                  <Text style={styles.doubleLabel}>2배 받기</Text>
+                </View>
+              </GameButton>
+            )}
+          </View>
         </Pressable>
       </Pressable>
     </Modal>
@@ -85,5 +117,9 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   statLabel: { fontSize: 8, color: colors.muted, fontWeight: "700", fontFamily: fonts.bold },
   bossNote: { marginTop: 12, fontSize: 10, fontWeight: "700", fontFamily: fonts.bold, color: colors.red, textAlign: "center" },
-  claimButton: { marginTop: 16, minWidth: 140 },
+  buttons: { marginTop: 16, flexDirection: "row", gap: 8 },
+  claimButton: { minWidth: 110, minHeight: 44 },
+  doubleContent: { alignItems: "center" },
+  doubleSmall: { fontSize: 8, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
+  doubleLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

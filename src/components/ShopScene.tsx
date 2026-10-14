@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { shopImages, shopKit } from "../assets";
 import { NineSlice, Panel } from "./NineSlice";
+import { GameButton } from "./GameButton";
 import { formatGameNumber } from "../state/gameMath";
 
 // Height / width of the kitchen background art (1168x880).
@@ -34,12 +35,15 @@ export function ShopTopBar({
   gold,
   onBack,
   backLabel,
+  other,
 }: {
   kicker: string;
   title: string;
   gold: number;
   onBack: () => void;
   backLabel: string;
+  // The sister shop, so a shopping trip can hop between both without going back.
+  other?: { label: string; keeper: number; onPress: () => void; accessibilityLabel: string };
 }) {
   return (
     <View style={styles.topRow}>
@@ -53,6 +57,14 @@ export function ShopTopBar({
       <Panel slice={shopKit.coinPill} scale={0.36} style={styles.goldPill}>
         <Text style={styles.goldText} numberOfLines={1}>{formatGameNumber(gold)}</Text>
       </Panel>
+      {other && (
+        <GameButton variant="red" onPress={other.onPress} accessibilityLabel={other.accessibilityLabel} style={styles.otherButton}>
+          <View style={styles.otherContent}>
+            <Image source={other.keeper} style={styles.otherKeeper} />
+            <Text style={styles.otherText}>{other.label}</Text>
+          </View>
+        </GameButton>
+      )}
     </View>
   );
 }
@@ -82,14 +94,19 @@ export function ShopHero({ speaker, talk }: { speaker: string; talk: Talk }) {
 }
 
 const styles = StyleSheet.create({
-  topRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
+  topRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 },
   back: { width: 50, height: 32 },
   pressed: { transform: [{ scale: 0.94 }] },
   titleCopy: { flex: 1 },
   kicker: { color: colors.red, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
-  title: { fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
+  title: { fontSize: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
   // Text starts past the coin baked into the pill's left end.
-  goldPill: { height: 36, minWidth: 104, paddingLeft: 40, paddingRight: 14, justifyContent: "center" },
+  goldPill: { height: 36, minWidth: 92, paddingLeft: 38, paddingRight: 12, justifyContent: "center" },
+  otherButton: { minHeight: 38, paddingLeft: 3, paddingRight: 10 },
+  otherContent: { flexDirection: "row", alignItems: "center", gap: 2 },
+  // Pokes up out of the pill, like the other shopkeeper is peeking over it.
+  otherKeeper: { width: 30, height: 30, marginTop: -10 },
+  otherText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   goldText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "right" },
   heroFrame: { padding: 11, marginBottom: 8 },
   hero: { height: 210, overflow: "hidden", borderRadius: 4 },

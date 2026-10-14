@@ -1,17 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
+import { kit, statIcons } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { formatGameNumber, getStatLevel, getStatValue, getUpgradeQuote, getNextUpgradeMode, statInfo } from "../state/gameMath";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 
-const STAT_COLORS: Record<StatKey, string> = {
-  attack: colors.red,
-  criticalDamage: "#b26050",
-  criticalChance: "#a44d3f",
-  goldBonus: "#c69137",
-};
 
 export function StatUpgradePanel({
   state,
@@ -61,9 +55,9 @@ export function StatUpgradePanel({
           const suffix = key === "attack" ? "" : "%";
           return (
             <Panel slice={upgraded === key ? kit.panel : kit.inset} scale={0.4} style={styles.row} key={key}>
-              <View style={[styles.mark, { backgroundColor: STAT_COLORS[key] }]}>
-                <Text style={styles.markText}>{info.mark}</Text>
-              </View>
+              <Panel slice={kit.panelSmall} scale={0.3} style={styles.mark}>
+                <Image source={statIcons[key]} style={styles.markIcon} accessibilityLabel={info.label} />
+              </Panel>
               <View style={styles.rowCopy}>
                 <Text style={styles.rowSmall}>Lv. {level} · {info.label}</Text>
                 <Text style={styles.rowValue}>{formatGameNumber(value)}{suffix}</Text>
@@ -119,8 +113,8 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     paddingRight: 8,
   },
-  mark: { width: 34, height: 34, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.line, borderRadius: 8 },
-  markText: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 7 },
+  mark: { width: 40, height: 40, paddingBottom: 2, alignItems: "center", justifyContent: "center" },
+  markIcon: { width: 28, height: 28 },
   rowCopy: { flex: 1 },
   rowSmall: { color: colors.brown, fontSize: 9 },
   rowValue: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },

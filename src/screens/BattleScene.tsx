@@ -15,8 +15,6 @@ import { BossEntranceBanner } from "../components/BossEntranceBanner";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
-import { BUFF_SLOT_SIZE, BuffSlots } from "../components/BuffSlots";
-import type { BuffSlot } from "../state/buffs";
 import { formatGameNumber } from "../state/gameMath";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import { ITEM_IMAGES } from "../state/recipes";
@@ -113,9 +111,6 @@ export function BattleScene({
   onOpenKitchen,
   onOpenBag,
   dropEvents,
-  buffSlots,
-  now,
-  onPressBuffSlot,
   bossEntranceKey,
   levelUpAnnouncement,
 }: {
@@ -138,9 +133,6 @@ export function BattleScene({
   onOpenKitchen: () => void;
   onOpenBag: () => void;
   dropEvents: DropEvent[];
-  buffSlots: BuffSlot[];
-  now: number;
-  onPressBuffSlot: (index: number) => void;
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
 }) {
@@ -226,8 +218,6 @@ export function BattleScene({
               {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
             </View>
           </Animated.View>
-
-          <BuffSlots slots={buffSlots} now={now} onPressSlot={onPressBuffSlot} style={styles.buffSlots} />
 
           <BagButton onPress={onOpenBag} dropEvents={dropEvents} />
 
@@ -476,8 +466,6 @@ const styles = StyleSheet.create({
   kitchenButton: { position: "absolute", right: rowRight(1), bottom: ROW_BOTTOM, ...ICON_BOX },
   bagButton: { position: "absolute", right: rowRight(2), bottom: ROW_BOTTOM, ...ICON_BOX },
   mapButtonPressed: { transform: [{ scale: 0.92 }] },
-  // Bottom-left, on the same centre line as the bottom-right button row.
-  buffSlots: { position: "absolute", left: 8, bottom: BUTTON_ROW_CENTER - BUFF_SLOT_SIZE / 2 },
   effects: { position: "absolute", right: 96, bottom: 30, zIndex: 10 },
   // Below enemyNameplateFixed's zIndex: 5 so a big flash can never cover the HP bar.
   critFlash: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },

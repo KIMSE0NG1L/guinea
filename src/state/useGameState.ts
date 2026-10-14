@@ -421,6 +421,21 @@ export function useGameState() {
     resetSave,
     offlineSummary,
     dismissOfflineSummary: () => setOfflineSummary(null),
+    // The offline gold is already in the bag when the popup shows; doubling pays it once more.
+    claimOfflineDouble: () => {
+      if (!offlineSummary) return;
+      const bonus = offlineSummary.goldEarned;
+      setState((previous) => {
+        const totalGoldEarned = previous.totalGoldEarned + bonus;
+        return {
+          ...previous,
+          gold: previous.gold + bonus,
+          totalGoldEarned,
+          quests: previous.quests.map((quest) => (quest.id === "gold" ? { ...quest, current: totalGoldEarned } : quest)),
+        };
+      });
+      setOfflineSummary(null);
+    },
     cook,
     buyIngredient,
     learnRecipe,

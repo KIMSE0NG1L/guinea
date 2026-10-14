@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { grandma, shopImages, shopKit } from "../assets";
+import { chef, grandma, shopImages, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
@@ -32,11 +32,13 @@ export function GroceryScreen({
   gold,
   onBuy,
   onBack,
+  onOpenRecipes,
 }: {
   inventory: GameState["inventory"];
   gold: number;
   onBuy: (name: string, price: number) => boolean;
   onBack: () => void;
+  onOpenRecipes: () => void;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
   const { talk, say } = useShopTalk(GREETING);
@@ -58,7 +60,9 @@ export function GroceryScreen({
 
   return (
     <View style={styles.page}>
-      <ShopTopBar kicker="GROCERY" title="할머니 식료품점" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기" />
+      <ShopTopBar kicker="GROCERY" title="할머니 식료품점" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기"
+        other={{ label: "레시피", keeper: chef.spoon, onPress: onOpenRecipes, accessibilityLabel: "레시피 상점으로 가기" }}
+      />
       <ShopHero speaker="할멈 기니" talk={talk} />
 
       <View style={styles.tabs}>

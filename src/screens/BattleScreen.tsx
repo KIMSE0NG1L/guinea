@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { StageHeader } from "../components/StageHeader";
 import { DishPicker } from "../components/DishPicker";
 import { BattleActionsPanel } from "../components/BattleActionsPanel";
-import { AdSpeedBoostModal } from "../components/AdSpeedBoostModal";
+import { BuffSlots } from "../components/BuffSlots";
+import { AdUnavailableModal } from "../components/AdUnavailableModal";
 import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
@@ -69,9 +70,6 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
         dropEvents={game.dropEvents}
-        buffSlots={game.buffSlots}
-        now={game.now}
-        onPressBuffSlot={setPickingSlot}
         bossEntranceKey={bossEntranceKey}
         levelUpAnnouncement={game.levelUpAnnouncement}
       />
@@ -92,7 +90,9 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         />
       )}
       {adModalOpen && (
-        <AdSpeedBoostModal
+        <AdUnavailableModal
+          message="대신 섭섭하지 않게 2배속 효과는 그대로 챙겨드릴게요."
+          claimLabel="2배속 받기"
           onClaim={() => {
             game.watchAdForSpeedBoost();
             setAdModalOpen(false);
@@ -105,6 +105,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         speedBoostActive={game.speedMultiplier > 1}
         speedBoostRemainingMs={game.speedBoostRemainingMs}
         onWatchAd={() => setAdModalOpen(true)}
+        left={<BuffSlots slots={game.buffSlots} now={game.now} onPressSlot={setPickingSlot} />}
       />
       <StatUpgradePanel
         state={state}

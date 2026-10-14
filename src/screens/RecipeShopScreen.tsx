@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { chef, shopKit } from "../assets";
+import { chef, grandma, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
@@ -16,11 +16,13 @@ export function RecipeShopScreen({
   gold,
   onLearn,
   onBack,
+  onOpenGrocery,
 }: {
   knownRecipes: string[] | undefined;
   gold: number;
   onLearn: (recipeId: string) => boolean;
   onBack: () => void;
+  onOpenGrocery: () => void;
 }) {
   const { talk, say } = useShopTalk(GREETING);
   const known = getKnownRecipes(knownRecipes);
@@ -37,7 +39,9 @@ export function RecipeShopScreen({
 
   return (
     <View style={styles.page}>
-      <ShopTopBar kicker="RECIPES" title="셰프의 레시피" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기" />
+      <ShopTopBar kicker="RECIPES" title="셰프의 레시피" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기"
+        other={{ label: "재료", keeper: grandma.basket, onPress: onOpenGrocery, accessibilityLabel: "재료 상점으로 가기" }}
+      />
       <ShopHero speaker="셰프 기니" talk={talk} />
 
       <Text style={styles.count}>

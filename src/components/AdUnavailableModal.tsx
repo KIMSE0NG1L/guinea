@@ -5,8 +5,9 @@ import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
 
 // Stands in for a real rewarded-ad flow until one is wired up — same payout, same beat
-// (ask, then reward), just honest that there's nothing to actually watch yet.
-export function AdSpeedBoostModal({ onClaim }: { onClaim: () => void }) {
+// (ask, then reward), just honest that there's nothing to actually watch yet. Shared by
+// every "watch an ad for X" button; each passes what it's handing out instead.
+export function AdUnavailableModal({ message, claimLabel, onClaim }: { message: string; claimLabel: string; onClaim: () => void }) {
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClaim}>
       <Pressable style={styles.backdrop} onPress={onClaim}>
@@ -15,8 +16,8 @@ export function AdSpeedBoostModal({ onClaim }: { onClaim: () => void }) {
           <Image source={icons.energy} style={styles.heroIcon} />
           <Text style={styles.eyebrow}>광고 안내</Text>
           <Text style={styles.title}>앗, 지금은 보여드릴 광고가 없어요!</Text>
-          <Text style={styles.message}>대신 섭섭하지 않게 2배속 효과는 그대로 챙겨드릴게요.</Text>
-          <GameButton variant="green" onPress={onClaim} style={styles.claimButton}>2배속 받기</GameButton>
+          <Text style={styles.message}>{message}</Text>
+          <GameButton variant="green" onPress={onClaim} style={styles.claimButton}>{claimLabel}</GameButton>
         </Pressable>
       </Pressable>
     </Modal>

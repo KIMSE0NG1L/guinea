@@ -61,6 +61,7 @@ export function GameScreen() {
             gold={state.gold}
             onLearn={game.learnRecipe}
             onBack={() => onSelectTab("kitchen")}
+            onOpenGrocery={() => onSelectTab("grocery")}
           />
         );
       case "grocery":
@@ -70,6 +71,7 @@ export function GameScreen() {
             gold={state.gold}
             onBuy={game.buyIngredient}
             onBack={() => onSelectTab("kitchen")}
+            onOpenRecipes={() => onSelectTab("recipes")}
           />
         );
       case "milestone":
@@ -99,7 +101,11 @@ export function GameScreen() {
           <QuestModal quests={state.quests} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
         )}
         {game.offlineSummary && (
-          <OfflineRewardModal summary={game.offlineSummary} onClaim={game.dismissOfflineSummary} />
+          <OfflineRewardModal
+            summary={game.offlineSummary}
+            onClaim={game.dismissOfflineSummary}
+            onClaimDouble={game.claimOfflineDouble}
+          />
         )}
       </SafeAreaView>
     </View>

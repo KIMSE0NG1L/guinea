@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { fonts } from "../theme";
 import { GameButton } from "./GameButton";
@@ -8,17 +9,21 @@ export function BattleActionsPanel({
   speedBoostActive,
   speedBoostRemainingMs,
   onWatchAd,
+  left,
 }: {
   isAutoBattle: boolean;
   onToggleAuto: () => void;
   speedBoostActive: boolean;
   speedBoostRemainingMs: number;
   onWatchAd: () => void;
+  left?: ReactNode; // pinned to the row's left end (the food buff slots)
 }) {
   const remainingSeconds = Math.ceil(speedBoostRemainingMs / 1000);
 
   return (
     <View style={styles.wrap}>
+      {left}
+      <View style={styles.spacer} />
       <GameButton
         onPress={onToggleAuto}
         accessibilityLabel={`자동 전투 ${isAutoBattle ? "끄기" : "켜기"}`}
@@ -45,7 +50,8 @@ export function BattleActionsPanel({
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 8, marginBottom: 2, marginHorizontal: 10, flexDirection: "row", justifyContent: "flex-start", gap: 6 },
+  wrap: { marginTop: 8, marginBottom: 2, marginHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 6 },
+  spacer: { flex: 1 },
   autoToggle: { minHeight: 32, paddingHorizontal: 10, justifyContent: "center" },
   autoToggleText: { fontSize: 9 },
   adButton: { minHeight: 32, paddingHorizontal: 10 },
