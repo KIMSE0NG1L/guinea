@@ -30,8 +30,16 @@ export function SpriteStrip({
 }: Props) {
   const [frame, setFrame] = useState(0);
 
-  useEffect(() => {
+  // Rewind to frame 0 during render whenever the clip changes, rather than from inside
+  // the effect below (which would paint one stale frame first).
+  const run = [source, frameCount, durationMs, mode, repeat, restartKey];
+  const [previousRun, setPreviousRun] = useState(run);
+  if (run.some((value, index) => value !== previousRun[index])) {
+    setPreviousRun(run);
     setFrame(0);
+  }
+
+  useEffect(() => {
     if (frameCount <= 1) return;
     // CSS steps(frameCount - 1) visits frameCount frames across durationMs with no easing.
     const stepMs = durationMs / (frameCount - 1);

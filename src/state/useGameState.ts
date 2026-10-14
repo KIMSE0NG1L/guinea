@@ -40,7 +40,8 @@ export function useGameState() {
   const [upgraded, setUpgraded] = useState<StatKey | null>(null);
   // Set when the player jumps stages from the milestone map, so the stageNumber change
   // below doesn't flash the "STAGE CLEAR" banner for a stage they didn't clear.
-  const skipStageAnnouncement = useRef(false);
+  const [skipStageAnnouncement, setSkipStageAnnouncement] = useState(false);
+  const [announcedStageNumber, setAnnouncedStageNumber] = useState(state.stageNumber);
   // Enemies get tougher each stage so progression isn't flat — tuned in stages.ts.
   const enemyMaxHp = getEnemyMaxHp(state.stageNumber, boss);
   // Ticks once a second so buff timers count down and expire on time.
@@ -129,16 +130,22 @@ export function useGameState() {
     };
   }, [state, loaded]);
 
-  useEffect(() => {
-    if (skipStageAnnouncement.current) {
-      skipStageAnnouncement.current = false;
-      return;
+  // Reacts to stageNumber changes during render (not in an effect) so the banner shows up
+  // in the same pass as the new stage instead of one cascaded render later.
+  if (state.stageNumber !== announcedStageNumber) {
+    setAnnouncedStageNumber(state.stageNumber);
+    if (skipStageAnnouncement) {
+      setSkipStageAnnouncement(false);
+    } else if (state.stageNumber !== 0) {
+      setStageAnnouncement(getStageLabel(state.stageNumber));
     }
-    if (state.stageNumber === 0) return;
-    setStageAnnouncement(getStageLabel(state.stageNumber));
+  }
+
+  useEffect(() => {
+    if (!stageAnnouncement) return;
     const timer = setTimeout(() => setStageAnnouncement(null), 1500);
     return () => clearTimeout(timer);
-  }, [state.stageNumber]);
+  }, [stageAnnouncement]);
 
   // Fires the level-up burst whenever level actually goes up during live play. Gated on
   // `loaded` and previousLevelRef is synced inside the load effect above, so loading a
@@ -270,7 +277,7 @@ export function useGameState() {
   const selectStage = (stageNumber: number) => {
     const highestStageNumber = state.highestStageNumber ?? state.stageNumber;
     if (stageNumber > highestStageNumber) return;
-    if (stageNumber !== state.stageNumber) skipStageAnnouncement.current = true;
+    if (stageNumber !== state.stageNumber) setSkipStageAnnouncement(true);
     setStageAnnouncement(null);
     setBoss(false);
     setDefeatedBoss(false);

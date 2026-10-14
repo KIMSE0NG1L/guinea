@@ -15,7 +15,6 @@ import { BossEntranceBanner } from "../components/BossEntranceBanner";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
-import { formatGameNumber } from "../state/gameMath";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import { ITEM_IMAGES } from "../state/recipes";
 import type { DropEvent } from "../state/useGameState";

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { BattlePhase } from "../types";
 import { getGoldReward } from "./gameMath";
 
@@ -61,21 +61,22 @@ export function useAutoBattle({
     damageEventTimersRef.current.push(timer);
   }, []);
 
-  attackRef.current = attack;
-  criticalDamageRef.current = criticalDamage;
-  criticalChanceRef.current = criticalChance;
-  goldBonusRef.current = goldBonus;
-  maxHpRef.current = enemyMaxHp;
-  bossRef.current = boss;
-  speedMultiplierRef.current = speedMultiplier;
-  onDefeatRef.current = onDefeat;
-  phaseRef.current = phase;
+  // Synced after every commit (before any timer can fire) so the battle loop's timers
+  // always read the latest props without restarting.
+  useLayoutEffect(() => {
+    attackRef.current = attack;
+    criticalDamageRef.current = criticalDamage;
+    criticalChanceRef.current = criticalChance;
+    goldBonusRef.current = goldBonus;
+    maxHpRef.current = enemyMaxHp;
+    bossRef.current = boss;
+    speedMultiplierRef.current = speedMultiplier;
+    onDefeatRef.current = onDefeat;
+    phaseRef.current = phase;
+  });
 
   useEffect(() => {
-    if (!isAutoBattle) {
-      setPhase("idle");
-      return;
-    }
+    if (!isAutoBattle) return;
 
     let active = true;
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -130,8 +131,10 @@ export function useAutoBattle({
     return () => {
       active = false;
       timers.forEach((timer) => clearTimeout(timer));
+      // Switching auto off mid-swing drops the pose so manual taps aren't blocked.
+      setPhase("idle");
     };
-  }, [isAutoBattle]);
+  }, [isAutoBattle, pushDamageEvent]);
 
   const manualAttack = useCallback(() => {
     if (isAutoBattle) return;
@@ -194,7 +197,7 @@ export function useAutoBattle({
       manualTimersRef.current.push(readyTimer);
     }, 260);
     manualTimersRef.current.push(hitTimer);
-  }, [isAutoBattle]);
+  }, [isAutoBattle, pushDamageEvent]);
 
   useEffect(() => {
     if (!isAutoBattle) return;

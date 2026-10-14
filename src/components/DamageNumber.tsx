@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { StrokedText } from "./StrokedText";
