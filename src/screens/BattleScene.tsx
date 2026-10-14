@@ -50,18 +50,40 @@ const BACKGROUND: Record<EnemyKind, number> = {
 const FIGHTERS_BOTTOM = 55;
 const ENEMY_CENTER_RIGHT = 15 + 108 / 2;
 const GROUND_BOTTOM = 68;
-// Bottom-right button row: bag, cook pot, map. Sizes are optically balanced — each art
-// fills a different share of its square (map 58%, pot 67%, bag 72%), so they're sized to
-// show the same visible area instead of the same box. All three share one centre line.
-const BUTTON_ROW_CENTER = 29;
-const BUTTON_GAP = 2;
-const MAP_SIZE = 54;
-const POT_SIZE = 50;
-const BAG_SIZE = 48;
-const MAP_RIGHT = 8;
-const POT_RIGHT = MAP_RIGHT + MAP_SIZE + BUTTON_GAP;
-const BAG_RIGHT = POT_RIGHT + POT_SIZE + BUTTON_GAP;
-const BAG_CENTER = { right: BAG_RIGHT + BAG_SIZE / 2, bottom: BUTTON_ROW_CENTER };
+// Bottom-right button row: bag, cook pot, map. Every icon gets the same box; its art
+// (trimmed to the visible pixels) is scaled to fit that box and centred in it, and the
+// boxes sit on one line with equal gaps. Art that would look off when fitted whole
+// declares a `fit` region instead — only that part is fitted, the rest may overflow.
+type RowIcon = { source: number; width: number; height: number; fit?: { x: number; y: number; width: number; height: number } };
+
+const ICON_BOX = { width: 52, height: 44 };
+const ICON_GAP = 4;
+const ROW_RIGHT = 8;
+const ROW_BOTTOM = 6;
+const BUTTON_ROW_CENTER = ROW_BOTTOM + ICON_BOX.height / 2;
+
+const MAP_ICON: RowIcon = { source: icons.mapTrim, width: 669, height: 574 };
+const BAG_ICON: RowIcon = { source: icons.backpackTrim, width: 349, height: 324 };
+// The spoon pokes up out of the pot, so fitting the whole art makes the pot itself look
+// small — fit the pot body (below the spoon, y >= 62) and let the spoon stick out.
+const POT_ICON: RowIcon = { source: food.cookPotTrim, width: 356, height: 353, fit: { x: 0, y: 62, width: 356, height: 291 } };
+
+// Image size/offset inside an ICON_BOX so the icon's fit region fills it, centred.
+function fitInBox(icon: RowIcon) {
+  const fit = icon.fit ?? { x: 0, y: 0, width: icon.width, height: icon.height };
+  const scale = Math.min(ICON_BOX.width / fit.width, ICON_BOX.height / fit.height);
+  return {
+    position: "absolute" as const,
+    width: icon.width * scale,
+    height: icon.height * scale,
+    left: ICON_BOX.width / 2 - (fit.x + fit.width / 2) * scale,
+    top: ICON_BOX.height / 2 - (fit.y + fit.height / 2) * scale,
+  };
+}
+
+// Right offset of the n-th box from the scene's right edge (0 = map, 1 = pot, 2 = bag).
+const rowRight = (index: number) => ROW_RIGHT + index * (ICON_BOX.width + ICON_GAP);
+const BAG_CENTER = { right: rowRight(2) + ICON_BOX.width / 2, bottom: BUTTON_ROW_CENTER };
 
 export function BattleScene({
   critical,
@@ -208,7 +230,7 @@ export function BattleScene({
             hitSlop={8}
             style={({ pressed }) => [styles.kitchenButton, pressed && styles.mapButtonPressed]}
           >
-            <Image source={food.cookPotOutlined} style={styles.potIcon} />
+            <Image source={POT_ICON.source} style={fitInBox(POT_ICON)} />
           </Pressable>
 
           <Pressable
@@ -218,7 +240,7 @@ export function BattleScene({
             hitSlop={8}
             style={({ pressed }) => [styles.mapButton, pressed && styles.mapButtonPressed]}
           >
-            <Image source={icons.map} style={styles.mapIcon} />
+            <Image source={MAP_ICON.source} style={fitInBox(MAP_ICON)} />
           </Pressable>
 
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -266,7 +288,7 @@ function BagButton({ onPress, dropEvents }: { onPress: () => void; dropEvents: D
       hitSlop={8}
       style={({ pressed }) => [styles.bagButton, pressed && styles.mapButtonPressed]}
     >
-      <Animated.Image source={icons.backpackOutlined} style={[styles.bagIcon, style]} />
+      <Animated.Image source={BAG_ICON.source} style={[fitInBox(BAG_ICON), style]} />
     </Pressable>
   );
 }
@@ -442,15 +464,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
-  mapButton: { position: "absolute", right: MAP_RIGHT, bottom: BUTTON_ROW_CENTER - MAP_SIZE / 2 },
-  kitchenButton: { position: "absolute", right: POT_RIGHT, bottom: BUTTON_ROW_CENTER - POT_SIZE / 2 },
-  bagButton: { position: "absolute", right: BAG_RIGHT, bottom: BUTTON_ROW_CENTER - BAG_SIZE / 2 },
+  mapButton: { position: "absolute", right: rowRight(0), bottom: ROW_BOTTOM, ...ICON_BOX },
+  kitchenButton: { position: "absolute", right: rowRight(1), bottom: ROW_BOTTOM, ...ICON_BOX },
+  bagButton: { position: "absolute", right: rowRight(2), bottom: ROW_BOTTOM, ...ICON_BOX },
   mapButtonPressed: { transform: [{ scale: 0.92 }] },
   // Bottom-left, on the same centre line as the bottom-right button row.
   buffSlots: { position: "absolute", left: 8, bottom: BUTTON_ROW_CENTER - BUFF_SLOT_SIZE / 2 },
-  mapIcon: { width: MAP_SIZE, height: MAP_SIZE },
-  potIcon: { width: POT_SIZE, height: POT_SIZE },
-  bagIcon: { width: BAG_SIZE, height: BAG_SIZE },
   effects: { position: "absolute", right: 96, bottom: 30, zIndex: 10 },
   // Below enemyNameplateFixed's zIndex: 5 so a big flash can never cover the HP bar.
   critFlash: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },

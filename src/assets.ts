@@ -90,6 +90,9 @@ export const icons = {
   map: require("../assets/icons/icon-map.png"),
   backpack: require("../assets/icons/icon-backpack.png"),
   backpackOutlined: require("../assets/icons/icon-backpack-outlined.png"),
+  // Trimmed to their visible art, for the battle scene's fixed-box button row.
+  mapTrim: require("../assets/icons/icon-map-trim.png"),
+  backpackTrim: require("../assets/icons/icon-backpack-trim.png"),
   coins: require("../assets/icons/icon-coins.png"),
   chest: require("../assets/icons/icon-chest.png"),
   potionRed: require("../assets/icons/icon-potion-red.png"),
@@ -118,6 +121,7 @@ export const uiImages = {
 export const food = {
   cookPot: require("../assets/food/cook-pot.png"),
   cookPotOutlined: require("../assets/food/cook-pot-outlined.png"),
+  cookPotTrim: require("../assets/food/cook-pot-trim.png"),
   fryingPan: require("../assets/food/frying-pan.png"),
   stewPot: require("../assets/food/stew-pot.png"),
   cuttingBoard: require("../assets/food/cutting-board.png"),
