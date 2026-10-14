@@ -12,6 +12,7 @@ export function useAutoBattle({
   criticalDamage,
   criticalChance,
   goldBonus,
+  goldMultiplier,
   enemyMaxHp,
   boss,
   onDefeat,
@@ -20,6 +21,7 @@ export function useAutoBattle({
   criticalDamage: number;
   criticalChance: number;
   goldBonus: number;
+  goldMultiplier: number;
   enemyMaxHp: number;
   boss: boolean;
   onDefeat: (goldReward: number) => void;
@@ -37,6 +39,7 @@ export function useAutoBattle({
   const criticalDamageRef = useRef(criticalDamage);
   const criticalChanceRef = useRef(criticalChance);
   const goldBonusRef = useRef(goldBonus);
+  const goldMultiplierRef = useRef(goldMultiplier);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
   const onDefeatRef = useRef(onDefeat);
@@ -56,10 +59,15 @@ export function useAutoBattle({
     damageEventTimersRef.current.push(timer);
   }, []);
 
+  // Gold for one kill: base on attack, then the gold-bonus stat and the stage's multiplier.
+  const getKillReward = () =>
+    Math.round((18 + attackRef.current / 2) * (1 + goldBonusRef.current / 100) * goldMultiplierRef.current);
+
   attackRef.current = attack;
   criticalDamageRef.current = criticalDamage;
   criticalChanceRef.current = criticalChance;
   goldBonusRef.current = goldBonus;
+  goldMultiplierRef.current = goldMultiplier;
   maxHpRef.current = enemyMaxHp;
   bossRef.current = boss;
   onDefeatRef.current = onDefeat;
@@ -94,7 +102,7 @@ export function useAutoBattle({
           setEnemyHp(nextHp);
 
           if (nextHp === 0) {
-            const reward = Math.round((18 + attackRef.current / 2) * (1 + goldBonusRef.current / 100));
+            const reward = getKillReward();
             setLastGoldReward(reward);
             setPhase("defeated");
             onDefeatRef.current(reward);
@@ -150,7 +158,7 @@ export function useAutoBattle({
       manualTimersRef.current.forEach((timer) => clearTimeout(timer));
       manualTimersRef.current = [];
 
-      const reward = Math.round((18 + attackRef.current / 2) * (1 + goldBonusRef.current / 100));
+      const reward = getKillReward();
       setLastGoldReward(reward);
       phaseRef.current = "defeated";
       setPhase("defeated");

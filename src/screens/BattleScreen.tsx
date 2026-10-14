@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { StageHeader } from "../components/StageHeader";
+import { DishPicker } from "../components/DishPicker";
 import { RewardPanel } from "../components/RewardPanel";
 import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
@@ -23,6 +25,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   // animation flashes the boss for a frame.
   const isMobToBossTransition = battle.phase === "defeated" && !defeatedBoss && boss;
   const displayBoss = (boss && !isMobToBossTransition) || isDefeatFlash;
+  // Which empty buff slot the dish picker is filling, if it's open.
+  const [pickingSlot, setPickingSlot] = useState<number | null>(null);
 
   return (
     <>
@@ -45,7 +49,28 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
         onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
+        onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
+        dropEvents={game.dropEvents}
+        buffSlots={game.buffSlots}
+        now={game.now}
+        onPressBuffSlot={setPickingSlot}
       />
+      {pickingSlot !== null && (
+        <DishPicker
+          inventory={state.inventory}
+          slots={game.buffSlots}
+          now={game.now}
+          onEat={(recipeId) => {
+            game.eatDish(pickingSlot, recipeId);
+            setPickingSlot(null);
+          }}
+          onClose={() => setPickingSlot(null)}
+          onGoCook={() => {
+            setPickingSlot(null);
+            game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }));
+          }}
+        />
+      )}
       <RewardPanel
         earned={pendingReward}
         onClaim={claimReward}

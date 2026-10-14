@@ -59,7 +59,7 @@ export const RECIPES: Recipe[] = [
     id: "pudding",
     name: "탱글 푸딩",
     description: "숟가락이 멈추지 않는 디저트.",
-    image: recipeArt.pudding,
+    image: food.pudding,
     art: recipeArt.pudding,
     price: 450,
     ingredients: [
@@ -71,7 +71,7 @@ export const RECIPES: Recipe[] = [
     id: "mushroom-soup",
     name: "버섯 크림 수프",
     description: "숲 향이 가득한 고소한 한 그릇.",
-    image: recipeArt.mushroomSoup,
+    image: food.mushroomSoup,
     art: recipeArt.mushroomSoup,
     price: 500,
     ingredients: [
@@ -83,7 +83,7 @@ export const RECIPES: Recipe[] = [
     id: "pumpkin-roast",
     name: "치즈 호박 구이",
     description: "달큰한 호박 위에 치즈가 사르르.",
-    image: recipeArt.pumpkin,
+    image: food.pumpkinRoast,
     art: recipeArt.pumpkin,
     price: 600,
     ingredients: [

@@ -73,6 +73,7 @@ export const images = {
 export const icons = {
   map: require("../assets/icons/icon-map.png"),
   backpack: require("../assets/icons/icon-backpack.png"),
+  backpackOutlined: require("../assets/icons/icon-backpack-outlined.png"),
   coins: require("../assets/icons/icon-coins.png"),
   chest: require("../assets/icons/icon-chest.png"),
   potionRed: require("../assets/icons/icon-potion-red.png"),
@@ -100,6 +101,7 @@ export const uiImages = {
 
 export const food = {
   cookPot: require("../assets/food/cook-pot.png"),
+  cookPotOutlined: require("../assets/food/cook-pot-outlined.png"),
   fryingPan: require("../assets/food/frying-pan.png"),
   stewPot: require("../assets/food/stew-pot.png"),
   cuttingBoard: require("../assets/food/cutting-board.png"),
@@ -115,6 +117,9 @@ export const food = {
   egg: require("../assets/food/egg.png"),
   milk: require("../assets/food/milk.png"),
   cheese: require("../assets/food/cheese.png"),
+  pudding: require("../assets/food/pudding.png"),
+  mushroomSoup: require("../assets/food/mushroom-soup.png"),
+  pumpkinRoast: require("../assets/food/pumpkin-roast.png"),
 };
 
 // A stretchable UI frame: `insets` (source px: top, right, bottom, left) mark the rounded

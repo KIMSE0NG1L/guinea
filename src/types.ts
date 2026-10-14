@@ -32,6 +32,8 @@ export interface GameState {
   highestStageNumber?: number;
   // Recipe ids the player has learned; missing on saves from before the recipe shop.
   knownRecipes?: string[];
+  // Food buff slots on the battle screen (null = empty); missing on older saves.
+  buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
   equippedOutfit: Outfit;
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];

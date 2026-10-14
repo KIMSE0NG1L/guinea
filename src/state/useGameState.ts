@@ -5,11 +5,21 @@ import { initialState } from "./initialState";
 import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { loadSave, writeSave } from "./storage";
-import { getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
+import { getEnemyKind, getEnemyMaxHp, getStageGoldMultiplier, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
+import { rollDrops } from "./drops";
+import { BUFFS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { canCook, getKnownRecipes, RECIPES } from "./recipes";
 
-function getStageHpMultiplier(stageNumber: number) {
-  return 1 + stageNumber * 1.2;
+export type DropEvent = { id: number; name: string; delay: number };
+
+// Adds dropped/bought items to the bag, stacking onto what's already there.
+function addItems(inventory: GameState["inventory"], items: { name: string; quantity: number }[]) {
+  return items.reduce((bag, item) => {
+    const owned = bag.find((entry) => entry.name === item.name);
+    return owned
+      ? bag.map((entry) => (entry === owned ? { ...entry, quantity: entry.quantity + item.quantity } : entry))
+      : [...bag, { name: item.name, quantity: item.quantity, type: "food" }];
+  }, inventory);
 }
 
 export function useGameState() {
@@ -28,9 +38,19 @@ export function useGameState() {
   // Set when the player jumps stages from the milestone map, so the stageNumber change
   // below doesn't flash the "STAGE CLEAR" banner for a stage they didn't clear.
   const skipStageAnnouncement = useRef(false);
-  // Enemies get tougher each stage so progression isn't flat — tune the multiplier here.
-  const stageHpMultiplier = getStageHpMultiplier(state.stageNumber);
-  const enemyMaxHp = Math.round((boss ? 220 : 80) * stageHpMultiplier);
+  // Enemies get tougher each stage so progression isn't flat — tuned in stages.ts.
+  const enemyMaxHp = getEnemyMaxHp(state.stageNumber, boss);
+  // Ticks once a second so buff timers count down and expire on time.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const buffSlots = state.buffSlots ?? emptyBuffSlots();
+  const buffs = getBuffTotals(buffSlots, now);
+  // Ingredient drops currently flying from the defeated monster into the bag button.
+  const [dropEvents, setDropEvents] = useState<DropEvent[]>([]);
+  const dropEventId = useRef(0);
 
   // Gates the autosave effect below until the saved-game load (or its absence) has
   // resolved — otherwise the fresh `initialState` would autosave over a real save
@@ -89,6 +109,18 @@ export function useGameState() {
     const reachesBossThreshold = !boss && state.stageKills + 1 >= STAGE_KILL_TARGET;
     if (reachesBossThreshold) setBoss(true);
 
+    // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
+    const drops = rollDrops(getEnemyKind(state.stageNumber), boss);
+    if (drops.length > 0) {
+      // One flying icon per item, staggered so a boss's pile spills out one by one.
+      const events = drops
+        .flatMap((drop) => Array.from({ length: drop.quantity }, () => drop.name))
+        .map((name, index) => ({ id: ++dropEventId.current, name, delay: index * 110 }));
+      setDropEvents((current) => [...current, ...events]);
+      const ids = events.map((event) => event.id);
+      setTimeout(() => setDropEvents((current) => current.filter((event) => !ids.includes(event.id))), 2000 + events.length * 110);
+    }
+
     setState((previous) => {
       if (boss) setDefeatedStageNumber(previous.stageNumber);
 
@@ -101,6 +133,7 @@ export function useGameState() {
       return {
         ...previous,
         gold: previous.gold + goldReward,
+        inventory: addItems(previous.inventory, drops),
         kills,
         currentStage: boss ? getStageLabel(stageNumber) : previous.currentStage,
         stageNumber,
@@ -117,13 +150,15 @@ export function useGameState() {
         }),
       };
     });
-  }, [boss, state.stageKills]);
+  }, [boss, state.stageKills, state.stageNumber]);
 
   const battle = useAutoBattle({
-    attack: state.attack,
-    criticalDamage: state.criticalDamage,
-    criticalChance: state.criticalChance ?? 5,
-    goldBonus: state.goldBonus,
+    // Food buffs apply on top of the upgraded stats.
+    attack: Math.round(state.attack * (1 + buffs.attack / 100)),
+    criticalDamage: state.criticalDamage + buffs.criticalDamage,
+    criticalChance: (state.criticalChance ?? 5) + buffs.criticalChance,
+    goldBonus: state.goldBonus + buffs.gold,
+    goldMultiplier: getStageGoldMultiplier(state.stageNumber),
     enemyMaxHp,
     boss,
     onDefeat: handleEnemyDefeat,
@@ -204,7 +239,7 @@ export function useGameState() {
       highestStageNumber,
       selectedTab: "battle",
     }));
-    battle.resetEnemy(Math.round(80 * getStageHpMultiplier(stageNumber)));
+    battle.resetEnemy(getEnemyMaxHp(stageNumber, false));
   };
 
   // Spends the recipe's ingredients from the bag and adds one of the dish.
@@ -234,14 +269,7 @@ export function useGameState() {
     if (state.gold < price) return false;
     setState((previous) => {
       if (previous.gold < price) return previous;
-      const owned = previous.inventory.find((item) => item.name === name);
-      return {
-        ...previous,
-        gold: previous.gold - price,
-        inventory: owned
-          ? previous.inventory.map((item) => (item === owned ? { ...item, quantity: item.quantity + 1 } : item))
-          : [...previous.inventory, { name, quantity: 1, type: "food" }],
-      };
+      return { ...previous, gold: previous.gold - price, inventory: addItems(previous.inventory, [{ name, quantity: 1 }]) };
     });
     return true;
   };
@@ -257,6 +285,33 @@ export function useGameState() {
       return { ...previous, gold: previous.gold - recipe.price, knownRecipes: [...previousKnown, recipeId] };
     });
     return true;
+  };
+
+  // Eats one of a cooked dish from the bag into an empty buff slot.
+  const eatDish = (slotIndex: number, recipeId: string) => {
+    const recipe = RECIPES.find((item) => item.id === recipeId);
+    const buff = BUFFS[recipeId];
+    if (!recipe || !buff) return;
+    const startedAt = Date.now();
+    setState((previous) => {
+      const slots = previous.buffSlots ?? emptyBuffSlots();
+      const running = (slot: (typeof slots)[number]) => slot && slot.expiresAt > startedAt;
+      if (running(slots[slotIndex])) return previous;
+      // One of each dish at a time — its buff wouldn't stack meaningfully anyway.
+      if (slots.some((slot) => running(slot) && slot?.recipeId === recipeId)) return previous;
+      const dish = previous.inventory.find((item) => item.name === recipe.name);
+      if (!dish) return previous;
+      return {
+        ...previous,
+        inventory: previous.inventory
+          .map((item) => (item === dish ? { ...item, quantity: item.quantity - 1 } : item))
+          .filter((item) => item.quantity > 0),
+        buffSlots: slots.map((slot, index) =>
+          index === slotIndex ? { recipeId, expiresAt: startedAt + buff.durationMs, durationMs: buff.durationMs } : slot,
+        ),
+      };
+    });
+    setNow(startedAt);
   };
 
   return {
@@ -281,6 +336,10 @@ export function useGameState() {
     cook,
     buyIngredient,
     learnRecipe,
+    dropEvents,
+    buffSlots,
+    now,
+    eatDish,
   };
 }
 

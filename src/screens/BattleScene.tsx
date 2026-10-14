@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, Easing } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { food, icons, images } from "../assets";
 import { CharacterSprite } from "../components/CharacterSprite";
@@ -10,8 +10,13 @@ import { DamageNumber } from "../components/DamageNumber";
 import { CoinPopup } from "../components/CoinPopup";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
 import { ProgressBar } from "../components/ProgressBar";
+import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
+import { BUFF_SLOT_SIZE, BuffSlots } from "../components/BuffSlots";
+import type { BuffSlot } from "../state/buffs";
 import { formatGameNumber } from "../state/gameMath";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
+import { ITEM_IMAGES } from "../state/recipes";
+import type { DropEvent } from "../state/useGameState";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
 
 // Each boss art source fills a different fraction of its 160px frame (the original
@@ -34,6 +39,24 @@ const BACKGROUND: Record<EnemyKind, number> = {
   potato: images.battleBackgroundPotatoCave,
 };
 
+// Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
+// Keep in sync with styles.fighters (right/bottom) and the bottom-right button row.
+const FIGHTERS_BOTTOM = 55;
+const ENEMY_CENTER_RIGHT = 15 + 108 / 2;
+const GROUND_BOTTOM = 68;
+// Bottom-right button row: bag, cook pot, map. Sizes are optically balanced — each art
+// fills a different share of its square (map 58%, pot 67%, bag 72%), so they're sized to
+// show the same visible area instead of the same box. All three share one centre line.
+const BUTTON_ROW_CENTER = 29;
+const BUTTON_GAP = 2;
+const MAP_SIZE = 54;
+const POT_SIZE = 50;
+const BAG_SIZE = 48;
+const MAP_RIGHT = 8;
+const POT_RIGHT = MAP_RIGHT + MAP_SIZE + BUTTON_GAP;
+const BAG_RIGHT = POT_RIGHT + POT_SIZE + BUTTON_GAP;
+const BAG_CENTER = { right: BAG_RIGHT + BAG_SIZE / 2, bottom: BUTTON_ROW_CENTER };
+
 export function BattleScene({
   critical,
   damageEvents,
@@ -52,6 +75,11 @@ export function BattleScene({
   onManualAttack,
   onOpenMap,
   onOpenKitchen,
+  onOpenBag,
+  dropEvents,
+  buffSlots,
+  now,
+  onPressBuffSlot,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean }[];
@@ -70,6 +98,11 @@ export function BattleScene({
   onManualAttack: () => void;
   onOpenMap: () => void;
   onOpenKitchen: () => void;
+  onOpenBag: () => void;
+  dropEvents: DropEvent[];
+  buffSlots: BuffSlot[];
+  now: number;
+  onPressBuffSlot: (index: number) => void;
 }) {
   const playerAnimation: PlayerAnimation =
     phase === "attacking"
@@ -83,6 +116,9 @@ export function BattleScene({
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
   const enemySize = boss ? BOSS_SIZE[enemyKind] : 108;
+  // Drops pop out of the enemy's middle and fly into the bag button's centre.
+  const dropFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 };
+  const dropTo = { dx: ENEMY_CENTER_RIGHT - BAG_CENTER.right, dy: dropFrom.bottom - BAG_CENTER.bottom };
   const stageProgress = (Math.min(stageKills, STAGE_KILL_TARGET) / STAGE_KILL_TARGET) * 100;
 
   return (
@@ -133,6 +169,10 @@ export function BattleScene({
             </View>
           </View>
 
+          <BuffSlots slots={buffSlots} now={now} onPressSlot={onPressBuffSlot} style={styles.buffSlots} />
+
+          <BagButton onPress={onOpenBag} dropEvents={dropEvents} />
+
           <Pressable
             onPress={onOpenKitchen}
             accessibilityRole="button"
@@ -140,7 +180,7 @@ export function BattleScene({
             hitSlop={8}
             style={({ pressed }) => [styles.kitchenButton, pressed && styles.mapButtonPressed]}
           >
-            <Image source={food.cookPot} style={styles.mapIcon} />
+            <Image source={food.cookPotOutlined} style={styles.potIcon} />
           </Pressable>
 
           <Pressable
@@ -152,9 +192,51 @@ export function BattleScene({
           >
             <Image source={icons.map} style={styles.mapIcon} />
           </Pressable>
+
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            {dropEvents.map((event) => (
+              <DropItem
+                key={event.id}
+                image={ITEM_IMAGES[event.name]}
+                delay={event.delay}
+                from={dropFrom}
+                groundDrop={dropFrom.bottom - GROUND_BOTTOM}
+                to={dropTo}
+              />
+            ))}
+          </View>
         </ImageBackground>
       </Pressable>
     </View>
+  );
+}
+
+// Opens the bag; bumps each time a dropped ingredient lands in it.
+function BagButton({ onPress, dropEvents }: { onPress: () => void; dropEvents: DropEvent[] }) {
+  const bump = useSharedValue(1);
+  const lastSeen = useRef(0);
+
+  useEffect(() => {
+    const fresh = dropEvents.filter((event) => event.id > lastSeen.current);
+    if (fresh.length === 0) return;
+    lastSeen.current = Math.max(...fresh.map((event) => event.id));
+    const lastArrival = Math.max(...fresh.map((event) => event.delay)) + DROP_ARRIVAL_MS;
+    bump.value = withDelay(lastArrival, withSequence(withTiming(1.22, { duration: 90 }), withTiming(1, { duration: 160 })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dropEvents]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: bump.value }] }));
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="가방 열기"
+      hitSlop={8}
+      style={({ pressed }) => [styles.bagButton, pressed && styles.mapButtonPressed]}
+    >
+      <Animated.Image source={icons.backpackOutlined} style={[styles.bagIcon, style]} />
+    </Pressable>
   );
 }
 
@@ -300,11 +382,15 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
-  mapButton: { position: "absolute", right: 8, bottom: 2 },
-  // Sits just left of the map button.
-  kitchenButton: { position: "absolute", right: 64, bottom: 2 },
+  mapButton: { position: "absolute", right: MAP_RIGHT, bottom: BUTTON_ROW_CENTER - MAP_SIZE / 2 },
+  kitchenButton: { position: "absolute", right: POT_RIGHT, bottom: BUTTON_ROW_CENTER - POT_SIZE / 2 },
+  bagButton: { position: "absolute", right: BAG_RIGHT, bottom: BUTTON_ROW_CENTER - BAG_SIZE / 2 },
   mapButtonPressed: { transform: [{ scale: 0.92 }] },
-  mapIcon: { width: 52, height: 52 },
+  // Bottom-left, on the same centre line as the bottom-right button row.
+  buffSlots: { position: "absolute", left: 8, bottom: BUTTON_ROW_CENTER - BUFF_SLOT_SIZE / 2 },
+  mapIcon: { width: MAP_SIZE, height: MAP_SIZE },
+  potIcon: { width: POT_SIZE, height: POT_SIZE },
+  bagIcon: { width: BAG_SIZE, height: BAG_SIZE },
   effects: { position: "absolute", right: 96, bottom: 30, zIndex: 10 },
   characterWrap: { width: 108, alignItems: "center", position: "relative" },
   unitLabel: {

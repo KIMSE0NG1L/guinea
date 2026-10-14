@@ -46,3 +46,17 @@ export function getStageLabel(stageNumber: number) {
 export function getEnemyKind(stageNumber: number): EnemyKind {
   return STAGES[Math.min(stageNumber, LAST_STAGE_NUMBER)].enemyKind;
 }
+
+// Every stage's monsters are this many times tougher than the previous stage's.
+const STAGE_HP_GROWTH = 1.8;
+const MOB_BASE_HP = 80;
+const BOSS_BASE_HP = 240;
+
+export function getEnemyMaxHp(stageNumber: number, boss: boolean) {
+  return Math.round((boss ? BOSS_BASE_HP : MOB_BASE_HP) * STAGE_HP_GROWTH ** stageNumber);
+}
+
+// Tougher stages pay more gold per kill, so pushing forward stays worth it.
+export function getStageGoldMultiplier(stageNumber: number) {
+  return 1 + stageNumber * 0.6;
+}
