@@ -6,6 +6,7 @@ import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMat
 import { useAutoBattle } from "./useAutoBattle";
 import { loadSave, writeSave } from "./storage";
 import { getStageCode, LAST_STAGE_NUMBER } from "./stages";
+import { canCook, RECIPES } from "./recipes";
 
 function getStageLabel(stageNumber: number) {
   return stageNumber === 0 ? initialState.currentStage : getStageCode(stageNumber);
@@ -214,6 +215,28 @@ export function useGameState() {
     battle.resetEnemy(Math.round(80 * getStageHpMultiplier(stageNumber)));
   };
 
+  // Spends the recipe's ingredients from the bag and adds one of the dish.
+  const cook = (recipeId: string) => {
+    const recipe = RECIPES.find((item) => item.id === recipeId);
+    if (!recipe) return;
+    setState((previous) => {
+      if (!canCook(previous.inventory, recipe)) return previous;
+      const inventory = previous.inventory
+        .map((item) => {
+          const used = recipe.ingredients.find((ingredient) => ingredient.name === item.name)?.quantity ?? 0;
+          return used ? { ...item, quantity: item.quantity - used } : item;
+        })
+        .filter((item) => item.quantity > 0);
+      const dish = inventory.find((item) => item.name === recipe.name);
+      return {
+        ...previous,
+        inventory: dish
+          ? inventory.map((item) => (item === dish ? { ...item, quantity: item.quantity + 1 } : item))
+          : [...inventory, { name: recipe.name, quantity: 1, type: "dish" }],
+      };
+    });
+  };
+
   return {
     state,
     setState,
@@ -234,6 +257,7 @@ export function useGameState() {
     claimQuest,
     onBoss,
     selectStage,
+    cook,
   };
 }
 

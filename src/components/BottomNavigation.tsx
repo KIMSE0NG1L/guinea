@@ -1,13 +1,15 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { BattleSwordIcon } from "./BattleSwordIcon";
+import { NineSlice, Panel } from "./NineSlice";
+import { kit } from "../assets";
 import type { Tab } from "../types";
 
 // Ported as-is from the web nav list: only these 4 tabs are reachable from the bottom bar today.
 // growth/equipment/inventory exist as panels (state.selectedTab supports them) but have no nav
 // entry point in the source app either — not something this port invented or should silently add.
-// `wideShape` just matches battle's row-layout/big-corner tab shape — it doesn't imply a custom icon.
-// The big corner mirrors toward whichever edge of the bar the tab sits on (battle=left end, shop=right end).
+// `wideShape` marks the end tabs that lay out icon and label in a row — it doesn't imply a custom icon.
+// The active tab sits on the kit's raised green tab art.
 const navigation: { id: Tab; label: string; icon?: string; isSword?: boolean; wideShape?: "left" | "right" }[] = [
   { id: "battle", label: "전투", isSword: true, wideShape: "left" },
   { id: "companions", label: "동료", icon: "FR" },
@@ -25,21 +27,18 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
           <Pressable
             key={item.id}
             onPress={() => onSelect(item.id)}
-            style={[
-              styles.item,
-              wide && styles.assetItem,
-              item.wideShape === "left" && styles.assetItemLeft,
-              item.wideShape === "right" && styles.assetItemRight,
-              active && styles.itemActive,
-              active && wide && styles.assetItemActive,
-            ]}
+            style={[styles.item, wide && styles.assetItem, active && styles.itemActive]}
           >
+            {active && <NineSlice slice={kit.tabGreen} scale={0.42} />}
             {item.isSword ? (
-              <BattleSwordIcon width={20} height={28} />
-            ) : (
-              <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
-                <Text style={[styles.iconText, active && styles.iconTextActive]}>{item.icon}</Text>
+              // Wrapped: on web a bare <svg> paints beneath the absolutely positioned tab art.
+              <View>
+                <BattleSwordIcon width={20} height={28} />
               </View>
+            ) : (
+              <Panel slice={active ? kit.buttonCream : kit.buttonBeige} scale={0.2} style={styles.iconWrap}>
+                <Text style={[styles.iconText, active && styles.iconTextActive]}>{item.icon}</Text>
+              </Panel>
             )}
             <Text style={[styles.label, wide && styles.assetLabel, active && styles.labelActive]}>{item.label}</Text>
           </Pressable>
@@ -65,18 +64,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 56,
     paddingHorizontal: 1,
-    paddingVertical: 4,
+    paddingTop: 6,
+    paddingBottom: 8,
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 8,
   },
-  itemActive: {
-    backgroundColor: colors.green,
-    borderWidth: 2,
-    borderColor: colors.line,
-    transform: [{ translateY: -5 }],
-  },
+  itemActive: { transform: [{ translateY: -5 }] },
   assetItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -84,20 +78,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     gap: 6,
   },
-  assetItemLeft: { borderBottomLeftRadius: 38 },
-  assetItemRight: { borderBottomRightRadius: 38 },
-  assetItemActive: { backgroundColor: "rgb(147, 147, 147)" },
-  iconWrap: {
-    width: 24,
-    height: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#c8bba3",
-    borderWidth: 2,
-    borderColor: "#6d6254",
-    borderRadius: 6,
-  },
-  iconWrapActive: { backgroundColor: "#dbe3bd", borderColor: colors.greenDark },
+  iconWrap: { width: 26, height: 22, paddingBottom: 2, alignItems: "center", justifyContent: "center" },
   iconText: { fontSize: 7, fontWeight: "900", fontFamily: fonts.bold, color: "#6d6254" },
   iconTextActive: { color: colors.greenDark },
   label: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: "#6d6254" },

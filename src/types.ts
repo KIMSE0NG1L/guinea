@@ -1,4 +1,4 @@
-export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "shop" | "milestone";
+export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "shop" | "milestone" | "kitchen";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";

@@ -3,12 +3,13 @@ import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { icons, images } from "../assets";
+import { food, icons, images } from "../assets";
 import { CharacterSprite } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
 import { DamageNumber } from "../components/DamageNumber";
 import { CoinPopup } from "../components/CoinPopup";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
+import { ProgressBar } from "../components/ProgressBar";
 import { formatGameNumber } from "../state/gameMath";
 import { BOSS_NAME, ENEMY_NAME } from "../state/stages";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
@@ -46,6 +47,7 @@ export function BattleScene({
   manualEnabled,
   onManualAttack,
   onOpenMap,
+  onOpenKitchen,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean }[];
@@ -63,6 +65,7 @@ export function BattleScene({
   manualEnabled: boolean;
   onManualAttack: () => void;
   onOpenMap: () => void;
+  onOpenKitchen: () => void;
 }) {
   const playerAnimation: PlayerAnimation =
     phase === "attacking"
@@ -95,9 +98,7 @@ export function BattleScene({
             pointerEvents="none"
           >
             <Text style={styles.stageBarTitle}>{stageLabel}</Text>
-            <View style={styles.stageBarTrack}>
-              <View style={[styles.stageBarFill, { width: `${stageProgress}%` }]} />
-            </View>
+            <ProgressBar progress={stageProgress} height={12} style={styles.stageBarTrack} />
             <Text style={styles.stageBarCount}>{Math.floor(stageProgress / 10)} / 10</Text>
           </LinearGradient>
 
@@ -126,6 +127,16 @@ export function BattleScene({
               {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
             </View>
           </View>
+
+          <Pressable
+            onPress={onOpenKitchen}
+            accessibilityRole="button"
+            accessibilityLabel="요리 페이지 열기"
+            hitSlop={8}
+            style={({ pressed }) => [styles.kitchenButton, pressed && styles.mapButtonPressed]}
+          >
+            <Image source={food.cookPot} style={styles.mapIcon} />
+          </Pressable>
 
           <Pressable
             onPress={onOpenMap}
@@ -272,8 +283,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   stageBarTitle: { color: colors.cream, fontSize: 12, fontWeight: "700", fontFamily: fonts.bold },
-  stageBarTrack: { width: "100%", height: 7, marginTop: 4, overflow: "hidden", backgroundColor: "#182017cc", borderWidth: 1, borderColor: "#f7ecd077", borderRadius: 6 },
-  stageBarFill: { height: "100%", backgroundColor: colors.gold },
+  stageBarTrack: { width: "100%", marginTop: 4 },
   stageBarCount: { marginTop: 2, color: colors.cream, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
   fighters: {
     position: "absolute",
@@ -285,7 +295,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
-  mapButton: { position: "absolute", right: 8, bottom: 8 },
+  mapButton: { position: "absolute", right: 8, bottom: 2 },
+  // Sits just left of the map button.
+  kitchenButton: { position: "absolute", right: 64, bottom: 2 },
   mapButtonPressed: { transform: [{ scale: 0.92 }] },
   mapIcon: { width: 52, height: 52 },
   effects: { position: "absolute", right: 96, bottom: 30, zIndex: 10 },

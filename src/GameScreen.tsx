@@ -13,6 +13,7 @@ import { InventoryScreen } from "./screens/InventoryScreen";
 import { WardrobeScreen } from "./screens/WardrobeScreen";
 import { ShopScreen } from "./screens/ShopScreen";
 import { MilestoneScreen } from "./screens/MilestoneScreen";
+import { KitchenScreen } from "./screens/KitchenScreen";
 import type { Tab } from "./types";
 
 export function GameScreen() {
@@ -40,6 +41,8 @@ export function GameScreen() {
         );
       case "shop":
         return <ShopScreen />;
+      case "kitchen":
+        return <KitchenScreen inventory={state.inventory} onCook={game.cook} />;
       case "milestone":
         return (
           <MilestoneScreen

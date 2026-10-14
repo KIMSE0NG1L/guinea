@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { uiImages } from "../assets";
+import { kitImages, uiImages } from "../assets";
 import { GameButton } from "./GameButton";
 import { ResourceBar } from "./ResourceBar";
 import type { GameState } from "../types";
@@ -16,6 +16,7 @@ export function GameHeader({ state, onQuest }: { state: GameState; onQuest: () =
               <Text style={styles.questButtonLabel}>퀘스트</Text>
               {ready > 0 && (
                 <View style={styles.alertDot}>
+                  <Image source={kitImages.dotRed} style={styles.alertDotImage} />
                   <Text style={styles.alertDotText}>{ready}</Text>
                 </View>
               )}
@@ -48,25 +49,21 @@ const styles = StyleSheet.create({
   },
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 10 },
   actions: { flexDirection: "row", gap: 6, alignItems: "center" },
-  questButton: { paddingHorizontal: 9, paddingVertical: 7 },
+  questButton: { paddingHorizontal: 12 },
   questButtonContent: { flexDirection: "row", alignItems: "center" },
   questButtonLabel: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 11 },
   alertDot: {
     position: "absolute",
     right: -11,
     top: -12,
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: 4,
+    width: 20,
+    height: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.red,
-    borderWidth: 2,
-    borderColor: colors.line,
-    borderRadius: 9,
   },
+  alertDotImage: { position: "absolute", width: 20, height: 20 },
   alertDotText: { color: "white", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold },
-  iconButton: { width: 34, height: 32 },
+  iconButton: { width: 38, paddingHorizontal: 0 },
   gearIcon: { width: 20, height: 20 },
   statusRow: { marginTop: 11, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   headerTitle: { flex: 1 },

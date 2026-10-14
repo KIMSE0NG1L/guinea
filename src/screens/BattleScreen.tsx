@@ -34,6 +34,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         manualEnabled={!battle.isAutoBattle}
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
+        onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
       />
       <RewardPanel
         earned={pendingReward}

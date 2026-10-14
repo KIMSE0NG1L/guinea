@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, radii, fonts } from "../theme";
+import { kit } from "../assets";
+import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { CharacterSprite } from "../components/CharacterSprite";
@@ -50,7 +52,7 @@ export function WardrobeScreen({
         {wardrobeItems.map((item) => {
           const equipped = item.outfit === equippedOutfit;
           return (
-            <View style={[styles.card, equipped && styles.cardEquipped]} key={item.name}>
+            <Panel slice={equipped ? kit.panel : kit.inset} style={styles.card} key={item.name}>
               <View style={[styles.swatch, { backgroundColor: item.swatch }]}>
                 <View style={styles.swatchDot} />
               </View>
@@ -60,13 +62,14 @@ export function WardrobeScreen({
                 <Text style={styles.cardSpan}>{item.detail}</Text>
               </View>
               <GameButton
+                variant={equipped ? "green" : "beige"}
                 onPress={() => onEquip(item.outfit)}
-                style={[styles.wardrobeButton, equipped && styles.wardrobeButtonEquipped]}
-                textStyle={[styles.wardrobeButtonText, equipped && styles.wardrobeButtonTextEquipped]}
+                style={styles.wardrobeButton}
+                textStyle={styles.wardrobeButtonText}
               >
                 {equipped ? "착용 중" : "입기"}
               </GameButton>
-            </View>
+            </Panel>
           );
         })}
       </View>
@@ -95,17 +98,13 @@ const styles = StyleSheet.create({
   previewSprite: { marginRight: -2, marginBottom: -18 },
   list: { gap: 8 },
   card: {
-    padding: 9,
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#e1d7c4",
-    borderWidth: 2,
-    borderColor: "#a99a82",
-    borderStyle: "dashed",
-    borderRadius: 11,
   },
-  cardEquipped: { backgroundColor: colors.cream, borderWidth: 3, borderColor: colors.line, borderStyle: "solid" },
   swatch: {
     width: 46,
     height: 46,
@@ -122,8 +121,6 @@ const styles = StyleSheet.create({
   cardSmall: { color: colors.green, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
   cardStrong: { marginVertical: 2, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   cardSpan: { color: colors.muted, fontSize: 8 },
-  wardrobeButton: { minWidth: 62, paddingVertical: 6, backgroundColor: "#d8cba9" },
-  wardrobeButtonEquipped: { backgroundColor: colors.green },
-  wardrobeButtonText: { fontSize: 8 },
-  wardrobeButtonTextEquipped: { color: colors.cream },
+  wardrobeButton: { minWidth: 62 },
+  wardrobeButtonText: { fontSize: 9 },
 });

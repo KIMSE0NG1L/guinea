@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
+import { kit } from "../assets";
+import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import type { GameState } from "../types";
 
@@ -9,7 +11,7 @@ export function CompanionsScreen({ companions }: { companions: GameState["compan
       <PageHeading kicker="FRIENDS" title="동료" description="혼자보다 덜 쓸쓸하고, 조금 더 세다." />
       <View style={styles.list}>
         {companions.map((companion, index) => (
-          <View style={styles.card} key={companion.name}>
+          <Panel slice={kit.panel} style={styles.card} key={companion.name}>
             <View style={styles.lockedAvatar}>
               <View style={styles.lockShackle} />
               <View style={styles.lockBody} />
@@ -19,10 +21,10 @@ export function CompanionsScreen({ companions }: { companions: GameState["compan
               <Text style={styles.cardStrong}>{companion.unlocked ? companion.name : "아직은 비밀"}</Text>
               <Text style={styles.cardSpan}>스테이지 {index + 2}-1에서 발견</Text>
             </View>
-            <View style={styles.lockedTag}>
+            <Panel slice={kit.buttonGray} scale={0.3} style={styles.lockedTag}>
               <Text style={styles.lockedTagText}>잠김</Text>
-            </View>
-          </View>
+            </Panel>
+          </Panel>
         ))}
       </View>
     </View>
@@ -33,14 +35,12 @@ const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
   list: { gap: 10 },
   card: {
-    padding: 11,
+    paddingHorizontal: 13,
+    paddingTop: 11,
+    paddingBottom: 13,
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
-    backgroundColor: colors.cream,
-    borderWidth: 3,
-    borderColor: colors.line,
-    borderRadius: 13,
   },
   lockedAvatar: {
     width: 64,
@@ -69,6 +69,6 @@ const styles = StyleSheet.create({
   cardSmall: { color: colors.brown, fontSize: 8 },
   cardStrong: { marginVertical: 2, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   cardSpan: { color: colors.muted, fontSize: 9 },
-  lockedTag: { paddingVertical: 5, paddingHorizontal: 7, backgroundColor: "#80776b", borderRadius: 6 },
-  lockedTagText: { color: "white", fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
+  lockedTag: { paddingTop: 6, paddingBottom: 8, paddingHorizontal: 11 },
+  lockedTagText: { color: "#4f463c", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold },
 });

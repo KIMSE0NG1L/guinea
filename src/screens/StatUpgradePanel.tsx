@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
-import { colors, radii, fonts } from "../theme";
+import { colors, fonts } from "../theme";
+import { kit } from "../assets";
 import { GameButton } from "../components/GameButton";
+import { Panel } from "../components/NineSlice";
 import { formatGameNumber, getStatLevel, getStatValue, getUpgradeQuote, getNextUpgradeMode, statInfo } from "../state/gameMath";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 
@@ -30,13 +32,14 @@ export function StatUpgradePanel({
     upgradeMode === "max" ? "구매 가능한 만큼" : upgradeMode === "next" ? "다음 10레벨 단위까지" : `${upgradeMode}레벨`;
 
   return (
-    <View style={[styles.panel, compact && styles.panelCompact]}>
+    <Panel slice={kit.panelLarge} style={[styles.panel, compact && styles.panelCompact]}>
       <View style={[styles.heading, compact && styles.headingCompact]}>
         <View>
           <Text style={styles.kicker}>POWER UP</Text>
           <Text style={styles.title}>기니 성장</Text>
         </View>
         <GameButton
+          variant="green"
           onPress={() => onUpgradeModeChange(getNextUpgradeMode(upgradeMode))}
           accessibilityLabel={`강화 단위 변경, 현재 ${modeLabel}`}
           style={styles.modeButton}
@@ -57,7 +60,7 @@ export function StatUpgradePanel({
           const nextValue = value + info.step * quote.levels;
           const suffix = key === "attack" ? "" : "%";
           return (
-            <View style={[styles.row, upgraded === key && styles.rowUpgraded]} key={key}>
+            <Panel slice={upgraded === key ? kit.panel : kit.inset} scale={0.4} style={styles.row} key={key}>
               <View style={[styles.mark, { backgroundColor: STAT_COLORS[key] }]}>
                 <Text style={styles.markText}>{info.mark}</Text>
               </View>
@@ -70,6 +73,7 @@ export function StatUpgradePanel({
                 <Text style={styles.gainValue}>{formatGameNumber(nextValue)}{suffix}</Text>
               </View>
               <GameButton
+                variant="brown"
                 disabled={quote.levels === 0 || state.gold < quote.cost}
                 onPress={() => onUpgrade(key)}
                 style={styles.upgradeButton}
@@ -81,11 +85,11 @@ export function StatUpgradePanel({
                   <Text style={styles.upgradeButtonCost}>{formatGameNumber(quote.cost)} G</Text>
                 </View>
               </GameButton>
-            </View>
+            </Panel>
           );
         })}
       </View>
-    </View>
+    </Panel>
   );
 }
 
@@ -93,18 +97,16 @@ const styles = StyleSheet.create({
   panel: {
     margin: 8,
     marginHorizontal: 10,
-    padding: 11,
-    backgroundColor: colors.cream,
-    borderWidth: 2,
-    borderColor: colors.line,
-    borderRadius: 13,
+    paddingHorizontal: 13,
+    paddingTop: 12,
+    paddingBottom: 15,
   },
   panelCompact: {},
   heading: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 9 },
   headingCompact: { marginBottom: 7 },
   kicker: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
   title: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  modeButton: { minWidth: 82, minHeight: 40, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.green },
+  modeButton: { minWidth: 84, minHeight: 42, paddingHorizontal: 12 },
   modeButtonSmall: { color: "white", fontSize: 7, marginBottom: 2 },
   modeButtonLabel: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 11 },
   list: { gap: 6 },
@@ -113,13 +115,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    padding: 5,
-    backgroundColor: "#eee4cf",
-    borderWidth: 2,
-    borderColor: "#beaf95",
-    borderRadius: 9,
+    paddingVertical: 7,
+    paddingLeft: 8,
+    paddingRight: 8,
   },
-  rowUpgraded: { backgroundColor: "#dbe5ba" },
   mark: { width: 34, height: 34, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.line, borderRadius: 8 },
   markText: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 7 },
   rowCopy: { flex: 1 },
@@ -128,7 +127,7 @@ const styles = StyleSheet.create({
   gain: { minWidth: 42, alignItems: "flex-end" },
   gainSmall: { color: colors.muted, fontSize: 7, marginBottom: 2 },
   gainValue: { color: colors.green, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10 },
-  upgradeButton: { paddingHorizontal: 7, paddingVertical: 5, backgroundColor: colors.brown },
+  upgradeButton: { minWidth: 70, paddingHorizontal: 8 },
   upgradeButtonText: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 10, textAlign: "center" },
   upgradeButtonCost: { color: "#f3d993", fontSize: 7, marginTop: 1, textAlign: "center" },
 });

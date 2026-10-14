@@ -1,8 +1,9 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { icons } from "../assets";
+import { icons, kit } from "../assets";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
+import { Panel } from "../components/NineSlice";
 import { BOSS_NAME, ENEMY_NAME, getStageCode, STAGES } from "../state/stages";
 
 export function MilestoneScreen({
@@ -27,7 +28,7 @@ export function MilestoneScreen({
           const isLast = index === STAGES.length - 1;
           return (
             <View key={stage.area}>
-              <View style={[styles.card, current && styles.cardCurrent, !unlocked && styles.cardLocked]}>
+              <Panel slice={unlocked ? kit.panel : kit.inset} style={styles.card}>
                 <View style={[styles.badge, current && styles.badgeCurrent, !unlocked && styles.badgeLocked]}>
                   <Text style={[styles.badgeText, current && styles.badgeTextCurrent]}>{getStageCode(index)}</Text>
                 </View>
@@ -41,17 +42,17 @@ export function MilestoneScreen({
                   </Text>
                 </View>
                 {current ? (
-                  <GameButton style={[styles.moveButton, styles.moveButtonCurrent]} textStyle={styles.moveButtonTextCurrent} onPress={onBack}>
+                  <GameButton variant="green" style={styles.moveButton} textStyle={styles.moveButtonText} onPress={onBack}>
                     진행 중
                   </GameButton>
                 ) : unlocked ? (
-                  <GameButton style={styles.moveButton} textStyle={styles.moveButtonText} onPress={() => onSelectStage(index)}>
+                  <GameButton variant="beige" style={styles.moveButton} textStyle={styles.moveButtonText} onPress={() => onSelectStage(index)}>
                     이동
                   </GameButton>
                 ) : (
                   <Image source={icons.key} style={styles.lockIcon} accessibilityLabel="잠김" />
                 )}
-              </View>
+              </Panel>
               {!isLast && <View style={[styles.path, index >= highestStageNumber && styles.pathLocked]} />}
             </View>
           );
@@ -65,17 +66,13 @@ const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
   list: {},
   card: {
-    padding: 11,
+    paddingHorizontal: 13,
+    paddingTop: 11,
+    paddingBottom: 13,
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
-    backgroundColor: colors.cream,
-    borderWidth: 3,
-    borderColor: colors.line,
-    borderRadius: 13,
   },
-  cardCurrent: { backgroundColor: "#eef0d8", borderColor: colors.greenDark },
-  cardLocked: { backgroundColor: "#ddd1b8", borderColor: "#9f927e" },
   badge: {
     width: 54,
     height: 54,
@@ -96,10 +93,8 @@ const styles = StyleSheet.create({
   cardSpan: { color: colors.muted, fontSize: 9 },
   statusIcon: { width: 16, height: 16 },
   lockIcon: { width: 34, height: 34, marginRight: 18, opacity: 0.6 },
-  moveButton: { minWidth: 70, paddingVertical: 7, backgroundColor: "#dbc99e" },
+  moveButton: { minWidth: 70 },
   moveButtonText: { fontSize: 10 },
-  moveButtonCurrent: { backgroundColor: colors.green },
-  moveButtonTextCurrent: { fontSize: 10, color: colors.cream },
   // Dashed trail between stage cards, lined up under the round stage badge.
   path: { width: 0, height: 22, marginLeft: 38, borderLeftWidth: 4, borderColor: colors.gold, borderStyle: "dashed" },
   pathLocked: { borderColor: "#b6a78e" },

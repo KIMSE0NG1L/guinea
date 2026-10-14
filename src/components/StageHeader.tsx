@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { GameButton } from "./GameButton";
+import { ProgressBar } from "./ProgressBar";
 
 export function StageHeader({
   level,
@@ -18,9 +19,7 @@ export function StageHeader({
         <Text style={styles.levelValue}>Lv. {level}</Text>
       </View>
       <View style={styles.progress}>
-        <View style={styles.track}>
-          <View style={[styles.trackFill, { width: `${experience}%` }]} />
-        </View>
+        <ProgressBar progress={experience} height={14} style={styles.track} />
         <Text style={styles.progressLabel}>{experience} / 100</Text>
       </View>
       <GameButton onPress={onBoss} style={styles.bossButton}>보스 도전</GameButton>
@@ -44,8 +43,7 @@ const styles = StyleSheet.create({
   level: { color: colors.brown, fontWeight: "800", fontFamily: fonts.bold, fontSize: 8, letterSpacing: 2 },
   levelValue: { fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   progress: { flex: 1, flexDirection: "row", alignItems: "center", gap: 5, minWidth: 0 },
-  track: { flex: 1, height: 9, overflow: "hidden", borderWidth: 2, borderColor: colors.line, backgroundColor: colors.cream, borderRadius: 8 },
-  trackFill: { height: "100%", backgroundColor: colors.gold },
+  track: { flex: 1 },
   progressLabel: { fontSize: 9, color: colors.brown, fontWeight: "700", fontFamily: fonts.bold },
-  bossButton: { paddingHorizontal: 10, paddingVertical: 8 },
+  bossButton: { paddingHorizontal: 12 },
 });

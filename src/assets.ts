@@ -73,6 +73,63 @@ export const uiImages = {
   crystal: require("../assets/ui/item-crystal.png"),
   gear: require("../assets/ui/item-gear.png"),
   badgeAlert: require("../assets/ui/badge-alert.png"),
+  carrot: require("../assets/ui/item-carrot.png"),
+};
+
+export const food = {
+  cookPot: require("../assets/food/cook-pot.png"),
+  fryingPan: require("../assets/food/frying-pan.png"),
+  stewPot: require("../assets/food/stew-pot.png"),
+  cuttingBoard: require("../assets/food/cutting-board.png"),
+  kitchen: require("../assets/food/kitchen.png"),
+  carrot: require("../assets/food/carrot.png"),
+  tomato: require("../assets/food/tomato.png"),
+  potato: require("../assets/food/potato.png"),
+  mushroom: require("../assets/food/mushroom.png"),
+  cabbage: require("../assets/food/cabbage.png"),
+  pumpkin: require("../assets/food/pumpkin.png"),
+  corn: require("../assets/food/corn.png"),
+  onion: require("../assets/food/onion.png"),
+  egg: require("../assets/food/egg.png"),
+  milk: require("../assets/food/milk.png"),
+  cheese: require("../assets/food/cheese.png"),
+};
+
+// A stretchable UI frame: `insets` (source px: top, right, bottom, left) mark the rounded
+// corners/outline that NineSlice keeps unscaled while the plain middle stretches.
+// `centerColor` replaces the stretched middle for frames that grow far past their art.
+export type UiSlice = { source: number; width: number; height: number; insets: [number, number, number, number]; centerColor?: string };
+
+const slice = (source: number, width: number, height: number, insets: UiSlice["insets"], centerColor?: string): UiSlice => ({
+  source,
+  width,
+  height,
+  insets,
+  centerColor,
+});
+
+export const kit = {
+  panelLarge: slice(require("../assets/ui/kit-panel-lg.png"), 426, 231, [30, 30, 34, 30], "#fcf3d8"),
+  panel: slice(require("../assets/ui/kit-panel.png"), 303, 115, [26, 26, 30, 26], "#fbf3d8"),
+  panelSmall: slice(require("../assets/ui/kit-panel-sm.png"), 118, 116, [26, 26, 30, 26]),
+  panelBrown: slice(require("../assets/ui/kit-panel-brown.png"), 221, 110, [26, 26, 30, 26], "#714c32"),
+  panelParchment: slice(require("../assets/ui/kit-panel-parchment.png"), 211, 108, [30, 30, 30, 30], "#f8deae"),
+  inset: slice(require("../assets/ui/kit-inset.png"), 253, 108, [32, 32, 34, 32], "#e6d9be"),
+  slot: slice(require("../assets/ui/kit-slot.png"), 111, 113, [32, 32, 34, 32], "#d8c5a6"),
+  buttonCream: slice(require("../assets/ui/kit-btn-cream.png"), 206, 92, [26, 26, 30, 26]),
+  buttonGreen: slice(require("../assets/ui/kit-btn-green.png"), 271, 92, [26, 26, 30, 26]),
+  buttonBeige: slice(require("../assets/ui/kit-btn-beige.png"), 176, 92, [26, 26, 30, 26]),
+  buttonGray: slice(require("../assets/ui/kit-btn-gray.png"), 176, 93, [26, 26, 30, 26]),
+  buttonBrown: slice(require("../assets/ui/kit-panel-brown.png"), 221, 110, [26, 26, 30, 26]),
+  // The raised bump sits left of centre, so the left inset spans it to keep it unstretched.
+  tabGreen: slice(require("../assets/ui/kit-tab-green.png"), 165, 73, [26, 50, 24, 108]),
+  track: slice(require("../assets/ui/kit-track.png"), 362, 47, [20, 24, 20, 24], "#f8eac7"),
+};
+
+export const kitImages = {
+  toggleOn: require("../assets/ui/kit-toggle-on.png"),
+  toggleOff: require("../assets/ui/kit-toggle-off.png"),
+  dotRed: require("../assets/ui/kit-dot-red.png"),
 };
 
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
