@@ -87,7 +87,11 @@ export function useGameState() {
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
-        let loadedState = { ...save.state, equippedOutfit };
+        // Placeholder starter materials that were never used by any recipe — strip them
+        // from older saves so they stop cluttering the bag.
+        const retiredItems = ["낡은 천", "작은 돌"];
+        const inventory = save.state.inventory.filter((item) => !retiredItems.includes(item.name));
+        let loadedState = { ...save.state, equippedOutfit, inventory };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const result = simulateOfflineProgress(loadedState, Date.now() - save.lastSeenAt);

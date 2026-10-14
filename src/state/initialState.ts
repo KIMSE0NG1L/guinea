@@ -20,8 +20,6 @@ export const initialState: GameState = {
   selectedTab: "battle",
   inventory: [
     { name: "당근", quantity: 5, type: "food" },
-    { name: "낡은 천", quantity: 2, type: "material" },
-    { name: "작은 돌", quantity: 8, type: "material" },
   ],
   equipment: { weapon: null, hat: null, armor: null, accessory: null },
   companions: [
