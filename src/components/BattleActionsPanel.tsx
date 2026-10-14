@@ -45,10 +45,10 @@ export function BattleActionsPanel({
 }
 
 const styles = StyleSheet.create({
-  wrap: { margin: 10, flexDirection: "row", gap: 8, alignItems: "stretch" },
-  autoToggle: { flex: 1, minHeight: 46, justifyContent: "center" },
-  autoToggleText: { fontSize: 11 },
-  adButton: { flex: 1, minHeight: 46 },
-  adButtonText: { color: "#4f463c", fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, textAlign: "center" },
-  adButtonSmall: { marginTop: 2, fontSize: 8, textAlign: "center", color: "#4f463c" },
+  wrap: { marginTop: 8, marginBottom: 2, marginHorizontal: 10, flexDirection: "row", justifyContent: "flex-start", gap: 6 },
+  autoToggle: { minHeight: 32, paddingHorizontal: 10, justifyContent: "center" },
+  autoToggleText: { fontSize: 9 },
+  adButton: { minHeight: 32, paddingHorizontal: 10 },
+  adButtonText: { color: "#4f463c", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, textAlign: "center" },
+  adButtonSmall: { marginTop: 1, fontSize: 7, textAlign: "center", color: "#4f463c" },
 });

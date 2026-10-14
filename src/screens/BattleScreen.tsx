@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { StageHeader } from "../components/StageHeader";
 import { DishPicker } from "../components/DishPicker";
 import { BattleActionsPanel } from "../components/BattleActionsPanel";
+import { AdSpeedBoostModal } from "../components/AdSpeedBoostModal";
 import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
@@ -27,6 +28,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   const displayBoss = (boss && !isMobToBossTransition) || isDefeatFlash;
   // Which empty buff slot the dish picker is filling, if it's open.
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
+  const [adModalOpen, setAdModalOpen] = useState(false);
 
   // Fires once right as the boss sprite actually appears (displayBoss flips false→true),
   // not at the 25th-kill moment — that's still mid mob-death-clip, see isMobToBossTransition.
@@ -89,12 +91,20 @@ export function BattleScreen({ game }: { game: UseGameState }) {
           }}
         />
       )}
+      {adModalOpen && (
+        <AdSpeedBoostModal
+          onClaim={() => {
+            game.watchAdForSpeedBoost();
+            setAdModalOpen(false);
+          }}
+        />
+      )}
       <BattleActionsPanel
         isAutoBattle={battle.isAutoBattle}
         onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
         speedBoostActive={game.speedMultiplier > 1}
         speedBoostRemainingMs={game.speedBoostRemainingMs}
-        onWatchAd={game.watchAdForSpeedBoost}
+        onWatchAd={() => setAdModalOpen(true)}
       />
       <StatUpgradePanel
         state={state}
