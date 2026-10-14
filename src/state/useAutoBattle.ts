@@ -15,6 +15,7 @@ export function useAutoBattle({
   goldBonus,
   enemyMaxHp,
   boss,
+  speedMultiplier = 1,
   onDefeat,
 }: {
   attack: number;
@@ -23,6 +24,8 @@ export function useAutoBattle({
   goldBonus: number;
   enemyMaxHp: number;
   boss: boolean;
+  // Scales down every auto-battle timer delay — e.g. 2 halves them, doubling the pace.
+  speedMultiplier?: number;
   onDefeat: (goldReward: number) => void;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
@@ -40,6 +43,7 @@ export function useAutoBattle({
   const goldBonusRef = useRef(goldBonus);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
+  const speedMultiplierRef = useRef(speedMultiplier);
   const onDefeatRef = useRef(onDefeat);
   const manualTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const damageEventIdRef = useRef(0);
@@ -63,6 +67,7 @@ export function useAutoBattle({
   goldBonusRef.current = goldBonus;
   maxHpRef.current = enemyMaxHp;
   bossRef.current = boss;
+  speedMultiplierRef.current = speedMultiplier;
   onDefeatRef.current = onDefeat;
   phaseRef.current = phase;
 
@@ -75,7 +80,7 @@ export function useAutoBattle({
     let active = true;
     const timers: ReturnType<typeof setTimeout>[] = [];
     const later = (callback: () => void, delay: number) => {
-      const timer = setTimeout(() => active && callback(), delay);
+      const timer = setTimeout(() => active && callback(), delay / speedMultiplierRef.current);
       timers.push(timer);
     };
 

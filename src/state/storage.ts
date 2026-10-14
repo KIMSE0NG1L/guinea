@@ -5,7 +5,6 @@ const SAVE_KEY = "gini.save.v1";
 
 export type SaveData = {
   state: GameState;
-  pendingReward: number;
   // Wall-clock time the app last left the foreground — used to compute offline progress
   // on the next load. Undefined until the first background/foreground cycle happens.
   lastSeenAt?: number;

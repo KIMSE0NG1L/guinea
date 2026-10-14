@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { StageHeader } from "../components/StageHeader";
 import { DishPicker } from "../components/DishPicker";
-import { RewardPanel } from "../components/RewardPanel";
+import { BattleActionsPanel } from "../components/BattleActionsPanel";
 import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
@@ -9,7 +9,7 @@ import { getEnemyKind, getStageLabel } from "../state/stages";
 import type { EnemyKind } from "../types";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
-  const { state, battle, pendingReward, claimReward, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, defeatedBoss, defeatedStageNumber } = game;
+  const { state, battle, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, defeatedBoss, defeatedStageNumber } = game;
   // stageNumber advances the instant a boss dies, before its ~650ms death clip finishes —
   // keep showing the stage it died in (not the next one) for the rest of that clip, same
   // as the `boss` flag below already does, or the die animation flashes the next boss.
@@ -89,11 +89,12 @@ export function BattleScreen({ game }: { game: UseGameState }) {
           }}
         />
       )}
-      <RewardPanel
-        earned={pendingReward}
-        onClaim={claimReward}
+      <BattleActionsPanel
         isAutoBattle={battle.isAutoBattle}
         onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
+        speedBoostActive={game.speedMultiplier > 1}
+        speedBoostRemainingMs={game.speedBoostRemainingMs}
+        onWatchAd={game.watchAdForSpeedBoost}
       />
       <StatUpgradePanel
         state={state}

@@ -13,6 +13,9 @@ import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
 export type DropEvent = { id: number; name: string; delay: number };
 
+// No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
+const SPEED_BOOST_DURATION_MS = 120_000;
+
 // Adds dropped/bought items to the bag, stacking onto what's already there.
 function addItems(inventory: GameState["inventory"], items: { name: string; quantity: number }[]) {
   return items.reduce((bag, item) => {
@@ -25,7 +28,6 @@ function addItems(inventory: GameState["inventory"], items: { name: string; quan
 
 export function useGameState() {
   const [state, setState] = useState(initialState);
-  const [pendingReward, setPendingReward] = useState(220);
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
   const [defeatedBoss, setDefeatedBoss] = useState(false);
@@ -52,6 +54,16 @@ export function useGameState() {
   // Ingredient drops currently flying from the defeated monster into the bag button.
   const [dropEvents, setDropEvents] = useState<DropEvent[]>([]);
   const dropEventId = useRef(0);
+
+  // Watching an ad doubles auto-battle's pace for a while — not persisted, so it doesn't
+  // survive an app restart (matches how a real rewarded-ad timer would behave).
+  const [speedBoostUntil, setSpeedBoostUntil] = useState<number | null>(null);
+  const speedBoostRemainingMs = speedBoostUntil ? Math.max(0, speedBoostUntil - now) : 0;
+  const speedMultiplier = speedBoostRemainingMs > 0 ? 2 : 1;
+  const watchAdForSpeedBoost = () => {
+    if (speedBoostRemainingMs > 0) return;
+    setSpeedBoostUntil(Date.now() + SPEED_BOOST_DURATION_MS);
+  };
 
   // Gates the autosave effect below until the saved-game load (or its absence) has
   // resolved — otherwise the fresh `initialState` would autosave over a real save
@@ -86,7 +98,6 @@ export function useGameState() {
         }
         previousLevelRef.current = loadedState.level;
         setState(loadedState);
-        setPendingReward(save.pendingReward);
       }
       setLoaded(true);
     });
@@ -95,7 +106,7 @@ export function useGameState() {
   useEffect(() => {
     if (!loaded) return;
     const timer = setTimeout(() => {
-      writeSave({ state, pendingReward, lastSeenAt: lastSeenAtRef.current });
+      writeSave({ state, lastSeenAt: lastSeenAtRef.current });
     }, 800);
 
     // Flush immediately if the app is backgrounded/closed before the debounce fires,
@@ -104,7 +115,7 @@ export function useGameState() {
     const subscription = AppState.addEventListener("change", (status) => {
       if (status !== "active") {
         lastSeenAtRef.current = Date.now();
-        writeSave({ state, pendingReward, lastSeenAt: lastSeenAtRef.current });
+        writeSave({ state, lastSeenAt: lastSeenAtRef.current });
       }
     });
 
@@ -112,7 +123,7 @@ export function useGameState() {
       clearTimeout(timer);
       subscription.remove();
     };
-  }, [state, pendingReward, loaded]);
+  }, [state, loaded]);
 
   useEffect(() => {
     if (skipStageAnnouncement.current) {
@@ -203,23 +214,9 @@ export function useGameState() {
     goldBonus: state.goldBonus + buffs.gold,
     enemyMaxHp,
     boss,
+    speedMultiplier,
     onDefeat: handleEnemyDefeat,
   });
-
-  const claimReward = () => {
-    setState((previous) => {
-      const totalGoldEarned = previous.totalGoldEarned + pendingReward;
-      return {
-        ...previous,
-        gold: previous.gold + pendingReward,
-        totalGoldEarned,
-        quests: previous.quests.map((quest) =>
-          quest.id === "gold" ? { ...quest, current: totalGoldEarned } : quest
-        ),
-      };
-    });
-    setPendingReward(0);
-  };
 
   const upgradeStat = (key: StatKey) => {
     setState((previous) => {
@@ -386,7 +383,7 @@ export function useGameState() {
     setBoss(false);
     setDefeatedBoss(false);
     setStageAnnouncement(null);
-    setPendingReward(220);
+    setSpeedBoostUntil(null);
     setState(initialState);
     battle.resetEnemy(getEnemyMaxHp(0, false));
   };
@@ -394,7 +391,6 @@ export function useGameState() {
   return {
     state,
     setState,
-    pendingReward,
     questOpen,
     setQuestOpen,
     boss,
@@ -407,7 +403,6 @@ export function useGameState() {
     upgraded,
     enemyMaxHp,
     battle,
-    claimReward,
     upgradeStat,
     claimQuest,
     selectStage,
@@ -421,6 +416,9 @@ export function useGameState() {
     buffSlots,
     now,
     eatDish,
+    speedMultiplier,
+    speedBoostRemainingMs,
+    watchAdForSpeedBoost,
   };
 }
 
