@@ -304,6 +304,10 @@ function PlayerFighter({ animation, outfit, boss }: { animation: PlayerAnimation
       <CharacterSprite
         outfit={outfit}
         animation={animation}
+        // The critical strip draws the guinea pig noticeably smaller than every other
+        // animation (to leave room for its burst effects) — compensate so it doesn't
+        // visibly shrink mid-combo.
+        scale={animation === "critical" ? 1.18 : 1}
         repeat={animation === "win" && boss ? 3 : 1}
         restartKey={`${outfit}-${animation}`}
       />
