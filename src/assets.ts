@@ -80,6 +80,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-fridge-hit-strip.png"),
     die: require("../assets/sprites/boss-fridge-die-strip.png"),
   },
+  mudskipper: {
+    idle: require("../assets/sprites/mudskipper-idle-strip.png"),
+    hit: require("../assets/sprites/mudskipper-hit-strip.png"),
+    die: require("../assets/sprites/mudskipper-die-strip.png"),
+  },
+  bossKingCrab: {
+    idle: require("../assets/sprites/boss-kingcrab-idle-strip.png"),
+    hit: require("../assets/sprites/boss-kingcrab-hit-strip.png"),
+    die: require("../assets/sprites/boss-kingcrab-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -90,6 +100,7 @@ export const images = {
   battleBackgroundPotatoCave: require("../assets/sprites/battle-potato-cave.png"),
   battleBackgroundVillage: require("../assets/sprites/battle-village.png"),
   battleBackgroundMansionKitchen: require("../assets/sprites/battle-mansion-kitchen.png"),
+  battleBackgroundHarborBeach: require("../assets/sprites/battle-harbor-beach.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

@@ -8,6 +8,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   potato: "꼬마감자",
   mouse: "도시 쥐",
   cauldron: "투덜이 냄비",
+  mudskipper: "심술 망둥어",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -18,6 +19,7 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   potato: "싹난감자",
   mouse: "도둑 뚱냥이",
   cauldron: "폭식 냉장고",
+  mudskipper: "킹크랩",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -30,6 +32,7 @@ export const STAGES: { area: string; enemyKind: EnemyKind }[] = [
   { area: "감자 동굴", enemyKind: "potato" },
   { area: "평범한 마을", enemyKind: "mouse" },
   { area: "부잣집 주방", enemyKind: "cauldron" },
+  { area: "항구 해변", enemyKind: "mudskipper" },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

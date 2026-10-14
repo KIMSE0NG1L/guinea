@@ -77,6 +77,17 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "계란", chance: 0.25 },
     ],
   },
+  mudskipper: {
+    mob: [
+      { name: "양배추", chance: 0.35 },
+      { name: "옥수수", chance: 0.15 },
+    ],
+    boss: [
+      { name: "양배추", chance: 1, quantity: 3 },
+      { name: "호박", chance: 0.5 },
+      { name: "토마토", chance: 0.25 },
+    ],
+  },
 };
 
 export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {
