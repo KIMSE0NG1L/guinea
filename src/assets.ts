@@ -128,6 +128,12 @@ export const images = {
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
 export const effects = {
   critFlash: require("../assets/sprites/crit-flash-strip.png"),
+  // Guinea Beam: charge → full beam → dissipate. 512x250 each, muzzle ring at the left.
+  beam: [
+    require("../assets/effects/beam-1.png"),
+    require("../assets/effects/beam-2.png"),
+    require("../assets/effects/beam-3.png"),
+  ],
 };
 
 export const icons = {
@@ -161,6 +167,15 @@ export const uiImages = {
   badgeAlert: require("../assets/ui/badge-alert.png"),
   carrot: require("../assets/ui/item-carrot.png"),
 };
+
+// Skill icons, 256px wide at SKILL_ICON_ASPECT (width / height).
+export const skillImages = {
+  beam: require("../assets/skills/beam.png"),
+  steal: require("../assets/skills/steal.png"),
+  focus: require("../assets/skills/focus.png"),
+  execute: require("../assets/skills/execute.png"),
+};
+export const SKILL_ICON_ASPECT = 256 / 222;
 
 export const food = {
   cookPot: require("../assets/food/cook-pot.png"),

@@ -13,7 +13,7 @@ import type { Tab } from "../types";
 const navigation: { id: Tab; label: string; icon?: string; isSword?: boolean; wideShape?: "left" | "right" }[] = [
   { id: "battle", label: "전투", isSword: true, wideShape: "left" },
   { id: "companions", label: "동료", icon: "FR" },
-  { id: "wardrobe", label: "옷장", icon: "CL" },
+  { id: "skills", label: "스킬", icon: "SK" },
   { id: "shop", label: "상점", icon: "SH", wideShape: "right" },
 ];
 

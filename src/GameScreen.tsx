@@ -13,6 +13,7 @@ import { CompanionsScreen } from "./screens/CompanionsScreen";
 import { InventoryScreen } from "./screens/InventoryScreen";
 import { WardrobeScreen } from "./screens/WardrobeScreen";
 import { ShopScreen } from "./screens/ShopScreen";
+import { SkillsScreen } from "./screens/SkillsScreen";
 import { MilestoneScreen } from "./screens/MilestoneScreen";
 import { KitchenScreen } from "./screens/KitchenScreen";
 import { GroceryScreen } from "./screens/GroceryScreen";
@@ -40,6 +41,15 @@ export function GameScreen() {
           <WardrobeScreen
             equippedOutfit={state.equippedOutfit}
             onEquip={(equippedOutfit) => setState((previous) => ({ ...previous, equippedOutfit }))}
+          />
+        );
+      case "skills":
+        return (
+          <SkillsScreen
+            equippedSkill={state.equippedSkill ?? null}
+            onEquip={game.equipSkill}
+            swapReadyAt={game.skillSwapReadyAt}
+            now={game.now}
           />
         );
       case "shop":

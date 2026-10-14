@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
-import type { GameState, StatKey, UpgradeMode } from "../types";
+import type { GameState, SkillId, StatKey, UpgradeMode } from "../types";
+import { SKILL_SWAP_LOCK_MS } from "./skills";
 import { initialState } from "./initialState";
 import { getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
@@ -217,6 +218,19 @@ export function useGameState() {
     });
   }, [boss, state.stageKills, state.stageNumber]);
 
+  // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
+  const addBonusGold = useCallback((amount: number) => {
+    setState((previous) => {
+      const totalGoldEarned = previous.totalGoldEarned + amount;
+      return {
+        ...previous,
+        gold: previous.gold + amount,
+        totalGoldEarned,
+        quests: previous.quests.map((quest) => (quest.id === "gold" ? { ...quest, current: totalGoldEarned } : quest)),
+      };
+    });
+  }, []);
+
   const battle = useAutoBattle({
     // Food buffs apply on top of the upgraded stats.
     attack: Math.round(getTotalAttack(state) * (1 + buffs.attack / 100)),
@@ -227,7 +241,19 @@ export function useGameState() {
     boss,
     speedMultiplier,
     onDefeat: handleEnemyDefeat,
+    onBonusGold: addBonusGold,
+    equippedSkill: state.equippedSkill ?? null,
   });
+
+  // Only one skill fits the battle slot — equipping one replaces whatever was there.
+  // A new skill can only go in once SKILL_SWAP_LOCK_MS has passed since the last cast.
+  // Execute is never cast, so while it's equipped the lock runs out and swapping away is
+  // free; emptying the slot is always allowed.
+  const skillSwapReadyAt = battle.lastSkillCastAt > 0 ? battle.lastSkillCastAt + SKILL_SWAP_LOCK_MS : 0;
+  const equipSkill = (equippedSkill: SkillId | null) => {
+    if (equippedSkill && Date.now() < skillSwapReadyAt) return;
+    setState((previous) => ({ ...previous, equippedSkill }));
+  };
 
   const upgradeStat = (key: StatKey) => {
     setState((previous) => {
@@ -429,6 +455,8 @@ export function useGameState() {
     claimQuest,
     selectStage,
     skipToBoss,
+    equipSkill,
+    skillSwapReadyAt,
     resetSave,
     offlineSummary,
     dismissOfflineSummary: () => setOfflineSummary(null),

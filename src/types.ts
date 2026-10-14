@@ -1,10 +1,11 @@
-export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes";
+export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
 export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander";
 export type Outfit = "default";
+export type SkillId = "beam" | "steal" | "focus" | "execute";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 
 export interface Quest {
@@ -35,6 +36,8 @@ export interface GameState {
   // Food buff slots on the battle screen (null = empty); missing on older saves.
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
   equippedOutfit: Outfit;
+  // The one skill in the battle slot (null = none); missing on older saves.
+  equippedSkill?: SkillId | null;
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];
   equipment: Record<string, string | null>;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
@@ -14,6 +14,10 @@ import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
 import { BossEntranceBanner } from "../components/BossEntranceBanner";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
+import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
+import { EXECUTE_TIMING, ExecuteEffect } from "../components/ExecuteEffect";
+import { BeamEffect } from "../components/BeamEffect";
+import { BEAM_TIMING } from "../state/skills";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import { ITEM_IMAGES } from "../state/recipes";
@@ -53,6 +57,8 @@ const BACKGROUND: Record<EnemyKind, number> = {
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
 // Keep in sync with styles.fighters (right/bottom) and the bottom-right button row.
 const FIGHTERS_BOTTOM = 55;
+const FIGHTERS_SIDE = 15;
+const CHARACTER_WIDTH = 108;
 const ENEMY_CENTER_RIGHT = 15 + 108 / 2;
 const GROUND_BOTTOM = 68;
 // Bottom-right button row: bag, cook pot, map. Every icon gets the same box; its art
@@ -109,6 +115,11 @@ export function BattleScene({
   onOpenMap,
   onOpenKitchen,
   onOpenBag,
+  skillBar,
+  goldEvents,
+  executeId: rawExecuteId,
+  executedKill,
+  beamId: rawBeamId,
   dropEvents,
   bossEntranceKey,
   levelUpAnnouncement,
@@ -131,18 +142,55 @@ export function BattleScene({
   onOpenMap: () => void;
   onOpenKitchen: () => void;
   onOpenBag: () => void;
+  skillBar: ReactNode;
+  // Gold scattered by the Steal skill, one popup per hit.
+  goldEvents: { id: number; amount: number }[];
+  // Bumped each time Execute finishes an enemy (0 = never) — plays the teleport-slash.
+  executeId: number;
+  // The kill now playing out was an Execute — crit pose instead of the win pose.
+  executedKill: boolean;
+  // Bumped on each Guinea Beam cast (0 = never).
+  beamId: number;
   dropEvents: DropEvent[];
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
 }) {
+  // Skill ids already bumped before this scene mounted (e.g. a beam fired before visiting
+  // another tab) count as 0 here, so coming back doesn't replay their effects.
+  const [mountedExecuteId] = useState(rawExecuteId);
+  const [mountedBeamId] = useState(rawBeamId);
+  const executeId = rawExecuteId === mountedExecuteId ? 0 : rawExecuteId;
+  const beamId = rawBeamId === mountedBeamId ? 0 : rawBeamId;
+
+  // Guinea Beam: hold a crit pose from the cast until the beam has faded. Flipped on
+  // during render when beamId moves (so the pose starts in the same frame as the
+  // effect), and off again by a timer below.
+  const [seenBeamId, setSeenBeamId] = useState(beamId);
+  const [beaming, setBeaming] = useState(false);
+  if (beamId !== seenBeamId) {
+    setSeenBeamId(beamId);
+    setBeaming(beamId > 0);
+  }
+  useEffect(() => {
+    if (!beaming) return;
+    const timer = setTimeout(() => setBeaming(false), BEAM_TIMING.end);
+    return () => clearTimeout(timer);
+  }, [beaming, beamId]);
+
+  const executing = phase === "defeated" && executedKill;
   const playerAnimation: PlayerAnimation =
-    phase === "attacking"
-      ? critical ? "critical" : "attack"
-      : phase === "hit" && critical
-        ? "critical"
-        : phase === "defeated"
-          ? "win"
-          : "idle";
+    executing || beaming
+      ? "critical"
+      : phase === "attacking"
+        ? critical ? "critical" : "attack"
+        : phase === "hit" && critical
+          ? "critical"
+          : phase === "defeated"
+            ? "win"
+            : "idle";
+  // A skill pose pins the guinea pig in place and always restarts its strip, even if the
+  // swing before it was already a crit.
+  const skillPoseKey = executing ? `execute-${executeId}` : beaming ? `beam-${beamId}` : null;
 
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
@@ -163,9 +211,35 @@ export function BattleScene({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
-  const killPunchStyle = useAnimatedStyle(() => ({ transform: [{ scale: killPunch.value }] }));
+  const sceneShake = useSharedValue(0);
+  useEffect(() => {
+    if (beamId === 0) return;
+    sceneShake.value = withDelay(
+      BEAM_TIMING.hit,
+      withSequence(
+        withTiming(7, { duration: 35 }),
+        withTiming(-6, { duration: 45 }),
+        withTiming(5, { duration: 45 }),
+        withTiming(-3, { duration: 45 }),
+        withTiming(0, { duration: 45 }),
+      ),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beamId]);
+  const killPunchStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: sceneShake.value }, { translateY: sceneShake.value * -0.4 }, { scale: killPunch.value }],
+  }));
   // Flying gold coins only for the fresh kill this render reflects (new enemyId + reward).
   const goldFlyFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.6 };
+
+  // Execute: the guinea pig blinks across to just in front of the enemy and back. The
+  // fighters row is measured since the gap between the two depends on screen width.
+  const [fightersWidth, setFightersWidth] = useState(0);
+  const playerCenterLeft = FIGHTERS_SIDE + CHARACTER_WIDTH / 2;
+  const enemyCenterLeft = FIGHTERS_SIDE + fightersWidth - CHARACTER_WIDTH / 2;
+  const arrivalCenterLeft = Math.max(playerCenterLeft, enemyCenterLeft - enemySize * 0.5 - 22);
+  const teleportX = arrivalCenterLeft - playerCenterLeft;
+  const bodyBottom = FIGHTERS_BOTTOM + 45;
 
   return (
     <View style={styles.scene}>
@@ -192,8 +266,19 @@ export function BattleScene({
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
 
-          <Animated.View style={[styles.fighters, killPunchStyle]}>
-            <PlayerFighter animation={playerAnimation} outfit={outfit} boss={boss} />
+          <Animated.View
+            style={[styles.fighters, killPunchStyle]}
+            onLayout={(event) => setFightersWidth(event.nativeEvent.layout.width)}
+          >
+            <PlayerFighter
+              animation={playerAnimation}
+              outfit={outfit}
+              boss={boss}
+              executeId={executeId}
+              beamId={beamId}
+              skillPoseKey={skillPoseKey}
+              teleportX={teleportX}
+            />
             {levelUpAnnouncement !== null && <LevelUpBurst key={levelUpAnnouncement} level={levelUpAnnouncement} />}
 
             <EnemyFighter
@@ -206,6 +291,7 @@ export function BattleScene({
               phase={phase}
               size={enemySize}
               critical={critical}
+              beamId={beamId}
             />
 
             {/* Kept below the enemy nameplate (fixed at bottom: 112) so numbers never cover
@@ -215,6 +301,9 @@ export function BattleScene({
                 <DamageNumber key={event.id} amount={event.amount} critical={event.critical} />
               ))}
               {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
+              {goldEvents.map((event) => (
+                <CoinPopup key={`steal-${event.id}`} amount={event.amount} />
+              ))}
             </View>
           </Animated.View>
 
@@ -239,6 +328,26 @@ export function BattleScene({
           >
             <Image source={MAP_ICON.source} style={fitInBox(MAP_ICON)} />
           </Pressable>
+
+          <View style={styles.skillBar}>{skillBar}</View>
+
+          {beamId > 0 && fightersWidth > 0 && (
+            <BeamEffect
+              key={`beam-${beamId}`}
+              mouth={{ left: playerCenterLeft + 34, bottom: FIGHTERS_BOTTOM + 48 }}
+              targetLeft={enemyCenterLeft + 20}
+              enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+            />
+          )}
+
+          {executeId > 0 && fightersWidth > 0 && (
+            <ExecuteEffect
+              key={`execute-${executeId}`}
+              home={{ left: playerCenterLeft, bottom: bodyBottom }}
+              arrival={{ left: arrivalCenterLeft, bottom: bodyBottom }}
+              enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+            />
+          )}
 
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             {dropEvents.map((event) => (
@@ -290,12 +399,71 @@ function BagButton({ onPress, dropEvents }: { onPress: () => void; dropEvents: D
   );
 }
 
-function PlayerFighter({ animation, outfit, boss }: { animation: PlayerAnimation; outfit: Outfit; boss: boolean }) {
+function PlayerFighter({
+  animation,
+  outfit,
+  boss,
+  executeId,
+  beamId,
+  skillPoseKey,
+  teleportX,
+}: {
+  animation: PlayerAnimation;
+  outfit: Outfit;
+  boss: boolean;
+  executeId: number;
+  beamId: number;
+  // Set while a skill pose (Execute's cut, Guinea Beam) plays: no swing lunge/shake on
+  // top of it, and the strip restarts per cast.
+  skillPoseKey: string | null;
+  teleportX: number;
+}) {
   const isAttacking = animation === "attack" || animation === "critical";
   const shake = useSharedValue(0);
   const lunge = useSharedValue(0);
+  const teleport = useSharedValue(0);
+  const visible = useSharedValue(1);
+  const recoil = useSharedValue(0);
+
+  // Guinea Beam kicks the guinea pig back a step as it fires, then it plants again.
+  useEffect(() => {
+    if (beamId === 0) return;
+    recoil.value = withDelay(
+      BEAM_TIMING.fire,
+      withSequence(
+        withTiming(1, { duration: 60, easing: Easing.out(Easing.quad) }),
+        withDelay(BEAM_TIMING.hit - BEAM_TIMING.fire + 80, withTiming(0, { duration: 260, easing: Easing.inOut(Easing.quad) })),
+      ),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beamId]);
+
+  // Execute's ninja blink, in step with ExecuteEffect's smoke puffs: fade out, jump to the
+  // enemy, pop back in for the cut, then the same in reverse.
+  useEffect(() => {
+    if (executeId === 0) return;
+    const { vanish, arrive, leave, home } = EXECUTE_TIMING;
+    teleport.value = withSequence(
+      withDelay(vanish, withTiming(teleportX, { duration: 0 })),
+      withDelay(home - vanish, withTiming(0, { duration: 0 })),
+    );
+    visible.value = withSequence(
+      withTiming(0, { duration: vanish }),
+      withTiming(1, { duration: arrive - vanish }),
+      withDelay(leave - arrive, withTiming(0, { duration: home - leave })),
+      withTiming(1, { duration: 60 }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [executeId]);
 
   useEffect(() => {
+    // A skill pose pins the guinea pig (e.g. at Execute's teleport spot) — kill any swing
+    // motion still in flight, like a crit lunge from the swing that triggered it.
+    if (skillPoseKey) {
+      shake.value = 0;
+      lunge.value = 0;
+      return;
+    }
     if (isAttacking) {
       shake.value = withSequence(withTiming(1, { duration: 130, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 130, easing: Easing.inOut(Easing.quad) }));
     }
@@ -305,11 +473,12 @@ function PlayerFighter({ animation, outfit, boss }: { animation: PlayerAnimation
       lunge.value = 0;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animation]);
+  }, [animation, skillPoseKey]);
 
   const style = useAnimatedStyle(() => ({
+    opacity: visible.value,
     transform: [
-      { translateX: shake.value * 24 + lunge.value * 112 },
+      { translateX: shake.value * 24 + lunge.value * 112 + teleport.value - recoil.value * 12 },
       { rotate: `${shake.value * 4}deg` },
       { scale: 1 + lunge.value * 0.05 },
     ],
@@ -328,7 +497,7 @@ function PlayerFighter({ animation, outfit, boss }: { animation: PlayerAnimation
         // visibly shrink mid-combo.
         scale={animation === "critical" ? 1.18 : 1}
         repeat={animation === "win" && boss ? 3 : 1}
-        restartKey={`${outfit}-${animation}`}
+        restartKey={skillPoseKey ? `${outfit}-${skillPoseKey}` : `${outfit}-${animation}`}
       />
     </Animated.View>
   );
@@ -344,6 +513,7 @@ function EnemyFighter({
   phase,
   size,
   critical,
+  beamId,
 }: {
   animation: EnemyAnimation;
   boss: boolean;
@@ -354,12 +524,33 @@ function EnemyFighter({
   phase: BattlePhase;
   size: number;
   critical: boolean;
+  beamId: number;
 }) {
   const shake = useSharedValue(0);
   const knockback = useSharedValue(0);
   const hitFlash = useSharedValue(0);
   const defeat = useSharedValue(0);
   const enter = useSharedValue(phase === "entering" ? 0 : 1);
+  const beamPush = useSharedValue(0);
+  const beamFlash = useSharedValue(0);
+
+  // Guinea Beam connecting: a white flash and a shove back. A mob dies on the spot anyway;
+  // a boss (which survives at half HP) gets dragged further and slowly plants its feet.
+  useEffect(() => {
+    if (beamId === 0) return;
+    beamFlash.value = withDelay(
+      BEAM_TIMING.hit,
+      withSequence(withTiming(1, { duration: 40 }), withTiming(0.7, { duration: 120 }), withTiming(0, { duration: 200 })),
+    );
+    beamPush.value = withDelay(
+      BEAM_TIMING.hit,
+      withSequence(
+        withTiming(1, { duration: 140, easing: Easing.out(Easing.quad) }),
+        withTiming(0, { duration: 420, easing: Easing.inOut(Easing.quad) }),
+      ),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beamId]);
 
   useEffect(() => {
     if (phase === "hit") {
@@ -390,13 +581,13 @@ function EnemyFighter({
   const style = useAnimatedStyle(() => ({
     opacity: (1 - defeat.value) * (0.4 + enter.value * 0.6),
     transform: [
-      { translateX: knockback.value * 14 - defeat.value * -7 + (1 - enter.value) * 35 },
+      { translateX: knockback.value * 14 - defeat.value * -7 + (1 - enter.value) * 35 + beamPush.value * (boss ? 34 : 18) },
       { translateY: defeat.value * 30 },
       { rotate: `${shake.value * 5 + defeat.value * 18}deg` },
       { scale: 1 - defeat.value * 0.65 + (1 - enter.value) * -0.4 },
     ],
   }));
-  const hitFlashStyle = useAnimatedStyle(() => ({ opacity: hitFlash.value }));
+  const hitFlashStyle = useAnimatedStyle(() => ({ opacity: Math.max(hitFlash.value, beamFlash.value) }));
 
   return (
     <Animated.View style={[styles.characterWrap, style]}>
@@ -465,6 +656,8 @@ const styles = StyleSheet.create({
   kitchenButton: { position: "absolute", right: rowRight(1), bottom: ROW_BOTTOM, ...ICON_BOX },
   bagButton: { position: "absolute", right: rowRight(2), bottom: ROW_BOTTOM, ...ICON_BOX },
   mapButtonPressed: { transform: [{ scale: 0.92 }] },
+  // Bottom-left, mirroring the right-hand button row's inset; sits below the player sprite.
+  skillBar: { position: "absolute", left: ROW_RIGHT, bottom: ROW_BOTTOM + (ICON_BOX.height - SKILL_SLOT_HEIGHT) / 2 },
   effects: { position: "absolute", right: 96, bottom: 30, zIndex: 10 },
   // Below enemyNameplateFixed's zIndex: 5 so a big flash can never cover the HP bar.
   critFlash: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },

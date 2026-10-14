@@ -3,6 +3,7 @@ import { StageHeader } from "../components/StageHeader";
 import { DishPicker } from "../components/DishPicker";
 import { BattleActionsPanel } from "../components/BattleActionsPanel";
 import { BuffSlots } from "../components/BuffSlots";
+import { SkillSlot } from "../components/SkillSlot";
 import { AdUnavailableModal } from "../components/AdUnavailableModal";
 import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
@@ -69,6 +70,20 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
         onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
+        skillBar={
+          <SkillSlot
+            skillId={state.equippedSkill ?? null}
+            timers={battle.skillTimers}
+            now={game.now}
+            canCast={battle.canCastSkill(game.now)}
+            onCast={battle.castSkill}
+            onOpenSkills={() => game.setState((previous) => ({ ...previous, selectedTab: "skills" }))}
+          />
+        }
+        goldEvents={battle.goldEvents}
+        executeId={battle.executeId}
+        executedKill={battle.lastKillExecuted}
+        beamId={battle.beamId}
         dropEvents={game.dropEvents}
         bossEntranceKey={bossEntranceKey}
         levelUpAnnouncement={game.levelUpAnnouncement}
