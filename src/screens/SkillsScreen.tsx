@@ -26,12 +26,12 @@ export function SkillsScreen({
       <PageHeading
         kicker="SKILLS"
         title="기니의 스킬"
-        description="스킬은 하나만 장착할 수 있어요. 스킬을 쓰면 3분 동안 다른 스킬로 바꿀 수 없어요."
+        description="스킬은 하나만 장착할 수 있어요. 스킬을 쓰거나 패시브를 장착하면 3분 동안 바꿀 수 없어요."
       />
       <View style={styles.list}>
         {SKILLS.map((skill) => {
           const equipped = skill.id === equippedSkill;
-          const locked = !equipped && swapLockLeftMs > 0;
+          const locked = swapLockLeftMs > 0;
           return (
             <Panel slice={equipped ? kit.panel : kit.inset} style={styles.card} key={skill.id}>
               <SkillIcon id={skill.id} height={50} />
@@ -43,13 +43,13 @@ export function SkillsScreen({
                 <Text style={styles.cardSpan}>{skill.description}</Text>
               </View>
               <GameButton
-                variant={equipped ? "green" : locked ? "gray" : "beige"}
+                variant={locked ? "gray" : equipped ? "green" : "beige"}
                 disabled={locked}
                 onPress={() => onEquip(equipped ? null : skill.id)}
                 style={styles.equipButton}
                 textStyle={styles.equipButtonText}
               >
-                {equipped ? "해제" : locked ? formatDuration(swapLockLeftMs) : "장착"}
+                {locked ? formatDuration(swapLockLeftMs) : equipped ? "해제" : "장착"}
               </GameButton>
             </Panel>
           );

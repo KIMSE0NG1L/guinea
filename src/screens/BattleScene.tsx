@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { effects, food, icons, images, FRAME_SIZE } from "../assets";
-import { CharacterSprite } from "../components/CharacterSprite";
+import { CharacterSprite, CRITICAL_SCALE } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
 import { SpriteStrip } from "../components/SpriteStrip";
 import { DamageNumber } from "../components/DamageNumber";
@@ -22,6 +22,8 @@ import {
   BuffVignette,
   FocusAura,
   FocusCastEffect,
+  ShoutCastEffect,
+  ShoutDebuff,
   StealAura,
   StealCastEffect,
   StealCoins,
@@ -68,6 +70,7 @@ const FIGHTERS_BOTTOM = 55;
 const FIGHTERS_SIDE = 15;
 const STEAL_DURATION = getSkill("steal").durationMs ?? 0;
 const FOCUS_DURATION = getSkill("focus").durationMs ?? 0;
+const SHOUT_DURATION = getSkill("shout").durationMs ?? 0;
 
 // Turns a skill's ever-increasing cast counter into what the scene should play:
 // - `id` is 0 for casts from before this scene mounted (e.g. before visiting another
@@ -154,6 +157,7 @@ export function BattleScene({
   beamId: rawBeamId,
   stealId: rawStealId,
   focusId: rawFocusId,
+  shoutId: rawShoutId,
   dropEvents,
   bossEntranceKey,
   levelUpAnnouncement,
@@ -187,6 +191,7 @@ export function BattleScene({
   beamId: number;
   stealId: number;
   focusId: number;
+  shoutId: number;
   dropEvents: DropEvent[];
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
@@ -196,6 +201,15 @@ export function BattleScene({
   const { id: beamId, active: beaming } = useSkillEvent(rawBeamId, BEAM_TIMING.end);
   const steal = useSkillEvent(rawStealId, STEAL_DURATION);
   const focus = useSkillEvent(rawFocusId, FOCUS_DURATION);
+  const shout = useSkillEvent(rawShoutId, SHOUT_DURATION);
+  // Every timed buff skill shares one vignette element; only one skill is ever equipped.
+  const buffVignette = steal.active
+    ? { key: `steal-${steal.id}`, durationMs: STEAL_DURATION }
+    : focus.active
+      ? { key: `focus-${focus.id}`, durationMs: FOCUS_DURATION }
+      : shout.active
+        ? { key: `shout-${shout.id}`, durationMs: SHOUT_DURATION }
+        : null;
 
   const executing = phase === "defeated" && executedKill;
   const playerAnimation: PlayerAnimation =
@@ -274,12 +288,7 @@ export function BattleScene({
 
           {/* One vignette for every buff skill — Steal and Focus render this exact element.
               It sits right on the backdrop, under the stage bar, fighters and buttons. */}
-          {(steal.active || focus.active) && (
-            <BuffVignette
-              key={steal.active ? `steal-${steal.id}` : `focus-${focus.id}`}
-              durationMs={steal.active ? STEAL_DURATION : FOCUS_DURATION}
-            />
-          )}
+          {buffVignette && <BuffVignette key={buffVignette.key} durationMs={buffVignette.durationMs} />}
 
           <LinearGradient
             colors={["#171d19e8", "#263125a8", "#26312500"]}
@@ -324,6 +333,7 @@ export function BattleScene({
               size={enemySize}
               critical={critical}
               beamId={beamId}
+              shoutDebuffId={shout.active ? shout.id : 0}
             />
 
             {/* Kept below the enemy nameplate (fixed at bottom: 112) so numbers never cover
@@ -374,6 +384,13 @@ export function BattleScene({
 
           {steal.id > 0 && <StealCastEffect key={`steal-${steal.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {focus.id > 0 && <FocusCastEffect key={`focus-${focus.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
+          {shout.id > 0 && fightersWidth > 0 && (
+            <ShoutCastEffect
+              key={`shout-${shout.id}`}
+              mouth={{ left: playerCenterLeft + 34, bottom: FIGHTERS_BOTTOM + 48 }}
+              enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+            />
+          )}
           {fightersWidth > 0 &&
             goldEvents.map((event) => (
               <StealCoins
@@ -542,10 +559,9 @@ function PlayerFighter({
       <CharacterSprite
         outfit={outfit}
         animation={animation}
-        // The critical strip draws the guinea pig noticeably smaller than every other
-        // animation (to leave room for its burst effects) — compensate so it doesn't
-        // visibly shrink mid-combo.
-        scale={animation === "critical" ? 1.18 : 1}
+        // The critical strip draws the guinea pig small to fit its effects; scaling it back
+        // up keeps the guinea pig the same size as in every other pose.
+        scale={animation === "critical" ? CRITICAL_SCALE : 1}
         repeat={animation === "win" && boss ? 3 : 1}
         restartKey={skillPoseKey ? `${outfit}-${skillPoseKey}` : `${outfit}-${animation}`}
       />
@@ -564,6 +580,7 @@ function EnemyFighter({
   size,
   critical,
   beamId,
+  shoutDebuffId,
 }: {
   animation: EnemyAnimation;
   boss: boolean;
@@ -575,6 +592,8 @@ function EnemyFighter({
   size: number;
   critical: boolean;
   beamId: number;
+  // Non-zero (the cast's id) while Shout's debuff mark should show.
+  shoutDebuffId: number;
 }) {
   const shake = useSharedValue(0);
   const knockback = useSharedValue(0);
@@ -641,6 +660,7 @@ function EnemyFighter({
 
   return (
     <Animated.View style={[styles.characterWrap, style]}>
+      {shoutDebuffId > 0 && <ShoutDebuff key={`shout-${shoutDebuffId}`} durationMs={SHOUT_DURATION} />}
       {/* Fixed position regardless of sprite size, so the boss's HP bar lines up with a
           regular mob's — the (much taller) boss sprite grows upward behind it instead. */}
       <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, boss && styles.enemyNameplateBoss]}>

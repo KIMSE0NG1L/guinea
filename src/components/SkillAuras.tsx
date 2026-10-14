@@ -19,6 +19,7 @@ const STEAL_GREEN = "#5fd35a";
 const STEAL_GOLD = "#ffc93a";
 const STEAL_GOLD_LIGHT = "#fff0a0";
 const FOCUS_GOLD = "#ffd24a";
+const SHOUT_RED = "#ff3b2f";
 
 // ---- Cast bursts (scene overlay, once per cast) ----------------------------------------
 
@@ -47,6 +48,22 @@ export function FocusCastEffect({ at }: { at: Point }) {
       <Ring at={at} color="#9cc8ff" delay={140} />
       <Sparks at={at} delay={60} color={FOCUS_GOLD} />
       <SkillCallout text="집중!" color="#ffe07a" strokeColor="#13265c" holdMs={420} />
+    </View>
+  );
+}
+
+// Shout: scream waves ripple out of the guinea pig's mouth toward the enemy, which
+// gets a red jolt of sparks as the waves reach it.
+export function ShoutCastEffect({ mouth, enemy }: { mouth: Point; enemy: Point }) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <CastDim />
+      <Ring at={mouth} color={SHOUT_RED} delay={0} />
+      <Ring at={mouth} color="#ff9a8a" delay={90} />
+      <Ring at={mouth} color={SHOUT_RED} delay={180} />
+      <Sparks at={enemy} delay={160} color={SHOUT_RED} />
+      <Sparks at={enemy} delay={220} color="#ffd0c4" />
+      <SkillCallout text="찍찍!!" color="#ff6b5a" strokeColor="#4a0a06" holdMs={420} />
     </View>
   );
 }
@@ -249,6 +266,44 @@ function RisingArrow({ left, delay }: { left: number; delay: number }) {
   );
 }
 
+// Shout's debuff on the enemy: red arrows sinking past it on a loop for the whole
+// duration — the same "down" arrows as on the icon.
+export function ShoutDebuff({ durationMs }: { durationMs: number }) {
+  const life = useAuraLife(durationMs);
+  const lifeStyle = useAnimatedStyle(() => ({ opacity: life.value }));
+  return (
+    <Animated.View style={[styles.aura, lifeStyle]} pointerEvents="none">
+      {SHOUT_ARROWS.map((arrow, index) => (
+        <SinkingArrow key={index} {...arrow} />
+      ))}
+    </Animated.View>
+  );
+}
+
+const SHOUT_ARROWS = [
+  { left: 10, delay: 0 },
+  { left: 94, delay: 300 },
+  { left: 30, delay: 600 },
+  { left: 76, delay: 900 },
+];
+
+function SinkingArrow({ left, delay }: { left: number; delay: number }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withDelay(delay, withRepeat(withTiming(1, { duration: 1100, easing: Easing.in(Easing.quad) }), -1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity: t.value < 0.2 ? t.value * 5 : (1 - t.value) / 0.8,
+    transform: [{ translateY: t.value * 50 }],
+  }));
+  return (
+    <Animated.View style={[styles.sinkingArrow, { left: left - 7 }, style]}>
+      <Text style={styles.sinkingArrowText}>▼</Text>
+    </Animated.View>
+  );
+}
+
 // ---- Steal's per-hit coins (scene overlay) -----------------------------------------------
 
 // Each Steal hit knocks a few coins off the enemy that arc over to the guinea pig.
@@ -308,4 +363,6 @@ const styles = StyleSheet.create({
   arrow: { position: "absolute", bottom: 20 },
   arrowText: { fontSize: 14, color: FOCUS_GOLD, textShadowColor: "#7a4b00", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
   coin: { position: "absolute", width: COIN, height: COIN },
+  sinkingArrow: { position: "absolute", bottom: 80 },
+  sinkingArrowText: { fontSize: 14, color: SHOUT_RED, textShadowColor: "#4a0a06", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
 });

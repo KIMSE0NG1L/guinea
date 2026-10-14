@@ -168,14 +168,27 @@ export const uiImages = {
   carrot: require("../assets/ui/item-carrot.png"),
 };
 
-// Skill icons, 256px wide at SKILL_ICON_ASPECT (width / height).
+// Skill icons, 256px wide; SKILL_ICON_ASPECT is each one's width / height.
 export const skillImages = {
   beam: require("../assets/skills/beam.png"),
   steal: require("../assets/skills/steal.png"),
   focus: require("../assets/skills/focus.png"),
   execute: require("../assets/skills/execute.png"),
+  shout: require("../assets/skills/shout.png"),
+  diligent: require("../assets/skills/diligent.png"),
+  glutton: require("../assets/skills/glutton.png"),
 };
-export const SKILL_ICON_ASPECT = 256 / 222;
+const WIDE_ICON = 256 / 222;
+const SQUARE_ICON = 256 / 258;
+export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
+  beam: WIDE_ICON,
+  steal: WIDE_ICON,
+  focus: WIDE_ICON,
+  execute: WIDE_ICON,
+  shout: SQUARE_ICON,
+  diligent: SQUARE_ICON,
+  glutton: SQUARE_ICON,
+};
 
 export const food = {
   cookPot: require("../assets/food/cook-pot.png"),

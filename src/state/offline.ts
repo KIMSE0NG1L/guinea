@@ -1,6 +1,7 @@
 import type { GameState } from "../types";
 import { getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
 import { getGoldReward, getTotalAttack } from "./gameMath";
+import { DILIGENT_OFFLINE_BONUS } from "./skills";
 
 export type OfflineSummary = {
   mobsKilled: number;
@@ -38,6 +39,7 @@ export function simulateOfflineProgress(
   elapsedMsRaw: number
 ): { state: GameState; summary: OfflineSummary } | null {
   const elapsedMs = Math.min(elapsedMsRaw, MAX_OFFLINE_MS);
+  const goldMultiplier = state.equippedSkill === "diligent" ? 1 + DILIGENT_OFFLINE_BONUS : 1;
   if (elapsedMs < MIN_OFFLINE_MS) return null;
 
   const attack = getTotalAttack(state);
@@ -60,7 +62,7 @@ export function simulateOfflineProgress(
   while (remainingMs >= msPerMob) {
     remainingMs -= msPerMob;
 
-    const goldReward = getGoldReward(attack, state.goldBonus, enemyMaxHp, false);
+    const goldReward = Math.round(getGoldReward(attack, state.goldBonus, enemyMaxHp, false) * goldMultiplier);
     gold += goldReward;
     totalGoldEarned += goldReward;
     kills += 1;

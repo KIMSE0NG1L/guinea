@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { GameState, SkillId, StatKey, UpgradeMode } from "../types";
-import { SKILL_SWAP_LOCK_MS } from "./skills";
+import { GLUTTON_FOOD_MULTIPLIER, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
 import { getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
@@ -249,10 +249,16 @@ export function useGameState() {
   // A new skill can only go in once SKILL_SWAP_LOCK_MS has passed since the last cast.
   // Execute is never cast, so while it's equipped the lock runs out and swapping away is
   // free; emptying the slot is always allowed.
-  const skillSwapReadyAt = battle.lastSkillCastAt > 0 ? battle.lastSkillCastAt + SKILL_SWAP_LOCK_MS : 0;
+  // The slot is locked for SKILL_SWAP_LOCK_MS after either the last cast or putting a
+  // passive in — passives are never cast, so without the latter they could be flicked on
+  // and off freely. The lock covers every change, emptying the slot included.
+  const castLockEnd = battle.lastSkillCastAt > 0 ? battle.lastSkillCastAt + SKILL_SWAP_LOCK_MS : 0;
+  const equippedPassive = state.equippedSkill ? getSkill(state.equippedSkill).passive : false;
+  const passiveLockEnd = equippedPassive && state.skillEquippedAt ? state.skillEquippedAt + SKILL_SWAP_LOCK_MS : 0;
+  const skillSwapReadyAt = Math.max(castLockEnd, passiveLockEnd);
   const equipSkill = (equippedSkill: SkillId | null) => {
-    if (equippedSkill && Date.now() < skillSwapReadyAt) return;
-    setState((previous) => ({ ...previous, equippedSkill }));
+    if (Date.now() < skillSwapReadyAt) return;
+    setState((previous) => ({ ...previous, equippedSkill, skillEquippedAt: Date.now() }));
   };
 
   const upgradeStat = (key: StatKey) => {
@@ -398,6 +404,8 @@ export function useGameState() {
     if (!recipe || !buff) return;
     const startedAt = Date.now();
     setState((previous) => {
+      // Glutton stretches dishes eaten while it's equipped.
+      const durationMs = buff.durationMs * (previous.equippedSkill === "glutton" ? GLUTTON_FOOD_MULTIPLIER : 1);
       const slots = previous.buffSlots ?? emptyBuffSlots();
       const running = (slot: (typeof slots)[number]) => slot && slot.expiresAt > startedAt;
       if (running(slots[slotIndex])) return previous;
@@ -412,7 +420,7 @@ export function useGameState() {
           .map((item) => (item === dish ? { ...item, quantity: item.quantity - 1 } : item))
           .filter((item) => item.quantity > 0),
         buffSlots: slots.map((slot, index) =>
-          index === slotIndex ? { recipeId, expiresAt: startedAt + buff.durationMs, durationMs: buff.durationMs } : slot,
+          index === slotIndex ? { recipeId, expiresAt: startedAt + durationMs, durationMs } : slot,
         ),
         dishesEaten,
         quests: previous.quests.map((quest) =>

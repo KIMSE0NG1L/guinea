@@ -25,8 +25,14 @@ export const STEAL_GOLD_RATIO = 0.1;
 // With Execute equipped, any hit that leaves the enemy at or below this share of its
 // max HP finishes it off.
 export const EXECUTE_HP_RATIO = 0.25;
-// After casting any skill, the slot can't take a different skill for this long — so you
-// can't chain several skills' cooldowns by swapping.
+// While Shout is active, the enemy takes this much more damage from normal attacks.
+export const SHOUT_DAMAGE_BONUS = 0.3;
+// With Diligent Guinea equipped, offline gold is boosted by this much.
+export const DILIGENT_OFFLINE_BONUS = 0.5;
+// With Glutton equipped, food buffs eaten last this many times longer.
+export const GLUTTON_FOOD_MULTIPLIER = 2;
+// After casting a skill — or putting a passive in the slot — the slot can't change for this
+// long, so you can't chain several skills' cooldowns or flick passives on and off.
 export const SKILL_SWAP_LOCK_MS = 3 * 60 * SECOND;
 // Every active skill shares the same cooldown.
 const SKILL_COOLDOWN_MS = 3 * 60 * SECOND;
@@ -36,6 +42,15 @@ export const SKILLS: Skill[] = [
   { id: "steal", name: "훔치기", description: "5초 동안 때릴 때마다 처치 골드의 10%를 뿌려요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 5 * SECOND },
   { id: "focus", name: "집중", description: "5초 동안 치명타 확률이 100%가 돼요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 5 * SECOND },
   { id: "execute", name: "처형", description: "장착하면 항상 적용 · 체력 25% 이하가 된 적을 즉사시켜요.", passive: true, cooldownMs: 0 },
+  { id: "shout", name: "찍찍 함성", description: "30초 동안 적이 받는 일반 공격 피해가 30% 늘어나요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 30 * SECOND },
+  {
+    id: "diligent",
+    name: "부지런한 기니",
+    description: "장착하면 항상 적용 · 오프라인 골드 +50%.",
+    passive: true,
+    cooldownMs: 0,
+  },
+  { id: "glutton", name: "먹보", description: "장착하면 항상 적용 · 장착 중에 먹은 음식 버프가 2배로 오래가요.", passive: true, cooldownMs: 0 },
 ];
 
 export function getSkill(id: SkillId) {
@@ -49,6 +64,9 @@ export const INITIAL_SKILL_TIMERS: SkillTimers = {
   steal: { readyAt: 0, activeUntil: 0 },
   focus: { readyAt: 0, activeUntil: 0 },
   execute: { readyAt: 0, activeUntil: 0 },
+  shout: { readyAt: 0, activeUntil: 0 },
+  diligent: { readyAt: 0, activeUntil: 0 },
+  glutton: { readyAt: 0, activeUntil: 0 },
 };
 
 export function isSkillActive(timers: SkillTimers, id: SkillId, now: number) {

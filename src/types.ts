@@ -5,7 +5,7 @@ export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
 export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander";
 export type Outfit = "default";
-export type SkillId = "beam" | "steal" | "focus" | "execute";
+export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 
 export interface Quest {
@@ -38,6 +38,8 @@ export interface GameState {
   equippedOutfit: Outfit;
   // The one skill in the battle slot (null = none); missing on older saves.
   equippedSkill?: SkillId | null;
+  // When the current skill went into the slot (ms epoch); missing on older saves.
+  skillEquippedAt?: number;
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];
   equipment: Record<string, string | null>;

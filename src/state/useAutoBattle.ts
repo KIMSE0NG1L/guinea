@@ -5,6 +5,7 @@ import {
   BEAM_BOSS_HP_RATIO,
   BEAM_TIMING,
   EXECUTE_HP_RATIO,
+  SHOUT_DAMAGE_BONUS,
   INITIAL_SKILL_TIMERS,
   getSkill,
   STEAL_GOLD_RATIO,
@@ -65,7 +66,15 @@ export function useAutoBattle({
   // Bumped each time Execute finishes an enemy off, so the scene can play its effect.
   const [executeId, setExecuteId] = useState(0);
   // Bumped per skill on each cast, so the scene can play that skill's effect.
-  const [castIds, setCastIds] = useState<Record<SkillId, number>>({ beam: 0, steal: 0, focus: 0, execute: 0 });
+  const [castIds, setCastIds] = useState<Record<SkillId, number>>({
+    beam: 0,
+    steal: 0,
+    focus: 0,
+    execute: 0,
+    shout: 0,
+    diligent: 0,
+    glutton: 0,
+  });
   // Whether the current/last kill was an Execute — the player strikes a crit pose for it.
   const [lastKillExecuted, setLastKillExecuted] = useState(false);
   const hpRef = useRef(enemyMaxHp);
@@ -189,12 +198,14 @@ export function useAutoBattle({
     return true;
   }, [defeatEnemy, pushDamageEvent, pushGoldEvent]);
 
-  // A normal attack's damage; Focus forces the crit.
+  // A normal attack's damage; Focus forces the crit, Shout makes the enemy take more.
   const rollAttack = useCallback(() => {
+    const now = Date.now();
     const isCritical =
-      isSkillActive(skillTimersRef.current, "focus", Date.now()) ||
+      isSkillActive(skillTimersRef.current, "focus", now) ||
       Math.random() * 100 < Math.min(100, criticalChanceRef.current);
-    const damage = Math.round(attackRef.current * (isCritical ? criticalDamageRef.current / 100 : 1));
+    const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS : 1;
+    const damage = Math.round(attackRef.current * (isCritical ? criticalDamageRef.current / 100 : 1) * shout);
     return { isCritical, damage };
   }, []);
 
