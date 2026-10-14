@@ -93,6 +93,12 @@ export function getStatLevel(state: GameState, key: StatKey) {
     ?? 1;
 }
 
+// Each character level past 1 adds a flat +1 attack on top of the upgraded stat. Kept out of
+// state.attack itself so stat upgrades keep stacking on the purchased value only.
+export function getTotalAttack(state: GameState) {
+  return state.attack + Math.max(0, state.level - 1);
+}
+
 export function getStatValue(state: GameState, key: StatKey) {
   if (key === "criticalChance") return state.criticalChance ?? 5;
   return state[key];

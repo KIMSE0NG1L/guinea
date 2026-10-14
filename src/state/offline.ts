@@ -1,6 +1,6 @@
 import type { GameState } from "../types";
 import { getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
-import { getGoldReward } from "./gameMath";
+import { getGoldReward, getTotalAttack } from "./gameMath";
 
 export type OfflineSummary = {
   mobsKilled: number;
@@ -40,7 +40,8 @@ export function simulateOfflineProgress(
   const elapsedMs = Math.min(elapsedMsRaw, MAX_OFFLINE_MS);
   if (elapsedMs < MIN_OFFLINE_MS) return null;
 
-  const dmg = expectedDamage(state.attack, state.criticalChance ?? 5, state.criticalDamage);
+  const attack = getTotalAttack(state);
+  const dmg = expectedDamage(attack, state.criticalChance ?? 5, state.criticalDamage);
   if (dmg <= 0) return null;
 
   let remainingMs = elapsedMs;
@@ -59,7 +60,7 @@ export function simulateOfflineProgress(
   while (remainingMs >= msPerMob) {
     remainingMs -= msPerMob;
 
-    const goldReward = getGoldReward(state.attack, state.goldBonus, enemyMaxHp, false);
+    const goldReward = getGoldReward(attack, state.goldBonus, enemyMaxHp, false);
     gold += goldReward;
     totalGoldEarned += goldReward;
     kills += 1;

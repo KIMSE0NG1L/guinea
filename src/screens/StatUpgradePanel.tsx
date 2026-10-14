@@ -3,7 +3,7 @@ import { colors, fonts } from "../theme";
 import { kit, statIcons } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
-import { formatGameNumber, getStatLevel, getStatValue, getUpgradeQuote, getNextUpgradeMode, statInfo } from "../state/gameMath";
+import { formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo } from "../state/gameMath";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 
 
@@ -48,7 +48,7 @@ export function StatUpgradePanel({
       <View style={styles.list}>
         {(Object.keys(statInfo) as StatKey[]).map((key) => {
           const info = statInfo[key];
-          const value = getStatValue(state, key);
+          const value = key === "attack" ? getTotalAttack(state) : getStatValue(state, key);
           const level = getStatLevel(state, key);
           const quote = getUpgradeQuote(key, level, state.gold, upgradeMode);
           const nextValue = value + info.step * quote.levels;

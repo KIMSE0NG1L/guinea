@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 import { initialState } from "./initialState";
-import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMath";
+import { getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
@@ -208,7 +208,7 @@ export function useGameState() {
 
   const battle = useAutoBattle({
     // Food buffs apply on top of the upgraded stats.
-    attack: Math.round(state.attack * (1 + buffs.attack / 100)),
+    attack: Math.round(getTotalAttack(state) * (1 + buffs.attack / 100)),
     criticalDamage: state.criticalDamage + buffs.criticalDamage,
     criticalChance: (state.criticalChance ?? 5) + buffs.criticalChance,
     goldBonus: state.goldBonus + buffs.gold,
