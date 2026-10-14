@@ -8,7 +8,7 @@ import { clearSave, loadSave, writeSave } from "./storage";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
 import { BUFFS, emptyBuffSlots, getBuffTotals } from "./buffs";
-import { canCook, getKnownRecipes, RECIPES } from "./recipes";
+import { canCook, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
 export type DropEvent = { id: number; name: string; delay: number };
@@ -165,9 +165,12 @@ export function useGameState() {
       const kills = previous.kills + 1;
       const experience = previous.experience + 8;
       const totalGoldEarned = previous.totalGoldEarned + goldReward;
+      const bossKills = (previous.bossKills ?? 0) + (boss ? 1 : 0);
       // Stage 3 (stageNumber 2) is the last one with content — clearing its boss loops
       // back to stage 1 instead of advancing into an unthemed stage 4.
       const stageNumber = boss ? (previous.stageNumber >= LAST_STAGE_NUMBER ? 0 : previous.stageNumber + 1) : previous.stageNumber;
+      // Saves from before the milestone map have no record — what they're on is the floor.
+      const highestStageNumber = Math.max(previous.highestStageNumber ?? previous.stageNumber, stageNumber);
       return {
         ...previous,
         gold: previous.gold + goldReward,
@@ -175,15 +178,17 @@ export function useGameState() {
         kills,
         currentStage: boss ? getStageLabel(stageNumber) : previous.currentStage,
         stageNumber,
-        // Saves from before the milestone map have no record — what they're on is the floor.
-        highestStageNumber: Math.max(previous.highestStageNumber ?? previous.stageNumber, stageNumber),
+        highestStageNumber,
         stageKills: boss ? 0 : previous.stageKills + 1,
         totalGoldEarned,
+        bossKills,
         level: experience >= 100 ? previous.level + 1 : previous.level,
         experience: experience % 100,
         quests: previous.quests.map((quest) => {
           if (quest.id === "kills") return { ...quest, current: kills };
           if (quest.id === "gold") return { ...quest, current: totalGoldEarned };
+          if (quest.id === "bossKills") return { ...quest, current: bossKills };
+          if (quest.id === "stage") return { ...quest, current: highestStageNumber };
           return quest;
         }),
       };
@@ -275,6 +280,9 @@ export function useGameState() {
       stageKills: 0,
       highestStageNumber,
       selectedTab: "battle",
+      quests: previous.quests.map((quest) =>
+        quest.id === "stage" ? { ...quest, current: highestStageNumber } : quest
+      ),
     }));
     battle.resetEnemy(getEnemyMaxHp(stageNumber, false));
   };
@@ -292,11 +300,16 @@ export function useGameState() {
         })
         .filter((item) => item.quantity > 0);
       const dish = inventory.find((item) => item.name === recipe.name);
+      const dishesCooked = (previous.dishesCooked ?? 0) + 1;
       return {
         ...previous,
         inventory: dish
           ? inventory.map((item) => (item === dish ? { ...item, quantity: item.quantity + 1 } : item))
           : [...inventory, { name: recipe.name, quantity: 1, type: "dish" }],
+        dishesCooked,
+        quests: previous.quests.map((quest) =>
+          quest.id === "cook" ? { ...quest, current: dishesCooked } : quest
+        ),
       };
     });
   };
@@ -319,7 +332,16 @@ export function useGameState() {
     setState((previous) => {
       const previousKnown = getKnownRecipes(previous.knownRecipes);
       if (previousKnown.includes(recipeId) || previous.gold < recipe.price) return previous;
-      return { ...previous, gold: previous.gold - recipe.price, knownRecipes: [...previousKnown, recipeId] };
+      const knownRecipes = [...previousKnown, recipeId];
+      const learnedCount = knownRecipes.filter((id) => !STARTER_RECIPES.includes(id)).length;
+      return {
+        ...previous,
+        gold: previous.gold - recipe.price,
+        knownRecipes,
+        quests: previous.quests.map((quest) =>
+          quest.id === "recipe" ? { ...quest, current: learnedCount } : quest
+        ),
+      };
     });
     return true;
   };
@@ -338,6 +360,7 @@ export function useGameState() {
       if (slots.some((slot) => running(slot) && slot?.recipeId === recipeId)) return previous;
       const dish = previous.inventory.find((item) => item.name === recipe.name);
       if (!dish) return previous;
+      const dishesEaten = (previous.dishesEaten ?? 0) + 1;
       return {
         ...previous,
         inventory: previous.inventory
@@ -345,6 +368,10 @@ export function useGameState() {
           .filter((item) => item.quantity > 0),
         buffSlots: slots.map((slot, index) =>
           index === slotIndex ? { recipeId, expiresAt: startedAt + buff.durationMs, durationMs: buff.durationMs } : slot,
+        ),
+        dishesEaten,
+        quests: previous.quests.map((quest) =>
+          quest.id === "buff" ? { ...quest, current: dishesEaten } : quest
         ),
       };
     });

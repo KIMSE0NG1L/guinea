@@ -44,4 +44,8 @@ export interface GameState {
   totalGoldEarned: number;
   attackUpgrades: number;
   statLevels?: Partial<Record<StatKey, number>>;
+  // Missing on saves from before these quests existed — treated as 0.
+  bossKills?: number;
+  dishesCooked?: number;
+  dishesEaten?: number;
 }
