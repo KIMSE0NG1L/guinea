@@ -35,6 +35,26 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-mushroom-hit-strip.png"),
     die: require("../assets/sprites/boss-mushroom-die-strip.png"),
   },
+  bossCarrotGiant: {
+    idle: require("../assets/sprites/boss-carrot-giant-idle-strip.png"),
+    hit: require("../assets/sprites/boss-carrot-giant-hit-strip.png"),
+    die: require("../assets/sprites/boss-carrot-giant-die-strip.png"),
+  },
+  chicken: {
+    idle: require("../assets/sprites/chick-egg-idle-strip.png"),
+    hit: require("../assets/sprites/chick-egg-hit-strip.png"),
+    die: require("../assets/sprites/chick-egg-die-strip.png"),
+  },
+  bossChicken: {
+    idle: require("../assets/sprites/boss-chick-idle-strip.png"),
+    hit: require("../assets/sprites/boss-chick-hit-strip.png"),
+    die: require("../assets/sprites/boss-chick-die-strip.png"),
+  },
+  potato: {
+    idle: require("../assets/sprites/little-potato-idle-strip.png"),
+    hit: require("../assets/sprites/little-potato-hit-strip.png"),
+    die: require("../assets/sprites/little-potato-die-strip.png"),
+  },
   bossPotato: {
     idle: require("../assets/sprites/boss-potato-idle-strip.png"),
     hit: require("../assets/sprites/boss-potato-hit-strip.png"),
@@ -46,6 +66,8 @@ export const images = {
   battleBackground: require("../assets/sprites/battle-forest.png"),
   battleBackgroundMushroom: require("../assets/sprites/battle-mushroom-swamp.png"),
   battleBackgroundFarm: require("../assets/sprites/battle-farm.png"),
+  battleBackgroundChicken: require("../assets/sprites/battle-chicken-farm.png"),
+  battleBackgroundPotatoCave: require("../assets/sprites/battle-potato-cave.png"),
 };
 
 export const icons = {

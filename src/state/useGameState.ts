@@ -5,12 +5,8 @@ import { initialState } from "./initialState";
 import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { loadSave, writeSave } from "./storage";
-import { getStageCode, LAST_STAGE_NUMBER } from "./stages";
+import { getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { canCook, RECIPES } from "./recipes";
-
-function getStageLabel(stageNumber: number) {
-  return stageNumber === 0 ? initialState.currentStage : getStageCode(stageNumber);
-}
 
 function getStageHpMultiplier(stageNumber: number) {
   return 1 + stageNumber * 1.2;
@@ -81,7 +77,7 @@ export function useGameState() {
       return;
     }
     if (state.stageNumber === 0) return;
-    setStageAnnouncement(getStageCode(state.stageNumber));
+    setStageAnnouncement(getStageLabel(state.stageNumber));
     const timer = setTimeout(() => setStageAnnouncement(null), 1500);
     return () => clearTimeout(timer);
   }, [state.stageNumber]);
@@ -89,6 +85,9 @@ export function useGameState() {
   const handleEnemyDefeat = useCallback((goldReward: number) => {
     setDefeatedBoss(boss);
     if (boss) setBoss(false);
+    // Killing the 25th regular mob spawns the boss directly — no manual "challenge" step.
+    const reachesBossThreshold = !boss && state.stageKills + 1 >= STAGE_KILL_TARGET;
+    if (reachesBossThreshold) setBoss(true);
 
     setState((previous) => {
       if (boss) setDefeatedStageNumber(previous.stageNumber);
@@ -118,7 +117,7 @@ export function useGameState() {
         }),
       };
     });
-  }, [boss]);
+  }, [boss, state.stageKills]);
 
   const battle = useAutoBattle({
     attack: state.attack,
@@ -190,13 +189,6 @@ export function useGameState() {
     });
   };
 
-  const onBoss = () => {
-    const nextBoss = !boss;
-    setDefeatedBoss(false);
-    setBoss(nextBoss);
-    battle.resetEnemy(Math.round((nextBoss ? 220 : 80) * stageHpMultiplier));
-  };
-
   const selectStage = (stageNumber: number) => {
     const highestStageNumber = state.highestStageNumber ?? state.stageNumber;
     if (stageNumber > highestStageNumber) return;
@@ -255,7 +247,6 @@ export function useGameState() {
     claimReward,
     upgradeStat,
     claimQuest,
-    onBoss,
     selectStage,
     cook,
   };

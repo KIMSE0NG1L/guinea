@@ -8,10 +8,12 @@ import type { EnemyAnimation, EnemyKind } from "../types";
 // boss hit/die source strips are in fact 5-frame sheets (same layout as the regular slime's),
 // not the 4-frame layout the boss idle sheet uses. We animate them properly here instead of
 // porting the broken static/tiled look.
-// mushroom (stage 2's regular mob) and bossMushroom are plain 5-frame sheets for every
-// animation, same layout as slime — only bossSlime's idle kept the web's 4-frame sheet.
-// carrot (stage 3's regular mob) and bossPotato are 4-frame sheets for every animation.
-const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossPotato", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
+// mushroom (stage 2's regular mob) is a plain 5-frame sheet for every animation, same
+// layout as slime — only bossSlime's idle kept the web's 4-frame sheet.
+// carrot (stage 3's regular mob), chicken (stage 4's regular mob), potato (stage 5's
+// regular mob), bossMushroom, bossCarrotGiant, bossChicken, and bossPotato are 4-frame
+// sheets for every animation.
+const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
   slime: {
     idle: { frameCount: 5, durationMs: 650, mode: "loop" },
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
@@ -33,9 +35,29 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossPotato", Re
     die: { frameCount: 5, durationMs: 480, mode: "once" },
   },
   bossMushroom: {
-    idle: { frameCount: 5, durationMs: 650, mode: "loop" },
-    hit: { frameCount: 5, durationMs: 310, mode: "once" },
-    die: { frameCount: 5, durationMs: 480, mode: "once" },
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossCarrotGiant: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  chicken: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossChicken: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  potato: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
   bossPotato: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
@@ -44,10 +66,12 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossPotato", Re
   },
 };
 
-const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossPotato"> = {
+const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato"> = {
   slime: "bossSlime",
   mushroom: "bossMushroom",
-  carrot: "bossPotato",
+  carrot: "bossCarrotGiant",
+  chicken: "bossChicken",
+  potato: "bossPotato",
 };
 
 export function EnemySprite({

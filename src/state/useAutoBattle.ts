@@ -211,7 +211,7 @@ export function useAutoBattle({
 
     // Nothing else ever clears "entering" back to "idle" outside of a defeat's own timer
     // chain — without this, manualAttack's phase guard would block every tap forever
-    // whenever the boss toggle (or anything else) calls resetEnemy while not auto-battling.
+    // whenever resetEnemy (e.g. a milestone map stage jump) fires while not auto-battling.
     const readyTimer = setTimeout(() => {
       phaseRef.current = "idle";
       setPhase("idle");

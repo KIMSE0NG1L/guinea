@@ -1,17 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { GameButton } from "./GameButton";
 import { ProgressBar } from "./ProgressBar";
 
-export function StageHeader({
-  level,
-  experience,
-  onBoss,
-}: {
-  level: number;
-  experience: number;
-  onBoss: () => void;
-}) {
+export function StageHeader({ level, experience }: { level: number; experience: number }) {
   return (
     <View style={styles.wrap}>
       <View style={styles.copy}>
@@ -22,7 +13,6 @@ export function StageHeader({
         <ProgressBar progress={experience} height={14} style={styles.track} />
         <Text style={styles.progressLabel}>{experience} / 100</Text>
       </View>
-      <GameButton onPress={onBoss} style={styles.bossButton}>보스 도전</GameButton>
     </View>
   );
 }
@@ -45,5 +35,4 @@ const styles = StyleSheet.create({
   progress: { flex: 1, flexDirection: "row", alignItems: "center", gap: 5, minWidth: 0 },
   track: { flex: 1 },
   progressLabel: { fontSize: 9, color: colors.brown, fontWeight: "700", fontFamily: fonts.bold },
-  bossButton: { paddingHorizontal: 12 },
 });

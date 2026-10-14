@@ -1,5 +1,6 @@
 import type { GameState } from "../types";
 import { formatGameNumber } from "./gameMath";
+import { getStageLabel } from "./stages";
 
 export const initialState: GameState = {
   gold: 1250,
@@ -10,7 +11,7 @@ export const initialState: GameState = {
   criticalDamage: 200,
   criticalChance: 5,
   goldBonus: 10,
-  currentStage: "1-1 골목",
+  currentStage: getStageLabel(0),
   stageNumber: 0,
   stageKills: 0,
   highestStageNumber: 0,

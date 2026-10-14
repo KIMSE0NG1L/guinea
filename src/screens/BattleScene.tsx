@@ -11,7 +11,7 @@ import { CoinPopup } from "../components/CoinPopup";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
 import { ProgressBar } from "../components/ProgressBar";
 import { formatGameNumber } from "../state/gameMath";
-import { BOSS_NAME, ENEMY_NAME } from "../state/stages";
+import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
 
 // Each boss art source fills a different fraction of its 160px frame (the original
@@ -20,14 +20,18 @@ import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } 
 // scale each down to read as roughly the same on-screen height.
 const BOSS_SIZE: Record<EnemyKind, number> = {
   slime: 128,
-  mushroom: 180,
+  mushroom: 158,
   carrot: 180,
+  chicken: 165,
+  potato: 165,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
   slime: images.battleBackground,
   mushroom: images.battleBackgroundMushroom,
   carrot: images.battleBackgroundFarm,
+  chicken: images.battleBackgroundChicken,
+  potato: images.battleBackgroundPotatoCave,
 };
 
 export function BattleScene({
@@ -42,7 +46,7 @@ export function BattleScene({
   lastGoldReward,
   stageAdvance,
   stageLabel,
-  stageProgress,
+  stageKills,
   outfit,
   manualEnabled,
   onManualAttack,
@@ -60,7 +64,7 @@ export function BattleScene({
   lastGoldReward: number;
   stageAdvance: string | null;
   stageLabel: string;
-  stageProgress: number;
+  stageKills: number;
   outfit: Outfit;
   manualEnabled: boolean;
   onManualAttack: () => void;
@@ -79,6 +83,7 @@ export function BattleScene({
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
   const enemySize = boss ? BOSS_SIZE[enemyKind] : 108;
+  const stageProgress = (Math.min(stageKills, STAGE_KILL_TARGET) / STAGE_KILL_TARGET) * 100;
 
   return (
     <View style={styles.scene}>
@@ -99,7 +104,7 @@ export function BattleScene({
           >
             <Text style={styles.stageBarTitle}>{stageLabel}</Text>
             <ProgressBar progress={stageProgress} height={12} style={styles.stageBarTrack} />
-            <Text style={styles.stageBarCount}>{Math.floor(stageProgress / 10)} / 10</Text>
+            <Text style={styles.stageBarCount}>{Math.min(stageKills, STAGE_KILL_TARGET)} / {STAGE_KILL_TARGET}</Text>
           </LinearGradient>
 
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
@@ -312,8 +317,10 @@ const styles = StyleSheet.create({
   unitLabelText: { color: colors.cream, fontSize: 8, fontWeight: "800", fontFamily: fonts.bold },
   enemyNameplate: { width: 104, paddingHorizontal: 6, paddingTop: 4, paddingBottom: 5, gap: 3, alignItems: "center" },
   // Pinned at the regular mob's natural nameplate position (108px sprite + its 4px gap)
-  // so a much taller boss sprite doesn't drag its HP bar up with it.
-  enemyNameplateFixed: { position: "absolute", bottom: 112 },
+  // so a much taller boss sprite doesn't drag its HP bar up with it. zIndex keeps it
+  // painted above the sprite below — a tall boss (e.g. the mushroom boss's cap) can
+  // otherwise grow up past bottom: 112 and paint over its own name/HP bar.
+  enemyNameplateFixed: { position: "absolute", bottom: 112, zIndex: 5 },
   enemyNameplateBoss: { width: 116 },
   unitHealthTrack: { width: "100%", height: 6, overflow: "hidden", backgroundColor: "#211a16", borderWidth: 1, borderColor: "#f7ecd066", borderRadius: 5 },
   unitHealthFill: { height: "100%", backgroundColor: "#dc6048" },
