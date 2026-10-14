@@ -284,6 +284,17 @@ export function useGameState() {
     battle.resetEnemy(getEnemyMaxHp(stageNumber, false));
   };
 
+  // Dev-convenience shortcut from the settings menu — skips straight to the current
+  // stage's boss instead of grinding out the 25 regular-mob kills first.
+  const skipToBoss = () => {
+    if (boss) return;
+    setStageAnnouncement(null);
+    setDefeatedBoss(false);
+    setBoss(true);
+    setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET }));
+    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
+  };
+
   // Spends the recipe's ingredients from the bag and adds one of the dish.
   const cook = (recipeId: string) => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
@@ -406,6 +417,7 @@ export function useGameState() {
     upgradeStat,
     claimQuest,
     selectStage,
+    skipToBoss,
     resetSave,
     offlineSummary,
     dismissOfflineSummary: () => setOfflineSummary(null),

@@ -5,10 +5,22 @@ import { kitImages, uiImages } from "../assets";
 import { GameButton } from "./GameButton";
 import { ResourceBar } from "./ResourceBar";
 import { ConfirmModal } from "./ConfirmModal";
+import { SettingsModal } from "./SettingsModal";
 import type { GameState } from "../types";
 
-export function GameHeader({ state, onQuest, onReset }: { state: GameState; onQuest: () => void; onReset: () => void }) {
+export function GameHeader({
+  state,
+  onQuest,
+  onReset,
+  onSkipToBoss,
+}: {
+  state: GameState;
+  onQuest: () => void;
+  onReset: () => void;
+  onSkipToBoss: () => void;
+}) {
   const ready = state.quests.filter((quest) => quest.current >= quest.target && !quest.claimed).length;
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   return (
@@ -26,7 +38,7 @@ export function GameHeader({ state, onQuest, onReset }: { state: GameState; onQu
               )}
             </View>
           </GameButton>
-          <GameButton accessibilityLabel="설정" onPress={() => setConfirmingReset(true)} style={styles.iconButton}>
+          <GameButton accessibilityLabel="설정" onPress={() => setSettingsOpen(true)} style={styles.iconButton}>
             <Image source={uiImages.gear} style={styles.gearIcon} />
           </GameButton>
         </View>
@@ -38,6 +50,16 @@ export function GameHeader({ state, onQuest, onReset }: { state: GameState; onQu
         </View>
         <ResourceBar gold={state.gold} gems={state.gems} />
       </View>
+      {settingsOpen && (
+        <SettingsModal
+          onSkipToBoss={onSkipToBoss}
+          onResetRequest={() => {
+            setSettingsOpen(false);
+            setConfirmingReset(true);
+          }}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
       {confirmingReset && (
         <ConfirmModal
           title="세이브 초기화"
