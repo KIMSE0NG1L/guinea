@@ -2,10 +2,9 @@ import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { effects } from "../assets";
-import { fonts } from "../theme";
 import { BEAM_TIMING } from "../state/skills";
 import { Flash, SmokePuff, Sparks, type Point } from "./ExecuteEffect";
-import { StrokedText } from "./StrokedText";
+import { SkillCallout } from "./SkillCallout";
 
 // Beam frame art is 512x250; the muzzle ring's centre sits this far in from the left edge.
 const BEAM_ASPECT = 250 / 512;
@@ -38,7 +37,7 @@ export function BeamEffect({ mouth, targetLeft, enemy }: { mouth: Point; targetL
       <Sparks at={enemy} delay={HIT} color="#ffb03a" />
       <Sparks at={enemy} delay={HIT + 60} color="#fff1b0" />
       <SmokePuff at={{ left: enemy.left, bottom: enemy.bottom - 10 }} delay={HIT + 260} />
-      <Callout />
+      <SkillCallout text="기니빔!!" color="#ffb52e" strokeColor="#4a1500" holdMs={HIT - 40} />
     </View>
   );
 }
@@ -192,34 +191,6 @@ function Shockwave({ at, delay }: { at: Point; delay: number }) {
   return <Animated.View style={[styles.ring, { left: at.left - RING / 2, bottom: at.bottom - RING / 2 }, style]} />;
 }
 
-// The move's name shouted across the top of the scene as it charges.
-function Callout() {
-  const progress = useSharedValue(0);
-  useEffect(() => {
-    progress.value = withDelay(
-      40,
-      withSequence(
-        withTiming(1, { duration: 120, easing: Easing.out(Easing.back(2.4)) }),
-        withDelay(HIT - 40, withTiming(2, { duration: 220 })),
-      ),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const style = useAnimatedStyle(() => ({
-    opacity: progress.value === 0 ? 0 : progress.value <= 1 ? 1 : 2 - progress.value,
-    transform: [
-      { scale: progress.value <= 1 ? 1.8 - progress.value * 0.8 : 1 + (progress.value - 1) * 0.15 },
-      { rotate: "-4deg" },
-    ],
-  }));
-  return (
-    <Animated.View style={[styles.callout, style]}>
-      <StrokedText style={styles.calloutText} strokeColor="#4a1500" strokeWidth={2}>
-        기니빔!!
-      </StrokedText>
-    </Animated.View>
-  );
-}
 
 const MOTE = 7;
 const ORB = 34;
@@ -244,6 +215,4 @@ const styles = StyleSheet.create({
   },
   orbCore: { width: ORB * 0.55, height: ORB * 0.55, borderRadius: ORB * 0.275, backgroundColor: "#fff6d8" },
   ring: { position: "absolute", width: RING, height: RING, borderRadius: RING / 2, borderWidth: 4, borderColor: "#ffc061" },
-  callout: { position: "absolute", top: 58, left: 0, right: 0, alignItems: "center" },
-  calloutText: { fontSize: 26, fontWeight: "900", fontFamily: fonts.bold, color: "#ffb52e" },
 });

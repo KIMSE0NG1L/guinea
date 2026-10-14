@@ -17,7 +17,15 @@ import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
 import { EXECUTE_TIMING, ExecuteEffect } from "../components/ExecuteEffect";
 import { BeamEffect } from "../components/BeamEffect";
-import { BEAM_TIMING } from "../state/skills";
+import { BEAM_TIMING, getSkill } from "../state/skills";
+import {
+  BuffVignette,
+  FocusAura,
+  FocusCastEffect,
+  StealAura,
+  StealCastEffect,
+  StealCoins,
+} from "../components/SkillAuras";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import { ITEM_IMAGES } from "../state/recipes";
@@ -58,6 +66,30 @@ const BACKGROUND: Record<EnemyKind, number> = {
 // Keep in sync with styles.fighters (right/bottom) and the bottom-right button row.
 const FIGHTERS_BOTTOM = 55;
 const FIGHTERS_SIDE = 15;
+const STEAL_DURATION = getSkill("steal").durationMs ?? 0;
+const FOCUS_DURATION = getSkill("focus").durationMs ?? 0;
+
+// Turns a skill's ever-increasing cast counter into what the scene should play:
+// - `id` is 0 for casts from before this scene mounted (e.g. before visiting another
+//   tab), so coming back doesn't replay their effects;
+// - `active` is true from a fresh cast until `durationMs` later (flipped on during
+//   render so it lands in the same frame as the cast, and off by a timer).
+function useSkillEvent(rawId: number, durationMs: number) {
+  const [mountedId] = useState(rawId);
+  const id = rawId === mountedId ? 0 : rawId;
+  const [seenId, setSeenId] = useState(id);
+  const [active, setActive] = useState(false);
+  if (id !== seenId) {
+    setSeenId(id);
+    setActive(id > 0 && durationMs > 0);
+  }
+  useEffect(() => {
+    if (!active) return;
+    const timer = setTimeout(() => setActive(false), durationMs);
+    return () => clearTimeout(timer);
+  }, [active, id, durationMs]);
+  return { id, active };
+}
 const CHARACTER_WIDTH = 108;
 const ENEMY_CENTER_RIGHT = 15 + 108 / 2;
 const GROUND_BOTTOM = 68;
@@ -120,6 +152,8 @@ export function BattleScene({
   executeId: rawExecuteId,
   executedKill,
   beamId: rawBeamId,
+  stealId: rawStealId,
+  focusId: rawFocusId,
   dropEvents,
   bossEntranceKey,
   levelUpAnnouncement,
@@ -149,33 +183,19 @@ export function BattleScene({
   executeId: number;
   // The kill now playing out was an Execute — crit pose instead of the win pose.
   executedKill: boolean;
-  // Bumped on each Guinea Beam cast (0 = never).
+  // Bumped on each cast of that skill (0 = never).
   beamId: number;
+  stealId: number;
+  focusId: number;
   dropEvents: DropEvent[];
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
 }) {
-  // Skill ids already bumped before this scene mounted (e.g. a beam fired before visiting
-  // another tab) count as 0 here, so coming back doesn't replay their effects.
-  const [mountedExecuteId] = useState(rawExecuteId);
-  const [mountedBeamId] = useState(rawBeamId);
-  const executeId = rawExecuteId === mountedExecuteId ? 0 : rawExecuteId;
-  const beamId = rawBeamId === mountedBeamId ? 0 : rawBeamId;
-
-  // Guinea Beam: hold a crit pose from the cast until the beam has faded. Flipped on
-  // during render when beamId moves (so the pose starts in the same frame as the
-  // effect), and off again by a timer below.
-  const [seenBeamId, setSeenBeamId] = useState(beamId);
-  const [beaming, setBeaming] = useState(false);
-  if (beamId !== seenBeamId) {
-    setSeenBeamId(beamId);
-    setBeaming(beamId > 0);
-  }
-  useEffect(() => {
-    if (!beaming) return;
-    const timer = setTimeout(() => setBeaming(false), BEAM_TIMING.end);
-    return () => clearTimeout(timer);
-  }, [beaming, beamId]);
+  const { id: executeId } = useSkillEvent(rawExecuteId, 0);
+  // Guinea Beam holds a crit pose from the cast until the beam has faded.
+  const { id: beamId, active: beaming } = useSkillEvent(rawBeamId, BEAM_TIMING.end);
+  const steal = useSkillEvent(rawStealId, STEAL_DURATION);
+  const focus = useSkillEvent(rawFocusId, FOCUS_DURATION);
 
   const executing = phase === "defeated" && executedKill;
   const playerAnimation: PlayerAnimation =
@@ -252,6 +272,15 @@ export function BattleScene({
             pointerEvents="none"
           />
 
+          {/* One vignette for every buff skill — Steal and Focus render this exact element.
+              It sits right on the backdrop, under the stage bar, fighters and buttons. */}
+          {(steal.active || focus.active) && (
+            <BuffVignette
+              key={steal.active ? `steal-${steal.id}` : `focus-${focus.id}`}
+              durationMs={steal.active ? STEAL_DURATION : FOCUS_DURATION}
+            />
+          )}
+
           <LinearGradient
             colors={["#171d19e8", "#263125a8", "#26312500"]}
             locations={[0, 0.62, 1]}
@@ -266,6 +295,7 @@ export function BattleScene({
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
 
+
           <Animated.View
             style={[styles.fighters, killPunchStyle]}
             onLayout={(event) => setFightersWidth(event.nativeEvent.layout.width)}
@@ -278,6 +308,8 @@ export function BattleScene({
               beamId={beamId}
               skillPoseKey={skillPoseKey}
               teleportX={teleportX}
+              stealAuraId={steal.active ? steal.id : 0}
+              focusAuraId={focus.active ? focus.id : 0}
             />
             {levelUpAnnouncement !== null && <LevelUpBurst key={levelUpAnnouncement} level={levelUpAnnouncement} />}
 
@@ -339,6 +371,17 @@ export function BattleScene({
               enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
             />
           )}
+
+          {steal.id > 0 && <StealCastEffect key={`steal-${steal.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
+          {focus.id > 0 && <FocusCastEffect key={`focus-${focus.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
+          {fightersWidth > 0 &&
+            goldEvents.map((event) => (
+              <StealCoins
+                key={`steal-coins-${event.id}`}
+                from={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+                to={{ left: playerCenterLeft, bottom: bodyBottom }}
+              />
+            ))}
 
           {executeId > 0 && fightersWidth > 0 && (
             <ExecuteEffect
@@ -407,6 +450,8 @@ function PlayerFighter({
   beamId,
   skillPoseKey,
   teleportX,
+  stealAuraId,
+  focusAuraId,
 }: {
   animation: PlayerAnimation;
   outfit: Outfit;
@@ -417,6 +462,9 @@ function PlayerFighter({
   // top of it, and the strip restarts per cast.
   skillPoseKey: string | null;
   teleportX: number;
+  // Non-zero (the cast's id) while that buff skill's aura should show.
+  stealAuraId: number;
+  focusAuraId: number;
 }) {
   const isAttacking = animation === "attack" || animation === "critical";
   const shake = useSharedValue(0);
@@ -486,6 +534,8 @@ function PlayerFighter({
 
   return (
     <Animated.View style={[styles.characterWrap, style]}>
+      {stealAuraId > 0 && <StealAura key={`steal-${stealAuraId}`} durationMs={STEAL_DURATION} />}
+      {focusAuraId > 0 && <FocusAura key={`focus-${focusAuraId}`} durationMs={FOCUS_DURATION} />}
       <View style={styles.unitLabel}>
         <Text style={styles.unitLabelText}>기니</Text>
       </View>

@@ -64,8 +64,8 @@ export function useAutoBattle({
   const [lastSkillCastAt, setLastSkillCastAt] = useState(0);
   // Bumped each time Execute finishes an enemy off, so the scene can play its effect.
   const [executeId, setExecuteId] = useState(0);
-  // Bumped on each Guinea Beam cast, so the scene can fire the beam art.
-  const [beamId, setBeamId] = useState(0);
+  // Bumped per skill on each cast, so the scene can play that skill's effect.
+  const [castIds, setCastIds] = useState<Record<SkillId, number>>({ beam: 0, steal: 0, focus: 0, execute: 0 });
   // Whether the current/last kill was an Execute — the player strikes a crit pose for it.
   const [lastKillExecuted, setLastKillExecuted] = useState(false);
   const hpRef = useRef(enemyMaxHp);
@@ -300,10 +300,10 @@ export function useAutoBattle({
     };
     skillTimersRef.current = next;
     setSkillTimers(next);
+    setCastIds((ids) => ({ ...ids, [id]: ids[id] + 1 }));
     setLastSkillCastAt(now);
 
     if (id === "beam") {
-      setBeamId((value) => value + 1);
       // Damage waits for the beam to connect. If that enemy is gone by then (killed by a
       // normal hit, or a stage jump), the beam just fizzles.
       const epoch = enemyEpochRef.current;
@@ -352,7 +352,7 @@ export function useAutoBattle({
     skillTimers,
     lastSkillCastAt,
     executeId,
-    beamId,
+    castIds,
     lastKillExecuted,
     setIsAutoBattle,
     resetEnemy,
