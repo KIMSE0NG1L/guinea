@@ -13,11 +13,14 @@ export const statInfo: Record<StatKey, { label: string; mark: string; step: numb
 const BOSS_GOLD_MULTIPLIER = 2.5;
 
 // Reward scales with how tanky the current enemy actually is (enemyMaxHp vs. its un-scaled
-// base HP), so later stages stay worth fighting instead of just taking longer per kill for
-// the same payout — gold-per-minute would otherwise fall every stage you clear.
+// base HP), raised above 1 so payout compounds faster than enemy HP (and therefore kill
+// time) does — gold-per-minute actually climbs every stage you clear, instead of merely
+// holding flat, so pushing further is always worth it.
+const STAGE_GOLD_CURVE = 1.5;
+
 export function getGoldReward(attack: number, goldBonus: number, enemyMaxHp: number, boss: boolean) {
   const baseHp = boss ? BOSS_BASE_HP : MOB_BASE_HP;
-  const stageMultiplier = enemyMaxHp / baseHp;
+  const stageMultiplier = (enemyMaxHp / baseHp) ** STAGE_GOLD_CURVE;
   const base = (18 + attack / 2) * (1 + goldBonus / 100) * stageMultiplier;
   return Math.round(boss ? base * BOSS_GOLD_MULTIPLIER : base);
 }
