@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { chef, grandma, kit, recipeArt } from "../assets";
+import { chef, grandma, kit } from "../assets";
+import { SEALED_RECIPE } from "../state/recipeTiers";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
@@ -99,7 +100,7 @@ export function KitchenScreen({
         })}
         {unlearned > 0 && (
           <Panel slice={kit.inset} style={styles.more}>
-            <Image source={recipeArt.scrollGold} style={styles.moreImage} />
+            <Image source={SEALED_RECIPE} style={styles.moreImage} />
             <Text style={styles.moreText}>아직 배우지 않은 레시피가 {unlearned}개 있어요.</Text>
             <GameButton variant="red" onPress={onOpenRecipes} style={styles.cookButton} textStyle={styles.cookButtonText}>
               배우러 가기

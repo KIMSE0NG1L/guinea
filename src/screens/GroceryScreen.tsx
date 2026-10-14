@@ -16,6 +16,7 @@ const TABS: { id: Filter; label: string }[] = [
   { id: "all", label: "전체" },
   { id: "vegetable", label: "채소" },
   { id: "farm", label: "농장" },
+  { id: "meat", label: "고기" },
 ];
 
 const GREETING = { pose: grandma.happy, line: "어서 오렴! 오늘 들어온 재료가 아주 싱싱하단다." };
@@ -23,6 +24,7 @@ const TAB_LINES: Record<Filter, string> = {
   all: GREETING.line,
   vegetable: "채소는 오늘 아침 밭에서 바로 따왔지.",
   farm: "계란이랑 우유는 새벽에 받아왔단다.",
+  meat: "고기는 귀한 거라 값이 좀 나간단다.",
 };
 
 export function GroceryScreen({
@@ -57,7 +59,7 @@ export function GroceryScreen({
   return (
     <View style={styles.page}>
       <ShopTopBar kicker="GROCERY" title="할머니 식료품점" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기" />
-      <ShopHero speaker="기니 할머니" talk={talk} />
+      <ShopHero speaker="할멈 기니" talk={talk} />
 
       <View style={styles.tabs}>
         {TABS.map((tab) => {

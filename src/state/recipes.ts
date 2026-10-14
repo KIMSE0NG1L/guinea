@@ -1,11 +1,12 @@
-import { food, recipeArt, uiImages } from "../assets";
+import { food, uiImages } from "../assets";
+import type { RecipeTier } from "./recipeTiers";
 
 export type Recipe = {
   id: string;
   name: string;
   description: string;
   image: number; // the finished dish
-  art: number; // the recipe scroll/card sold in the recipe shop
+  tier: RecipeTier; // picks the scroll/book its recipe card is drawn on
   price: number; // gold to learn it; 0 = known from the start
   ingredients: { name: string; quantity: number }[];
 };
@@ -16,7 +17,7 @@ export const RECIPES: Recipe[] = [
     name: "당근 수프",
     description: "뭉근히 끓인 기니의 첫 요리.",
     image: food.cookPot,
-    art: recipeArt.carrotSoup,
+    tier: "common",
     price: 0,
     ingredients: [{ name: "당근", quantity: 3 }],
   },
@@ -25,7 +26,7 @@ export const RECIPES: Recipe[] = [
     name: "계란 프라이",
     description: "노른자는 무조건 반숙.",
     image: food.fryingPan,
-    art: recipeArt.friedEgg,
+    tier: "common",
     price: 200,
     ingredients: [{ name: "계란", quantity: 2 }],
   },
@@ -34,7 +35,7 @@ export const RECIPES: Recipe[] = [
     name: "숭덩숭덩 샐러드",
     description: "칼질은 서툴러도 신선함은 만점.",
     image: food.cuttingBoard,
-    art: recipeArt.scrollClosed,
+    tier: "rare",
     price: 300,
     ingredients: [
       { name: "토마토", quantity: 1 },
@@ -47,7 +48,7 @@ export const RECIPES: Recipe[] = [
     name: "채소 스튜",
     description: "냄비째 들고 먹고 싶은 맛.",
     image: food.stewPot,
-    art: recipeArt.veggieStew,
+    tier: "rare",
     price: 400,
     ingredients: [
       { name: "당근", quantity: 2 },
@@ -60,7 +61,7 @@ export const RECIPES: Recipe[] = [
     name: "탱글 푸딩",
     description: "숟가락이 멈추지 않는 디저트.",
     image: food.pudding,
-    art: recipeArt.pudding,
+    tier: "epic",
     price: 450,
     ingredients: [
       { name: "계란", quantity: 1 },
@@ -72,7 +73,7 @@ export const RECIPES: Recipe[] = [
     name: "버섯 크림 수프",
     description: "숲 향이 가득한 고소한 한 그릇.",
     image: food.mushroomSoup,
-    art: recipeArt.mushroomSoup,
+    tier: "epic",
     price: 500,
     ingredients: [
       { name: "버섯", quantity: 2 },
@@ -84,7 +85,7 @@ export const RECIPES: Recipe[] = [
     name: "치즈 호박 구이",
     description: "달큰한 호박 위에 치즈가 사르르.",
     image: food.pumpkinRoast,
-    art: recipeArt.pumpkin,
+    tier: "legendary",
     price: 600,
     ingredients: [
       { name: "호박", quantity: 1 },
@@ -96,7 +97,7 @@ export const RECIPES: Recipe[] = [
     name: "기니의 한 상",
     description: "오늘만큼은 배고프지 않다.",
     image: food.kitchen,
-    art: recipeArt.special,
+    tier: "hidden",
     price: 1500,
     ingredients: [
       { name: "당근 수프", quantity: 1 },
@@ -121,6 +122,11 @@ export const ITEM_IMAGES: Record<string, number> = {
   양배추: food.cabbage,
   호박: food.pumpkin,
   옥수수: food.corn,
+  "통다리살": food.chicken,
+  "겹겹 뱃살": food.porkBelly,
+  "두툼 살코기": food.beef,
+  "뼈 갈빗살": food.lamb,
+  "결 고운 생선살": food.salmon,
   양파: food.onion,
   계란: food.egg,
   우유: food.milk,

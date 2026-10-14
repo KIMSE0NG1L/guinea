@@ -159,6 +159,17 @@ export const food = {
   egg: require("../assets/food/egg.png"),
   milk: require("../assets/food/milk.png"),
   cheese: require("../assets/food/cheese.png"),
+  chicken: require("../assets/food/chicken.png"),
+  porkBelly: require("../assets/food/pork-belly.png"),
+  beef: require("../assets/food/beef.png"),
+  lamb: require("../assets/food/lamb.png"),
+  salmon: require("../assets/food/salmon.png"),
+  // Grilled versions, saved for future grill recipes.
+  chickenGrilled: require("../assets/food/chicken-grilled.png"),
+  porkBellyGrilled: require("../assets/food/pork-belly-grilled.png"),
+  beefGrilled: require("../assets/food/beef-grilled.png"),
+  lambGrilled: require("../assets/food/lamb-grilled.png"),
+  salmonGrilled: require("../assets/food/salmon-grilled.png"),
   pudding: require("../assets/food/pudding.png"),
   mushroomSoup: require("../assets/food/mushroom-soup.png"),
   pumpkinRoast: require("../assets/food/pumpkin-roast.png"),
@@ -223,19 +234,15 @@ export const chef = {
   wok: require("../assets/npc/chef-wok.png"),
 };
 
-export const recipeArt = {
-  bookBrown: require("../assets/recipes/book-brown.png"),
-  bookRed: require("../assets/recipes/book-red.png"),
-  scrollClosed: require("../assets/recipes/scroll-closed.png"),
-  scrollGold: require("../assets/recipes/scroll-gold.png"),
-  scrollSoup: require("../assets/recipes/scroll-soup.png"),
-  carrotSoup: require("../assets/recipes/scroll-carrot-soup.png"),
-  friedEgg: require("../assets/recipes/card-fried-egg.png"),
-  veggieStew: require("../assets/recipes/scroll-veggie-stew.png"),
-  mushroomSoup: require("../assets/recipes/scroll-mushroom-soup.png"),
-  pumpkin: require("../assets/recipes/card-pumpkin.png"),
-  pudding: require("../assets/recipes/card-pudding.png"),
-  special: require("../assets/recipes/scroll-special.png"),
+// Blank recipe scrolls/books. A recipe's card is one of these plus its dish drawn on top,
+// so a new recipe never needs its own art.
+export const recipeTemplates = {
+  scrollPlain: require("../assets/recipe-templates/scroll-plain.png"),
+  scrollRibbonCrown: require("../assets/recipe-templates/scroll-ribbon-crown.png"),
+  bookRed: require("../assets/recipe-templates/book-red.png"),
+  bookBlueStar: require("../assets/recipe-templates/book-blue-star.png"),
+  bookBrown: require("../assets/recipe-templates/book-brown.png"),
+  scrollSealedGold: require("../assets/recipe-templates/scroll-sealed-gold.png"),
 };
 
 export const grandma = {

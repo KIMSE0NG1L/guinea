@@ -6,6 +6,8 @@ import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
 import { formatGameNumber } from "../state/gameMath";
 import { getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
+import { RECIPE_TIERS } from "../state/recipeTiers";
+import { RecipeArt } from "../components/RecipeArt";
 
 const GREETING = { pose: chef.spoon, line: "어떤 요리를 배워볼래? 레시피는 내가 직접 썼지!" };
 
@@ -46,19 +48,31 @@ export function RecipeShopScreen({
         {RECIPES.map((recipe) => {
           const learned = known.includes(recipe.id);
           const affordable = gold >= recipe.price;
+          const tier = RECIPE_TIERS[recipe.tier];
+          // Hidden recipes keep their dish and ingredients secret until learned.
+          const sealed = recipe.tier === "hidden" && !learned;
           return (
             <Panel slice={shopKit.cardWood} scale={0.4} style={styles.card} key={recipe.id}>
-              <Image source={recipe.art} style={[styles.art, learned && styles.artLearned]} />
-              <Text style={styles.name}>{recipe.name}</Text>
+              <View style={[styles.tierBadge, { backgroundColor: tier.color }]}>
+                <Text style={styles.tierText}>{tier.label}</Text>
+              </View>
+              <View style={learned && styles.artLearned}>
+                <RecipeArt recipe={recipe} size={72} sealed={sealed} />
+              </View>
+              <Text style={styles.name}>{sealed ? "???" : recipe.name}</Text>
               <View style={styles.ingredients}>
-                {recipe.ingredients.map((ingredient) => (
-                  <Image key={ingredient.name} source={ITEM_IMAGES[ingredient.name]} style={styles.ingredient} accessibilityLabel={ingredient.name} />
-                ))}
+                {sealed ? (
+                  <Text style={styles.secret}>재료 비밀</Text>
+                ) : (
+                  recipe.ingredients.map((ingredient) => (
+                    <Image key={ingredient.name} source={ITEM_IMAGES[ingredient.name]} style={styles.ingredient} accessibilityLabel={ingredient.name} />
+                  ))
+                )}
               </View>
               <GameButton
                 variant={learned ? "pillCream" : affordable ? "red" : "pillGray"}
                 onPress={() => learn(recipe.id, recipe.name)}
-                accessibilityLabel={learned ? `${recipe.name} 배움` : `${recipe.name} 레시피 ${recipe.price}골드에 배우기`}
+                accessibilityLabel={learned ? `${recipe.name} 배움` : `${sealed ? "히든" : recipe.name} 레시피 ${recipe.price}골드에 배우기`}
                 style={styles.button}
               >
                 <Text style={[styles.buttonText, learned && styles.buttonTextLearned, !learned && !affordable && styles.buttonTextOff]}>
@@ -78,8 +92,10 @@ const styles = StyleSheet.create({
   count: { marginBottom: 8, marginLeft: 4, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   card: { width: "48.5%", alignItems: "center", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 16 },
-  art: { width: 64, height: 64 },
   artLearned: { opacity: 0.75 },
+  tierBadge: { position: "absolute", top: 10, left: 10, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, zIndex: 1 },
+  tierText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  secret: { fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
   name: { marginTop: 4, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   ingredients: { marginTop: 4, flexDirection: "row", gap: 3, minHeight: 18 },
   ingredient: { width: 18, height: 18 },
