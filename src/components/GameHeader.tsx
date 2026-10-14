@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { kitImages, uiImages } from "../assets";
 import { GameButton } from "./GameButton";
 import { ResourceBar } from "./ResourceBar";
+import { ConfirmModal } from "./ConfirmModal";
 import type { GameState } from "../types";
 
-export function GameHeader({ state, onQuest }: { state: GameState; onQuest: () => void }) {
+export function GameHeader({ state, onQuest, onReset }: { state: GameState; onQuest: () => void; onReset: () => void }) {
   const ready = state.quests.filter((quest) => quest.current >= quest.target && !quest.claimed).length;
+  const [confirmingReset, setConfirmingReset] = useState(false);
+
   return (
     <View style={styles.header}>
       <View style={styles.titleRow}>
@@ -22,7 +26,7 @@ export function GameHeader({ state, onQuest }: { state: GameState; onQuest: () =
               )}
             </View>
           </GameButton>
-          <GameButton accessibilityLabel="설정" style={styles.iconButton}>
+          <GameButton accessibilityLabel="설정" onPress={() => setConfirmingReset(true)} style={styles.iconButton}>
             <Image source={uiImages.gear} style={styles.gearIcon} />
           </GameButton>
         </View>
@@ -34,6 +38,18 @@ export function GameHeader({ state, onQuest }: { state: GameState; onQuest: () =
         </View>
         <ResourceBar gold={state.gold} gems={state.gems} />
       </View>
+      {confirmingReset && (
+        <ConfirmModal
+          title="세이브 초기화"
+          message="지금까지 쌓은 진행도가 전부 사라지고 처음부터 다시 시작해요. 정말 초기화할까요?"
+          confirmLabel="초기화"
+          onConfirm={() => {
+            setConfirmingReset(false);
+            onReset();
+          }}
+          onCancel={() => setConfirmingReset(false)}
+        />
+      )}
     </View>
   );
 }

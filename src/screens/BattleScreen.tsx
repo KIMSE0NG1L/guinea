@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StageHeader } from "../components/StageHeader";
 import { DishPicker } from "../components/DishPicker";
 import { RewardPanel } from "../components/RewardPanel";
@@ -28,6 +28,22 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   // Which empty buff slot the dish picker is filling, if it's open.
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
 
+  // Fires once right as the boss sprite actually appears (displayBoss flips false→true),
+  // not at the 25th-kill moment — that's still mid mob-death-clip, see isMobToBossTransition.
+  const [bossEntranceKey, setBossEntranceKey] = useState<string | null>(null);
+  const wasDisplayBoss = useRef(displayBoss);
+  useEffect(() => {
+    if (displayBoss && !wasDisplayBoss.current) {
+      const key = `${regularEnemyKind}-${battle.enemyId}`;
+      setBossEntranceKey(key);
+      const timer = setTimeout(() => setBossEntranceKey(null), 1300);
+      wasDisplayBoss.current = displayBoss;
+      return () => clearTimeout(timer);
+    }
+    wasDisplayBoss.current = displayBoss;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayBoss]);
+
   return (
     <>
       <StageHeader level={state.level} experience={state.experience} />
@@ -54,6 +70,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         buffSlots={game.buffSlots}
         now={game.now}
         onPressBuffSlot={setPickingSlot}
+        bossEntranceKey={bossEntranceKey}
+        levelUpAnnouncement={game.levelUpAnnouncement}
       />
       {pickingSlot !== null && (
         <DishPicker

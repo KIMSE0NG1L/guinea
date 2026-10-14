@@ -80,12 +80,14 @@ export function EnemySprite({
   animation,
   size,
   restartKey,
+  tintColor,
 }: {
   boss: boolean;
   kind?: EnemyKind;
   animation: EnemyAnimation;
   size: number;
   restartKey?: string | number;
+  tintColor?: string;
 }) {
   const bossKind = BOSS_SHEET_FOR[kind];
   const sheet = boss ? spriteSheets[bossKind] : spriteSheets[kind];
@@ -100,6 +102,7 @@ export function EnemySprite({
       durationMs={config.durationMs}
       mode={config.mode}
       restartKey={restartKey}
+      tintColor={tintColor}
     />
   );
 }

@@ -11,6 +11,9 @@ type Props = {
   repeat?: number; // "once" mode only: play the full cycle this many times before holding (default 1)
   restartKey?: string | number; // change this to force the animation to restart from frame 0 (mirrors the web's key={tick} remount trick)
   onComplete?: () => void;
+  // Recolors every opaque pixel this flat color, keeping the sprite's own silhouette —
+  // used to flash a hit-reaction overlay exactly matching the current frame's shape.
+  tintColor?: string;
 };
 
 export function SpriteStrip({
@@ -23,6 +26,7 @@ export function SpriteStrip({
   repeat = 1,
   restartKey,
   onComplete,
+  tintColor,
 }: Props) {
   const [frame, setFrame] = useState(0);
 
@@ -64,6 +68,7 @@ export function SpriteStrip({
       <Image
         source={source}
         resizeMode="stretch"
+        tintColor={tintColor}
         style={{
           width: frameSize * frameCount * scale,
           height: frameSize * scale,

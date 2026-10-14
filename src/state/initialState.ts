@@ -7,7 +7,7 @@ export const initialState: GameState = {
   gems: 10,
   level: 1,
   experience: 32,
-  attack: 12,
+  attack: 6,
   criticalDamage: 200,
   criticalChance: 5,
   goldBonus: 10,

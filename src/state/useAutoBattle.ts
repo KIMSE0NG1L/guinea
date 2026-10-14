@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BattlePhase } from "../types";
+import { getGoldReward } from "./gameMath";
 
 // Player's win animation is 480ms/cycle and plays 3x on a boss kill (see BattleScene's
 // PlayerFighter) — the defeated-phase delay needs to be at least that long so the
@@ -12,7 +13,6 @@ export function useAutoBattle({
   criticalDamage,
   criticalChance,
   goldBonus,
-  goldMultiplier,
   enemyMaxHp,
   boss,
   onDefeat,
@@ -21,7 +21,6 @@ export function useAutoBattle({
   criticalDamage: number;
   criticalChance: number;
   goldBonus: number;
-  goldMultiplier: number;
   enemyMaxHp: number;
   boss: boolean;
   onDefeat: (goldReward: number) => void;
@@ -39,7 +38,6 @@ export function useAutoBattle({
   const criticalDamageRef = useRef(criticalDamage);
   const criticalChanceRef = useRef(criticalChance);
   const goldBonusRef = useRef(goldBonus);
-  const goldMultiplierRef = useRef(goldMultiplier);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
   const onDefeatRef = useRef(onDefeat);
@@ -59,15 +57,10 @@ export function useAutoBattle({
     damageEventTimersRef.current.push(timer);
   }, []);
 
-  // Gold for one kill: base on attack, then the gold-bonus stat and the stage's multiplier.
-  const getKillReward = () =>
-    Math.round((18 + attackRef.current / 2) * (1 + goldBonusRef.current / 100) * goldMultiplierRef.current);
-
   attackRef.current = attack;
   criticalDamageRef.current = criticalDamage;
   criticalChanceRef.current = criticalChance;
   goldBonusRef.current = goldBonus;
-  goldMultiplierRef.current = goldMultiplier;
   maxHpRef.current = enemyMaxHp;
   bossRef.current = boss;
   onDefeatRef.current = onDefeat;
@@ -102,7 +95,7 @@ export function useAutoBattle({
           setEnemyHp(nextHp);
 
           if (nextHp === 0) {
-            const reward = getKillReward();
+            const reward = getGoldReward(attackRef.current, goldBonusRef.current, maxHpRef.current, bossRef.current);
             setLastGoldReward(reward);
             setPhase("defeated");
             onDefeatRef.current(reward);
@@ -158,7 +151,7 @@ export function useAutoBattle({
       manualTimersRef.current.forEach((timer) => clearTimeout(timer));
       manualTimersRef.current = [];
 
-      const reward = getKillReward();
+      const reward = getGoldReward(attackRef.current, goldBonusRef.current, maxHpRef.current, bossRef.current);
       setLastGoldReward(reward);
       phaseRef.current = "defeated";
       setPhase("defeated");

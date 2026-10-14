@@ -4,11 +4,12 @@ import type { GameState, StatKey, UpgradeMode } from "../types";
 import { initialState } from "./initialState";
 import { getStatLevel, getStatValue, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
-import { loadSave, writeSave } from "./storage";
-import { getEnemyKind, getEnemyMaxHp, getStageGoldMultiplier, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
+import { clearSave, loadSave, writeSave } from "./storage";
+import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
 import { BUFFS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { canCook, getKnownRecipes, RECIPES } from "./recipes";
+import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
 export type DropEvent = { id: number; name: string; delay: number };
 
@@ -56,6 +57,14 @@ export function useGameState() {
   // resolved — otherwise the fresh `initialState` would autosave over a real save
   // during the brief window before AsyncStorage responds.
   const [loaded, setLoaded] = useState(false);
+  // Shown once after a load that found meaningful time away; dismissed by the player.
+  const [offlineSummary, setOfflineSummary] = useState<OfflineSummary | null>(null);
+  // Carries the save's lastSeenAt forward on every autosave so a later background event
+  // can diff against it — only that event actually advances it to "now".
+  const lastSeenAtRef = useRef<number | undefined>(undefined);
+  // Last level the level-up burst has already fired for — synced here (not reactively)
+  // so loading a save at a higher level, or an offline-progress jump, never triggers it.
+  const previousLevelRef = useRef(state.level);
 
   useEffect(() => {
     loadSave().then((save) => {
@@ -66,7 +75,17 @@ export function useGameState() {
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
-        setState({ ...save.state, equippedOutfit });
+        let loadedState = { ...save.state, equippedOutfit };
+        lastSeenAtRef.current = save.lastSeenAt;
+        if (save.lastSeenAt) {
+          const result = simulateOfflineProgress(loadedState, Date.now() - save.lastSeenAt);
+          if (result) {
+            loadedState = result.state;
+            setOfflineSummary(result.summary);
+          }
+        }
+        previousLevelRef.current = loadedState.level;
+        setState(loadedState);
         setPendingReward(save.pendingReward);
       }
       setLoaded(true);
@@ -76,13 +95,17 @@ export function useGameState() {
   useEffect(() => {
     if (!loaded) return;
     const timer = setTimeout(() => {
-      writeSave({ state, pendingReward });
+      writeSave({ state, pendingReward, lastSeenAt: lastSeenAtRef.current });
     }, 800);
 
     // Flush immediately if the app is backgrounded/closed before the debounce fires,
-    // so the last few seconds of progress aren't lost.
+    // so the last few seconds of progress aren't lost — and stamp lastSeenAt here (only
+    // here) so the next load can tell how long the app was actually away.
     const subscription = AppState.addEventListener("change", (status) => {
-      if (status !== "active") writeSave({ state, pendingReward });
+      if (status !== "active") {
+        lastSeenAtRef.current = Date.now();
+        writeSave({ state, pendingReward, lastSeenAt: lastSeenAtRef.current });
+      }
     });
 
     return () => {
@@ -101,6 +124,21 @@ export function useGameState() {
     const timer = setTimeout(() => setStageAnnouncement(null), 1500);
     return () => clearTimeout(timer);
   }, [state.stageNumber]);
+
+  // Fires the level-up burst whenever level actually goes up during live play. Gated on
+  // `loaded` and previousLevelRef is synced inside the load effect above, so loading a
+  // save at a higher level (or an offline-progress jump) never triggers a spurious burst.
+  const [levelUpAnnouncement, setLevelUpAnnouncement] = useState<number | null>(null);
+  useEffect(() => {
+    if (!loaded) return;
+    if (state.level > previousLevelRef.current) {
+      setLevelUpAnnouncement(state.level);
+      const timer = setTimeout(() => setLevelUpAnnouncement(null), 1100);
+      previousLevelRef.current = state.level;
+      return () => clearTimeout(timer);
+    }
+    previousLevelRef.current = state.level;
+  }, [state.level, loaded]);
 
   const handleEnemyDefeat = useCallback((goldReward: number) => {
     setDefeatedBoss(boss);
@@ -158,7 +196,6 @@ export function useGameState() {
     criticalDamage: state.criticalDamage + buffs.criticalDamage,
     criticalChance: (state.criticalChance ?? 5) + buffs.criticalChance,
     goldBonus: state.goldBonus + buffs.gold,
-    goldMultiplier: getStageGoldMultiplier(state.stageNumber),
     enemyMaxHp,
     boss,
     onDefeat: handleEnemyDefeat,
@@ -314,6 +351,19 @@ export function useGameState() {
     setNow(startedAt);
   };
 
+  // Wipes the save and every piece of in-memory battle state, back to a brand-new game.
+  const resetSave = async () => {
+    await clearSave();
+    lastSeenAtRef.current = undefined;
+    setOfflineSummary(null);
+    setBoss(false);
+    setDefeatedBoss(false);
+    setStageAnnouncement(null);
+    setPendingReward(220);
+    setState(initialState);
+    battle.resetEnemy(getEnemyMaxHp(0, false));
+  };
+
   return {
     state,
     setState,
@@ -324,6 +374,7 @@ export function useGameState() {
     defeatedBoss,
     defeatedStageNumber,
     stageAnnouncement,
+    levelUpAnnouncement,
     upgradeMode,
     setUpgradeMode,
     upgraded,
@@ -333,6 +384,9 @@ export function useGameState() {
     upgradeStat,
     claimQuest,
     selectStage,
+    resetSave,
+    offlineSummary,
+    dismissOfflineSummary: () => setOfflineSummary(null),
     cook,
     buyIngredient,
     learnRecipe,

@@ -3,12 +3,16 @@ import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { food, icons, images } from "../assets";
+import { effects, food, icons, images, FRAME_SIZE } from "../assets";
 import { CharacterSprite } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
+import { SpriteStrip } from "../components/SpriteStrip";
 import { DamageNumber } from "../components/DamageNumber";
 import { CoinPopup } from "../components/CoinPopup";
+import { GoldFly } from "../components/GoldFly";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
+import { BossEntranceBanner } from "../components/BossEntranceBanner";
+import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { BUFF_SLOT_SIZE, BuffSlots } from "../components/BuffSlots";
@@ -80,6 +84,8 @@ export function BattleScene({
   buffSlots,
   now,
   onPressBuffSlot,
+  bossEntranceKey,
+  levelUpAnnouncement,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean }[];
@@ -103,6 +109,8 @@ export function BattleScene({
   buffSlots: BuffSlot[];
   now: number;
   onPressBuffSlot: (index: number) => void;
+  bossEntranceKey: string | null;
+  levelUpAnnouncement: number | null;
 }) {
   const playerAnimation: PlayerAnimation =
     phase === "attacking"
@@ -120,6 +128,21 @@ export function BattleScene({
   const dropFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 };
   const dropTo = { dx: ENEMY_CENTER_RIGHT - BAG_CENTER.right, dy: dropFrom.bottom - BAG_CENTER.bottom };
   const stageProgress = (Math.min(stageKills, STAGE_KILL_TARGET) / STAGE_KILL_TARGET) * 100;
+
+  // Finishing-blow punch: a quick zoom on both fighters, on every kill (not just
+  // bosses) — re-fires each time `phase` cycles back to "defeated".
+  const killPunch = useSharedValue(1);
+  useEffect(() => {
+    if (phase !== "defeated") return;
+    killPunch.value = withSequence(
+      withTiming(1.07, { duration: 90, easing: Easing.out(Easing.quad) }),
+      withTiming(1, { duration: 220, easing: Easing.inOut(Easing.quad) }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+  const killPunchStyle = useAnimatedStyle(() => ({ transform: [{ scale: killPunch.value }] }));
+  // Flying gold coins only for the fresh kill this render reflects (new enemyId + reward).
+  const goldFlyFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.6 };
 
   return (
     <View style={styles.scene}>
@@ -144,9 +167,11 @@ export function BattleScene({
           </LinearGradient>
 
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
+          {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
 
-          <View style={styles.fighters}>
+          <Animated.View style={[styles.fighters, killPunchStyle]}>
             <PlayerFighter animation={playerAnimation} outfit={outfit} boss={boss} />
+            {levelUpAnnouncement !== null && <LevelUpBurst key={levelUpAnnouncement} level={levelUpAnnouncement} />}
 
             <EnemyFighter
               animation={enemyAnimation}
@@ -157,6 +182,7 @@ export function BattleScene({
               maxHp={enemyMaxHp}
               phase={phase}
               size={enemySize}
+              critical={critical}
             />
 
             {/* Kept below the enemy nameplate (fixed at bottom: 112) so numbers never cover
@@ -167,7 +193,7 @@ export function BattleScene({
               ))}
               {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
             </View>
-          </View>
+          </Animated.View>
 
           <BuffSlots slots={buffSlots} now={now} onPressSlot={onPressBuffSlot} style={styles.buffSlots} />
 
@@ -203,6 +229,9 @@ export function BattleScene({
                 groundDrop={dropFrom.bottom - GROUND_BOTTOM}
                 to={dropTo}
               />
+            ))}
+            {phase === "defeated" && [0, 1, 2].map((index) => (
+              <GoldFly key={`gold-${enemyId}-${index}`} delay={index * 70} from={goldFlyFrom} />
             ))}
           </View>
         </ImageBackground>
@@ -289,6 +318,7 @@ function EnemyFighter({
   maxHp,
   phase,
   size,
+  critical,
 }: {
   animation: EnemyAnimation;
   boss: boolean;
@@ -298,14 +328,25 @@ function EnemyFighter({
   maxHp: number;
   phase: BattlePhase;
   size: number;
+  critical: boolean;
 }) {
   const shake = useSharedValue(0);
+  const knockback = useSharedValue(0);
+  const hitFlash = useSharedValue(0);
   const defeat = useSharedValue(0);
   const enter = useSharedValue(phase === "entering" ? 0 : 1);
 
   useEffect(() => {
     if (phase === "hit") {
-      shake.value = withSequence(withTiming(1, { duration: 160 }), withTiming(0, { duration: 160 }));
+      // A brief static hold (hit-stop) before the knockback punches out and eases back,
+      // instead of jumping straight into the recoil — sells the impact as actually landing.
+      knockback.value = withSequence(
+        withTiming(0, { duration: 55 }),
+        withTiming(1, { duration: 70, easing: Easing.out(Easing.quad) }),
+        withTiming(0, { duration: 190, easing: Easing.out(Easing.quad) }),
+      );
+      shake.value = withSequence(withTiming(0, { duration: 55 }), withTiming(1, { duration: 160 }), withTiming(0, { duration: 160 }));
+      hitFlash.value = withSequence(withTiming(1, { duration: 55 }), withTiming(0.85, { duration: 40 }), withTiming(0, { duration: 110 }));
     }
     if (phase === "defeated") {
       defeat.value = withTiming(1, { duration: 620, easing: Easing.in(Easing.quad) });
@@ -324,12 +365,13 @@ function EnemyFighter({
   const style = useAnimatedStyle(() => ({
     opacity: (1 - defeat.value) * (0.4 + enter.value * 0.6),
     transform: [
-      { translateX: shake.value * 7 - defeat.value * -7 + (1 - enter.value) * 35 },
+      { translateX: knockback.value * 14 - defeat.value * -7 + (1 - enter.value) * 35 },
       { translateY: defeat.value * 30 },
       { rotate: `${shake.value * 5 + defeat.value * 18}deg` },
       { scale: 1 - defeat.value * 0.65 + (1 - enter.value) * -0.4 },
     ],
   }));
+  const hitFlashStyle = useAnimatedStyle(() => ({ opacity: hitFlash.value }));
 
   return (
     <Animated.View style={[styles.characterWrap, style]}>
@@ -342,6 +384,18 @@ function EnemyFighter({
         </View>
       </View>
       <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
+      {/* White silhouette flash on every landed hit — same sprite/frame, tinted and faded
+          in/out fast, so it exactly matches the current pose with no extra art. */}
+      <Animated.View style={[styles.hitFlash, { width: size, height: size }, hitFlashStyle]} pointerEvents="none">
+        <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} tintColor="#ffffff" />
+      </Animated.View>
+      {/* Mounts/unmounts with the hit phase itself, so it restarts fresh on every crit
+          without needing its own restartKey. */}
+      {phase === "hit" && critical && (
+        <View style={[styles.critFlash, { width: size * 1.1, height: size * 1.1 }]} pointerEvents="none">
+          <SpriteStrip source={effects.critFlash} frameSize={FRAME_SIZE} frameCount={3} displaySize={size * 1.1} durationMs={240} mode="once" />
+        </View>
+      )}
     </Animated.View>
   );
 }
@@ -392,6 +446,10 @@ const styles = StyleSheet.create({
   potIcon: { width: POT_SIZE, height: POT_SIZE },
   bagIcon: { width: BAG_SIZE, height: BAG_SIZE },
   effects: { position: "absolute", right: 96, bottom: 30, zIndex: 10 },
+  // Below enemyNameplateFixed's zIndex: 5 so a big flash can never cover the HP bar.
+  critFlash: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
+  // Sits right over the base sprite (same box), below critFlash/the nameplate.
+  hitFlash: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 3 },
   characterWrap: { width: 108, alignItems: "center", position: "relative" },
   unitLabel: {
     marginBottom: 4,

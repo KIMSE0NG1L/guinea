@@ -5,6 +5,7 @@ import { useGameState } from "./state/useGameState";
 import { GameHeader } from "./components/GameHeader";
 import { BottomNavigation } from "./components/BottomNavigation";
 import { QuestModal } from "./components/QuestModal";
+import { OfflineRewardModal } from "./components/OfflineRewardModal";
 import { BattleScreen } from "./screens/BattleScreen";
 import { GrowthScreen } from "./screens/GrowthScreen";
 import { EquipmentScreen } from "./screens/EquipmentScreen";
@@ -89,13 +90,16 @@ export function GameScreen() {
     <View style={styles.shell}>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.frame} edges={["top", "bottom"]}>
-        <GameHeader state={state} onQuest={() => setQuestOpen(true)} />
+        <GameHeader state={state} onQuest={() => setQuestOpen(true)} onReset={game.resetSave} />
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {renderContent()}
         </ScrollView>
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
         {questOpen && (
           <QuestModal quests={state.quests} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
+        )}
+        {game.offlineSummary && (
+          <OfflineRewardModal summary={game.offlineSummary} onClaim={game.dismissOfflineSummary} />
         )}
       </SafeAreaView>
     </View>

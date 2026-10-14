@@ -70,6 +70,11 @@ export const images = {
   battleBackgroundPotatoCave: require("../assets/sprites/battle-potato-cave.png"),
 };
 
+// A 3-frame flash played once over the enemy when a hit lands as a critical.
+export const effects = {
+  critFlash: require("../assets/sprites/crit-flash-strip.png"),
+};
+
 export const icons = {
   map: require("../assets/icons/icon-map.png"),
   backpack: require("../assets/icons/icon-backpack.png"),
