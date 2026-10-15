@@ -15,7 +15,7 @@ import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
-const SPEED_BOOST_DURATION_MS = 120_000;
+const SPEED_BOOST_DURATION_MS = 60 * 60_000; // 1 hour
 
 // Adds dropped/bought items to the bag, stacking onto what's already there.
 function addItems(inventory: GameState["inventory"], items: { name: string; quantity: number }[]) {
@@ -57,14 +57,15 @@ export function useGameState() {
   const [dropEvents, setDropEvents] = useState<DropEvent[]>([]);
   const dropEventId = useRef(0);
 
-  // Watching an ad doubles auto-battle's pace for a while — not persisted, so it doesn't
-  // survive an app restart (matches how a real rewarded-ad timer would behave).
-  const [speedBoostUntil, setSpeedBoostUntil] = useState<number | null>(null);
-  const speedBoostRemainingMs = speedBoostUntil ? Math.max(0, speedBoostUntil - now) : 0;
+  // Watching an ad doubles auto-battle's pace for an hour. Saved with the game and run on
+  // wall-clock time like the food buffs, so it keeps counting down while the app is closed.
+  const speedBoostRemainingMs = state.speedBoostUntil ? Math.max(0, state.speedBoostUntil - now) : 0;
   const speedMultiplier = speedBoostRemainingMs > 0 ? 2 : 1;
   const watchAdForSpeedBoost = () => {
     if (speedBoostRemainingMs > 0) return;
-    setSpeedBoostUntil(Date.now() + SPEED_BOOST_DURATION_MS);
+    const startedAt = Date.now();
+    setState((previous) => ({ ...previous, speedBoostUntil: startedAt + SPEED_BOOST_DURATION_MS }));
+    setNow(startedAt);
   };
 
   // Gates the autosave effect below until the saved-game load (or its absence) has
@@ -444,7 +445,6 @@ export function useGameState() {
     setBoss(false);
     setDefeatedBoss(false);
     setStageAnnouncement(null);
-    setSpeedBoostUntil(null);
     setState(initialState);
     battle.resetEnemy(getEnemyMaxHp(0, false));
   };

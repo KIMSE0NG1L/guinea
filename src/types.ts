@@ -34,6 +34,8 @@ export interface GameState {
   // Recipe ids the player has learned; missing on saves from before the recipe shop.
   knownRecipes?: string[];
   // Food buff slots on the battle screen (null = empty); missing on older saves.
+  // When the ad-for-2x-speed boost runs out (epoch ms); saved so it survives a restart.
+  speedBoostUntil?: number;
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
   equippedOutfit: Outfit;
   // The one skill in the battle slot (null = none); missing on older saves.

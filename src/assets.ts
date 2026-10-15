@@ -179,6 +179,8 @@ export const icons = {
   scroll: require("../assets/icons/icon-scroll.png"),
   home: require("../assets/icons/icon-home.png"),
   settings: require("../assets/icons/icon-settings.png"),
+  settingsGear: require("../assets/icons/icon-settings-gear.png"),
+  questMedal: require("../assets/icons/icon-quest-medal.png"),
 };
 
 export const uiImages = {
@@ -330,6 +332,22 @@ export const statIcons = {
   criticalDamage: require("../assets/stats/critical-damage.png"),
   criticalChance: require("../assets/stats/critical-chance.png"),
   goldBonus: require("../assets/stats/gold.png"),
+};
+
+// Rounded green/cream button set.
+export const buttonKit = {
+  pillCream: slice(require("../assets/buttons/pill-cream.png"), 255, 94, [36, 46, 40, 46]),
+};
+
+export const buttonImages = {
+  plusGreen: require("../assets/buttons/plus-green.png"),
+};
+
+export const navIcons = {
+  battle: require("../assets/nav/battle.png"),
+  companions: require("../assets/nav/companions.png"),
+  skills: require("../assets/nav/skills.png"),
+  shop: require("../assets/nav/shop.png"),
 };
 
 export const kitImages = {
