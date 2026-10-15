@@ -209,6 +209,7 @@ export const icons = {
   settings: require("../assets/icons/icon-settings.png"),
   settingsGear: require("../assets/icons/icon-settings-gear.png"),
   questMedal: require("../assets/icons/icon-quest-medal.png"),
+  codexBook: require("../assets/icons/icon-codex-book.png"),
 };
 
 export const uiImages = {

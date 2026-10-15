@@ -1,9 +1,11 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { frameImages, icons, kit } from "../assets";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
+import { MonsterCodex } from "../components/MonsterCodex";
 import { BOSS_NAME, ENEMY_NAME, getStageCode, STAGES } from "../state/stages";
 
 export function MilestoneScreen({
@@ -17,9 +19,31 @@ export function MilestoneScreen({
   onSelectStage: (stageNumber: number) => void;
   onBack: () => void;
 }) {
+  const [view, setView] = useState<"map" | "codex">("map");
+  const codex = view === "codex";
+
   return (
     <View style={styles.page}>
-      <PageHeading kicker="MILESTONE" title="모험 지도" description="보스를 쓰러뜨리면 다음 스테이지가 열려요." />
+      <View style={styles.headingRow}>
+        <View style={styles.heading}>
+          <PageHeading
+            kicker={codex ? "BESTIARY" : "MILESTONE"}
+            title={codex ? "몬스터 도감" : "모험 지도"}
+            description={codex ? "만난 몬스터와 떨어뜨리는 재료를 모아봐요." : "보스를 쓰러뜨리면 다음 스테이지가 열려요."}
+          />
+        </View>
+        {/* Bare icon: a book opens the codex, the map comes back. */}
+        <Pressable
+          onPress={() => setView(codex ? "map" : "codex")}
+          accessibilityRole="button"
+          accessibilityLabel={codex ? "모험 지도로 돌아가기" : "몬스터 도감 열기"}
+          hitSlop={8}
+          style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
+        >
+          <Image source={codex ? icons.map : icons.codexBook} style={styles.toggleIcon} />
+        </Pressable>
+      </View>
+      {codex ? <MonsterCodex highestStageNumber={highestStageNumber} /> : (
       <View style={styles.list}>
         {STAGES.map((stage, index) => {
           const current = index === stageNumber;
@@ -59,11 +83,17 @@ export function MilestoneScreen({
           );
         })}
       </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  headingRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  heading: { flex: 1 },
+  toggle: { marginTop: 4 },
+  togglePressed: { transform: [{ scale: 0.92 }] },
+  toggleIcon: { width: 50, height: 50 },
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
   list: {},
   card: {

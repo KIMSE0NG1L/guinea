@@ -179,6 +179,11 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   },
 };
 
+// Every ingredient a monster can drop, mob table then boss table, for the codex.
+export function getDropTable(kind: EnemyKind, boss: boolean): DropEntry[] {
+  return boss ? DROPS[kind].boss : DROPS[kind].mob;
+}
+
 export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {
   return (boss ? DROPS[kind].boss : DROPS[kind].mob)
     .filter((entry) => Math.random() < entry.chance)
