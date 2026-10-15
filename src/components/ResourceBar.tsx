@@ -16,11 +16,9 @@ export function ResourceBar({ gold, gems, onOpenShop }: { gold: number; gems: nu
 
 function ResourceChip({ icon, value, label, onPlus }: { icon: number; value: number; label: string; onPlus: () => void }) {
   return (
-    <View style={styles.chipWrap}>
-      <Panel slice={buttonKit.pillCream} scale={0.3} style={styles.chip}>
-        <Image source={icon} style={styles.icon} />
-        <Text style={styles.value} numberOfLines={1}>{formatGameNumber(value)}</Text>
-      </Panel>
+    <Panel slice={buttonKit.pillCream} scale={0.3} style={styles.chip}>
+      <Image source={icon} style={styles.icon} />
+      <Text style={styles.value} numberOfLines={1}>{formatGameNumber(value)}</Text>
       <Pressable
         onPress={onPlus}
         accessibilityRole="button"
@@ -30,18 +28,17 @@ function ResourceChip({ icon, value, label, onPlus }: { icon: number; value: num
       >
         <Image source={buttonImages.plusGreen} style={styles.plusImage} />
       </Pressable>
-    </View>
+    </Panel>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", gap: 6, minWidth: 0 },
-  chipWrap: { flexDirection: "row", alignItems: "center" },
-  // Right padding leaves room for the "+" that overlaps the pill's right end.
-  chip: { minWidth: 80, maxWidth: 116, height: 30, paddingLeft: 5, paddingRight: 18, flexDirection: "row", alignItems: "center", gap: 4 },
-  icon: { width: 20, height: 20, resizeMode: "contain" },
-  value: { flexShrink: 1, color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 11 },
-  plus: { marginLeft: -14 },
+  bar: { flexDirection: "row", gap: 4, minWidth: 0 },
+  // The "+" sits inside the pill's right end, so icon, value and "+" read as one control.
+  chip: { minWidth: 74, height: 28, paddingLeft: 4, paddingRight: 3, flexDirection: "row", alignItems: "center", gap: 3 },
+  icon: { width: 18, height: 18, resizeMode: "contain" },
+  value: { flex: 1, color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10 },
+  plus: {},
   pressed: { transform: [{ scale: 0.9 }] },
-  plusImage: { width: 24, height: 24 },
+  plusImage: { width: 21, height: 21 },
 });

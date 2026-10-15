@@ -36,6 +36,8 @@ export interface GameState {
   // Food buff slots on the battle screen (null = empty); missing on older saves.
   // When the ad-for-2x-speed boost runs out (epoch ms); saved so it survives a restart.
   speedBoostUntil?: number;
+  // Shown on the header profile; missing on older saves (falls back to DEFAULT_NICKNAME).
+  nickname?: string;
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
   equippedOutfit: Outfit;
   // The one skill in the battle slot (null = none); missing on older saves.

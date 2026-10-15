@@ -22,7 +22,7 @@ const LABEL_COLORS: Record<ButtonVariant, string> = {
   green: colors.cream,
   beige: colors.ink,
   gray: "#4f463c",
-  brown: colors.cream,
+  brown: colors.ink, // light wood plank
   red: colors.cream,
   pillCream: colors.ink,
   pillGray: "#4f463c",

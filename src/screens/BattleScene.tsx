@@ -3,7 +3,8 @@ import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { effects, food, icons, images, FRAME_SIZE } from "../assets";
+import { effects, food, icons, images, kitImages, FRAME_SIZE } from "../assets";
+import { StrokedText } from "../components/StrokedText";
 import { CharacterSprite } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
 import { SpriteStrip } from "../components/SpriteStrip";
@@ -152,6 +153,8 @@ export function BattleScene({
   stageAdvance,
   stageLabel,
   stageKills,
+  questReady,
+  onQuest,
   outfit,
   manualEnabled,
   onManualAttack,
@@ -182,6 +185,8 @@ export function BattleScene({
   stageAdvance: string | null;
   stageLabel: string;
   stageKills: number;
+  questReady: boolean;
+  onQuest: () => void;
   outfit: Outfit;
   manualEnabled: boolean;
   onManualAttack: () => void;
@@ -302,11 +307,29 @@ export function BattleScene({
             colors={["#171d19e8", "#263125a8", "#26312500"]}
             locations={[0, 0.62, 1]}
             style={styles.stageBar}
-            pointerEvents="none"
+            pointerEvents="box-none"
           >
-            <Text style={styles.stageBarTitle}>{stageLabel}</Text>
-            <ProgressBar progress={stageProgress} height={14} style={styles.stageBarTrack} />
-            <Text style={styles.stageBarCount}>{Math.min(stageKills, STAGE_KILL_TARGET)} / {STAGE_KILL_TARGET}</Text>
+            <View style={styles.stageBarInfo} pointerEvents="none">
+              <StrokedText style={styles.stageBarTitle} strokeColor={colors.line} strokeWidth={1.5}>
+                {stageLabel}
+              </StrokedText>
+              <ProgressBar
+                progress={stageProgress}
+                height={18}
+                label={`${Math.min(stageKills, STAGE_KILL_TARGET)} / ${STAGE_KILL_TARGET}`}
+                style={styles.stageBarTrack}
+              />
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="퀘스트"
+              onPress={onQuest}
+              hitSlop={6}
+              style={({ pressed }) => [styles.questButton, pressed && styles.questPressed]}
+            >
+              <Image source={icons.questMedal} style={styles.questIcon} />
+              {questReady && <Image source={kitImages.dotRed} style={styles.questDot} accessibilityLabel="받을 보상 있음" />}
+            </Pressable>
           </LinearGradient>
 
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
@@ -752,15 +775,21 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    minHeight: 50,
-    paddingHorizontal: 12,
-    paddingTop: 7,
-    paddingBottom: 13,
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 12,
+    flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
-  stageBarTitle: { color: colors.cream, fontSize: 12, fontWeight: "700", fontFamily: fonts.bold },
+  stageBarInfo: { flex: 1, alignItems: "center" },
+  stageBarTitle: { color: colors.cream, fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: -0.3 },
   stageBarTrack: { width: "100%", marginTop: 4 },
-  stageBarCount: { marginTop: 2, color: colors.cream, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
+  questButton: { width: 42, height: 42, alignItems: "center", justifyContent: "center" },
+  questPressed: { transform: [{ scale: 0.92 }] },
+  questIcon: { width: 38, height: 38 },
+  // Just a dot — whether there's something to claim, not how many.
+  questDot: { position: "absolute", right: 3, top: 2, width: 12, height: 12 },
   fighters: {
     position: "absolute",
     top: 42,

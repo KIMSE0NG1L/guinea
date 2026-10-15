@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { StageHeader } from "../components/StageHeader";
 import { DishPicker } from "../components/DishPicker";
 import { BattleActionsPanel } from "../components/BattleActionsPanel";
 import { BuffSlots } from "../components/BuffSlots";
@@ -50,7 +49,6 @@ export function BattleScreen({ game }: { game: UseGameState }) {
 
   return (
     <>
-      <StageHeader level={state.level} experience={state.experience} />
       <BattleScene
         critical={battle.lastCritical}
         damageEvents={battle.damageEvents}
@@ -64,6 +62,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         stageAdvance={game.stageAnnouncement}
         stageLabel={boss ? `${stageLabel} · 보스` : stageLabel}
         stageKills={state.stageKills}
+        questReady={state.quests.some((quest) => quest.current >= quest.target && !quest.claimed)}
+        onQuest={() => game.setQuestOpen(true)}
         outfit={state.equippedOutfit}
         manualEnabled={!battle.isAutoBattle}
         onManualAttack={battle.manualAttack}

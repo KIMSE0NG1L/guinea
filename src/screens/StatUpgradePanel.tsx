@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
   gainSmall: { color: colors.muted, fontSize: 7, marginBottom: 2 },
   gainValue: { color: colors.green, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10 },
   upgradeButton: { minWidth: 70, paddingHorizontal: 8 },
-  upgradeButtonText: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 10, textAlign: "center" },
-  upgradeButtonCost: { color: "#f3d993", fontSize: 7, marginTop: 1, textAlign: "center" },
+  upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10, textAlign: "center" },
+  upgradeButtonCost: { color: colors.brown, fontSize: 8, marginTop: 1, textAlign: "center" },
 });

@@ -109,7 +109,6 @@ export function GameScreen() {
       <SafeAreaView style={styles.frame} edges={["top", "bottom"]}>
         <GameHeader
           state={state}
-          onQuest={() => setQuestOpen(true)}
           onReset={game.resetSave}
           onSkipToBoss={game.skipToBoss}
           onKillEnemy={game.battle.killEnemy}

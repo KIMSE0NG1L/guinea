@@ -290,21 +290,22 @@ const slice = (source: number, width: number, height: number, insets: UiSlice["i
   centerColor,
 });
 
+// Soft parchment-and-pill kit. Shared by the growth panel, buttons, cards and modals on
+// every page — swapping art here reskins all of them.
 export const kit = {
-  panelLarge: slice(require("../assets/ui/kit-panel-lg.png"), 426, 231, [30, 30, 34, 30], "#fcf3d8"),
-  panel: slice(require("../assets/ui/kit-panel.png"), 303, 115, [26, 26, 30, 26], "#fbf3d8"),
-  panelSmall: slice(require("../assets/ui/kit-panel-sm.png"), 118, 116, [26, 26, 30, 26]),
-  panelBrown: slice(require("../assets/ui/kit-panel-brown.png"), 221, 110, [26, 26, 30, 26], "#714c32"),
-  panelParchment: slice(require("../assets/ui/kit-panel-parchment.png"), 211, 108, [30, 30, 30, 30], "#f8deae"),
-  inset: slice(require("../assets/ui/kit-inset.png"), 253, 108, [32, 32, 34, 32], "#e6d9be"),
-  slot: slice(require("../assets/ui/kit-slot.png"), 111, 113, [32, 32, 34, 32], "#d8c5a6"),
-  buttonCream: slice(require("../assets/ui/kit-btn-cream.png"), 206, 92, [26, 26, 30, 26]),
-  buttonGreen: slice(require("../assets/ui/kit-btn-green.png"), 271, 92, [26, 26, 30, 26]),
-  buttonBeige: slice(require("../assets/ui/kit-btn-beige.png"), 176, 92, [26, 26, 30, 26]),
-  buttonGray: slice(require("../assets/ui/kit-btn-gray.png"), 176, 93, [26, 26, 30, 26]),
-  buttonBrown: slice(require("../assets/ui/kit-panel-brown.png"), 221, 110, [26, 26, 30, 26]),
-  // The raised bump sits left of centre, so the left inset spans it to keep it unstretched.
-  tabGreen: slice(require("../assets/ui/kit-tab-green.png"), 165, 73, [26, 50, 24, 108]),
+  panelLarge: slice(require("../assets/kit2/panel-xl.png"), 421, 145, [26, 26, 28, 26], "#feebbe"),
+  panel: slice(require("../assets/kit2/card.png"), 176, 97, [24, 24, 26, 24], "#fbebcc"),
+  panelSmall: slice(require("../assets/kit2/panel-square.png"), 133, 151, [26, 26, 28, 26], "#fdf0d6"),
+  panelBrown: slice(require("../assets/kit2/plank.png"), 179, 59, [18, 24, 20, 24], "#deab6f"),
+  panelParchment: slice(require("../assets/kit2/panel-tall.png"), 117, 153, [26, 26, 28, 26], "#feebbe"),
+  inset: slice(require("../assets/kit2/cushion.png"), 157, 66, [22, 24, 24, 24], "#fde8bd"),
+  slot: slice(require("../assets/kit2/sq-cream.png"), 54, 56, [16, 16, 18, 16], "#fceccb"),
+  buttonCream: slice(require("../assets/kit2/btn-cream.png"), 147, 48, [16, 22, 18, 22]),
+  buttonGreen: slice(require("../assets/kit2/btn-green.png"), 145, 49, [16, 22, 18, 22]),
+  buttonBeige: slice(require("../assets/kit2/btn-tan-2.png"), 145, 48, [16, 22, 18, 22]),
+  buttonGray: slice(require("../assets/kit2/btn-gray.png"), 134, 47, [16, 22, 18, 22]),
+  buttonBrown: slice(require("../assets/kit2/plank.png"), 179, 59, [18, 24, 20, 24]),
+  tabGreen: slice(require("../assets/kit2/green-panel.png"), 204, 95, [26, 28, 30, 28], "#82be3b"),
   track: slice(require("../assets/ui/kit-track.png"), 362, 47, [20, 24, 20, 24], "#f8eac7"),
 };
 
@@ -385,14 +386,21 @@ export const frameKit = {
   fillGreen: slice(require("../assets/frames/fill-green.png"), 277, 36, [14, 18, 14, 18]),
   fillRed: slice(require("../assets/frames/fill-red.png"), 275, 34, [14, 18, 14, 18]),
   fillBlue: slice(require("../assets/frames/fill-blue.png"), 276, 36, [14, 18, 14, 18]),
-  squareWood: slice(require("../assets/frames/square-wood.png"), 73, 72, [18, 18, 18, 18], "#fde4bb"),
-  squareGold: slice(require("../assets/frames/square-gold.png"), 73, 72, [18, 18, 18, 18], "#fddca4"),
+  squareWood: slice(require("../assets/kit2/sq-cream.png"), 54, 56, [16, 16, 18, 16], "#fceccb"),
+  squareGold: slice(require("../assets/kit2/frame-gold.png"), 134, 153, [24, 24, 24, 24], "#fdf2d7"),
 };
 
 export const frameImages = {
   slotPlus: require("../assets/frames/slot-wood-plus.png"),
   ringWood: require("../assets/frames/ring-wood.png"),
   ringGold: require("../assets/frames/ring-gold.png"),
+};
+
+export const headerKit = {
+  nameTag: slice(require("../assets/kit2/scroll-tag.png"), 147, 55, [14, 26, 16, 26], "#f9e6c3"),
+  // One cream card holding the whole profile (avatar, name, level, exp).
+  // Wood-rimmed pill with a round socket on the left that the avatar sits in.
+  profile: slice(require("../assets/kit2/pill-coin.png"), 232, 68, [20, 34, 22, 66], "#fdedcc"),
 };
 
 export const kitImages = {

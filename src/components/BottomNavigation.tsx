@@ -17,6 +17,10 @@ const navigation: { id: Tab; label: string; icon: number }[] = [
 export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSelect: (tab: Tab) => void }) {
   return (
     <View style={styles.nav}>
+      {/* Oversized so its left, right and bottom edges run off-screen — only the top rim shows. */}
+      <View style={styles.background} pointerEvents="none">
+        <NineSlice slice={kit.panelLarge} scale={0.45} />
+      </View>
       {navigation.map((item) => {
         const active = selected === item.id;
         return (
@@ -28,7 +32,7 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
             accessibilityState={{ selected: active }}
             style={({ pressed }) => [styles.item, active && styles.itemActive, pressed && !active && styles.pressed]}
           >
-            {active && <NineSlice slice={kit.tabGreen} scale={0.42} />}
+            {active && <NineSlice slice={kit.tabGreen} scale={0.4} />}
             <Image source={item.icon} style={[styles.icon, active && styles.iconActive]} />
             {active && <Text style={styles.label}>{item.label}</Text>}
           </Pressable>
@@ -46,10 +50,10 @@ const styles = StyleSheet.create({
     paddingBottom: 7,
     flexDirection: "row",
     gap: 3,
-    backgroundColor: "#ede2cb",
-    borderTopWidth: 3,
-    borderTopColor: colors.line,
+    backgroundColor: colors.paper,
+    overflow: "hidden",
   },
+  background: { position: "absolute", top: 0, left: -16, right: -16, bottom: -18 },
   item: {
     flex: 1,
     height: 56,
@@ -59,10 +63,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 5,
   },
-  // Wider than the icon-only tabs so the label fits beside the icon.
-  itemActive: { flex: 1.7, paddingBottom: 8, transform: [{ translateY: -5 }] },
+  // Same quarter width as the other tabs; icon pinned left, label centred in what's left.
+  itemActive: { flex: 1, height: 52, alignSelf: "center", justifyContent: "flex-start", paddingBottom: 3, paddingLeft: 4, paddingRight: 6, gap: 0 },
   pressed: { transform: [{ scale: 0.92 }] },
   icon: { width: 40, height: 40 },
-  iconActive: { width: 34, height: 34 },
-  label: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  // Bigger than the idle icons (40) so the selected tab reads as the focus.
+  iconActive: { width: 42, height: 42 },
+  label: { flex: 1, textAlign: "center", fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

@@ -2,7 +2,10 @@ import type { GameState } from "../types";
 import { formatGameNumber } from "./gameMath";
 import { getStageLabel } from "./stages";
 
+export const DEFAULT_NICKNAME = "꼬질꼬질 기니";
+
 export const initialState: GameState = {
+  nickname: DEFAULT_NICKNAME,
   gold: 1250,
   gems: 10,
   level: 1,
