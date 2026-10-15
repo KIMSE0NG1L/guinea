@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit, statIcons } from "../assets";
+import { frameKit, kit, statIcons } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo } from "../state/gameMath";
@@ -55,7 +55,7 @@ export function StatUpgradePanel({
           const suffix = key === "attack" ? "" : "%";
           return (
             <Panel slice={upgraded === key ? kit.panel : kit.inset} scale={0.4} style={styles.row} key={key}>
-              <Panel slice={kit.panelSmall} scale={0.3} style={styles.mark}>
+              <Panel slice={frameKit.squareWood} scale={0.4} style={styles.mark}>
                 <Image source={statIcons[key]} style={styles.markIcon} accessibilityLabel={info.label} />
               </Panel>
               <View style={styles.rowCopy}>

@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { icons, kit } from "../assets";
+import { frameImages, icons, kit } from "../assets";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
@@ -29,7 +29,8 @@ export function MilestoneScreen({
           return (
             <View key={stage.area}>
               <Panel slice={unlocked ? kit.panel : kit.inset} style={styles.card}>
-                <View style={[styles.badge, current && styles.badgeCurrent, !unlocked && styles.badgeLocked]}>
+                <View style={[styles.badge, !unlocked && styles.badgeLocked]}>
+                  <Image source={current ? frameImages.ringGold : frameImages.ringWood} style={styles.badgeRing} />
                   <Text style={[styles.badgeText, current && styles.badgeTextCurrent]}>{getStageCode(index)}</Text>
                 </View>
                 <View style={styles.cardCopy}>
@@ -78,15 +79,11 @@ const styles = StyleSheet.create({
     height: 54,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.gold,
-    borderWidth: 3,
-    borderColor: colors.line,
-    borderRadius: 27,
   },
-  badgeCurrent: { backgroundColor: colors.green, borderColor: colors.greenDark },
-  badgeLocked: { backgroundColor: "#c8bba3", borderColor: "#9f927e" },
+  badgeRing: { position: "absolute", width: 54, height: 54 },
+  badgeLocked: { opacity: 0.5 },
   badgeText: { color: "#71491b", fontSize: 15, fontWeight: "900", fontFamily: fonts.bold },
-  badgeTextCurrent: { color: colors.cream },
+  badgeTextCurrent: { color: colors.red },
   cardCopy: { flex: 1 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   cardStrong: { marginVertical: 2, fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },

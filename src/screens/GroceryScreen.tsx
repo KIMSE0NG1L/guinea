@@ -105,7 +105,8 @@ export function GroceryScreen({
 const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 25 },
   tabs: { flexDirection: "row", gap: 4, marginBottom: 6, paddingHorizontal: 2 },
-  tab: { width: 74, height: 50, alignItems: "center", justifyContent: "center", paddingBottom: 12 },
+  // Matches the tab art's ~3:2 shape; the label sits on the upper flap, above the fold.
+  tab: { width: 75, height: 50, alignItems: "center", justifyContent: "center", paddingBottom: 14 },
   tabText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
   tabTextActive: { color: colors.cream },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },

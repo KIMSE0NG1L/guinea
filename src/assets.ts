@@ -372,6 +372,23 @@ export const navIcons = {
   shop: require("../assets/nav/shop.png"),
 };
 
+// Wood-and-brass frames: bars, slots, rings and emblems.
+export const frameKit = {
+  barFrame: slice(require("../assets/frames/bar-frame.png"), 495, 40, [10, 22, 10, 22], "#fde6be"),
+  fillGold: slice(require("../assets/frames/fill-gold.png"), 275, 36, [14, 18, 14, 18]),
+  fillGreen: slice(require("../assets/frames/fill-green.png"), 277, 36, [14, 18, 14, 18]),
+  fillRed: slice(require("../assets/frames/fill-red.png"), 275, 34, [14, 18, 14, 18]),
+  fillBlue: slice(require("../assets/frames/fill-blue.png"), 276, 36, [14, 18, 14, 18]),
+  squareWood: slice(require("../assets/frames/square-wood.png"), 73, 72, [18, 18, 18, 18], "#fde4bb"),
+  squareGold: slice(require("../assets/frames/square-gold.png"), 73, 72, [18, 18, 18, 18], "#fddca4"),
+};
+
+export const frameImages = {
+  slotPlus: require("../assets/frames/slot-wood-plus.png"),
+  ringWood: require("../assets/frames/ring-wood.png"),
+  ringGold: require("../assets/frames/ring-gold.png"),
+};
+
 export const kitImages = {
   toggleOn: require("../assets/ui/kit-toggle-on.png"),
   toggleOff: require("../assets/ui/kit-toggle-off.png"),

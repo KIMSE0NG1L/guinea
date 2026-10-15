@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
+import { frameKit, kit } from "../assets";
 import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
@@ -20,7 +20,7 @@ export function EquipmentScreen({ equipment }: { equipment: GameState["equipment
       <View style={styles.grid}>
         {slots.map((slot) => (
           <Panel slice={kit.panel} style={styles.card} key={slot.key}>
-            <Panel slice={kit.slot} scale={0.45} style={styles.slotSymbol}>
+            <Panel slice={frameKit.squareWood} scale={0.6} style={styles.slotSymbol}>
               <Text style={styles.slotSymbolText}>{slot.symbol}</Text>
             </Panel>
             <View style={styles.cardCopy}>

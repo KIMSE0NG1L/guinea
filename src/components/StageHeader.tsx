@@ -12,7 +12,7 @@ export function StageHeader({ level, experience }: { level: number; experience: 
         <Text style={styles.levelValue}>Lv. {level}</Text>
       </View>
       <View style={styles.progress}>
-        <ProgressBar progress={(experience / needed) * 100} height={14} style={styles.track} />
+        <ProgressBar progress={(experience / needed) * 100} height={18} style={styles.track} />
         <Text style={styles.progressLabel}>{experience} / {needed}</Text>
       </View>
     </View>

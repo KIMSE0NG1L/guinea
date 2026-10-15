@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
+import { frameKit, kit } from "../assets";
 import { ITEM_IMAGES } from "../state/recipes";
 import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
@@ -23,7 +23,7 @@ export function InventoryScreen({ inventory }: { inventory: GameState["inventory
       </Panel>
       <View style={styles.grid}>
         {cells.map((item, index) => (
-          <Panel slice={item ? kit.panelSmall : kit.slot} scale={0.45} style={styles.cell} key={item?.name ?? `empty-${index}`}>
+          <Panel slice={item ? frameKit.squareGold : frameKit.squareWood} scale={0.5} style={styles.cell} key={item?.name ?? `empty-${index}`}>
             {item && (
               <>
                 <ItemShape name={item.name} />
