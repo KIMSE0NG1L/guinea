@@ -52,6 +52,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   monkey: 170,
   carp: 175,
   cactus: 150,
+  fox: 150,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -68,6 +69,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   monkey: images.battleBackgroundTropicalJungle,
   carp: images.battleBackgroundOasis,
   cactus: images.battleBackgroundDesert,
+  fox: images.battleBackgroundDesertMarket,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
@@ -340,6 +342,7 @@ export function BattleScene({
               critical={critical}
               beamId={beamId}
               shoutDebuffId={shout.active ? shout.id : 0}
+              executedKill={executedKill}
             />
 
             {/* Kept below the enemy nameplate (fixed at bottom: 112) so numbers never cover
@@ -587,6 +590,7 @@ function EnemyFighter({
   critical,
   beamId,
   shoutDebuffId,
+  executedKill,
 }: {
   animation: EnemyAnimation;
   boss: boolean;
@@ -600,11 +604,16 @@ function EnemyFighter({
   beamId: number;
   // Non-zero (the cast's id) while Shout's debuff mark should show.
   shoutDebuffId: number;
+  // True while the current "defeated" phase is the result of an Execute kill — swaps the
+  // usual shrink-and-fade for the sprite slicing in half along Execute's cut.
+  executedKill: boolean;
 }) {
   const shake = useSharedValue(0);
   const knockback = useSharedValue(0);
   const hitFlash = useSharedValue(0);
   const defeat = useSharedValue(0);
+  const split = useSharedValue(0);
+  const cutFlash = useSharedValue(0);
   const enter = useSharedValue(phase === "entering" ? 0 : 1);
   const beamPush = useSharedValue(0);
   const beamFlash = useSharedValue(0);
@@ -641,8 +650,16 @@ function EnemyFighter({
     }
     if (phase === "defeated") {
       defeat.value = withTiming(1, { duration: 620, easing: Easing.in(Easing.quad) });
+      if (executedKill) {
+        // The split itself carries the sprite's exit motion, so the container's own
+        // shrink/sink/rotate stays off for this death — see `style` below.
+        cutFlash.value = withSequence(withTiming(1, { duration: 30 }), withTiming(0, { duration: 220 }));
+        split.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.quad) });
+      }
     } else {
       defeat.value = 0;
+      split.value = 0;
+      cutFlash.value = 0;
     }
     if (phase === "entering") {
       enter.value = 0;
@@ -651,18 +668,35 @@ function EnemyFighter({
       enter.value = 1;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
+  }, [phase, executedKill]);
 
   const style = useAnimatedStyle(() => ({
     opacity: (1 - defeat.value) * (0.4 + enter.value * 0.6),
     transform: [
-      { translateX: knockback.value * 14 - defeat.value * -7 + (1 - enter.value) * 35 + beamPush.value * (boss ? 34 : 18) },
-      { translateY: defeat.value * 30 },
-      { rotate: `${shake.value * 5 + defeat.value * 18}deg` },
-      { scale: 1 - defeat.value * 0.65 + (1 - enter.value) * -0.4 },
+      {
+        translateX:
+          knockback.value * 14 - (executedKill ? 0 : defeat.value * -7) + (1 - enter.value) * 35 + beamPush.value * (boss ? 34 : 18),
+      },
+      { translateY: executedKill ? 0 : defeat.value * 30 },
+      { rotate: `${shake.value * 5 + (executedKill ? 0 : defeat.value * 18)}deg` },
+      { scale: executedKill ? 1 : 1 - defeat.value * 0.65 + (1 - enter.value) * -0.4 },
     ],
   }));
   const hitFlashStyle = useAnimatedStyle(() => ({ opacity: Math.max(hitFlash.value, beamFlash.value) }));
+  // Top half slides up-left, bottom half drops down-right — an uneven split reads more
+  // like a real cut than two pieces mirroring each other.
+  const topHalfStyle = useAnimatedStyle(() => ({
+    opacity: 1 - Math.max(0, split.value - 0.5) * 2,
+    transform: [{ translateX: -split.value * 16 }, { translateY: -split.value * 22 }, { rotate: `${-split.value * 10}deg` }],
+  }));
+  const bottomHalfStyle = useAnimatedStyle(() => ({
+    opacity: 1 - Math.max(0, split.value - 0.5) * 2,
+    transform: [{ translateX: split.value * 14 }, { translateY: split.value * 28 }, { rotate: `${split.value * 12}deg` }],
+  }));
+  const cutLineStyle = useAnimatedStyle(() => ({
+    opacity: cutFlash.value,
+    transform: [{ scaleX: 1 + split.value * 0.5 }],
+  }));
 
   return (
     <Animated.View style={[styles.characterWrap, style]}>
@@ -675,7 +709,21 @@ function EnemyFighter({
           <View style={[styles.unitHealthFill, { width: `${(currentHp / maxHp) * 100}%` }]} />
         </View>
       </View>
-      <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
+      {executedKill && phase === "defeated" ? (
+        <View style={{ width: size, height: size }}>
+          <Animated.View style={[styles.executeHalf, { width: size, height: size / 2 }, topHalfStyle]}>
+            <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
+          </Animated.View>
+          <Animated.View style={[styles.executeHalf, { top: size / 2, width: size, height: size / 2 }, bottomHalfStyle]}>
+            <View style={{ position: "absolute", top: -size / 2, left: 0, width: size, height: size }}>
+              <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
+            </View>
+          </Animated.View>
+          <Animated.View style={[styles.executeCutLine, { top: size / 2, width: size + 16 }, cutLineStyle]} pointerEvents="none" />
+        </View>
+      ) : (
+        <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
+      )}
       {/* White silhouette flash on every landed hit — same sprite/frame, tinted and faded
           in/out fast, so it exactly matches the current pose with no extra art. */}
       <Animated.View style={[styles.hitFlash, { width: size, height: size }, hitFlashStyle]} pointerEvents="none">
@@ -739,6 +787,10 @@ const styles = StyleSheet.create({
   critFlash: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
   // Sits right over the base sprite (same box), below critFlash/the nameplate.
   hitFlash: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 3 },
+  // Execute's two sprite halves — each clips its own full-size copy of the sprite to just
+  // one half, then the two slide apart (see topHalfStyle/bottomHalfStyle).
+  executeHalf: { position: "absolute", top: 0, left: 0, overflow: "hidden" },
+  executeCutLine: { position: "absolute", left: -8, height: 3, borderRadius: 1.5, backgroundColor: "#ffffff" },
   characterWrap: { width: 108, alignItems: "center", position: "relative" },
   unitLabel: {
     marginBottom: 4,

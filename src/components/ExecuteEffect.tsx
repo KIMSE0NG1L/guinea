@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Defs, LinearGradient as SvgGradient, Path, Stop } from "react-native-svg";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
-import { StrokedText } from "./StrokedText";
 
 // Timeline (ms) shared with PlayerFighter's teleport so the two stay in step:
 // vanish in smoke → reappear at the enemy → slash → hold → vanish → back home.
@@ -30,7 +29,6 @@ export function ExecuteEffect({ home, arrival, enemy }: { home: Point; arrival: 
       <Slash at={enemy} angle={180 + 44} length={150} offset={{ x: 6, y: -4 }} delay={EXECUTE_TIMING.arrive + 70} />
       <Sparks at={enemy} delay={EXECUTE_TIMING.arrive + 40} />
       <Flash color="#d3121c" peak={0.55} delay={EXECUTE_TIMING.arrive + 20} rise={40} fall={280} />
-      <Stamp at={enemy} delay={EXECUTE_TIMING.arrive + 60} />
       <SmokePuff at={arrival} delay={EXECUTE_TIMING.leave} />
       <SmokePuff at={home} delay={EXECUTE_TIMING.home} />
     </View>
@@ -211,122 +209,10 @@ function Spark({
   return <Animated.View style={[styles.spark, { width: length, left: at.left - length / 2, bottom: at.bottom - 1.5, backgroundColor: color }, style]} />;
 }
 
-// Jagged ink blot behind the stamp — fixed radii so every execute looks the same.
-const SPLAT_RADII = [1, 0.78, 0.95, 0.7, 1.05, 0.82, 0.98, 0.66, 1.08, 0.8, 0.92, 0.72, 1.02, 0.76, 0.96, 0.84];
-function splatPath(size: number) {
-  const c = size / 2;
-  return (
-    SPLAT_RADII.map((r, index) => {
-      const a = (index / SPLAT_RADII.length) * Math.PI * 2;
-      return `${index === 0 ? "M" : "L"} ${c + Math.cos(a) * r * c * 0.9} ${c + Math.sin(a) * r * c * 0.9}`;
-    }).join(" ") + " Z"
-  );
-}
-
-// "斬" (cut): an ink splat and shockwave burst behind it as it slams in oversized; it
-// shudders, then gets sliced in two along a white cut line, the halves sliding apart.
-function Stamp({ at, delay }: { at: Point; delay: number }) {
-  const slam = useSharedValue(0);
-  const shudder = useSharedValue(0);
-  const cut = useSharedValue(0);
-  const splat = useSharedValue(0);
-  const ring = useSharedValue(0);
-  useEffect(() => {
-    slam.value = withDelay(delay, withTiming(1, { duration: 110, easing: Easing.out(Easing.back(2.2)) }));
-    splat.value = withDelay(delay + 40, withTiming(1, { duration: 520, easing: Easing.out(Easing.quad) }));
-    ring.value = withDelay(delay + 60, withTiming(1, { duration: 340, easing: Easing.out(Easing.cubic) }));
-    shudder.value = withDelay(
-      delay + 110,
-      withSequence(
-        withTiming(1, { duration: 30 }),
-        withTiming(-1, { duration: 40 }),
-        withTiming(0.6, { duration: 40 }),
-        withTiming(0, { duration: 40 }),
-      ),
-    );
-    cut.value = withDelay(delay + 380, withTiming(1, { duration: 260, easing: Easing.in(Easing.quad) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const wrapStyle = useAnimatedStyle(() => ({
-    opacity: slam.value === 0 ? 0 : 1,
-    transform: [
-      { translateX: shudder.value * 3 },
-      { scale: slam.value <= 1 ? 2 - slam.value : 1 },
-      { rotate: "-10deg" },
-    ],
-  }));
-  const splatStyle = useAnimatedStyle(() => ({
-    opacity: splat.value === 0 ? 0 : 0.85 * (1 - splat.value),
-    transform: [{ scale: 0.4 + splat.value * 0.8 }, { rotate: `${splat.value * 25}deg` }],
-  }));
-  const ringStyle = useAnimatedStyle(() => ({
-    opacity: ring.value === 0 ? 0 : 1 - ring.value,
-    transform: [{ scale: 0.5 + ring.value * 1.6 }],
-  }));
-  const topStyle = useAnimatedStyle(() => ({
-    opacity: 1 - cut.value,
-    transform: [{ translateX: -cut.value * 14 }, { translateY: -cut.value * 4 }, { rotate: `${-cut.value * 6}deg` }],
-  }));
-  const bottomStyle = useAnimatedStyle(() => ({
-    opacity: 1 - cut.value,
-    transform: [{ translateX: cut.value * 16 }, { translateY: cut.value * 6 }, { rotate: `${cut.value * 8}deg` }],
-  }));
-  const cutLineStyle = useAnimatedStyle(() => ({
-    opacity: cut.value === 0 ? 0 : cut.value < 0.25 ? cut.value * 4 : (1 - cut.value) / 0.75,
-    transform: [{ scaleX: Math.min(1, cut.value * 4) * 1.3 }],
-  }));
-
-  const glyph = (
-    <StrokedText style={styles.stampText} strokeColor="#2a0a0a" strokeWidth={2}>
-      斬
-    </StrokedText>
-  );
-  const half = STAMP_SIZE / 2;
-
-  return (
-    <View style={[styles.stamp, { left: at.left - STAMP_SIZE / 2, bottom: at.bottom - STAMP_SIZE / 2 + 10 }]}>
-      <Animated.View style={[StyleSheet.absoluteFill, splatStyle]}>
-        <Svg width={STAMP_SIZE} height={STAMP_SIZE}>
-          <Path d={splatPath(STAMP_SIZE)} fill="#8c0a12" />
-        </Svg>
-      </Animated.View>
-      <Animated.View style={[styles.ring, ringStyle]} />
-      <Animated.View style={[StyleSheet.absoluteFill, wrapStyle]}>
-        {/* Two clipped copies of the glyph — top half and bottom half — so it can split. */}
-        <Animated.View style={[styles.half, { top: 0, height: half }, topStyle]}>
-          <View style={styles.glyphBox}>{glyph}</View>
-        </Animated.View>
-        <Animated.View style={[styles.half, { top: half, height: half }, bottomStyle]}>
-          <View style={[styles.glyphBox, { top: -half }]}>{glyph}</View>
-        </Animated.View>
-        <Animated.View style={[styles.cutLine, { top: half - 1 }, cutLineStyle]} />
-      </Animated.View>
-    </View>
-  );
-}
-
 const SLASH_THICKNESS = 14;
-const STAMP_SIZE = 76;
 
 const styles = StyleSheet.create({
   puff: { position: "absolute", backgroundColor: "#d9d4ca", borderWidth: 2, borderColor: "#8f877a" },
   dash: { position: "absolute", height: 3, borderRadius: 2, backgroundColor: "#fff6e0" },
   spark: { position: "absolute", height: 3, borderRadius: 2 },
-  stamp: { position: "absolute", width: STAMP_SIZE, height: STAMP_SIZE },
-  ring: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: STAMP_SIZE,
-    height: STAMP_SIZE,
-    borderRadius: STAMP_SIZE / 2,
-    borderWidth: 3,
-    borderColor: "#fff1d6",
-  },
-  half: { position: "absolute", left: 0, width: STAMP_SIZE, overflow: "hidden" },
-  glyphBox: { position: "absolute", left: 0, width: STAMP_SIZE, height: STAMP_SIZE, alignItems: "center", justifyContent: "center" },
-  cutLine: { position: "absolute", left: -6, width: STAMP_SIZE + 12, height: 2, borderRadius: 1, backgroundColor: "#ffffff" },
-  // No custom font: Maplestory has no 斬 glyph, so let the system CJK font draw it.
-  stampText: { fontSize: 54, fontWeight: "900", color: "#e0242c" },
 });
