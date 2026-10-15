@@ -108,6 +108,7 @@ export function GameScreen() {
           onReset={game.resetSave}
           onSkipToBoss={game.skipToBoss}
           onKillEnemy={game.battle.killEnemy}
+          onOpenShop={() => onSelectTab("shop")}
         />
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {renderContent()}

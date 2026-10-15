@@ -1,20 +1,17 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { BattleSwordIcon } from "./BattleSwordIcon";
-import { NineSlice, Panel } from "./NineSlice";
-import { kit } from "../assets";
+import { NineSlice } from "./NineSlice";
+import { kit, navIcons } from "../assets";
 import type { Tab } from "../types";
 
-// Ported as-is from the web nav list: only these 4 tabs are reachable from the bottom bar today.
-// growth/equipment/inventory exist as panels (state.selectedTab supports them) but have no nav
-// entry point in the source app either — not something this port invented or should silently add.
-// `wideShape` marks the end tabs that lay out icon and label in a row — it doesn't imply a custom icon.
-// The active tab sits on the kit's raised green tab art.
-const navigation: { id: Tab; label: string; icon?: string; isSword?: boolean; wideShape?: "left" | "right" }[] = [
-  { id: "battle", label: "전투", isSword: true, wideShape: "left" },
-  { id: "companions", label: "동료", icon: "FR" },
-  { id: "skills", label: "스킬", icon: "SK" },
-  { id: "shop", label: "상점", icon: "SH", wideShape: "right" },
+// Only these 4 tabs are reachable from the bottom bar; the rest of the screens open from
+// buttons elsewhere. The selected tab widens onto the raised green tab art and shows its
+// label next to the icon; the others are icon-only.
+const navigation: { id: Tab; label: string; icon: number }[] = [
+  { id: "battle", label: "전투", icon: navIcons.battle },
+  { id: "companions", label: "동료", icon: navIcons.companions },
+  { id: "skills", label: "스킬", icon: navIcons.skills },
+  { id: "shop", label: "상점", icon: navIcons.shop },
 ];
 
 export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSelect: (tab: Tab) => void }) {
@@ -22,25 +19,18 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
     <View style={styles.nav}>
       {navigation.map((item) => {
         const active = selected === item.id;
-        const wide = Boolean(item.wideShape);
         return (
           <Pressable
             key={item.id}
             onPress={() => onSelect(item.id)}
-            style={[styles.item, wide && styles.assetItem, active && styles.itemActive]}
+            accessibilityRole="tab"
+            accessibilityLabel={item.label}
+            accessibilityState={{ selected: active }}
+            style={({ pressed }) => [styles.item, active && styles.itemActive, pressed && !active && styles.pressed]}
           >
             {active && <NineSlice slice={kit.tabGreen} scale={0.42} />}
-            {item.isSword ? (
-              // Wrapped: on web a bare <svg> paints beneath the absolutely positioned tab art.
-              <View>
-                <BattleSwordIcon width={20} height={28} />
-              </View>
-            ) : (
-              <Panel slice={active ? kit.buttonCream : kit.buttonBeige} scale={0.2} style={styles.iconWrap}>
-                <Text style={[styles.iconText, active && styles.iconTextActive]}>{item.icon}</Text>
-              </Panel>
-            )}
-            <Text style={[styles.label, wide && styles.assetLabel, active && styles.labelActive]}>{item.label}</Text>
+            <Image source={item.icon} style={[styles.icon, active && styles.iconActive]} />
+            {active && <Text style={styles.label}>{item.label}</Text>}
           </Pressable>
         );
       })}
@@ -63,25 +53,16 @@ const styles = StyleSheet.create({
   item: {
     flex: 1,
     height: 56,
-    paddingHorizontal: 1,
-    paddingTop: 6,
-    paddingBottom: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 3,
-  },
-  itemActive: { transform: [{ translateY: -5 }] },
-  assetItem: {
+    paddingBottom: 2,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 11,
-    gap: 6,
+    gap: 5,
   },
-  iconWrap: { width: 26, height: 22, paddingBottom: 2, alignItems: "center", justifyContent: "center" },
-  iconText: { fontSize: 7, fontWeight: "900", fontFamily: fonts.bold, color: "#6d6254" },
-  iconTextActive: { color: colors.greenDark },
-  label: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: "#6d6254" },
-  assetLabel: { fontSize: 12 },
-  labelActive: { color: colors.cream },
+  // Wider than the icon-only tabs so the label fits beside the icon.
+  itemActive: { flex: 1.7, paddingBottom: 8, transform: [{ translateY: -5 }] },
+  pressed: { transform: [{ scale: 0.92 }] },
+  icon: { width: 40, height: 40 },
+  iconActive: { width: 34, height: 34 },
+  label: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

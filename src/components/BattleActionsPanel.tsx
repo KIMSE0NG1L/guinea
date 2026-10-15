@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { fonts } from "../theme";
 import { GameButton } from "./GameButton";
+import { formatDuration } from "../state/buffs";
 
 export function BattleActionsPanel({
   isAutoBattle,
@@ -18,7 +19,6 @@ export function BattleActionsPanel({
   onWatchAd: () => void;
   left?: ReactNode; // pinned to the row's left end (the food buff slots)
 }) {
-  const remainingSeconds = Math.ceil(speedBoostRemainingMs / 1000);
 
   return (
     <View style={styles.wrap}>
@@ -42,7 +42,7 @@ export function BattleActionsPanel({
       >
         <View>
           <Text style={styles.adButtonText}>{speedBoostActive ? "2배속 중" : "광고 보고 2배속"}</Text>
-          <Text style={styles.adButtonSmall}>{speedBoostActive ? `${remainingSeconds}초 남음` : "전투 속도 2배"}</Text>
+          <Text style={styles.adButtonSmall}>{speedBoostActive ? `${formatDuration(speedBoostRemainingMs)} 남음` : "전투 속도 2배"}</Text>
         </View>
       </GameButton>
     </View>
