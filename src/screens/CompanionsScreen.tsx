@@ -6,35 +6,36 @@ import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { CharacterSprite } from "../components/CharacterSprite";
-import { OUTFIT_BUFFS, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, describeEffect } from "../state/buffs";
+import { OUTFIT_BUFFS, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, describeEffect } from "../state/buffs";
 import type { Outfit } from "../types";
 
-// Each entry swaps the battle sprite to that companion's art and, past "default", grants
-// its OUTFIT_BUFFS bonus (plus any OUTFIT_MISS_CHANCE/OUTFIT_HIT_COUNT quirk) for as long
-// as it stays equipped.
+// Each entry swaps the battle sprite to that companion's art and grants whichever of these
+// quirks apply for as long as it stays equipped.
 function companionDetail(outfit: Outfit) {
+  const parts: string[] = [];
   const buff = OUTFIT_BUFFS[outfit];
-  if (!buff) return "동료 없이 다닐 때";
-  const parts = [describeEffect(buff)];
+  if (buff) parts.push(describeEffect(buff));
   const missChance = OUTFIT_MISS_CHANCE[outfit];
   if (missChance) parts.push(`${missChance}% 확률로 공격 빗나감`);
   const hitCount = OUTFIT_HIT_COUNT[outfit];
   if (hitCount) parts.push(`한 번에 ${hitCount}타씩 타격`);
-  return parts.join(" · ");
+  const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
+  if (foodDurationBonus) parts.push(`음식 효과시간 +${foodDurationBonus}초`);
+  return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
 }
 
 const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string }[] = [
-  { outfit: "default", name: "모험기니", blurb: "동료 없이 혼자 길을 나선 평범한 기니.", detail: companionDetail("default") },
+  { outfit: "default", name: "모험기니", blurb: "건초에 지쳐 새로운 끼니를 찾아 세상을 모험하는 기니.", detail: companionDetail("default") },
   {
     outfit: "explorerHamster",
     name: "탐험기니",
-    blurb: "지도와 봇짐을 메고 새 길을 찾아다니는 탐험가 햄스터.",
+    blurb: "전설의 당근을 찾아 세상을 탐험하는 호기심 많은 기니.",
     detail: companionDetail("explorerHamster"),
   },
   {
     outfit: "tetoGini",
     name: "테토기니",
-    blurb: "자신만만하게 주먹부터 내지르는 터프가이. 가끔 헛스윙한다.",
+    blurb: "멋을 위해 선글라스를 쓴 헬창 기니. 하지만 어두워서 가끔 헛스윙을 한다.",
     detail: companionDetail("tetoGini"),
   },
   {

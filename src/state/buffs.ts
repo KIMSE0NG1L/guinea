@@ -49,6 +49,12 @@ export const OUTFIT_HIT_COUNT: Partial<Record<Outfit, number>> = {
   assassinGini: 2,
 };
 
+// Extra seconds added to every food buff's duration the moment it's eaten, while this
+// outfit is equipped — 모험기니 doesn't fight any better, it just makes meals last longer.
+export const OUTFIT_FOOD_DURATION_BONUS_SEC: Partial<Record<Outfit, number>> = {
+  default: 15,
+};
+
 const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
   attack: (value) => `공격력 ${value >= 0 ? "+" : ""}${value}%`,
   criticalChance: (value) => `치명타 확률 +${value}%`,

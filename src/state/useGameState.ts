@@ -8,7 +8,7 @@ import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFFS, OUTFIT_BUFFS, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFFS, OUTFIT_BUFFS, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { canCook, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
@@ -419,8 +419,9 @@ export function useGameState() {
     if (!recipe || !buff) return;
     const startedAt = Date.now();
     setState((previous) => {
-      // Glutton stretches dishes eaten while it's equipped.
-      const durationMs = buff.durationMs * (previous.equippedSkill === "glutton" ? GLUTTON_FOOD_MULTIPLIER : 1);
+      // Glutton stretches dishes eaten while it's equipped; 모험기니 tacks on a flat bonus.
+      const foodDurationBonusMs = (OUTFIT_FOOD_DURATION_BONUS_SEC[previous.equippedOutfit] ?? 0) * 1000;
+      const durationMs = buff.durationMs * (previous.equippedSkill === "glutton" ? GLUTTON_FOOD_MULTIPLIER : 1) + foodDurationBonusMs;
       const slots = previous.buffSlots ?? emptyBuffSlots();
       const running = (slot: (typeof slots)[number]) => slot && slot.expiresAt > startedAt;
       if (running(slots[slotIndex])) return previous;
