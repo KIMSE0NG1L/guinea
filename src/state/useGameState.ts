@@ -8,7 +8,7 @@ import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFFS, OUTFIT_BUFFS, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFFS, OUTFIT_BUFFS, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { canCook, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
@@ -251,6 +251,7 @@ export function useGameState() {
     criticalChance: (state.criticalChance ?? 5) + buffs.criticalChance,
     goldBonus: state.goldBonus + buffs.gold,
     missChance: OUTFIT_MISS_CHANCE[state.equippedOutfit] ?? 0,
+    hitCount: OUTFIT_HIT_COUNT[state.equippedOutfit] ?? 1,
     enemyMaxHp,
     boss,
     speedMultiplier,

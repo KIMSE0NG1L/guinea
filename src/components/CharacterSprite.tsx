@@ -43,7 +43,7 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.04 },
   },
   assassinGini: {
-    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.24 },
+    idle: { frameCount: 3, frameSize: FRAME_SIZE, scale: 1.24 },
     attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.21 },

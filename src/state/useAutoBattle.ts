@@ -34,6 +34,7 @@ export function useAutoBattle({
   criticalChance,
   goldBonus,
   missChance = 0,
+  hitCount = 1,
   enemyMaxHp,
   boss,
   speedMultiplier = 1,
@@ -48,6 +49,9 @@ export function useAutoBattle({
   // Percent chance a swing whiffs entirely (0 damage, no on-hit effects) — a companion
   // outfit's drawback (e.g. tetoGini).
   missChance?: number;
+  // Extra strikes landed per swing (e.g. assassinGini's twin daggers) — each rolls its
+  // own miss/crit independently; a kill on an earlier strike skips the rest.
+  hitCount?: number;
   enemyMaxHp: number;
   boss: boolean;
   // Scales down every auto-battle timer delay — e.g. 2 halves them, doubling the pace.
@@ -88,6 +92,7 @@ export function useAutoBattle({
   const criticalChanceRef = useRef(criticalChance);
   const goldBonusRef = useRef(goldBonus);
   const missChanceRef = useRef(missChance);
+  const hitCountRef = useRef(hitCount);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
   const speedMultiplierRef = useRef(speedMultiplier);
@@ -147,6 +152,7 @@ export function useAutoBattle({
     criticalChanceRef.current = criticalChance;
     goldBonusRef.current = goldBonus;
     missChanceRef.current = missChance;
+    hitCountRef.current = hitCount;
     maxHpRef.current = enemyMaxHp;
     bossRef.current = boss;
     speedMultiplierRef.current = speedMultiplier;
@@ -254,14 +260,29 @@ export function useAutoBattle({
         setPhase("attacking");
 
         later(() => {
-          // A miss never reaches dealDamage — no hp loss, no steal/execute, and the enemy
-          // doesn't play its hit-reaction (that's gated on phase "hit", skipped below).
+          // A miss never reaches dealDamage — no hp loss, no steal/execute. Extra strikes
+          // (hitCount > 1, e.g. assassinGini's twin daggers) land right after, each rolling
+          // its own miss/crit; an earlier kill skips the rest. The enemy's hit-reaction
+          // (gated on phase "hit") only plays if at least one strike actually landed.
+          let killed = false;
+          let anyLanded = false;
           if (missed) {
             pushMissEvent();
-          } else if (dealDamage(damage, isCritical)) {
-            return;
+          } else {
+            anyLanded = true;
+            if (dealDamage(damage, isCritical)) killed = true;
           }
-          if (!missed) {
+          for (let i = 1; i < hitCountRef.current && !killed; i++) {
+            const extra = rollAttack();
+            if (extra.missed) {
+              pushMissEvent();
+            } else {
+              anyLanded = true;
+              if (dealDamage(extra.damage, extra.isCritical)) killed = true;
+            }
+          }
+          if (killed) return;
+          if (anyLanded) {
             phaseRef.current = "hit";
             setPhase("hit");
           }
@@ -296,14 +317,28 @@ export function useAutoBattle({
 
     // Damage always lands on tap, independent of the attack sprite's own pose cycle —
     // a burst of taps gets a burst of "-damage" popups instead of each tap fighting the
-    // sprite for control and chopping its animation to pieces.
+    // sprite for control and chopping its animation to pieces. Extra strikes (hitCount > 1)
+    // land right away too; an earlier kill skips the rest.
     const { isCritical, damage, missed } = rollAttack();
     setLastCritical(isCritical);
+    let killed = false;
+    let anyLanded = false;
     if (missed) {
       pushMissEvent();
-    } else if (dealDamage(damage, isCritical)) {
-      return;
+    } else {
+      anyLanded = true;
+      if (dealDamage(damage, isCritical)) killed = true;
     }
+    for (let i = 1; i < hitCountRef.current && !killed; i++) {
+      const extra = rollAttack();
+      if (extra.missed) {
+        pushMissEvent();
+      } else {
+        anyLanded = true;
+        if (dealDamage(extra.damage, extra.isCritical)) killed = true;
+      }
+    }
+    if (killed) return;
 
     // Let an in-flight attack/hit pose play out; only kick off a fresh one once it's idle.
     if (phaseRef.current !== "idle") return;
@@ -311,8 +346,8 @@ export function useAutoBattle({
     phaseRef.current = "attacking";
     setPhase("attacking");
     const hitTimer = setTimeout(() => {
-      // Skip the hit-reaction pose on a miss — nothing landed for the enemy to react to.
-      if (!missed) {
+      // Skip the hit-reaction pose if nothing landed — nothing for the enemy to react to.
+      if (anyLanded) {
         phaseRef.current = "hit";
         setPhase("hit");
       }

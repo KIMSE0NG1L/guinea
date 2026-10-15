@@ -6,17 +6,21 @@ import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { CharacterSprite } from "../components/CharacterSprite";
-import { OUTFIT_BUFFS, OUTFIT_MISS_CHANCE, describeEffect } from "../state/buffs";
+import { OUTFIT_BUFFS, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, describeEffect } from "../state/buffs";
 import type { Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and, past "default", grants
-// its OUTFIT_BUFFS bonus (and, for tetoGini, an OUTFIT_MISS_CHANCE drawback) for as long
+// its OUTFIT_BUFFS bonus (plus any OUTFIT_MISS_CHANCE/OUTFIT_HIT_COUNT quirk) for as long
 // as it stays equipped.
 function companionDetail(outfit: Outfit) {
   const buff = OUTFIT_BUFFS[outfit];
   if (!buff) return "동료 없이 다닐 때";
+  const parts = [describeEffect(buff)];
   const missChance = OUTFIT_MISS_CHANCE[outfit];
-  return missChance ? `${describeEffect(buff)} · ${missChance}% 확률로 공격 빗나감` : describeEffect(buff);
+  if (missChance) parts.push(`${missChance}% 확률로 공격 빗나감`);
+  const hitCount = OUTFIT_HIT_COUNT[outfit];
+  if (hitCount) parts.push(`한 번에 ${hitCount}타씩 타격`);
+  return parts.join(" · ");
 }
 
 const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string }[] = [

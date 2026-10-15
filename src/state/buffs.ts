@@ -33,7 +33,8 @@ export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
   explorerHamster: { gold: 10 },
   // Huge attack, but every hit risks whiffing entirely — see OUTFIT_MISS_CHANCE.
   tetoGini: { attack: 100 },
-  assassinGini: { criticalDamage: 20 },
+  // Weaker per hit, but strikes twice per swing — see OUTFIT_HIT_COUNT.
+  assassinGini: { attack: -30 },
 };
 
 // Percent chance an attack whiffs completely (0 damage, no kill, no on-hit effects) while
@@ -42,8 +43,14 @@ export const OUTFIT_MISS_CHANCE: Partial<Record<Outfit, number>> = {
   tetoGini: 40,
 };
 
+// Extra strikes landed per swing (default 1) — assassinGini's twin daggers hit twice,
+// each rolling its own crit independently, offsetting its attack penalty.
+export const OUTFIT_HIT_COUNT: Partial<Record<Outfit, number>> = {
+  assassinGini: 2,
+};
+
 const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
-  attack: (value) => `공격력 +${value}%`,
+  attack: (value) => `공격력 ${value >= 0 ? "+" : ""}${value}%`,
   criticalChance: (value) => `치명타 확률 +${value}%`,
   criticalDamage: (value) => `치명타 피해 +${value}%`,
   gold: (value) => `골드 획득 +${value}%`,
