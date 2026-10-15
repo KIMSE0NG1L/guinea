@@ -3,7 +3,7 @@ import { AppState } from "react-native";
 import type { GameState, SkillId, StatKey, UpgradeMode } from "../types";
 import { GLUTTON_FOOD_MULTIPLIER, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
-import { getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, statInfo } from "./gameMath";
+import { getExpReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
@@ -186,7 +186,12 @@ export function useGameState() {
       if (boss) setDefeatedStageNumber(previous.stageNumber);
 
       const kills = previous.kills + 1;
-      const experience = previous.experience + 8;
+      let level = previous.level;
+      let experience = previous.experience + getExpReward(previous.stageNumber, boss);
+      while (experience >= getExpToLevel(level)) {
+        experience -= getExpToLevel(level);
+        level += 1;
+      }
       const totalGoldEarned = previous.totalGoldEarned + goldReward;
       const bossKills = (previous.bossKills ?? 0) + (boss ? 1 : 0);
       // Stage 3 (stageNumber 2) is the last one with content — clearing its boss loops
@@ -205,8 +210,8 @@ export function useGameState() {
         stageKills: boss ? 0 : previous.stageKills + 1,
         totalGoldEarned,
         bossKills,
-        level: experience >= 100 ? previous.level + 1 : previous.level,
-        experience: experience % 100,
+        level,
+        experience,
         quests: previous.quests.map((quest) => {
           if (quest.id === "kills") return { ...quest, current: kills };
           if (quest.id === "gold") return { ...quest, current: totalGoldEarned };

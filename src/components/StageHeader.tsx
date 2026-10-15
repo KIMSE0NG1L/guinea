@@ -1,8 +1,10 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
+import { getExpToLevel } from "../state/gameMath";
 import { ProgressBar } from "./ProgressBar";
 
 export function StageHeader({ level, experience }: { level: number; experience: number }) {
+  const needed = getExpToLevel(level);
   return (
     <View style={styles.wrap}>
       <View style={styles.copy}>
@@ -10,8 +12,8 @@ export function StageHeader({ level, experience }: { level: number; experience: 
         <Text style={styles.levelValue}>Lv. {level}</Text>
       </View>
       <View style={styles.progress}>
-        <ProgressBar progress={experience} height={14} style={styles.track} />
-        <Text style={styles.progressLabel}>{experience} / 100</Text>
+        <ProgressBar progress={(experience / needed) * 100} height={14} style={styles.track} />
+        <Text style={styles.progressLabel}>{experience} / {needed}</Text>
       </View>
     </View>
   );

@@ -1,6 +1,6 @@
 import type { GameState } from "../types";
 import { getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
-import { getGoldReward, getTotalAttack } from "./gameMath";
+import { getExpReward, getExpToLevel, getGoldReward, getTotalAttack } from "./gameMath";
 import { DILIGENT_OFFLINE_BONUS } from "./skills";
 
 export type OfflineSummary = {
@@ -54,8 +54,10 @@ export function simulateOfflineProgress(
   let experience = state.experience;
   let level = state.level;
   let mobsKilled = 0;
+  let expGained = 0;
 
   const enemyMaxHp = getEnemyMaxHp(state.stageNumber, false);
+  const mobExpReward = getExpReward(state.stageNumber, false);
   const hits = Math.max(1, Math.ceil(enemyMaxHp / dmg));
   const msPerMob = hits * AVG_HIT_INTERVAL_MS + MOB_RESPAWN_MS;
 
@@ -66,10 +68,11 @@ export function simulateOfflineProgress(
     gold += goldReward;
     totalGoldEarned += goldReward;
     kills += 1;
-    experience += 8;
-    if (experience >= 100) {
+    experience += mobExpReward;
+    expGained += mobExpReward;
+    while (experience >= getExpToLevel(level)) {
+      experience -= getExpToLevel(level);
       level += 1;
-      experience -= 100;
     }
     mobsKilled += 1;
     stageKills += 1;
@@ -78,7 +81,6 @@ export function simulateOfflineProgress(
   if (mobsKilled === 0) return null;
 
   const levelsGained = level - state.level;
-  const expGained = levelsGained * 100 + (experience - state.experience);
 
   const newState: GameState = {
     ...state,

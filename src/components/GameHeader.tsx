@@ -13,11 +13,13 @@ export function GameHeader({
   onQuest,
   onReset,
   onSkipToBoss,
+  onKillEnemy,
 }: {
   state: GameState;
   onQuest: () => void;
   onReset: () => void;
   onSkipToBoss: () => void;
+  onKillEnemy: () => void;
 }) {
   const ready = state.quests.filter((quest) => quest.current >= quest.target && !quest.claimed).length;
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -53,6 +55,7 @@ export function GameHeader({
       {settingsOpen && (
         <SettingsModal
           onSkipToBoss={onSkipToBoss}
+          onKillEnemy={onKillEnemy}
           onResetRequest={() => {
             setSettingsOpen(false);
             setConfirmingReset(true);

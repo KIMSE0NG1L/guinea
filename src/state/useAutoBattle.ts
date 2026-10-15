@@ -339,6 +339,14 @@ export function useAutoBattle({
     clearTimers(eventTimersRef);
   }, []);
 
+  // Dev-convenience shortcut from the settings menu — deals the current enemy's full
+  // remaining HP as one hit, so it dies through the normal kill flow (gold, drops, respawn)
+  // instead of a separate ad-hoc path.
+  const killEnemy = useCallback(() => {
+    if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
+    dealDamage(hpRef.current, false);
+  }, [dealDamage]);
+
   const resetEnemy = useCallback((nextMaxHp: number) => {
     // The old enemy is gone: cancel its in-flight swing and any pending respawn, then
     // bring the new one in (which also restarts the auto loop).
@@ -368,6 +376,7 @@ export function useAutoBattle({
     setIsAutoBattle,
     resetEnemy,
     manualAttack,
+    killEnemy,
     castSkill,
     canCastSkill,
   };
