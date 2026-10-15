@@ -1,7 +1,7 @@
 import type { Outfit } from "../types";
 
 // Food buffs: eating a cooked dish into a battle slot grants its effect for a while.
-// Harder dishes (pricier recipe, more ingredients) last longer — from 1 to 10 minutes.
+// Higher-tier dishes (harder-to-get ingredients) last longer — from 1 to 10 minutes.
 
 export type BuffEffect = {
   attack?: number; // % more attack
@@ -19,11 +19,16 @@ const MINUTE = 60_000;
 export const BUFFS: Record<string, { effect: BuffEffect; durationMs: number; tint: string }> = {
   "carrot-soup": { effect: { attack: 10 }, durationMs: 1 * MINUTE, tint: "#9ebdba" },
   "fried-egg": { effect: { criticalChance: 5 }, durationMs: 2 * MINUTE, tint: "#dfc1a6" },
-  "chopped-salad": { effect: { gold: 20 }, durationMs: 3 * MINUTE, tint: "#dcbc86" },
-  "veggie-stew": { effect: { attack: 20 }, durationMs: 4 * MINUTE, tint: "#eba37f" },
-  pudding: { effect: { criticalDamage: 50 }, durationMs: 5 * MINUTE, tint: "#efcf9d" },
-  "mushroom-soup": { effect: { attack: 30 }, durationMs: 6 * MINUTE, tint: "#efc598" },
-  "pumpkin-roast": { effect: { gold: 50 }, durationMs: 8 * MINUTE, tint: "#f8b37c" },
+  "chopped-salad": { effect: { gold: 20 }, durationMs: 2 * MINUTE, tint: "#e0ab7b" },
+  "veggie-stew": { effect: { attack: 20 }, durationMs: 3 * MINUTE, tint: "#f8a37e" },
+  "banana-milk": { effect: { criticalChance: 10 }, durationMs: 7 * MINUTE, tint: "#fce6a0" },
+  "potato-pancake": { effect: { gold: 60 }, durationMs: 6 * MINUTE, tint: "#fdd785" },
+  pudding: { effect: { criticalDamage: 50 }, durationMs: 4 * MINUTE, tint: "#efcf9d" },
+  "mushroom-soup": { effect: { attack: 30 }, durationMs: 4 * MINUTE, tint: "#efc598" },
+  "pumpkin-roast": { effect: { gold: 50 }, durationMs: 5 * MINUTE, tint: "#f8b37c" },
+  "salmon-steak": { effect: { criticalDamage: 70 }, durationMs: 6 * MINUTE, tint: "#fbb989" },
+  steak: { effect: { attack: 40 }, durationMs: 7 * MINUTE, tint: "#d69f7c" },
+  "seafood-boil": { effect: { attack: 30, criticalDamage: 60, gold: 40 }, durationMs: 9 * MINUTE, tint: "#faa880" },
   "guinea-feast": { effect: { attack: 50, criticalChance: 10, gold: 50 }, durationMs: 10 * MINUTE, tint: "#dab8a2" },
 };
 

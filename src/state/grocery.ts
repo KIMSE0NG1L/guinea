@@ -1,5 +1,5 @@
 // Grandma's grocery stock. Prices are in gold, one item per purchase.
-export type GroceryCategory = "vegetable" | "farm" | "meat";
+export type GroceryCategory = "vegetable" | "fruit" | "farm" | "meat" | "seafood" | "special";
 
 export const GROCERY: { name: string; price: number; category: GroceryCategory }[] = [
   { name: "당근", price: 30, category: "vegetable" },
@@ -19,4 +19,29 @@ export const GROCERY: { name: string; price: number; category: GroceryCategory }
   { name: "결 고운 생선살", price: 160, category: "meat" },
   { name: "뼈 갈빗살", price: 180, category: "meat" },
   { name: "두툼 살코기", price: 200, category: "meat" },
+  { name: "풋사과", price: 50, category: "fruit" },
+  { name: "바나나", price: 60, category: "fruit" },
+  { name: "망고", price: 90, category: "fruit" },
+  { name: "코코넛", price: 110, category: "fruit" },
+  { name: "미역", price: 50, category: "seafood" },
+  { name: "정어리", price: 80, category: "seafood" },
+  { name: "홍합", price: 90, category: "seafood" },
+  { name: "굴", price: 100, category: "seafood" },
+  { name: "오징어", price: 120, category: "seafood" },
+  { name: "새우", price: 130, category: "seafood" },
+  { name: "꽃게", price: 150, category: "seafood" },
+  { name: "분홍 생선살", price: 170, category: "seafood" },
+  { name: "문어", price: 180, category: "seafood" },
+  { name: "게살", price: 200, category: "seafood" },
+  { name: "두툼 생선 토막", price: 220, category: "seafood" },
+  { name: "바닷가재", price: 280, category: "seafood" },
+  { name: "반짝 생선알", price: 300, category: "seafood" },
+  { name: "지느러미", price: 350, category: "seafood" },
+  // Herbs, seasoning and things only monsters usually leave behind — priced as rarities.
+  { name: "소금 결정", price: 40, category: "special" },
+  { name: "들풀 다발", price: 50, category: "special" },
+  { name: "불꽃 고추", price: 80, category: "special" },
+  { name: "초록 젤리", price: 90, category: "special" },
+  { name: "화염 열매", price: 160, category: "special" },
+  { name: "로열 젤리", price: 450, category: "special" },
 ];

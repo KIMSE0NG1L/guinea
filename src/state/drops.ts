@@ -3,31 +3,29 @@ import type { EnemyKind } from "../types";
 type DropEntry = { name: string; chance: number; quantity?: number };
 
 // What each monster can drop on defeat — each entry is rolled independently.
-// Bosses roll their own richer table instead of the mob one. Every ingredient sold at the
-// grocery drops somewhere; meats only start showing up from the farm stages onward.
+// Bosses roll their own richer table instead of the mob one. Every drop has to make sense
+// for the creature (a slime drops jelly, a crab drops crab meat) — nothing random.
 const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
-  // 뒷산: leafy greens and corn from the hillside.
+  // 뒷산: slimes shed green jelly; the king's crown drips royal jelly.
   slime: {
     mob: [
-      { name: "양배추", chance: 0.3 },
-      { name: "옥수수", chance: 0.1 },
+      { name: "초록 젤리", chance: 0.4 },
+      { name: "들풀 다발", chance: 0.1 },
     ],
     boss: [
-      { name: "양배추", chance: 1, quantity: 3 },
-      { name: "옥수수", chance: 0.5 },
-      { name: "버섯", chance: 0.2 },
+      { name: "로열 젤리", chance: 1 },
+      { name: "초록 젤리", chance: 1, quantity: 3 },
     ],
   },
-  // 버섯 늪: mushrooms, plus the swamp's onions and pumpkins.
+  // 버섯 늪: mushrooms and the swamp's wild herbs.
   mushroom: {
     mob: [
       { name: "버섯", chance: 0.35 },
-      { name: "양파", chance: 0.1 },
+      { name: "들풀 다발", chance: 0.1 },
     ],
     boss: [
       { name: "버섯", chance: 1, quantity: 3 },
-      { name: "양파", chance: 0.4 },
-      { name: "호박", chance: 0.3 },
+      { name: "들풀 다발", chance: 0.5 },
     ],
   },
   // 거대 채소 농장: carrots and tomatoes.
@@ -42,7 +40,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "호박", chance: 0.3 },
     ],
   },
-  // 꼬꼬 농장: eggs and the first meat, drumsticks.
+  // 꼬꼬 농장: eggs and drumsticks, plus the corn they're fed.
   chicken: {
     mob: [
       { name: "계란", chance: 0.35 },
@@ -90,86 +88,87 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "치즈", chance: 0.4 },
     ],
   },
-  // 항구 해변: fish, and the king crab guards a richer catch.
+  // 항구 해변: shellfish from the mudflats; the king crab guards the shoreline's catch.
   mudskipper: {
     mob: [
-      { name: "결 고운 생선살", chance: 0.3 },
-      { name: "양배추", chance: 0.1 },
+      { name: "굴", chance: 0.3 },
+      { name: "홍합", chance: 0.2 },
+      { name: "꽃게", chance: 0.1 },
     ],
     boss: [
-      { name: "결 고운 생선살", chance: 1, quantity: 3 },
-      { name: "뼈 갈빗살", chance: 0.4 },
-      { name: "토마토", chance: 0.3 },
+      { name: "게살", chance: 1, quantity: 2 },
+      { name: "새우", chance: 0.5 },
+      { name: "바닷가재", chance: 0.3 },
     ],
   },
-  // 침몰선 산호초: fish meat from the shoal; the shark guards an even richer catch.
+  // 침몰선 산호초: the shoal's small fish and reef life; the shark's big catch.
   bluefish: {
     mob: [
-      { name: "결 고운 생선살", chance: 0.3 },
-      { name: "치즈", chance: 0.1 },
+      { name: "정어리", chance: 0.35 },
+      { name: "오징어", chance: 0.15 },
+      { name: "미역", chance: 0.1 },
     ],
     boss: [
-      { name: "결 고운 생선살", chance: 1, quantity: 3 },
-      { name: "두툼 살코기", chance: 0.4 },
-      { name: "양배추", chance: 0.3 },
+      { name: "지느러미", chance: 1 },
+      { name: "두툼 생선 토막", chance: 0.6 },
+      { name: "문어", chance: 0.4 },
     ],
   },
-  // 화산섬: tough cuts seared by the heat; the lava slime melts down the richest ones.
+  // 화산섬: chilies and fruit that only ripen in the heat.
   salamander: {
     mob: [
-      { name: "뼈 갈빗살", chance: 0.25 },
-      { name: "호박", chance: 0.1 },
+      { name: "불꽃 고추", chance: 0.3 },
+      { name: "화염 열매", chance: 0.1 },
     ],
     boss: [
-      { name: "뼈 갈빗살", chance: 1, quantity: 2 },
-      { name: "두툼 살코기", chance: 0.5 },
-      { name: "버섯", chance: 0.3 },
+      { name: "화염 열매", chance: 1, quantity: 2 },
+      { name: "불꽃 고추", chance: 0.5 },
+      { name: "소금 결정", chance: 0.3 },
     ],
   },
-  // 열대 정글: ripe jungle produce the monkeys hoard; the carnivorous plant has been
-  // swallowing whatever richer catch wanders too close.
+  // 열대 정글: the monkeys' fruit; the carnivorous plant is full of what it lured in.
   monkey: {
     mob: [
-      { name: "호박", chance: 0.3 },
-      { name: "토마토", chance: 0.15 },
+      { name: "바나나", chance: 0.4 },
+      { name: "망고", chance: 0.15 },
     ],
     boss: [
-      { name: "호박", chance: 1, quantity: 3 },
-      { name: "두툼 살코기", chance: 0.6 },
-      { name: "뼈 갈빗살", chance: 0.4 },
+      { name: "바나나", chance: 1, quantity: 3 },
+      { name: "망고", chance: 0.5 },
+      { name: "코코넛", chance: 0.4 },
     ],
   },
-  // 오아시스: carp from the clear pool; the dragon it grew into guards the richest catch.
+  // 오아시스: carp from the pool, palm coconuts; the dragon carp's prized roe.
   carp: {
     mob: [
       { name: "결 고운 생선살", chance: 0.35 },
-      { name: "우유", chance: 0.1 },
+      { name: "코코넛", chance: 0.1 },
     ],
     boss: [
-      { name: "결 고운 생선살", chance: 1, quantity: 4 },
-      { name: "두툼 살코기", chance: 0.6 },
-      { name: "치즈", chance: 0.4 },
+      { name: "반짝 생선알", chance: 1, quantity: 2 },
+      { name: "결 고운 생선살", chance: 0.6 },
+      { name: "분홍 생선살", chance: 0.4 },
     ],
   },
-  // 사막: desert produce the cactus hoards; the camel's pack still carries its own stash
-  // of milk and jerky from however long ago it left the oasis.
+  // 사막: salt crusts and green apples from the cactus patches; the camel's pack still
+  // carries the milk and cheese it set out with.
   cactus: {
     mob: [
-      { name: "양파", chance: 0.3 },
-      { name: "호박", chance: 0.15 },
+      { name: "소금 결정", chance: 0.3 },
+      { name: "풋사과", chance: 0.15 },
     ],
     boss: [
       { name: "치즈", chance: 1, quantity: 2 },
-      { name: "두툼 살코기", chance: 0.6 },
-      { name: "뼈 갈빗살", chance: 0.4 },
+      { name: "우유", chance: 0.6 },
+      { name: "소금 결정", chance: 0.4 },
     ],
   },
-  // 사막시장: the fox snatches whatever spice jars and produce it can carry off the
-  // stalls; the rattlesnake guards the market's finest smoked and cured goods.
+  // 사막시장: the fox snatches produce and spice off the stalls; the rattlesnake guards
+  // the market's finest cured goods.
   fox: {
     mob: [
       { name: "토마토", chance: 0.3 },
-      { name: "양파", chance: 0.15 },
+      { name: "불꽃 고추", chance: 0.15 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
