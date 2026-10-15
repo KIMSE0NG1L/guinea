@@ -35,6 +35,7 @@ export function useAutoBattle({
   goldBonus,
   missChance = 0,
   hitCount = 1,
+  cooldownReductionMs = 0,
   enemyMaxHp,
   boss,
   speedMultiplier = 1,
@@ -52,6 +53,8 @@ export function useAutoBattle({
   // Extra strikes landed per swing (e.g. assassinGini's twin daggers) — each rolls its
   // own miss/crit independently; a kill on an earlier strike skips the rest.
   hitCount?: number;
+  // Shaved off every active skill's cooldown on cast (e.g. egenGini) — never below 0.
+  cooldownReductionMs?: number;
   enemyMaxHp: number;
   boss: boolean;
   // Scales down every auto-battle timer delay — e.g. 2 halves them, doubling the pace.
@@ -93,6 +96,7 @@ export function useAutoBattle({
   const goldBonusRef = useRef(goldBonus);
   const missChanceRef = useRef(missChance);
   const hitCountRef = useRef(hitCount);
+  const cooldownReductionRef = useRef(cooldownReductionMs);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
   const speedMultiplierRef = useRef(speedMultiplier);
@@ -153,6 +157,7 @@ export function useAutoBattle({
     goldBonusRef.current = goldBonus;
     missChanceRef.current = missChance;
     hitCountRef.current = hitCount;
+    cooldownReductionRef.current = cooldownReductionMs;
     maxHpRef.current = enemyMaxHp;
     bossRef.current = boss;
     speedMultiplierRef.current = speedMultiplier;
@@ -378,7 +383,10 @@ export function useAutoBattle({
 
     const next = {
       ...skillTimersRef.current,
-      [id]: { readyAt: now + skill.cooldownMs, activeUntil: now + (skill.durationMs ?? 0) },
+      [id]: {
+        readyAt: now + Math.max(0, skill.cooldownMs - cooldownReductionRef.current),
+        activeUntil: now + (skill.durationMs ?? 0),
+      },
     };
     skillTimersRef.current = next;
     setSkillTimers(next);

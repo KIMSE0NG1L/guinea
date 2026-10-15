@@ -54,6 +54,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   carp: 175,
   cactus: 150,
   fox: 150,
+  lizard: 160,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -71,6 +72,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   carp: images.battleBackgroundOasis,
   cactus: images.battleBackgroundDesert,
   fox: images.battleBackgroundDesertMarket,
+  lizard: images.battleBackgroundSilkRoadNight,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

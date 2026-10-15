@@ -48,6 +48,12 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.21 },
   },
+  egenGini: {
+    idle: { frameCount: 3, frameSize: FRAME_SIZE, scale: 1.35 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.11 },
+  },
 };
 
 export function CharacterSprite({

@@ -176,6 +176,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "치즈", chance: 0.4 },
     ],
   },
+  // 밤의 실크로드: caravan dairy and cured goods left out under the lanterns; the haunted
+  // goat guards the richest stash before dissolving into its own hoarded coins.
+  lizard: {
+    mob: [
+      { name: "치즈", chance: 0.3 },
+      { name: "우유", chance: 0.15 },
+    ],
+    boss: [
+      { name: "뼈 갈빗살", chance: 1, quantity: 2 },
+      { name: "두툼 살코기", chance: 0.6 },
+      { name: "우유", chance: 0.4 },
+    ],
+  },
 };
 
 // Every ingredient a monster can drop, mob table then boss table, for the codex.

@@ -60,6 +60,11 @@ export const OUTFIT_FOOD_DURATION_BONUS_SEC: Partial<Record<Outfit, number>> = {
   default: 15,
 };
 
+// Seconds shaved off every active skill's cooldown while this outfit is equipped.
+export const OUTFIT_COOLDOWN_REDUCTION_SEC: Partial<Record<Outfit, number>> = {
+  egenGini: 60,
+};
+
 const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
   attack: (value) => `공격력 ${value >= 0 ? "+" : ""}${value}%`,
   criticalChance: (value) => `치명타 확률 +${value}%`,

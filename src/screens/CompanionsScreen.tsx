@@ -6,7 +6,14 @@ import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { CharacterSprite } from "../components/CharacterSprite";
-import { OUTFIT_BUFFS, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, describeEffect } from "../state/buffs";
+import {
+  OUTFIT_BUFFS,
+  OUTFIT_COOLDOWN_REDUCTION_SEC,
+  OUTFIT_FOOD_DURATION_BONUS_SEC,
+  OUTFIT_HIT_COUNT,
+  OUTFIT_MISS_CHANCE,
+  describeEffect,
+} from "../state/buffs";
 import type { Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and grants whichever of these
@@ -21,6 +28,8 @@ function companionDetail(outfit: Outfit) {
   if (hitCount) parts.push(`한 번에 ${hitCount}타씩 타격`);
   const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
   if (foodDurationBonus) parts.push(`음식 효과시간 +${foodDurationBonus}초`);
+  const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
+  if (cooldownReduction) parts.push(`스킬 쿨타임 -${cooldownReduction / 60}분`);
   return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
 }
 
@@ -43,6 +52,12 @@ const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string 
     name: "암살기니",
     blurb: "두건으로 얼굴을 가리고 단검을 숨긴 그림자 속의 자객.",
     detail: companionDetail("assassinGini"),
+  },
+  {
+    outfit: "egenGini",
+    name: "에겐기니",
+    blurb: "벚꽃 지팡이를 든 다정하고 상냥한 기니. 함께 있으면 마음이 편안해진다.",
+    detail: companionDetail("egenGini"),
   },
 ];
 

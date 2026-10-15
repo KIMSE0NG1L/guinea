@@ -28,6 +28,12 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-assassin-critical-strip.webp"),
       win: require("../assets/sprites/guinea-assassin-win-strip.webp"),
     },
+    egenGini: {
+      idle: require("../assets/sprites/guinea-egen-idle-strip.webp"),
+      attack: require("../assets/sprites/guinea-egen-attack-strip.webp"),
+      critical: require("../assets/sprites/guinea-egen-critical-strip.webp"),
+      win: require("../assets/sprites/guinea-egen-win-strip.webp"),
+    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),
@@ -169,6 +175,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-rattlesnake-hit-strip.webp"),
     die: require("../assets/sprites/boss-rattlesnake-die-strip.webp"),
   },
+  lizard: {
+    idle: require("../assets/sprites/night-lizard-idle-strip.webp"),
+    hit: require("../assets/sprites/night-lizard-hit-strip.webp"),
+    die: require("../assets/sprites/night-lizard-die-strip.webp"),
+  },
+  bossHauntedGoat: {
+    idle: require("../assets/sprites/boss-haunted-goat-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-haunted-goat-hit-strip.webp"),
+    die: require("../assets/sprites/boss-haunted-goat-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -186,6 +202,7 @@ export const images = {
   battleBackgroundOasis: require("../assets/sprites/battle-oasis.webp"),
   battleBackgroundDesert: require("../assets/sprites/battle-desert.webp"),
   battleBackgroundDesertMarket: require("../assets/sprites/battle-desert-market.webp"),
+  battleBackgroundSilkRoadNight: require("../assets/sprites/battle-silk-road-night.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
