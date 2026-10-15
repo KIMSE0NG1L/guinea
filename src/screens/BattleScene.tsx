@@ -49,6 +49,8 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   mudskipper: 175,
   bluefish: 180,
   salamander: 170,
+  monkey: 170,
+  carp: 175,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -62,6 +64,8 @@ const BACKGROUND: Record<EnemyKind, number> = {
   mudskipper: images.battleBackgroundHarborBeach,
   bluefish: images.battleBackgroundSunkenReef,
   salamander: images.battleBackgroundVolcanoIsland,
+  monkey: images.battleBackgroundTropicalJungle,
+  carp: images.battleBackgroundOasis,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

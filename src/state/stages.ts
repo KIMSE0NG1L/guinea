@@ -11,6 +11,8 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   mudskipper: "심술 망둥어",
   bluefish: "성난 꽁치",
   salamander: "용암 도마뱀",
+  monkey: "바나숭이",
+  carp: "연못 잉어",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -24,6 +26,8 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   mudskipper: "킹크랩",
   bluefish: "포악한 상어",
   salamander: "용암 슬라임",
+  monkey: "거대식충식물",
+  carp: "개천용",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -39,6 +43,8 @@ export const STAGES: { area: string; enemyKind: EnemyKind }[] = [
   { area: "항구 해변", enemyKind: "mudskipper" },
   { area: "침몰선 산호초", enemyKind: "bluefish" },
   { area: "화산섬", enemyKind: "salamander" },
+  { area: "열대 정글", enemyKind: "monkey" },
+  { area: "오아시스", enemyKind: "carp" },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;
@@ -49,8 +55,8 @@ export const STAGE_KILL_TARGET = 25;
 // Un-scaled HP at stage 1 — getEnemyMaxHp below grows this per stage. The boss sits at
 // 10x a regular mob, the usual range for a stage-gate boss (vs. ~30-100x for a raid-tier
 // one) — enough that grinding 25 kills to reach it actually pays off in a real fight.
-export const MOB_BASE_HP = 80;
-export const BOSS_BASE_HP = MOB_BASE_HP * 10;
+export const MOB_BASE_HP = 120;
+export const BOSS_BASE_HP = MOB_BASE_HP * 15;
 
 // Every stage's monsters are this many times tougher than the previous stage's.
 const STAGE_HP_GROWTH = 1.8;

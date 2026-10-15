@@ -126,6 +126,31 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "버섯", chance: 0.3 },
     ],
   },
+  // 열대 정글: ripe jungle produce the monkeys hoard; the carnivorous plant has been
+  // swallowing whatever richer catch wanders too close.
+  monkey: {
+    mob: [
+      { name: "호박", chance: 0.3 },
+      { name: "토마토", chance: 0.15 },
+    ],
+    boss: [
+      { name: "호박", chance: 1, quantity: 3 },
+      { name: "두툼 살코기", chance: 0.6 },
+      { name: "뼈 갈빗살", chance: 0.4 },
+    ],
+  },
+  // 오아시스: carp from the clear pool; the dragon it grew into guards the richest catch.
+  carp: {
+    mob: [
+      { name: "결 고운 생선살", chance: 0.35 },
+      { name: "우유", chance: 0.1 },
+    ],
+    boss: [
+      { name: "결 고운 생선살", chance: 1, quantity: 4 },
+      { name: "두툼 살코기", chance: 0.6 },
+      { name: "치즈", chance: 0.4 },
+    ],
+  },
 };
 
 export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {
