@@ -151,6 +151,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "치즈", chance: 0.4 },
     ],
   },
+  // 사막: desert produce the cactus hoards; the camel's pack still carries its own stash
+  // of milk and jerky from however long ago it left the oasis.
+  cactus: {
+    mob: [
+      { name: "양파", chance: 0.3 },
+      { name: "호박", chance: 0.15 },
+    ],
+    boss: [
+      { name: "치즈", chance: 1, quantity: 2 },
+      { name: "두툼 살코기", chance: 0.6 },
+      { name: "뼈 갈빗살", chance: 0.4 },
+    ],
+  },
 };
 
 export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {

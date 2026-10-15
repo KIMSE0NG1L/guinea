@@ -51,6 +51,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   salamander: 170,
   monkey: 170,
   carp: 175,
+  cactus: 150,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -66,6 +67,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   salamander: images.battleBackgroundVolcanoIsland,
   monkey: images.battleBackgroundTropicalJungle,
   carp: images.battleBackgroundOasis,
+  cactus: images.battleBackgroundDesert,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

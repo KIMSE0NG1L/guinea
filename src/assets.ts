@@ -130,6 +130,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-stream-dragon-hit-strip.png"),
     die: require("../assets/sprites/boss-stream-dragon-die-strip.png"),
   },
+  cactus: {
+    idle: require("../assets/sprites/cactus-idle-strip.png"),
+    hit: require("../assets/sprites/cactus-hit-strip.png"),
+    die: require("../assets/sprites/cactus-die-strip.png"),
+  },
+  bossDehydratedCamel: {
+    idle: require("../assets/sprites/boss-dehydrated-camel-idle-strip.png"),
+    hit: require("../assets/sprites/boss-dehydrated-camel-hit-strip.png"),
+    die: require("../assets/sprites/boss-dehydrated-camel-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -145,6 +155,7 @@ export const images = {
   battleBackgroundVolcanoIsland: require("../assets/sprites/battle-volcano-island.png"),
   battleBackgroundTropicalJungle: require("../assets/sprites/battle-tropical-jungle.png"),
   battleBackgroundOasis: require("../assets/sprites/battle-oasis.png"),
+  battleBackgroundDesert: require("../assets/sprites/battle-desert.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
