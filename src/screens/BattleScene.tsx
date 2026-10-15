@@ -512,8 +512,8 @@ function PlayerFighter({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beamId]);
 
-  // Execute's ninja blink, in step with ExecuteEffect's smoke puffs: fade out, jump to the
-  // enemy, pop back in for the cut, then the same in reverse.
+  // Execute's ninja blink: fade out, jump to the enemy, pop back in for the cut, then the
+  // same in reverse.
   useEffect(() => {
     if (executeId === 0) return;
     const { vanish, arrive, leave, home } = EXECUTE_TIMING;

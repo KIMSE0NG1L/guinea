@@ -4,7 +4,7 @@ import Svg, { Defs, LinearGradient as SvgGradient, Path, Stop } from "react-nati
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 
 // Timeline (ms) shared with PlayerFighter's teleport so the two stay in step:
-// vanish in smoke → reappear at the enemy → slash → hold → vanish → back home.
+// vanish → reappear at the enemy → slash → hold → vanish → back home.
 export const EXECUTE_TIMING = {
   vanish: 50,
   arrive: 90,
@@ -22,15 +22,11 @@ export function ExecuteEffect({ home, arrival, enemy }: { home: Point; arrival: 
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Flash color="#000000" peak={0.35} delay={0} rise={40} fall={300} />
       <Dash left={home.left} right={arrival.left} bottom={home.bottom} />
-      <SmokePuff at={home} delay={0} />
-      <SmokePuff at={arrival} delay={EXECUTE_TIMING.vanish} />
       {/* An uneven X: a long downward stroke, then a shorter one drawn back the other way. */}
       <Slash at={enemy} angle={-26} length={190} offset={{ x: -4, y: 6 }} delay={EXECUTE_TIMING.arrive} />
       <Slash at={enemy} angle={180 + 44} length={150} offset={{ x: 6, y: -4 }} delay={EXECUTE_TIMING.arrive + 70} />
       <Sparks at={enemy} delay={EXECUTE_TIMING.arrive + 40} />
       <Flash color="#d3121c" peak={0.55} delay={EXECUTE_TIMING.arrive + 20} rise={40} fall={280} />
-      <SmokePuff at={arrival} delay={EXECUTE_TIMING.leave} />
-      <SmokePuff at={home} delay={EXECUTE_TIMING.home} />
     </View>
   );
 }
