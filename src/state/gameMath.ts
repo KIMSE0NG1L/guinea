@@ -79,13 +79,23 @@ export function getUpgradeCost(key: StatKey | "defense", level: number) {
   return Math.round((statInfo[resolvedKey].baseCost * Math.pow(1.35, safeLevel - 1)) / 10) * 10;
 }
 
-export function getUpgradeQuote(key: StatKey, level: number, gold: number, mode: UpgradeMode) {
-  const requestedLevels =
+// Stats with a hard ceiling on their purchased value — upgrading can't push past this no
+// matter how much gold is spent. Crit chance caps at 50% so a hit is never a coin flip.
+export const STAT_CAP: Partial<Record<StatKey, number>> = {
+  criticalChance: 50,
+};
+
+export function getUpgradeQuote(key: StatKey, level: number, gold: number, mode: UpgradeMode, value: number) {
+  const cap = STAT_CAP[key];
+  const capLevels = cap === undefined ? Number.POSITIVE_INFINITY : Math.max(0, Math.floor((cap - value) / statInfo[key].step + 1e-9));
+  const requestedLevels = Math.min(
+    capLevels,
     mode === "max"
       ? Number.POSITIVE_INFINITY
       : mode === "next"
         ? 10 - (level % 10)
-        : mode;
+        : mode,
+  );
   let levels = 0;
   let cost = 0;
 

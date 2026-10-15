@@ -3,7 +3,7 @@ import { colors, fonts } from "../theme";
 import { frameKit, kit, statIcons } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
-import { formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo } from "../state/gameMath";
+import { formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo, STAT_CAP } from "../state/gameMath";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 
 
@@ -50,9 +50,10 @@ export function StatUpgradePanel({
           const info = statInfo[key];
           const value = key === "attack" ? getTotalAttack(state) : getStatValue(state, key);
           const level = getStatLevel(state, key);
-          const quote = getUpgradeQuote(key, level, state.gold, upgradeMode);
+          const quote = getUpgradeQuote(key, level, state.gold, upgradeMode, getStatValue(state, key));
           const nextValue = value + info.step * quote.levels;
           const suffix = key === "attack" ? "" : "%";
+          const atCap = STAT_CAP[key] !== undefined && getStatValue(state, key) >= STAT_CAP[key]!;
           return (
             <Panel slice={upgraded === key ? kit.panel : kit.inset} scale={0.4} style={styles.row} key={key}>
               <Panel slice={frameKit.squareWood} scale={0.4} style={styles.mark}>
@@ -68,15 +69,15 @@ export function StatUpgradePanel({
               </View>
               <GameButton
                 variant="brown"
-                disabled={quote.levels === 0 || state.gold < quote.cost}
+                disabled={atCap || quote.levels === 0 || state.gold < quote.cost}
                 onPress={() => onUpgrade(key)}
                 style={styles.upgradeButton}
               >
                 <View>
                   <Text style={styles.upgradeButtonText}>
-                    {upgradeMode === "max" ? `MAX +${quote.levels}` : `+${quote.levels} 강화`}
+                    {atCap ? "최대" : upgradeMode === "max" ? `MAX +${quote.levels}` : `+${quote.levels} 강화`}
                   </Text>
-                  <Text style={styles.upgradeButtonCost}>{formatGameNumber(quote.cost)} G</Text>
+                  {!atCap && <Text style={styles.upgradeButtonCost}>{formatGameNumber(quote.cost)} G</Text>}
                 </View>
               </GameButton>
             </Panel>

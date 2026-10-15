@@ -9,6 +9,12 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-critical-strip.webp"),
       win: require("../assets/sprites/guinea-win-strip.webp"),
     },
+    explorerHamster: {
+      idle: require("../assets/sprites/guinea-explorer-hamster-idle-strip.webp"),
+      attack: require("../assets/sprites/guinea-explorer-hamster-attack-strip.webp"),
+      critical: require("../assets/sprites/guinea-explorer-hamster-critical-strip.webp"),
+      win: require("../assets/sprites/guinea-explorer-hamster-win-strip.webp"),
+    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),

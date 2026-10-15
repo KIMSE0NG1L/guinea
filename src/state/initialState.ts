@@ -23,17 +23,12 @@ export const initialState: GameState = {
     { name: "당근", quantity: 5, type: "food" },
   ],
   equipment: { weapon: null, hat: null, armor: null, accessory: null },
-  companions: [
-    { name: "골목 햄스터", unlocked: false },
-    { name: "떠돌이 토끼", unlocked: false },
-    { name: "수상한 두더지", unlocked: false },
-  ],
   quests: [
     { id: "kills", title: "적 30마리 처치", current: 0, target: 30, reward: 400, claimed: false },
     { id: "attack", title: "공격력 8회 강화", current: 0, target: 8, reward: 600, claimed: false },
     { id: "gold", title: `골드 ${formatGameNumber(2000)} 획득`, current: 0, target: 2000, reward: 900, claimed: false },
     { id: "bossKills", title: "보스 2마리 처치", current: 0, target: 2, reward: 1200, claimed: false },
-    { id: "stage", title: "감자 동굴(1-5) 도착", current: 0, target: 4, reward: 1500, claimed: false },
+    { id: "stage", title: "감자 동굴(5) 도착", current: 0, target: 4, reward: 1500, claimed: false },
     { id: "cook", title: "요리 5회 만들기", current: 0, target: 5, reward: 700, claimed: false },
     { id: "recipe", title: "레시피 2개 배우기", current: 0, target: 2, reward: 900, claimed: false },
     { id: "buff", title: "버프 요리 3회 섭취", current: 0, target: 3, reward: 600, claimed: false },

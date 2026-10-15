@@ -4,7 +4,7 @@ export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering"
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
 export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander" | "monkey" | "carp" | "cactus" | "fox";
-export type Outfit = "default";
+export type Outfit = "default" | "explorerHamster";
 export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 
@@ -45,7 +45,6 @@ export interface GameState {
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];
   equipment: Record<string, string | null>;
-  companions: { name: string; unlocked: boolean }[];
   quests: Quest[];
   kills: number;
   totalGoldEarned: number;

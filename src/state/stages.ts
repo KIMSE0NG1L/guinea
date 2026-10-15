@@ -72,10 +72,10 @@ export function getEnemyMaxHp(stageNumber: number, boss: boolean) {
 }
 
 export function getStageCode(stageNumber: number) {
-  return `1-${stageNumber + 1}`;
+  return `${stageNumber + 1}`;
 }
 
-// "1-1 뒷산" — the code plus its area name, for the battle header/stage-advance banner.
+// "1 뒷산" — the code plus its area name, for the battle header/stage-advance banner.
 // getStageCode alone is still used for the milestone map's compact round badge, where the
 // area name is already shown separately right next to it.
 export function getStageLabel(stageNumber: number) {

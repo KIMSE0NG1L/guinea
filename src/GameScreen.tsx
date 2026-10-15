@@ -33,7 +33,12 @@ export function GameScreen() {
       case "equipment":
         return <EquipmentScreen equipment={state.equipment} />;
       case "companions":
-        return <CompanionsScreen companions={state.companions} />;
+        return (
+          <CompanionsScreen
+            equippedOutfit={state.equippedOutfit}
+            onEquip={(equippedOutfit) => setState((previous) => ({ ...previous, equippedOutfit }))}
+          />
+        );
       case "inventory":
         return <InventoryScreen inventory={state.inventory} />;
       case "wardrobe":

@@ -1,3 +1,5 @@
+import type { Outfit } from "../types";
+
 // Food buffs: eating a cooked dish into a battle slot grants its effect for a while.
 // Harder dishes (pricier recipe, more ingredients) last longer — from 1 to 10 minutes.
 
@@ -23,6 +25,12 @@ export const BUFFS: Record<string, { effect: BuffEffect; durationMs: number; tin
   "mushroom-soup": { effect: { attack: 30 }, durationMs: 6 * MINUTE, tint: "#efc598" },
   "pumpkin-roast": { effect: { gold: 50 }, durationMs: 8 * MINUTE, tint: "#f8b37c" },
   "guinea-feast": { effect: { attack: 50, criticalChance: 10, gold: 50 }, durationMs: 10 * MINUTE, tint: "#dab8a2" },
+};
+
+// Companion outfits: equipping one swaps the battle sprite and grants a small permanent
+// bonus — smaller than a food buff since it never runs out, unlike those timed dishes.
+export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
+  explorerHamster: { gold: 10 },
 };
 
 const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {

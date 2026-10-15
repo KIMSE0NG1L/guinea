@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { effects, food, icons, images, FRAME_SIZE } from "../assets";
-import { CharacterSprite, CRITICAL_SCALE } from "../components/CharacterSprite";
+import { CharacterSprite } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
 import { SpriteStrip } from "../components/SpriteStrip";
 import { DamageNumber } from "../components/DamageNumber";
@@ -568,9 +568,6 @@ function PlayerFighter({
       <CharacterSprite
         outfit={outfit}
         animation={animation}
-        // The critical strip draws the guinea pig small to fit its effects; scaling it back
-        // up keeps the guinea pig the same size as in every other pose.
-        scale={animation === "critical" ? CRITICAL_SCALE : 1}
         repeat={animation === "win" && boss ? 3 : 1}
         restartKey={skillPoseKey ? `${outfit}-${skillPoseKey}` : `${outfit}-${animation}`}
       />

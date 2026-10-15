@@ -8,7 +8,7 @@ import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFFS, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFFS, OUTFIT_BUFFS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { canCook, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
@@ -52,7 +52,14 @@ export function useGameState() {
     return () => clearInterval(timer);
   }, []);
   const buffSlots = state.buffSlots ?? emptyBuffSlots();
-  const buffs = getBuffTotals(buffSlots, now);
+  const foodBuffs = getBuffTotals(buffSlots, now);
+  const outfitBuff = OUTFIT_BUFFS[state.equippedOutfit];
+  const buffs = {
+    attack: foodBuffs.attack + (outfitBuff?.attack ?? 0),
+    criticalChance: foodBuffs.criticalChance + (outfitBuff?.criticalChance ?? 0),
+    criticalDamage: foodBuffs.criticalDamage + (outfitBuff?.criticalDamage ?? 0),
+    gold: foodBuffs.gold + (outfitBuff?.gold ?? 0),
+  };
   // Ingredient drops currently flying from the defeated monster into the bag button.
   const [dropEvents, setDropEvents] = useState<DropEvent[]>([]);
   const dropEventId = useRef(0);
@@ -86,7 +93,7 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default"];
+        const validOutfits = ["default", "explorerHamster"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
@@ -238,7 +245,7 @@ export function useGameState() {
   }, []);
 
   const battle = useAutoBattle({
-    // Food buffs apply on top of the upgraded stats.
+    // Food buffs and the equipped companion's bonus apply on top of the upgraded stats.
     attack: Math.round(getTotalAttack(state) * (1 + buffs.attack / 100)),
     criticalDamage: state.criticalDamage + buffs.criticalDamage,
     criticalChance: (state.criticalChance ?? 5) + buffs.criticalChance,
@@ -270,7 +277,7 @@ export function useGameState() {
   const upgradeStat = (key: StatKey) => {
     setState((previous) => {
       const info = statInfo[key];
-      const quote = getUpgradeQuote(key, getStatLevel(previous, key), previous.gold, upgradeMode);
+      const quote = getUpgradeQuote(key, getStatLevel(previous, key), previous.gold, upgradeMode, getStatValue(previous, key));
       if (quote.levels === 0 || previous.gold < quote.cost) return previous;
       const attackUpgrades =
         key === "attack"
