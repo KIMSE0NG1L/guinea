@@ -50,7 +50,7 @@ export function QuestModal({
                     )}
                     <View style={styles.info}>
                       <Text style={styles.infoTitle}>{quest.title}</Text>
-                      <ProgressBar progress={progress} color={colors.lime} height={10} style={styles.track} />
+                      <ProgressBar progress={progress} fill="green" height={12} style={styles.track} />
                       <View style={styles.infoSubRow}>
                         <Text style={styles.infoSub}>
                           {formatGameNumber(Math.min(quest.current, quest.target))} / {formatGameNumber(quest.target)} · 보상

@@ -1,30 +1,47 @@
+import { useState } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { colors } from "../theme";
-import { kit } from "../assets";
+import { frameKit } from "../assets";
 import { NineSlice } from "./NineSlice";
 
-// Outlined cream track (kit art) with a flat rounded fill that grows inside its rim.
+const FILLS = {
+  gold: frameKit.fillGold,
+  green: frameKit.fillGreen,
+  red: frameKit.fillRed,
+  blue: frameKit.fillBlue,
+} as const;
+
+export type ProgressFill = keyof typeof FILLS;
+
+// Brass-capped wooden track with a glossy fill bar that grows inside it.
 export function ProgressBar({
   progress,
-  color = colors.gold,
+  fill = "gold",
   height = 14,
   style,
 }: {
   progress: number; // 0–100
-  color?: string;
+  fill?: ProgressFill;
   height?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const [innerWidth, setInnerWidth] = useState(0);
   const clamped = Math.max(0, Math.min(100, progress));
-  // The rim is ~20% of the bar's height on each side.
-  const rim = Math.max(2, Math.round(height * 0.2));
+  // The track art is 40px tall: its parchment channel sits 7px in from top/bottom and
+  // starts after the ~18px brass caps on each side.
+  const scale = height / 40;
+  const insetY = Math.round(7 * scale);
+  const insetX = Math.round(16 * scale);
+  const fillWidth = (innerWidth * clamped) / 100;
   return (
     <View style={[{ height }, style]}>
-      <NineSlice slice={kit.track} scale={height / 47} />
-      <View style={[styles.inner, { top: rim, bottom: rim + 1, left: rim + 1, right: rim + 1, borderRadius: height }]}>
-        {clamped > 0 && (
-          <View style={[styles.fill, { width: `${clamped}%`, backgroundColor: color, borderRadius: height }]}>
-            <View style={styles.shine} />
+      <NineSlice slice={frameKit.barFrame} scale={scale} />
+      <View
+        style={[styles.inner, { top: insetY, bottom: insetY, left: insetX, right: insetX }]}
+        onLayout={(event) => setInnerWidth(event.nativeEvent.layout.width)}
+      >
+        {fillWidth > 0 && (
+          <View style={[styles.fill, { width: fillWidth }]}>
+            <NineSlice slice={FILLS[fill]} scale={(height - insetY * 2) / 36} />
           </View>
         )}
       </View>
@@ -33,7 +50,6 @@ export function ProgressBar({
 }
 
 const styles = StyleSheet.create({
-  inner: { position: "absolute", overflow: "hidden" },
-  fill: { height: "100%", overflow: "hidden" },
-  shine: { height: "38%", marginHorizontal: 3, marginTop: 1, backgroundColor: "#ffffff40", borderRadius: 4 },
+  inner: { position: "absolute" },
+  fill: { height: "100%" },
 });

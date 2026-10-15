@@ -1,9 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
+import { frameImages } from "../assets";
 import { getSkill, type SkillId, type SkillTimers } from "../state/skills";
 import { formatDuration } from "../state/buffs";
-import { NineSlice } from "./NineSlice";
 import { SkillIcon } from "./SkillIcon";
 import { StrokedText } from "./StrokedText";
 
@@ -36,8 +35,7 @@ export function SkillSlot({
         hitSlop={6}
         style={({ pressed }) => [styles.empty, pressed && styles.pressed]}
       >
-        <NineSlice slice={kit.slot} scale={0.32} />
-        <Text style={styles.plus}>+</Text>
+        <Image source={frameImages.slotPlus} style={styles.slotArt} />
       </Pressable>
     );
   }
@@ -89,7 +87,7 @@ export function SkillSlot({
 const styles = StyleSheet.create({
   slot: { height: SKILL_SLOT_HEIGHT },
   empty: { width: SKILL_SLOT_HEIGHT, height: SKILL_SLOT_HEIGHT, alignItems: "center", justifyContent: "center" },
-  plus: { marginTop: -3, fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: "#8a7458" },
+  slotArt: { width: "100%", height: "100%" },
   pressed: { transform: [{ scale: 0.92 }] },
   overlay: {
     position: "absolute",

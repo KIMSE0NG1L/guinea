@@ -1,8 +1,7 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
-import { NineSlice } from "./NineSlice";
+import { frameImages } from "../assets";
 import { StrokedText } from "./StrokedText";
 import { BUFFS, formatDuration, type BuffSlot } from "../state/buffs";
 import { RECIPES } from "../state/recipes";
@@ -77,8 +76,7 @@ export function BuffSlots({
               </View>
             ) : (
               <>
-                <NineSlice slice={kit.slot} scale={0.32} />
-                <Text style={styles.plus}>+</Text>
+                <Image source={frameImages.slotPlus} style={styles.slotArt} />
               </>
             )}
           </Pressable>
@@ -92,7 +90,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 5 },
   slot: { width: BUFF_SLOT_SIZE, height: BUFF_SLOT_SIZE, alignItems: "center", justifyContent: "center" },
   pressed: { transform: [{ scale: 0.92 }] },
-  plus: { marginTop: -3, fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: "#8a7458" },
+  slotArt: { width: "100%", height: "100%" },
   active: {
     width: "100%",
     height: "100%",

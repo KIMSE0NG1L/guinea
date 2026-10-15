@@ -305,7 +305,7 @@ export function BattleScene({
             pointerEvents="none"
           >
             <Text style={styles.stageBarTitle}>{stageLabel}</Text>
-            <ProgressBar progress={stageProgress} height={12} style={styles.stageBarTrack} />
+            <ProgressBar progress={stageProgress} height={14} style={styles.stageBarTrack} />
             <Text style={styles.stageBarCount}>{Math.min(stageKills, STAGE_KILL_TARGET)} / {STAGE_KILL_TARGET}</Text>
           </LinearGradient>
 
@@ -705,9 +705,7 @@ function EnemyFighter({
           regular mob's — the (much taller) boss sprite grows upward behind it instead. */}
       <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, boss && styles.enemyNameplateBoss]}>
         <Text style={styles.unitLabelText}>{boss ? BOSS_NAME[enemyKind] : `${ENEMY_NAME[enemyKind]} ${enemyId}`}</Text>
-        <View style={styles.unitHealthTrack}>
-          <View style={[styles.unitHealthFill, { width: `${(currentHp / maxHp) * 100}%` }]} />
-        </View>
+        <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
       </View>
       {executedKill && phase === "defeated" ? (
         <View style={{ width: size, height: size }}>
@@ -807,6 +805,5 @@ const styles = StyleSheet.create({
   // otherwise grow up past bottom: 112 and paint over its own name/HP bar.
   enemyNameplateFixed: { position: "absolute", bottom: 112, zIndex: 5 },
   enemyNameplateBoss: { width: 116 },
-  unitHealthTrack: { width: "100%", height: 6, overflow: "hidden", backgroundColor: "#211a16", borderWidth: 1, borderColor: "#f7ecd066", borderRadius: 5 },
-  unitHealthFill: { height: "100%", backgroundColor: "#dc6048" },
+  unitHealthTrack: { width: "100%" },
 });
