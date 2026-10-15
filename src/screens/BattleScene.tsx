@@ -174,7 +174,7 @@ export function BattleScene({
   levelUpAnnouncement,
 }: {
   critical: boolean;
-  damageEvents: { id: number; amount: number; critical: boolean }[];
+  damageEvents: { id: number; amount: number; critical: boolean; missed?: boolean }[];
   enemyHp: number;
   enemyMaxHp: number;
   boss: boolean;
@@ -372,7 +372,7 @@ export function BattleScene({
                 the name or HP bar — they float up over the sprite's body instead. */}
             <View style={styles.effects} pointerEvents="none">
               {damageEvents.map((event) => (
-                <DamageNumber key={event.id} amount={event.amount} critical={event.critical} />
+                <DamageNumber key={event.id} amount={event.amount} critical={event.critical} missed={event.missed} />
               ))}
               {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
               {goldEvents.map((event) => (

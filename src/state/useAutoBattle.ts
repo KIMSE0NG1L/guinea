@@ -33,6 +33,7 @@ export function useAutoBattle({
   criticalDamage,
   criticalChance,
   goldBonus,
+  missChance = 0,
   enemyMaxHp,
   boss,
   speedMultiplier = 1,
@@ -44,6 +45,9 @@ export function useAutoBattle({
   criticalDamage: number;
   criticalChance: number;
   goldBonus: number;
+  // Percent chance a swing whiffs entirely (0 damage, no on-hit effects) — a companion
+  // outfit's drawback (e.g. tetoGini).
+  missChance?: number;
   enemyMaxHp: number;
   boss: boolean;
   // Scales down every auto-battle timer delay — e.g. 2 halves them, doubling the pace.
@@ -59,7 +63,7 @@ export function useAutoBattle({
   const [enemyId, setEnemyId] = useState(1);
   const [lastGoldReward, setLastGoldReward] = useState(0);
   const [lastCritical, setLastCritical] = useState(false);
-  const [damageEvents, setDamageEvents] = useState<{ id: number; amount: number; critical: boolean }[]>([]);
+  const [damageEvents, setDamageEvents] = useState<{ id: number; amount: number; critical: boolean; missed?: boolean }[]>([]);
   const [goldEvents, setGoldEvents] = useState<{ id: number; amount: number }[]>([]);
   const [skillTimers, setSkillTimers] = useState<SkillTimers>(INITIAL_SKILL_TIMERS);
   const [lastSkillCastAt, setLastSkillCastAt] = useState(0);
@@ -83,6 +87,7 @@ export function useAutoBattle({
   const criticalDamageRef = useRef(criticalDamage);
   const criticalChanceRef = useRef(criticalChance);
   const goldBonusRef = useRef(goldBonus);
+  const missChanceRef = useRef(missChance);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
   const speedMultiplierRef = useRef(speedMultiplier);
@@ -114,6 +119,17 @@ export function useAutoBattle({
     eventTimersRef.current.push(timer);
   }, []);
 
+  // Same floating popup slot as a damage number, but reads "MISS" instead — a whiffed
+  // swing never reaches dealDamage, so nothing else about the hit (hp, steal, execute) runs.
+  const pushMissEvent = useCallback(() => {
+    const id = ++eventIdRef.current;
+    setDamageEvents((events) => [...events, { id, amount: 0, critical: false, missed: true }]);
+    const timer = setTimeout(() => {
+      setDamageEvents((events) => events.filter((event) => event.id !== id));
+    }, 700);
+    eventTimersRef.current.push(timer);
+  }, []);
+
   const pushGoldEvent = useCallback((amount: number) => {
     const id = ++eventIdRef.current;
     setGoldEvents((events) => [...events, { id, amount }]);
@@ -130,6 +146,7 @@ export function useAutoBattle({
     criticalDamageRef.current = criticalDamage;
     criticalChanceRef.current = criticalChance;
     goldBonusRef.current = goldBonus;
+    missChanceRef.current = missChance;
     maxHpRef.current = enemyMaxHp;
     bossRef.current = boss;
     speedMultiplierRef.current = speedMultiplier;
@@ -199,14 +216,18 @@ export function useAutoBattle({
   }, [defeatEnemy, pushDamageEvent, pushGoldEvent]);
 
   // A normal attack's damage; Focus forces the crit, Shout makes the enemy take more.
+  // missChance (e.g. tetoGini's drawback) is checked first — a miss skips the crit roll
+  // entirely and deals no damage.
   const rollAttack = useCallback(() => {
     const now = Date.now();
+    const missed = Math.random() * 100 < missChanceRef.current;
+    if (missed) return { isCritical: false, damage: 0, missed: true };
     const isCritical =
       isSkillActive(skillTimersRef.current, "focus", now) ||
       Math.random() * 100 < Math.min(100, criticalChanceRef.current);
     const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS : 1;
     const damage = Math.round(attackRef.current * (isCritical ? criticalDamageRef.current / 100 : 1) * shout);
-    return { isCritical, damage };
+    return { isCritical, damage, missed: false };
   }, []);
 
   useEffect(() => {
@@ -227,15 +248,23 @@ export function useAutoBattle({
       later(() => {
         // The enemy's mid death/respawn — enterEnemy resumes the loop once it's back.
         if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
-        const { isCritical, damage } = rollAttack();
+        const { isCritical, damage, missed } = rollAttack();
         setLastCritical(isCritical);
         phaseRef.current = "attacking";
         setPhase("attacking");
 
         later(() => {
-          if (dealDamage(damage, isCritical)) return;
-          phaseRef.current = "hit";
-          setPhase("hit");
+          // A miss never reaches dealDamage — no hp loss, no steal/execute, and the enemy
+          // doesn't play its hit-reaction (that's gated on phase "hit", skipped below).
+          if (missed) {
+            pushMissEvent();
+          } else if (dealDamage(damage, isCritical)) {
+            return;
+          }
+          if (!missed) {
+            phaseRef.current = "hit";
+            setPhase("hit");
+          }
           later(() => {
             phaseRef.current = "idle";
             setPhase("idle");
@@ -258,7 +287,7 @@ export function useAutoBattle({
         setPhase("idle");
       }
     };
-  }, [isAutoBattle, dealDamage, rollAttack]);
+  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack]);
 
   const manualAttack = useCallback(() => {
     if (isAutoBattle) return;
@@ -268,9 +297,13 @@ export function useAutoBattle({
     // Damage always lands on tap, independent of the attack sprite's own pose cycle —
     // a burst of taps gets a burst of "-damage" popups instead of each tap fighting the
     // sprite for control and chopping its animation to pieces.
-    const { isCritical, damage } = rollAttack();
+    const { isCritical, damage, missed } = rollAttack();
     setLastCritical(isCritical);
-    if (dealDamage(damage, isCritical)) return;
+    if (missed) {
+      pushMissEvent();
+    } else if (dealDamage(damage, isCritical)) {
+      return;
+    }
 
     // Let an in-flight attack/hit pose play out; only kick off a fresh one once it's idle.
     if (phaseRef.current !== "idle") return;
@@ -278,8 +311,11 @@ export function useAutoBattle({
     phaseRef.current = "attacking";
     setPhase("attacking");
     const hitTimer = setTimeout(() => {
-      phaseRef.current = "hit";
-      setPhase("hit");
+      // Skip the hit-reaction pose on a miss — nothing landed for the enemy to react to.
+      if (!missed) {
+        phaseRef.current = "hit";
+        setPhase("hit");
+      }
       const readyTimer = setTimeout(() => {
         phaseRef.current = "idle";
         setPhase("idle");
@@ -287,7 +323,7 @@ export function useAutoBattle({
       manualTimersRef.current.push(readyTimer);
     }, 260);
     manualTimersRef.current.push(hitTimer);
-  }, [isAutoBattle, dealDamage, rollAttack]);
+  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack]);
 
   // Whether the equipped skill can be cast right now (an active skill, off cooldown, with
   // an enemy present). `now` is passed in so the UI can re-check on its own clock.

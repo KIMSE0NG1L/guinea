@@ -8,7 +8,7 @@ import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFFS, OUTFIT_BUFFS, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFFS, OUTFIT_BUFFS, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { canCook, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
@@ -93,7 +93,7 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "explorerHamster"];
+        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
@@ -250,6 +250,7 @@ export function useGameState() {
     criticalDamage: state.criticalDamage + buffs.criticalDamage,
     criticalChance: (state.criticalChance ?? 5) + buffs.criticalChance,
     goldBonus: state.goldBonus + buffs.gold,
+    missChance: OUTFIT_MISS_CHANCE[state.equippedOutfit] ?? 0,
     enemyMaxHp,
     boss,
     speedMultiplier,

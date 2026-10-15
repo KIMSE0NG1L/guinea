@@ -35,6 +35,19 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.45 },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.14 },
   },
+  tetoGini: {
+    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
+    // Reuses the attack strip verbatim — same frame layout/scale, not just the same source.
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.04 },
+  },
+  assassinGini: {
+    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.24 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.21 },
+  },
 };
 
 export function CharacterSprite({

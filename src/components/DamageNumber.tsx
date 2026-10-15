@@ -7,7 +7,7 @@ import { formatGameNumber } from "../state/gameMath";
 
 // Mount a fresh instance per hit via `key={tick}` on the call site — mirrors the web's
 // `key={tick}` remount trick that restarted the CSS `damageUp` animation on every hit.
-export function DamageNumber({ amount, critical }: { amount: number; critical: boolean }) {
+export function DamageNumber({ amount, critical, missed }: { amount: number; critical: boolean; missed?: boolean }) {
   const progress = useSharedValue(0);
   // A little spread so a burst of taps doesn't stack every number in the exact same spot.
   const [jitter] = useState(() => ({ x: Math.round((Math.random() - 0.5) * 44), y: Math.round((Math.random() - 0.5) * 20) }));
@@ -26,6 +26,16 @@ export function DamageNumber({ amount, critical }: { amount: number; critical: b
     const scale = progress.value < 0.25 ? 0.7 + (progress.value / 0.25) * 0.45 : 1.15 - ((progress.value - 0.25) / 0.75) * 0.15;
     return { opacity, transform: [{ translateX: jitter.x }, { translateY: jitter.y + translateY }, { scale }] };
   });
+
+  if (missed) {
+    return (
+      <Animated.View style={[styles.wrap, style]}>
+        <StrokedText style={styles.miss} strokeColor={colors.cream} strokeWidth={1.5}>
+          MISS
+        </StrokedText>
+      </Animated.View>
+    );
+  }
 
   return (
     <Animated.View style={[styles.wrap, style]}>
@@ -52,6 +62,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   amountCritical: { color: "#db3b27", fontSize: 26 },
+  miss: {
+    color: "#8c8577",
+    fontSize: 20,
+    fontWeight: "900",
+    fontFamily: fonts.bold,
+    fontStyle: "italic",
+    letterSpacing: 1,
+  },
   criticalLabel: {
     color: "#f3b62f",
     fontSize: 9,

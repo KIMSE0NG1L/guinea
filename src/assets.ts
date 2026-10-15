@@ -15,6 +15,19 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-explorer-hamster-critical-strip.webp"),
       win: require("../assets/sprites/guinea-explorer-hamster-win-strip.webp"),
     },
+    tetoGini: {
+      idle: require("../assets/sprites/guinea-teto-idle-strip.webp"),
+      // Critical reuses the attack strip verbatim — no separate critical art for this outfit.
+      attack: require("../assets/sprites/guinea-teto-attack-strip.webp"),
+      critical: require("../assets/sprites/guinea-teto-attack-strip.webp"),
+      win: require("../assets/sprites/guinea-teto-win-strip.webp"),
+    },
+    assassinGini: {
+      idle: require("../assets/sprites/guinea-assassin-idle-strip.webp"),
+      attack: require("../assets/sprites/guinea-assassin-attack-strip.webp"),
+      critical: require("../assets/sprites/guinea-assassin-critical-strip.webp"),
+      win: require("../assets/sprites/guinea-assassin-win-strip.webp"),
+    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),

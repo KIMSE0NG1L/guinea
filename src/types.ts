@@ -4,7 +4,7 @@ export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering"
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
 export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander" | "monkey" | "carp" | "cactus" | "fox";
-export type Outfit = "default" | "explorerHamster";
+export type Outfit = "default" | "explorerHamster" | "tetoGini" | "assassinGini";
 export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 

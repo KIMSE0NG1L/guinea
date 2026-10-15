@@ -6,14 +6,39 @@ import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { CharacterSprite } from "../components/CharacterSprite";
-import { OUTFIT_BUFFS, describeEffect } from "../state/buffs";
+import { OUTFIT_BUFFS, OUTFIT_MISS_CHANCE, describeEffect } from "../state/buffs";
 import type { Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and, past "default", grants
-// its OUTFIT_BUFFS bonus for as long as it stays equipped.
-const COMPANIONS: { outfit: Outfit; name: string; detail: string }[] = [
-  { outfit: "default", name: "모험기니", detail: "동료 없이 다닐 때" },
-  { outfit: "explorerHamster", name: "탐험기니", detail: describeEffect(OUTFIT_BUFFS.explorerHamster!) },
+// its OUTFIT_BUFFS bonus (and, for tetoGini, an OUTFIT_MISS_CHANCE drawback) for as long
+// as it stays equipped.
+function companionDetail(outfit: Outfit) {
+  const buff = OUTFIT_BUFFS[outfit];
+  if (!buff) return "동료 없이 다닐 때";
+  const missChance = OUTFIT_MISS_CHANCE[outfit];
+  return missChance ? `${describeEffect(buff)} · ${missChance}% 확률로 공격 빗나감` : describeEffect(buff);
+}
+
+const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string }[] = [
+  { outfit: "default", name: "모험기니", blurb: "동료 없이 혼자 길을 나선 평범한 기니.", detail: companionDetail("default") },
+  {
+    outfit: "explorerHamster",
+    name: "탐험기니",
+    blurb: "지도와 봇짐을 메고 새 길을 찾아다니는 탐험가 햄스터.",
+    detail: companionDetail("explorerHamster"),
+  },
+  {
+    outfit: "tetoGini",
+    name: "테토기니",
+    blurb: "자신만만하게 주먹부터 내지르는 터프가이. 가끔 헛스윙한다.",
+    detail: companionDetail("tetoGini"),
+  },
+  {
+    outfit: "assassinGini",
+    name: "암살기니",
+    blurb: "두건으로 얼굴을 가리고 단검을 숨긴 그림자 속의 자객.",
+    detail: companionDetail("assassinGini"),
+  },
 ];
 
 const PREVIEW_SPRITE_SIZE = 108;
@@ -35,6 +60,7 @@ export function CompanionsScreen({
         <View>
           <Text style={styles.previewLabel}>함께하는 중</Text>
           <Text style={styles.previewTitle}>{equippedItem.name}</Text>
+          <Text style={styles.previewBlurb}>{equippedItem.blurb}</Text>
           <Text style={styles.previewSub}>{equippedItem.detail}</Text>
         </View>
         <View style={styles.previewSprite}>
@@ -53,6 +79,7 @@ export function CompanionsScreen({
               <View style={styles.cardCopy}>
                 <Text style={styles.cardSmall}>{equipped ? "함께하는 중" : "같이 다닐 수 있음"}</Text>
                 <Text style={styles.cardStrong}>{item.name}</Text>
+                <Text style={styles.cardBlurb}>{item.blurb}</Text>
                 <Text style={styles.cardSpan}>{item.detail}</Text>
               </View>
               <GameButton
@@ -88,6 +115,7 @@ const styles = StyleSheet.create({
   },
   previewLabel: { color: "#d7dfab", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1.5 },
   previewTitle: { marginTop: 5, fontSize: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  previewBlurb: { marginTop: 4, color: "#e4ddca", fontSize: 9, fontStyle: "italic" },
   previewSub: { marginTop: 5, color: "#e4ddca", fontSize: 9 },
   previewSprite: { marginRight: -2, marginBottom: -18 },
   list: { gap: 8 },
@@ -113,6 +141,7 @@ const styles = StyleSheet.create({
   cardCopy: { flex: 1 },
   cardSmall: { color: colors.green, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
   cardStrong: { marginVertical: 2, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  cardBlurb: { color: colors.muted, fontSize: 8, fontStyle: "italic", marginBottom: 2 },
   cardSpan: { color: colors.muted, fontSize: 8 },
   equipButton: { minWidth: 70 },
   equipButtonText: { fontSize: 9 },

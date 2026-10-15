@@ -31,6 +31,15 @@ export const BUFFS: Record<string, { effect: BuffEffect; durationMs: number; tin
 // bonus — smaller than a food buff since it never runs out, unlike those timed dishes.
 export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
   explorerHamster: { gold: 10 },
+  // Huge attack, but every hit risks whiffing entirely — see OUTFIT_MISS_CHANCE.
+  tetoGini: { attack: 100 },
+  assassinGini: { criticalDamage: 20 },
+};
+
+// Percent chance an attack whiffs completely (0 damage, no kill, no on-hit effects) while
+// this outfit is equipped — the tradeoff that balances tetoGini's oversized attack buff.
+export const OUTFIT_MISS_CHANCE: Partial<Record<Outfit, number>> = {
+  tetoGini: 40,
 };
 
 const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
