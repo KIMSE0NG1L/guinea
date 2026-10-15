@@ -164,6 +164,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "뼈 갈빗살", chance: 0.4 },
     ],
   },
+  // 사막시장: the fox snatches whatever spice jars and produce it can carry off the
+  // stalls; the rattlesnake guards the market's finest smoked and cured goods.
+  fox: {
+    mob: [
+      { name: "토마토", chance: 0.3 },
+      { name: "양파", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 살코기", chance: 1, quantity: 2 },
+      { name: "뼈 갈빗살", chance: 0.6 },
+      { name: "치즈", chance: 0.4 },
+    ],
+  },
 };
 
 export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {

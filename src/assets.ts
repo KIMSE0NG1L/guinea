@@ -140,22 +140,33 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-dehydrated-camel-hit-strip.png"),
     die: require("../assets/sprites/boss-dehydrated-camel-die-strip.png"),
   },
+  fox: {
+    idle: require("../assets/sprites/desert-fox-idle-strip.png"),
+    hit: require("../assets/sprites/desert-fox-hit-strip.png"),
+    die: require("../assets/sprites/desert-fox-die-strip.png"),
+  },
+  bossRattlesnake: {
+    idle: require("../assets/sprites/boss-rattlesnake-idle-strip.png"),
+    hit: require("../assets/sprites/boss-rattlesnake-hit-strip.png"),
+    die: require("../assets/sprites/boss-rattlesnake-die-strip.png"),
+  },
 };
 
 export const images = {
-  battleBackground: require("../assets/sprites/battle-forest.png"),
-  battleBackgroundMushroom: require("../assets/sprites/battle-mushroom-swamp.png"),
-  battleBackgroundFarm: require("../assets/sprites/battle-farm.png"),
-  battleBackgroundChicken: require("../assets/sprites/battle-chicken-farm.png"),
-  battleBackgroundPotatoCave: require("../assets/sprites/battle-potato-cave.png"),
-  battleBackgroundVillage: require("../assets/sprites/battle-village.png"),
-  battleBackgroundMansionKitchen: require("../assets/sprites/battle-mansion-kitchen.png"),
-  battleBackgroundHarborBeach: require("../assets/sprites/battle-harbor-beach.png"),
-  battleBackgroundSunkenReef: require("../assets/sprites/battle-sunken-reef.png"),
-  battleBackgroundVolcanoIsland: require("../assets/sprites/battle-volcano-island.png"),
-  battleBackgroundTropicalJungle: require("../assets/sprites/battle-tropical-jungle.png"),
-  battleBackgroundOasis: require("../assets/sprites/battle-oasis.png"),
-  battleBackgroundDesert: require("../assets/sprites/battle-desert.png"),
+  battleBackground: require("../assets/sprites/battle-forest.webp"),
+  battleBackgroundMushroom: require("../assets/sprites/battle-mushroom-swamp.webp"),
+  battleBackgroundFarm: require("../assets/sprites/battle-farm.webp"),
+  battleBackgroundChicken: require("../assets/sprites/battle-chicken-farm.webp"),
+  battleBackgroundPotatoCave: require("../assets/sprites/battle-potato-cave.webp"),
+  battleBackgroundVillage: require("../assets/sprites/battle-village.webp"),
+  battleBackgroundMansionKitchen: require("../assets/sprites/battle-mansion-kitchen.webp"),
+  battleBackgroundHarborBeach: require("../assets/sprites/battle-harbor-beach.webp"),
+  battleBackgroundSunkenReef: require("../assets/sprites/battle-sunken-reef.webp"),
+  battleBackgroundVolcanoIsland: require("../assets/sprites/battle-volcano-island.webp"),
+  battleBackgroundTropicalJungle: require("../assets/sprites/battle-tropical-jungle.webp"),
+  battleBackgroundOasis: require("../assets/sprites/battle-oasis.webp"),
+  battleBackgroundDesert: require("../assets/sprites/battle-desert.webp"),
+  battleBackgroundDesertMarket: require("../assets/sprites/battle-desert-market.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

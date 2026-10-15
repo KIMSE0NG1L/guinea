@@ -14,6 +14,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   monkey: "바나숭이",
   carp: "연못 잉어",
   cactus: "꼬마 선인장",
+  fox: "사막여우",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -30,6 +31,7 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   monkey: "거대식충식물",
   carp: "개천용",
   cactus: "탈수 직전 낙타",
+  fox: "방울뱀",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -48,6 +50,7 @@ export const STAGES: { area: string; enemyKind: EnemyKind }[] = [
   { area: "열대 정글", enemyKind: "monkey" },
   { area: "오아시스", enemyKind: "carp" },
   { area: "사막", enemyKind: "cactus" },
+  { area: "사막시장", enemyKind: "fox" },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;
