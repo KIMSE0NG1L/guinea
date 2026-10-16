@@ -4,6 +4,7 @@ import { colors, fonts } from "../theme";
 import { frameImages } from "../assets";
 import { StrokedText } from "./StrokedText";
 import { BUFFS, formatDuration, type BuffSlot } from "../state/buffs";
+import { tutorialRef } from "./tutorialTargets";
 import { RECIPES } from "../state/recipes";
 
 export const BUFF_SLOT_SIZE = 44;
@@ -57,6 +58,7 @@ export function BuffSlots({
         return (
           <Pressable
             key={index}
+            ref={tutorialRef(`buff-slot-${index}`)}
             onPress={() => onPressSlot(index)}
             disabled={Boolean(running)}
             accessibilityRole="button"

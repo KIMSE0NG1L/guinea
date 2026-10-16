@@ -103,6 +103,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
             setPickingSlot(null);
           }}
           onClose={() => setPickingSlot(null)}
+          guideRecipeId={state.tutorialDone && !state.recipeTutorialDone ? "green-jelly" : undefined}
           onGoCook={() => {
             setPickingSlot(null);
             game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }));

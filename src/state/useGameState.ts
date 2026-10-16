@@ -7,6 +7,7 @@ import { getExpReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { advanceQuest, migrateQuests } from "./quests";
+import { getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
@@ -176,7 +177,10 @@ export function useGameState() {
     if (!loaded) return;
     if (state.level > previousLevelRef.current) {
       setLevelUpAnnouncement(state.level);
-      const timer = setTimeout(() => setLevelUpAnnouncement(null), 1100);
+      // Held longer when something unlocks, so its toast can actually be read.
+      const unlocks = getUnlocksAtLevel(state.level);
+      const holdMs = unlocks.outfits.length + unlocks.skills.length > 0 ? 2800 : 1100;
+      const timer = setTimeout(() => setLevelUpAnnouncement(null), holdMs);
       previousLevelRef.current = state.level;
       return () => clearTimeout(timer);
     }
@@ -192,7 +196,13 @@ export function useGameState() {
 
     // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
     // A full bag only turns away kinds it doesn't already hold — those just don't drop.
-    const drops = fitItems(state.inventory, rollDrops(getEnemyKind(state.stageNumber), boss), getBagCapacity(state.bagExpansions)).kept;
+    let rolled = rollDrops(getEnemyKind(state.stageNumber), boss);
+    // The first slime after the intro always leaves a 초록 젤리 ×3 — exactly one 말랑 초록
+    // 젤리's worth, which kicks off the recipe tutorial.
+    const tutorialJelly = state.tutorialDone && !state.recipeTutorialDone && !boss
+      && getEnemyKind(state.stageNumber) === "slime" && !state.inventory.some((item) => item.name === "초록 젤리");
+    if (tutorialJelly) rolled = [...rolled.filter((drop) => drop.name !== "초록 젤리"), { name: "초록 젤리", quantity: 3 }];
+    const drops = fitItems(state.inventory, rolled, getBagCapacity(state.bagExpansions)).kept;
     if (drops.length > 0) {
       // One flying icon per item, staggered so a boss's pile spills out one by one.
       const events = drops
@@ -242,7 +252,7 @@ export function useGameState() {
         }),
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -287,6 +297,7 @@ export function useGameState() {
   const skillSwapReadyAt = Math.max(castLockEnd, passiveLockEnd);
   const equipSkill = (equippedSkill: SkillId | null) => {
     if (Date.now() < skillSwapReadyAt) return;
+    if (equippedSkill && !isSkillUnlocked(equippedSkill, state.level)) return;
     setState((previous) => ({ ...previous, equippedSkill, skillEquippedAt: Date.now() }));
   };
 

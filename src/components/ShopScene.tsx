@@ -4,6 +4,7 @@ import { colors, fonts } from "../theme";
 import { shopImages, shopKit } from "../assets";
 import { NineSlice, Panel } from "./NineSlice";
 import { GameButton } from "./GameButton";
+import { tutorialRef } from "./tutorialTargets";
 import { formatGameNumber } from "../state/gameMath";
 
 // Height / width of the kitchen background art (1168x880).
@@ -47,7 +48,7 @@ export function ShopTopBar({
 }) {
   return (
     <View style={styles.topRow}>
-      <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={6}>
+      <Pressable ref={tutorialRef("shop-back")} onPress={onBack} accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={6}>
         {({ pressed }) => <Image source={shopImages.arrowBack} style={[styles.back, pressed && styles.pressed]} />}
       </Pressable>
       <View style={styles.titleCopy}>

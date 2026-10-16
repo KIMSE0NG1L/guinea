@@ -76,6 +76,7 @@ export function RecipeShopScreen({
               <GameButton
                 variant={learned ? "pillCream" : affordable ? "red" : "pillGray"}
                 onPress={() => learn(recipe.id, recipe.name)}
+                tutorialId={`learn-${recipe.id}`}
                 accessibilityLabel={learned ? `${recipe.name} 배움` : `${sealed ? "히든" : recipe.name} 레시피 ${recipe.price}골드에 배우기`}
                 style={styles.button}
               >

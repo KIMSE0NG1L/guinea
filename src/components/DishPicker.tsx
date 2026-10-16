@@ -2,6 +2,7 @@ import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "rea
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { GameButton } from "./GameButton";
+import { ARROW_H, ARROW_W, GuideArrow } from "./GuideArrow";
 import { NineSlice, Panel } from "./NineSlice";
 import { BUFFS, describeEffect, formatDuration, type BuffSlot } from "../state/buffs";
 import { getItemQuantity, RECIPES } from "../state/recipes";
@@ -15,6 +16,7 @@ export function DishPicker({
   onEat,
   onClose,
   onGoCook,
+  guideRecipeId,
 }: {
   inventory: GameState["inventory"];
   slots: BuffSlot[];
@@ -22,6 +24,9 @@ export function DishPicker({
   onEat: (recipeId: string) => void;
   onClose: () => void;
   onGoCook: () => void;
+  // During the recipe tutorial: the dish whose 먹기 button gets the guide arrow. The picker
+  // is a Modal above the guide layer, so it draws that arrow itself.
+  guideRecipeId?: string;
 }) {
   const dishes = RECIPES.filter((recipe) => getItemQuantity(inventory, recipe.name) > 0);
   const running = new Set(slots.filter((slot) => slot && slot.expiresAt > now).map((slot) => slot!.recipeId));
@@ -63,15 +68,18 @@ export function DishPicker({
                       <Text style={styles.effect}>{describeEffect(buff.effect)}</Text>
                       <Text style={styles.duration}>{formatDuration(buff.durationMs)} 지속</Text>
                     </View>
-                    <GameButton
-                      variant={busy ? "gray" : "green"}
-                      disabled={busy}
-                      onPress={() => onEat(recipe.id)}
-                      style={styles.eatButton}
-                      textStyle={styles.eatText}
-                    >
-                      {busy ? "효과 중" : "먹기"}
-                    </GameButton>
+                    <View>
+                      <GameButton
+                        variant={busy ? "gray" : "green"}
+                        disabled={busy}
+                        onPress={() => onEat(recipe.id)}
+                        style={styles.eatButton}
+                        textStyle={styles.eatText}
+                      >
+                        {busy ? "효과 중" : "먹기"}
+                      </GameButton>
+                      {recipe.id === guideRecipeId && !busy && <GuideArrow direction="right" style={styles.guideArrow} />}
+                    </View>
                   </Panel>
                 );
               })}
@@ -84,6 +92,8 @@ export function DishPicker({
 }
 
 const styles = StyleSheet.create({
+  // Points in from the left — the list scrolls, so anything above the row gets clipped.
+  guideArrow: { right: "100%", marginRight: 2, top: "50%", marginTop: -ARROW_H / 2, width: ARROW_W },
   backdrop: { flex: 1, paddingHorizontal: 14, justifyContent: "center", backgroundColor: "#263024cf" },
   panel: { maxHeight: "80%", width: "100%", maxWidth: 410, alignSelf: "center", paddingHorizontal: 18, paddingTop: 16, paddingBottom: 20 },
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },

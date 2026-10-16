@@ -15,6 +15,8 @@ import {
   OUTFIT_MISS_CHANCE,
   describeEffect,
 } from "../state/buffs";
+import { LockBadge } from "../components/LockBadge";
+import { isOutfitUnlocked, OUTFIT_UNLOCK_LEVEL } from "../state/unlocks";
 import type { Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and grants whichever of these
@@ -66,11 +68,17 @@ const PREVIEW_SPRITE_SIZE = 108;
 // Height / width of the battle backgrounds (1168x880).
 const BACKDROP_ASPECT = 880 / 1168;
 
+export function getCompanionName(outfit: Outfit) {
+  return COMPANIONS.find((item) => item.outfit === outfit)?.name ?? outfit;
+}
+
 export function CompanionsScreen({
   equippedOutfit,
+  level,
   onEquip,
 }: {
   equippedOutfit: Outfit;
+  level: number;
   onEquip: (outfit: Outfit) => void;
 }) {
   const equippedItem = COMPANIONS.find((item) => item.outfit === equippedOutfit) ?? COMPANIONS[0];
@@ -114,24 +122,34 @@ export function CompanionsScreen({
       <View style={styles.list}>
         {COMPANIONS.map((item) => {
           const equipped = item.outfit === equippedOutfit;
+          const unlockLevel = OUTFIT_UNLOCK_LEVEL[item.outfit];
+          const locked = !equipped && !isOutfitUnlocked(item.outfit, level);
           return (
             <Panel slice={equipped ? kit.panel : kit.inset} style={styles.card} key={item.outfit}>
-              <View style={styles.avatar}>
-                <CharacterSprite outfit={item.outfit} animation="idle" size={46} restartKey={item.outfit} />
+              <View>
+                <View style={[styles.avatar, locked && styles.avatarLocked]}>
+                  <View style={locked && styles.dimmed}>
+                    <CharacterSprite outfit={item.outfit} animation="idle" size={46} restartKey={item.outfit} />
+                  </View>
+                </View>
+                {locked && <LockBadge />}
               </View>
               <View style={styles.cardCopy}>
-                <Text style={styles.cardSmall}>{equipped ? "함께하는 중" : "같이 다닐 수 있음"}</Text>
+                <Text style={[styles.cardSmall, locked && styles.cardSmallLocked]}>
+                  {equipped ? "함께하는 중" : locked ? `Lv.${unlockLevel}에 합류` : "같이 다닐 수 있음"}
+                </Text>
                 <Text style={styles.cardStrong}>{item.name}</Text>
                 <Text style={styles.cardBlurb}>{item.blurb}</Text>
                 <Text style={styles.cardSpan}>{item.detail}</Text>
               </View>
               <GameButton
-                variant={equipped ? "green" : "beige"}
+                variant={equipped ? "green" : locked ? "gray" : "beige"}
+                disabled={locked}
                 onPress={() => onEquip(item.outfit)}
                 style={styles.equipButton}
                 textStyle={styles.equipButtonText}
               >
-                {equipped ? "함께 중" : "함께하기"}
+                {equipped ? "함께 중" : locked ? `Lv.${unlockLevel}` : "함께하기"}
               </GameButton>
             </Panel>
           );
@@ -175,6 +193,9 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     overflow: "hidden",
   },
+  avatarLocked: { backgroundColor: "#d9cfb9" },
+  dimmed: { opacity: 0.35 },
+  cardSmallLocked: { color: colors.red },
   cardCopy: { flex: 1 },
   cardSmall: { color: colors.green, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
   cardStrong: { marginVertical: 2, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },

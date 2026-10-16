@@ -16,7 +16,14 @@ export function RecipeArt({ recipe, size, sealed = false }: { recipe: Recipe; si
       <Image source={tier.template} style={{ width: size, height: size }} />
       <Image
         source={recipe.image}
-        style={{ position: "absolute", width: dish, height: dish, left: (x + w / 2) * size - dish / 2, top: (y + h / 2) * size - dish / 2 }}
+        style={{
+          position: "absolute",
+          width: dish,
+          height: dish,
+          left: (x + w / 2) * size - dish / 2,
+          top: (y + h / 2) * size - dish / 2,
+          transform: [{ rotate: `${tier.dishTilt}deg` }],
+        }}
       />
     </View>
   );

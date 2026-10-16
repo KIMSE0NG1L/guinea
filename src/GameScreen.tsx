@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "./theme";
@@ -22,6 +23,7 @@ import { TutorialOverlay } from "./components/TutorialOverlay";
 import { RecipeTutorial } from "./components/RecipeTutorial";
 import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
 import { getBagCapacity } from "./state/bag";
+import { isOutfitUnlocked } from "./state/unlocks";
 import type { Tab } from "./types";
 
 export function GameScreen() {
@@ -29,6 +31,16 @@ export function GameScreen() {
   const { state, setState, questOpen, setQuestOpen, claimQuest } = game;
 
   const onSelectTab = (selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab }));
+
+  // The recipe tutorial opens once the first 초록 젤리 is in the bag — after a beat, so the
+  // drop gets to finish flying into the bag button first.
+  const hasJelly = state.inventory.some((item) => item.name === "초록 젤리");
+  const [recipeTutorialArmed, setRecipeTutorialArmed] = useState(false);
+  useEffect(() => {
+    if (!hasJelly || recipeTutorialArmed) return;
+    const timer = setTimeout(() => setRecipeTutorialArmed(true), 1600);
+    return () => clearTimeout(timer);
+  }, [hasJelly, recipeTutorialArmed]);
 
   const renderContent = () => {
     switch (state.selectedTab) {
@@ -40,7 +52,10 @@ export function GameScreen() {
         return (
           <CompanionsScreen
             equippedOutfit={state.equippedOutfit}
-            onEquip={(equippedOutfit) => setState((previous) => ({ ...previous, equippedOutfit }))}
+            level={state.level}
+            onEquip={(equippedOutfit) =>
+              setState((previous) => (isOutfitUnlocked(equippedOutfit, previous.level) ? { ...previous, equippedOutfit } : previous))
+            }
           />
         );
       case "inventory":
@@ -64,6 +79,7 @@ export function GameScreen() {
         return (
           <SkillsScreen
             equippedSkill={state.equippedSkill ?? null}
+            level={state.level}
             onEquip={game.equipSkill}
             swapReadyAt={game.skillSwapReadyAt}
             now={game.now}
@@ -128,7 +144,7 @@ export function GameScreen() {
           onOpenShop={() => onSelectTab("shop")}
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
         />
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView key={state.selectedTab} style={styles.content} contentContainerStyle={styles.contentContainer}>
           {renderContent()}
         </ScrollView>
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
@@ -146,17 +162,15 @@ export function GameScreen() {
         {game.loaded && !state.tutorialDone && !game.offlineSummary && (
           <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true }))} />
         )}
-        {game.loaded && state.tutorialDone && !state.recipeTutorialDone && !game.offlineSummary && (
+        {game.loaded && state.tutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && (
           <RecipeTutorial
+            tab={state.selectedTab}
             knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
             canCookFirst={canCook(state.inventory, RECIPES.find((recipe) => recipe.id === "green-jelly")!)}
+            dishesCooked={state.dishesCooked ?? 0}
+            dishesEaten={state.dishesEaten ?? 0}
+            freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot) => !slot || slot.expiresAt <= game.now))}
             onGoTo={onSelectTab}
-            onLearn={game.learnRecipe}
-            onCook={game.cook}
-            onEat={(recipeId) => {
-              const free = game.buffSlots.findIndex((slot) => !slot || slot.expiresAt <= game.now);
-              game.eatDish(Math.max(0, free), recipeId);
-            }}
             onFinish={() => setState((previous) => ({ ...previous, recipeTutorialDone: true }))}
           />
         )}

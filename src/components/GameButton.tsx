@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, type GestureResponderEvent, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { colors, fonts } from "../theme";
 import { kit, shopKit } from "../assets";
+import { tutorialRef } from "./tutorialTargets";
 import { NineSlice } from "./NineSlice";
 
 export type ButtonVariant = "cream" | "green" | "beige" | "gray" | "brown" | "red" | "pillCream" | "pillGray";
@@ -36,6 +37,7 @@ export function GameButton({
   style,
   textStyle,
   accessibilityLabel,
+  tutorialId,
 }: {
   children: React.ReactNode;
   onPress?: (event: GestureResponderEvent) => void;
@@ -44,9 +46,12 @@ export function GameButton({
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   accessibilityLabel?: string;
+  // Lets a guided tutorial find this button and point an arrow at it.
+  tutorialId?: string;
 }) {
   return (
     <Pressable
+      ref={tutorialRef(tutorialId)}
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"

@@ -33,6 +33,9 @@ import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import { ITEM_IMAGES } from "../state/recipes";
 import type { DropEvent } from "../state/useGameState";
+import { tutorialRef } from "../components/tutorialTargets";
+import { getUnlocksAtLevel } from "../state/unlocks";
+import { getCompanionName } from "./CompanionsScreen";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
 
 // Each boss art source fills a different fraction of its 160px frame (the original
@@ -338,6 +341,7 @@ export function BattleScene({
 
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
+          {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
 
 
           <Animated.View
@@ -467,6 +471,25 @@ export function BattleScene({
 }
 
 // Opens the bag; bumps each time a dropped ingredient lands in it.
+// Under the stage bar on a level-up that opens a companion or skill — says what just opened.
+function UnlockToast({ level }: { level: number }) {
+  const { outfits, skills } = getUnlocksAtLevel(level);
+  const lines = [
+    ...outfits.map((outfit) => `새 동료 합류! ${getCompanionName(outfit)}`),
+    ...skills.map((id) => `새 스킬 해금! ${getSkill(id).name}`),
+  ];
+  if (lines.length === 0) return null;
+  return (
+    <View style={styles.unlockToast} pointerEvents="none">
+      {lines.map((line) => (
+        <StrokedText key={line} style={styles.unlockText} strokeColor={colors.line}>
+          {line}
+        </StrokedText>
+      ))}
+    </View>
+  );
+}
+
 function BagButton({ onPress, dropEvents, full }: { onPress: () => void; dropEvents: DropEvent[]; full: boolean }) {
   const bump = useSharedValue(1);
   const lastSeen = useRef(0);
@@ -486,6 +509,7 @@ function BagButton({ onPress, dropEvents, full }: { onPress: () => void; dropEve
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
+      ref={tutorialRef("bag")}
       accessibilityLabel={full ? "가방 열기 (가득 참)" : "가방 열기"}
       hitSlop={8}
       style={({ pressed }) => [styles.bagButton, pressed && styles.mapButtonPressed]}
@@ -798,6 +822,22 @@ const styles = StyleSheet.create({
   questPressed: { transform: [{ scale: 0.92 }] },
   questIcon: { width: 38, height: 38 },
   // Just a dot — whether there's something to claim, not how many.
+  unlockToast: {
+    position: "absolute",
+    top: 62,
+    alignSelf: "center",
+    left: 40,
+    right: 40,
+    alignItems: "center",
+    gap: 2,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: "#14100cb3",
+    borderWidth: 2,
+    borderColor: "#ffd34d",
+    zIndex: 12,
+  },
+  unlockText: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
   // Red tag on the bag's corner while new kinds of drops are being turned away.
   bagFull: { position: "absolute", top: -4, right: -6, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 7, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.line },
   bagFullText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },

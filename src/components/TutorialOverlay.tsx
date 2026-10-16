@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Svg, { Path } from "react-native-svg";
+import { ARROW_H, ARROW_W, GuideArrow } from "./GuideArrow";
+import { measureTarget, type TargetRect } from "./tutorialTargets";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
@@ -56,9 +59,10 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
   );
 }
 
-// The shared stage for every guided moment: 모험기니 in the corner, a dimmed game behind,
-// and one speech-bubble line. Tapping advances when `onTap` is set; otherwise the bubble
-// waits for its `action` button (used when the step needs the player to do something).
+// The shared stage for every guided moment: 모험기니 in a corner, a dimmed game behind,
+// and one speech-bubble line. Tapping advances when `onTap` is set. With `targetId`, the
+// dim layer gets a hole over that button and an arrow bounces on it — only the real
+// button can be pressed, and the guide waits for the game to react.
 export function GuideScene({
   stepKey,
   line,
@@ -67,6 +71,7 @@ export function GuideScene({
   onTap,
   onSkip,
   action,
+  targetId,
 }: {
   stepKey: number | string;
   line: string;
@@ -75,9 +80,13 @@ export function GuideScene({
   onTap?: () => void;
   onSkip?: () => void;
   action?: { label: string; onPress: () => void; accessibilityLabel?: string };
+  targetId?: string;
 }) {
   const pop = useSharedValue(0);
   const blink = useSharedValue(1);
+  const overlayRef = useRef<View>(null);
+  const [overlaySize, setOverlaySize] = useState({ width: 0, height: 0 });
+  const [hole, setHole] = useState<TargetRect | null>(null);
 
   useEffect(() => {
     pop.value = 0;
@@ -90,68 +99,114 @@ export function GuideScene({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Re-measured on a short poll: pages change, scroll and settle under the guide.
+  // The parent keys each step's scene, so a stale hole never carries over.
+  useEffect(() => {
+    if (!targetId) return;
+    let alive = true;
+    const measure = async () => {
+      const overlay = overlayRef.current;
+      const target = await measureTarget(targetId);
+      if (!alive || !overlay) return;
+      overlay.measureInWindow((ox, oy) => {
+        if (!alive) return;
+        const next = target ? { x: target.x - ox, y: target.y - oy, width: target.width, height: target.height } : null;
+        setHole((previous) =>
+          previous && next && Math.abs(previous.x - next.x) < 1 && Math.abs(previous.y - next.y) < 1 && previous.width === next.width
+            ? previous
+            : next,
+        );
+      });
+    };
+    measure();
+    const timer = setInterval(measure, 250);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [targetId, stepKey]);
+
   const bubbleStyle = useAnimatedStyle(() => ({
     opacity: Math.min(1, pop.value * 1.6),
     transform: [{ translateY: (1 - pop.value) * 10 }, { scale: 0.9 + pop.value * 0.1 }],
   }));
   const hintStyle = useAnimatedStyle(() => ({ opacity: blink.value }));
 
-  return (
-    <View style={styles.overlay}>
-      <Pressable style={styles.scrim} onPress={onTap} accessibilityRole={onTap ? "button" : undefined} accessibilityLabel={onTap ? "다음 설명" : undefined}>
-        {/* Extra darkness behind the guinea and bubble so they read clearly. */}
-        <LinearGradient colors={["rgba(20,16,12,0)", "rgba(20,16,12,0.6)"]} style={styles.scrimFade} pointerEvents="none" />
-      </Pressable>
+  // Guide sits at the bottom unless the button it points at is down there.
+  const atTop = hole !== null && hole.y + hole.height / 2 > overlaySize.height * 0.5;
 
-      <View style={styles.guinea} pointerEvents="none">
-        <View style={styles.groundShadow} />
-        <View style={styles.spriteShadow}>
-          <CharacterSprite outfit="default" animation="idle" size={SPRITE_SIZE} />
+  return (
+    <View
+      ref={overlayRef}
+      style={styles.overlay}
+      pointerEvents="box-none"
+      onLayout={(event) => setOverlaySize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })}
+    >
+      {targetId ? (
+        hole ? (
+          <Spotlight hole={hole} size={overlaySize} />
+        ) : (
+          <View style={styles.scrim} />
+        )
+      ) : (
+        <Pressable style={styles.scrim} onPress={onTap} accessibilityRole={onTap ? "button" : undefined} accessibilityLabel={onTap ? "다음 설명" : undefined}>
+          {/* Extra darkness behind the guinea and bubble so they read clearly. */}
+          <LinearGradient colors={["rgba(20,16,12,0)", "rgba(20,16,12,0.6)"]} style={styles.scrimFade} pointerEvents="none" />
+        </Pressable>
+      )}
+
+      <View style={[styles.group, atTop ? styles.groupTop : styles.groupBottom]} pointerEvents="box-none">
+        <Animated.View style={[styles.bubbleWrap, bubbleStyle]} pointerEvents="box-none">
+          {onSkip && (
+            <GameButton variant="pillGray" onPress={onSkip} style={styles.skip} textStyle={styles.skipText} accessibilityLabel="튜토리얼 건너뛰기">
+              건너뛰기 ▸▸
+            </GameButton>
+          )}
+          {/* Only a tap-to-continue bubble is pressable — a disabled Pressable would swallow
+              presses meant for the action button inside it on web. */}
+          <BubbleBody onPress={onTap}>
+            {/* A dark silhouette of the bubble, nudged down-right, is its drop shadow. */}
+            <View style={styles.bubbleShadow}>
+              <NineSlice slice={shopKit.bubble} scale={0.42} tint="#140c06" />
+            </View>
+            <NineSlice slice={shopKit.bubble} scale={0.42} />
+            <View style={styles.body}>
+              <View style={styles.copy}>
+                <Text style={styles.speaker}>모험기니</Text>
+                <RichLine text={line} />
+              </View>
+              {icon !== undefined && (
+                <View style={styles.iconSlot}>
+                  <NineSlice slice={frameKit.squareWood} scale={0.5} />
+                  <Image source={icon} style={styles.icon} resizeMode="contain" />
+                </View>
+              )}
+            </View>
+            <View style={styles.footer}>
+              <View style={styles.dots}>
+                {dots && Array.from({ length: dots.count }, (_, index) => (
+                  <View key={index} style={[styles.dot, index === dots.index && styles.dotActive]} />
+                ))}
+              </View>
+              {action ? (
+                <GameButton variant="green" onPress={action.onPress} style={styles.start} textStyle={styles.startText} accessibilityLabel={action.accessibilityLabel}>
+                  {action.label}
+                </GameButton>
+              ) : targetId ? (
+                <Animated.Text style={[styles.hint, hintStyle]}>화살표를 눌러 봐!</Animated.Text>
+              ) : (
+                onTap && <Animated.Text style={[styles.hint, hintStyle]}>터치해서 계속 ▸</Animated.Text>
+              )}
+            </View>
+          </BubbleBody>
+        </Animated.View>
+        <View style={styles.guinea} pointerEvents="none">
+          <View style={styles.groundShadow} />
+          <View style={styles.spriteShadow}>
+            <CharacterSprite outfit="default" animation="idle" size={SPRITE_SIZE} />
+          </View>
         </View>
       </View>
-
-      <Animated.View style={[styles.bubbleWrap, bubbleStyle]} pointerEvents="box-none">
-        {onSkip && (
-          <GameButton variant="pillGray" onPress={onSkip} style={styles.skip} textStyle={styles.skipText} accessibilityLabel="튜토리얼 건너뛰기">
-            건너뛰기 ▸▸
-          </GameButton>
-        )}
-        {/* Only a tap-to-continue bubble is pressable — a disabled Pressable would swallow
-            presses meant for the action button inside it on web. */}
-        <BubbleBody onPress={onTap}>
-          {/* A dark silhouette of the bubble, nudged down-right, is its drop shadow. */}
-          <View style={styles.bubbleShadow}>
-            <NineSlice slice={shopKit.bubble} scale={0.42} tint="#140c06" />
-          </View>
-          <NineSlice slice={shopKit.bubble} scale={0.42} />
-          <View style={styles.body}>
-            <View style={styles.copy}>
-              <Text style={styles.speaker}>모험기니</Text>
-              <RichLine text={line} />
-            </View>
-            {icon !== undefined && (
-              <View style={styles.iconSlot}>
-                <NineSlice slice={frameKit.squareWood} scale={0.5} />
-                <Image source={icon} style={styles.icon} resizeMode="contain" />
-              </View>
-            )}
-          </View>
-          <View style={styles.footer}>
-            <View style={styles.dots}>
-              {dots && Array.from({ length: dots.count }, (_, index) => (
-                <View key={index} style={[styles.dot, index === dots.index && styles.dotActive]} />
-              ))}
-            </View>
-            {action ? (
-              <GameButton variant="green" onPress={action.onPress} style={styles.start} textStyle={styles.startText} accessibilityLabel={action.accessibilityLabel}>
-                {action.label}
-              </GameButton>
-            ) : (
-              onTap && <Animated.Text style={[styles.hint, hintStyle]}>터치해서 계속 ▸</Animated.Text>
-            )}
-          </View>
-        </BubbleBody>
-      </Animated.View>
     </View>
   );
 }
@@ -165,13 +220,66 @@ function BubbleBody({ onPress, children }: { onPress?: () => void; children: Rea
   );
 }
 
+const HOLE_PAD = 6;
+const RING_RADIUS = 12;
+const DIM_COLOR = "rgba(20, 16, 12, 0.6)";
+
+// Four dim panels around the target leave it uncovered (and pressable), with a pulsing
+// gold ring around it and a bouncing arrow pointing in from above (or below, near the top).
+function Spotlight({ hole, size }: { hole: TargetRect; size: { width: number; height: number } }) {
+  const bounce = useSharedValue(0);
+  useEffect(() => {
+    bounce.value = withRepeat(withSequence(withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 380, easing: Easing.in(Easing.quad) })), -1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const left = hole.x - HOLE_PAD;
+  const top = hole.y - HOLE_PAD;
+  const right = hole.x + hole.width + HOLE_PAD;
+  const bottom = hole.y + hole.height + HOLE_PAD;
+  const below = top < ARROW_H + 12;
+  const ringStyle = useAnimatedStyle(() => ({ opacity: 0.55 + bounce.value * 0.45 }));
+  // The dim is drawn as one shape with a rounded hole matching the gold ring, so no square
+  // corners of undimmed game peek out around it. The four clear panels only block presses.
+  const ring = { left: left - 2, top: top - 2, right: right + 2, bottom: bottom + 2 };
+  const r = Math.min(RING_RADIUS, (ring.right - ring.left) / 2, (ring.bottom - ring.top) / 2);
+  const dimPath =
+    `M0 0 H${size.width} V${size.height} H0 Z ` +
+    `M${ring.left + r} ${ring.top} H${ring.right - r} A${r} ${r} 0 0 1 ${ring.right} ${ring.top + r} ` +
+    `V${ring.bottom - r} A${r} ${r} 0 0 1 ${ring.right - r} ${ring.bottom} ` +
+    `H${ring.left + r} A${r} ${r} 0 0 1 ${ring.left} ${ring.bottom - r} ` +
+    `V${ring.top + r} A${r} ${r} 0 0 1 ${ring.left + r} ${ring.top} Z`;
+  return (
+    <>
+      <Svg width={size.width} height={size.height} style={styles.dimShape} pointerEvents="none">
+        <Path d={dimPath} fill={DIM_COLOR} fillRule="evenodd" />
+      </Svg>
+      <View style={[styles.blocker, { left: 0, top: 0, width: size.width, height: Math.max(0, top) }]} />
+      <View style={[styles.blocker, { left: 0, top: bottom, width: size.width, height: Math.max(0, size.height - bottom) }]} />
+      <View style={[styles.blocker, { left: 0, top, width: Math.max(0, left), height: bottom - top }]} />
+      <View style={[styles.blocker, { left: right, top, width: Math.max(0, size.width - right), height: bottom - top }]} />
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.ring, { left: ring.left, top: ring.top, width: ring.right - ring.left, height: ring.bottom - ring.top, borderRadius: r }, ringStyle]}
+      />
+      <GuideArrow direction={below ? "up" : "down"} style={{ left: hole.x + hole.width / 2 - ARROW_W / 2, top: below ? bottom + 4 : top - ARROW_H - 4 }} />
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
   overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 },
   scrim: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(20, 16, 12, 0.55)" },
   scrimFade: { position: "absolute", left: 0, right: 0, bottom: 0, height: "55%" },
   skip: { alignSelf: "flex-end", minHeight: 30, paddingHorizontal: 14, marginBottom: 10 },
   skipText: { fontSize: 12 },
-  guinea: { position: "absolute", left: 4, bottom: 26, width: SPRITE_SIZE, height: SPRITE_SIZE, alignItems: "center" },
+  // Bubble above, guinea below it; the whole group parks at the bottom or the top.
+  group: { position: "absolute", left: 0, right: 0 },
+  groupBottom: { bottom: 26 },
+  groupTop: { top: 12 },
+  guinea: { marginLeft: 4, marginTop: 4, width: SPRITE_SIZE, height: SPRITE_SIZE, alignItems: "center" },
+  dimShape: { position: "absolute", left: 0, top: 0 },
+  blocker: { position: "absolute" },
+  ring: { position: "absolute", borderWidth: 3, borderColor: "#ffd34d" },
   // Soft oval under the feet so the guinea stands on something instead of floating.
   groundShadow: {
     position: "absolute",
@@ -183,7 +291,7 @@ const styles = StyleSheet.create({
   },
   spriteShadow: { filter: "drop-shadow(0px 5px 4px rgba(10, 6, 3, 0.55))" },
   // The tail sits at the bubble's bottom-left, so the bubble hangs up and right of the guinea's head.
-  bubbleWrap: { position: "absolute", left: 70, right: 12, bottom: SPRITE_SIZE + 4 },
+  bubbleWrap: { marginLeft: 70, marginRight: 12 },
   bubble: { paddingTop: 16, paddingLeft: 20, paddingRight: 18, paddingBottom: 34, minHeight: 150 },
   bubbleShadow: { position: "absolute", top: 7, left: 5, right: -5, bottom: -7, opacity: 0.5, filter: "blur(3px)" },
   body: { flexDirection: "row", alignItems: "flex-start", gap: 10 },

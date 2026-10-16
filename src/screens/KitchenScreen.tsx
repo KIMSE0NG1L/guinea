@@ -40,7 +40,7 @@ export function KitchenScreen({
               <Text style={styles.shopText}>재료</Text>
             </View>
           </GameButton>
-          <GameButton variant="pillCream" onPress={onOpenRecipes} accessibilityLabel="레시피 상점 열기" style={styles.shopButton}>
+          <GameButton variant="pillCream" onPress={onOpenRecipes} tutorialId="kitchen-recipes" accessibilityLabel="레시피 상점 열기" style={styles.shopButton}>
             <View style={styles.shopContent}>
               <Image source={chef.spoon} style={styles.shopImage} />
               <Text style={[styles.shopText, styles.shopTextDark]}>레시피</Text>
@@ -96,6 +96,7 @@ export function KitchenScreen({
                 variant={cookable ? "green" : "gray"}
                 disabled={!cookable}
                 onPress={() => onCook(recipe.id)}
+                tutorialId={`cook-${recipe.id}`}
                 style={styles.cookButton}
                 textStyle={styles.cookButtonText}
               >
