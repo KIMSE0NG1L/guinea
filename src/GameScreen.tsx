@@ -62,6 +62,7 @@ export function GameScreen() {
         return (
           <InventoryScreen
             inventory={state.inventory}
+            discoveredItems={state.discoveredItems ?? []}
             gems={state.gems}
             expansions={state.bagExpansions ?? 0}
             onExpand={game.expandBag}
@@ -96,6 +97,8 @@ export function GameScreen() {
             onCook={game.cook}
             onOpenGrocery={() => onSelectTab("grocery")}
             onOpenRecipes={() => onSelectTab("recipes")}
+            layout={state.kitchenLayout ?? "list"}
+            onLayoutChange={(kitchenLayout) => setState((previous) => ({ ...previous, kitchenLayout }))}
           />
         );
       case "recipes":

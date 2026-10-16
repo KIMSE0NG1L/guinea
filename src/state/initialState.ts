@@ -27,6 +27,7 @@ export const initialState: GameState = {
   // Empty — the first slime after the intro drops the 초록 젤리 for the recipe tutorial.
   inventory: [],
   bagExpansions: 0,
+  discoveredItems: [],
   equipment: { weapon: null, hat: null, armor: null, accessory: null },
   quests: QUEST_ORDER.map((id) => buildQuest(id, 0, 0)),
   kills: 0,

@@ -49,7 +49,8 @@ export function RecipeShopScreen({
       </Text>
 
       <View style={styles.grid}>
-        {RECIPES.map((recipe) => {
+        {/* Already-learned recipes sink below the ones still to buy (stable within each group). */}
+        {[...RECIPES].sort((a, b) => Number(known.includes(a.id)) - Number(known.includes(b.id))).map((recipe) => {
           const learned = known.includes(recipe.id);
           const affordable = gold >= recipe.price;
           const tier = RECIPE_TIERS[recipe.tier];

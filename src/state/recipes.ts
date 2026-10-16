@@ -273,6 +273,16 @@ export function getItemQuantity(inventory: { name: string; quantity: number }[],
   return inventory.find((item) => item.name === name)?.quantity ?? 0;
 }
 
+// The bag after a recipe's ingredients are taken out (emptied items drop off).
+export function consumeIngredients<T extends { name: string; quantity: number }>(inventory: T[], recipe: Recipe): T[] {
+  return inventory
+    .map((item) => {
+      const used = recipe.ingredients.find((ingredient) => ingredient.name === item.name)?.quantity ?? 0;
+      return used ? { ...item, quantity: item.quantity - used } : item;
+    })
+    .filter((item) => item.quantity > 0);
+}
+
 export function canCook(inventory: { name: string; quantity: number }[], recipe: Recipe) {
   return recipe.ingredients.every((ingredient) => getItemQuantity(inventory, ingredient.name) >= ingredient.quantity);
 }

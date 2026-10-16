@@ -8,6 +8,13 @@ import { Panel } from "../components/NineSlice";
 import { MonsterCodex } from "../components/MonsterCodex";
 import { BOSS_NAME, ENEMY_NAME, getStageCode, STAGES } from "../state/stages";
 
+type Page = "map" | "monsters";
+
+const HEADINGS: Record<Page, { kicker: string; title: string; description: string; icon: number; open: string }> = {
+  map: { kicker: "MILESTONE", title: "모험 지도", description: "보스를 쓰러뜨리면 다음 스테이지가 열려요.", icon: icons.map, open: "모험 지도로 돌아가기" },
+  monsters: { kicker: "BESTIARY", title: "몬스터 도감", description: "만난 몬스터와 떨어뜨리는 재료를 모아봐요.", icon: icons.codexMonster, open: "몬스터 도감 열기" },
+};
+
 export function MilestoneScreen({
   stageNumber,
   highestStageNumber,
@@ -19,31 +26,36 @@ export function MilestoneScreen({
   onSelectStage: (stageNumber: number) => void;
   onBack: () => void;
 }) {
-  const [view, setView] = useState<"map" | "codex">("map");
-  const codex = view === "codex";
+  const [view, setView] = useState<Page>("map");
+  const heading = HEADINGS[view];
 
   return (
     <View style={styles.page}>
       <View style={styles.headingRow}>
         <View style={styles.heading}>
-          <PageHeading
-            kicker={codex ? "BESTIARY" : "MILESTONE"}
-            title={codex ? "몬스터 도감" : "모험 지도"}
-            description={codex ? "만난 몬스터와 떨어뜨리는 재료를 모아봐요." : "보스를 쓰러뜨리면 다음 스테이지가 열려요."}
-          />
+          <PageHeading kicker={heading.kicker} title={heading.title} description={heading.description} />
         </View>
-        {/* Bare icon: a book opens the codex, the map comes back. */}
-        <Pressable
-          onPress={() => setView(codex ? "map" : "codex")}
-          accessibilityRole="button"
-          accessibilityLabel={codex ? "모험 지도로 돌아가기" : "몬스터 도감 열기"}
-          hitSlop={8}
-          style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
-        >
-          <Image source={codex ? icons.map : icons.codexBook} style={styles.toggleIcon} />
-        </Pressable>
+        {/* Bare icon: the purple book opens the monster codex, the map brings you back. */}
+        <View style={styles.toggles}>
+          {(["map", "monsters"] as Page[])
+            .filter((item) => item !== view)
+            .map((item) => (
+              <Pressable
+                key={item}
+                onPress={() => setView(item)}
+                accessibilityRole="button"
+                accessibilityLabel={HEADINGS[item].open}
+                hitSlop={6}
+                style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
+              >
+                <Image source={HEADINGS[item].icon} style={styles.toggleIcon} />
+              </Pressable>
+            ))}
+        </View>
       </View>
-      {codex ? <MonsterCodex highestStageNumber={highestStageNumber} /> : (
+      {view === "monsters" ? (
+        <MonsterCodex highestStageNumber={highestStageNumber} />
+      ) : (
       <View style={styles.list}>
         {STAGES.map((stage, index) => {
           const current = index === stageNumber;
@@ -94,9 +106,10 @@ export function MilestoneScreen({
 const styles = StyleSheet.create({
   headingRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   heading: { flex: 1 },
-  toggle: { marginTop: 4 },
+  toggles: { flexDirection: "row", gap: 2, marginTop: 4 },
+  toggle: {},
   togglePressed: { transform: [{ scale: 0.92 }] },
-  toggleIcon: { width: 50, height: 50 },
+  toggleIcon: { width: 46, height: 46 },
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
   list: {},
   card: {

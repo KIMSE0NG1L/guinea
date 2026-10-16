@@ -12,13 +12,20 @@ import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
 import { BUFFS, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
-import { canCook, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
+import { canCook, consumeIngredients, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
 export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
 const SPEED_BOOST_DURATION_MS = 60 * 60_000; // 1 hour
+
+// Ingredient names ever obtained, for the ingredient codex — kept even after they're used up.
+function discover(known: string[] | undefined, names: string[]) {
+  const list = known ?? [];
+  const fresh = names.filter((name) => !list.includes(name));
+  return fresh.length > 0 ? [...list, ...new Set(fresh)] : list;
+}
 
 // Adds dropped/bought items to the bag, stacking onto what's already there.
 function addItems(inventory: GameState["inventory"], items: { name: string; quantity: number }[]) {
@@ -112,9 +119,17 @@ export function useGameState() {
         // one-shot gold quests).
         const quests = migrateQuests(save.state.quests);
         // 당근 수프 used to be the free starter recipe; there is none now (the first one is
-        // bought in the recipe tutorial), so older saves drop the freebie.
-        const knownRecipes = (save.state.knownRecipes ?? []).filter((id) => id !== "carrot-soup");
-        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, quests, knownRecipes };
+        // bought in the recipe tutorial), so saves from before that drop the freebie — once.
+        // Those saves are the ones with no recipeTutorialDone field yet; it's filled in below,
+        // so a 당근 수프 bought afterwards is never stripped again on the next load.
+        const fromBeforeRecipeTutorial = save.state.recipeTutorialDone === undefined;
+        const knownRecipes = fromBeforeRecipeTutorial
+          ? (save.state.knownRecipes ?? []).filter((id) => id !== "carrot-soup")
+          : save.state.knownRecipes;
+        const recipeTutorialDone = save.state.recipeTutorialDone ?? false;
+        // Saves from before the ingredient codex start it from whatever's in the bag now.
+        const discoveredItems = save.state.discoveredItems ?? inventory.filter((item) => item.type === "food").map((item) => item.name);
+        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, quests, knownRecipes, recipeTutorialDone, discoveredItems };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const result = simulateOfflineProgress(loadedState, Date.now() - save.lastSeenAt);
@@ -199,7 +214,8 @@ export function useGameState() {
     if (reachesBossThreshold) setBoss(true);
 
     // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
-    // A full bag only turns away kinds it doesn't already hold — those just don't drop.
+    // A full bag turns away whatever has no room left (no free slot, no space in its
+    // last stack of 64) — those just don't drop.
     let rolled = rollDrops(getEnemyKind(state.stageNumber), boss);
     // The first slime after the intro always leaves a 초록 젤리 ×3 — exactly one 말랑 초록
     // 젤리's worth, which kicks off the recipe tutorial.
@@ -238,6 +254,7 @@ export function useGameState() {
         ...previous,
         gold: previous.gold + goldReward,
         inventory: addItems(previous.inventory, drops),
+        discoveredItems: discover(previous.discoveredItems, drops.map((drop) => drop.name)),
         kills,
         currentStage: boss ? getStageLabel(stageNumber) : previous.currentStage,
         stageNumber,
@@ -401,14 +418,10 @@ export function useGameState() {
     if (!recipe) return;
     setState((previous) => {
       if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return previous;
-      const inventory = previous.inventory
-        .map((item) => {
-          const used = recipe.ingredients.find((ingredient) => ingredient.name === item.name)?.quantity ?? 0;
-          return used ? { ...item, quantity: item.quantity - used } : item;
-        })
-        .filter((item) => item.quantity > 0);
+      const inventory = consumeIngredients(previous.inventory, recipe);
       const dish = inventory.find((item) => item.name === recipe.name);
-      if (!dish && inventory.length >= getBagCapacity(previous.bagExpansions)) return previous;
+      // The finished dish needs room — a free slot, or space left in its last stack.
+      if (fitItems(inventory, [{ name: recipe.name, quantity: 1 }], getBagCapacity(previous.bagExpansions)).overflow.length > 0) return previous;
       const dishesCooked = (previous.dishesCooked ?? 0) + 1;
       return {
         ...previous,
@@ -426,11 +439,16 @@ export function useGameState() {
   // Reports why a purchase failed (or "ok"), so the shop can react either way.
   const buyIngredient = (name: string, price: number): "ok" | "gold" | "full" => {
     if (state.gold < price) return "gold";
-    if (fitItems(state.inventory, [{ name }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
+    if (fitItems(state.inventory, [{ name, quantity: 1 }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
     setState((previous) => {
       if (previous.gold < price) return previous;
       const { kept } = fitItems(previous.inventory, [{ name, quantity: 1 }], getBagCapacity(previous.bagExpansions));
-      return { ...previous, gold: previous.gold - price, inventory: addItems(previous.inventory, kept) };
+      return {
+        ...previous,
+        gold: previous.gold - price,
+        inventory: addItems(previous.inventory, kept),
+        discoveredItems: discover(previous.discoveredItems, kept.map((item) => item.name)),
+      };
     });
     return "ok";
   };

@@ -52,6 +52,10 @@ export interface GameState {
   skillEquippedAt?: number;
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];
+  // Every ingredient ever obtained (ingredient codex); missing on older saves.
+  discoveredItems?: string[];
+  // Kitchen recipe layout the player picked (one-column list / two-column cards).
+  kitchenLayout?: "list" | "grid";
   // Bought bag expansions (see state/bag.ts); missing on older saves = none.
   bagExpansions?: number;
   equipment: Record<string, string | null>;

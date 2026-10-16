@@ -1,13 +1,44 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import Svg, { Rect } from "react-native-svg";
 import { colors, fonts } from "../theme";
-import { chef, grandma, kit } from "../assets";
+import { chef, frameKit, grandma, kit } from "../assets";
 import { SEALED_RECIPE } from "../state/recipeTiers";
 import { BUFFS, describeEffect } from "../state/buffs";
+import { BalancedRows, estimateTextWidth } from "../components/BalancedLines";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
-import { Panel } from "../components/NineSlice";
-import { canCook, getItemQuantity, getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
+import { NineSlice, Panel } from "../components/NineSlice";
+import { canCook, consumeIngredients, getItemQuantity, getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
+import { fitItems } from "../state/bag";
 import type { GameState } from "../types";
+
+export type KitchenLayout = "list" | "grid";
+
+const EFFECT_FONT = 9;
+const INGREDIENT_FONT = 8;
+const INGREDIENT_ICON = 16;
+
+// ["공격력 +10%", "1분"] — what eating the dish does, and for how long, as separate parts
+// so a long list can break between them.
+function describeBuffParts(recipeId: string) {
+  const buff = BUFFS[recipeId];
+  if (!buff) return [];
+  return [...describeEffect(buff.effect).split(" · "), `${Math.round(buff.durationMs / 60000)}분`];
+}
+
+// Toggle glyphs: three bars for the list, a 2×2 of squares for the cards.
+function LayoutIcon({ mode, active }: { mode: KitchenLayout; active: boolean }) {
+  const color = active ? colors.ink : "#9b8466";
+  return (
+    <Svg width={18} height={18} viewBox="0 0 18 18">
+      {mode === "list" ? (
+        [3, 8, 13].map((y) => <Rect key={y} x={2} y={y} width={14} height={3} rx={1.5} fill={color} />)
+      ) : (
+        [[2, 2], [10, 2], [2, 10], [10, 10]].map(([x, y]) => <Rect key={`${x}-${y}`} x={x} y={y} width={6} height={6} rx={1.5} fill={color} />)
+      )}
+    </Svg>
+  );
+}
 
 export function KitchenScreen({
   inventory,
@@ -16,6 +47,8 @@ export function KitchenScreen({
   onCook,
   onOpenGrocery,
   onOpenRecipes,
+  layout,
+  onLayoutChange,
 }: {
   inventory: GameState["inventory"];
   bagCapacity: number;
@@ -23,9 +56,17 @@ export function KitchenScreen({
   onCook: (recipeId: string) => void;
   onOpenGrocery: () => void;
   onOpenRecipes: () => void;
+  layout: KitchenLayout;
+  onLayoutChange: (layout: KitchenLayout) => void;
 }) {
   const known = getKnownRecipes(knownRecipes);
-  const recipes = RECIPES.filter((recipe) => known.includes(recipe.id));
+  // What can be cooked right now floats to the top; otherwise recipe order is kept.
+  const roomFor = (recipe: (typeof RECIPES)[number]) =>
+    fitItems(consumeIngredients(inventory, recipe), [{ name: recipe.name, quantity: 1 }], bagCapacity).overflow.length === 0;
+  const recipes = RECIPES.filter((recipe) => known.includes(recipe.id))
+    .map((recipe) => ({ recipe, cookable: canCook(inventory, recipe) && roomFor(recipe) }))
+    .sort((a, b) => Number(b.cookable) - Number(a.cookable))
+    .map(({ recipe }) => recipe);
   const unlearned = RECIPES.length - recipes.length;
 
   return (
@@ -59,67 +100,137 @@ export function KitchenScreen({
         </View>
       </Panel>
 
-      <View style={styles.list}>
+      <View style={styles.toolbar}>
+        <Text style={styles.toolbarText}>아는 레시피 {recipes.length}개</Text>
+        <View style={styles.layoutToggle}>
+          {(["list", "grid"] as KitchenLayout[]).map((mode) => (
+            <Pressable
+              key={mode}
+              onPress={() => onLayoutChange(mode)}
+              accessibilityRole="button"
+              accessibilityLabel={mode === "list" ? "목록으로 보기" : "카드로 보기"}
+              accessibilityState={{ selected: layout === mode }}
+              hitSlop={4}
+              style={({ pressed }) => [styles.layoutButton, pressed && styles.pressed]}
+            >
+              <NineSlice slice={layout === mode ? frameKit.squareGold : frameKit.squareWood} scale={0.35} />
+              {/* Wrapped so it stacks above the absolutely-positioned frame on web. */}
+              <View>
+                <LayoutIcon mode={mode} active={layout === mode} />
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      <View style={layout === "grid" ? styles.grid : styles.list}>
         {recipes.map((recipe) => {
           const ready = canCook(inventory, recipe);
           const owned = getItemQuantity(inventory, recipe.name);
-          // A new dish needs a free slot — counting the ones its ingredients free up.
-          const freed = recipe.ingredients.filter((ingredient) => getItemQuantity(inventory, ingredient.name) === ingredient.quantity).length;
-          const room = owned > 0 || inventory.length - freed < bagCapacity;
+          // The dish needs room once its ingredients are out of the bag — a free slot or
+          // space in its last stack of 64.
+          const room = roomFor(recipe);
           const cookable = ready && room;
+          const ingredientLabels = recipe.ingredients.map(
+            (ingredient) => `${layout === "grid" ? "" : `${ingredient.name} `}${getItemQuantity(inventory, ingredient.name)}/${ingredient.quantity}`,
+          );
+          const ingredientChips = recipe.ingredients.map((ingredient, index) => (
+            <View style={styles.ingredient} key={ingredient.name}>
+              {ITEM_IMAGES[ingredient.name] !== undefined && (
+                <Image source={ITEM_IMAGES[ingredient.name]} style={styles.ingredientImage} />
+              )}
+              <Text style={[styles.ingredientText, getItemQuantity(inventory, ingredient.name) < ingredient.quantity && styles.ingredientShort]}>
+                {ingredientLabels[index]}
+              </Text>
+            </View>
+          ));
+          // Rows balanced by width, so a long list breaks into even lines instead of a
+          // full line plus a straggler.
+          const ingredients = (
+            <BalancedRows
+              items={ingredientChips}
+              widths={ingredientLabels.map((label) => INGREDIENT_ICON + 2 + estimateTextWidth(label, INGREDIENT_FONT))}
+              gap={6}
+              align={layout === "grid" ? "center" : "flex-start"}
+            />
+          );
+          const cookButton = (
+            <GameButton
+              variant={cookable ? "green" : "gray"}
+              disabled={!cookable}
+              onPress={() => onCook(recipe.id)}
+              tutorialId={`cook-${recipe.id}`}
+              style={layout === "grid" ? styles.gridCookButton : styles.cookButton}
+              textStyle={styles.cookButtonText}
+            >
+              {!ready ? "재료 부족" : room ? "요리하기" : "가방 가득"}
+            </GameButton>
+          );
+          const effectParts = describeBuffParts(recipe.id);
+          const effect = (
+            <BalancedRows
+              items={effectParts}
+              widths={effectParts.map((part) => estimateTextWidth(part, EFFECT_FONT))}
+              gap={estimateTextWidth(" · ", EFFECT_FONT)}
+              rowGap={0}
+              align={layout === "grid" ? "center" : "flex-start"}
+              style={styles.effectBox}
+              renderRow={(row) => <Text style={styles.effect}>{row.map((index) => effectParts[index]).join(" · ")}</Text>}
+            />
+          );
+
+          if (layout === "grid") {
+            return (
+              <Panel slice={ready ? kit.panel : kit.inset} scale={0.4} style={styles.gridCard} key={recipe.id}>
+                {owned > 0 && (
+                  <View style={styles.ownedTag}>
+                    <Text style={styles.ownedTagText}>보유 {owned}</Text>
+                  </View>
+                )}
+                <Image source={recipe.image} style={[styles.gridDish, !ready && styles.dishShort]} />
+                <Text style={styles.gridName} numberOfLines={1}>{recipe.name}</Text>
+                <Text style={styles.gridDescription} numberOfLines={2}>{recipe.description}</Text>
+                {effect}
+                <View style={[styles.ingredients, styles.gridIngredients]}>{ingredients}</View>
+                {cookButton}
+              </Panel>
+            );
+          }
           return (
             <Panel slice={ready ? kit.panel : kit.inset} style={styles.card} key={recipe.id}>
-              <Image source={recipe.image} style={styles.dish} />
+              <Image source={recipe.image} style={[styles.dish, !ready && styles.dishShort]} />
               <View style={styles.cardCopy}>
                 <View style={styles.titleRow}>
                   <Text style={styles.cardStrong}>{recipe.name}</Text>
                   {owned > 0 && <Text style={styles.owned}>보유 {owned}</Text>}
                 </View>
                 <Text style={styles.cardSpan}>{recipe.description}</Text>
-                {BUFFS[recipe.id] && (
-                  <Text style={styles.effect}>
-                    {describeEffect(BUFFS[recipe.id].effect)} · {Math.round(BUFFS[recipe.id].durationMs / 60_000)}분
-                  </Text>
-                )}
-                <View style={styles.ingredients}>
-                  {recipe.ingredients.map((ingredient) => {
-                    const have = getItemQuantity(inventory, ingredient.name);
-                    const short = have < ingredient.quantity;
-                    return (
-                      <View style={styles.ingredient} key={ingredient.name}>
-                        {ITEM_IMAGES[ingredient.name] !== undefined && (
-                          <Image source={ITEM_IMAGES[ingredient.name]} style={styles.ingredientImage} />
-                        )}
-                        <Text style={[styles.ingredientText, short && styles.ingredientShort]}>
-                          {ingredient.name} {have}/{ingredient.quantity}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </View>
+                {effect}
+                <View style={styles.ingredients}>{ingredients}</View>
               </View>
-              <GameButton
-                variant={cookable ? "green" : "gray"}
-                disabled={!cookable}
-                onPress={() => onCook(recipe.id)}
-                tutorialId={`cook-${recipe.id}`}
-                style={styles.cookButton}
-                textStyle={styles.cookButtonText}
-              >
-                {!ready ? "재료 부족" : room ? "요리하기" : "가방 가득"}
-              </GameButton>
+              {cookButton}
             </Panel>
           );
         })}
-        {unlearned > 0 && (
-          <Panel slice={kit.inset} style={styles.more}>
-            <Image source={SEALED_RECIPE} style={styles.moreImage} />
-            <Text style={styles.moreText}>아직 배우지 않은 레시피가 {unlearned}개 있어요.</Text>
-            <GameButton variant="red" onPress={onOpenRecipes} style={styles.cookButton} textStyle={styles.cookButtonText}>
-              배우러 가기
-            </GameButton>
-          </Panel>
-        )}
+        {unlearned > 0 &&
+          (layout === "grid" ? (
+            <Panel slice={kit.inset} scale={0.4} style={styles.gridCard}>
+              <Image source={SEALED_RECIPE} style={styles.gridDish} />
+              <Text style={styles.gridName}>배울 레시피 {unlearned}개</Text>
+              <Text style={styles.gridDescription} numberOfLines={2}>셰프 기니한테 새 요리를 배워 봐요.</Text>
+              <GameButton variant="red" onPress={onOpenRecipes} style={styles.gridCookButton} textStyle={styles.cookButtonText}>
+                배우러 가기
+              </GameButton>
+            </Panel>
+          ) : (
+            <Panel slice={kit.inset} style={styles.more}>
+              <Image source={SEALED_RECIPE} style={styles.moreImage} />
+              <Text style={styles.moreText}>아직 배우지 않은 레시피가 {unlearned}개 있어요.</Text>
+              <GameButton variant="red" onPress={onOpenRecipes} style={styles.cookButton} textStyle={styles.cookButtonText}>
+                배우러 가기
+              </GameButton>
+            </Panel>
+          ))}
       </View>
     </View>
   );
@@ -145,19 +256,36 @@ const styles = StyleSheet.create({
   heroLabel: { color: colors.brown, fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
   heroTitle: { marginTop: 3, fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   heroSub: { marginTop: 3, fontSize: 9, color: colors.brown },
+  toolbar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8, paddingLeft: 4 },
+  toolbarText: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  layoutToggle: { flexDirection: "row", gap: 4 },
+  layoutButton: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
+  pressed: { transform: [{ scale: 0.92 }] },
   list: { gap: 10 },
+  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
+  gridCard: { width: "48.5%", alignItems: "center", paddingHorizontal: 10, paddingTop: 12, paddingBottom: 12 },
+  gridDish: { width: 64, height: 64 },
+  gridName: { marginTop: 4, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  gridDescription: { marginTop: 2, minHeight: 24, fontSize: 9, lineHeight: 12, color: colors.muted, textAlign: "center" },
+  gridIngredients: { justifyContent: "center", marginBottom: 8 },
+  gridCookButton: { alignSelf: "stretch" },
+  ownedTag: { position: "absolute", top: 8, right: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: colors.green, zIndex: 1 },
+  ownedTagText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  effectBox: { marginTop: 3 },
+  effect: { fontSize: EFFECT_FONT, lineHeight: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#b0632a" },
   card: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
   dish: { width: 54, height: 54 },
+  // Missing ingredients: the dish goes black-and-white (faded too, where filters aren't supported).
+  dishShort: { filter: "grayscale(1)", opacity: 0.6 },
   cardCopy: { flex: 1 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   cardStrong: { fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   owned: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
   cardSpan: { marginTop: 2, color: colors.muted, fontSize: 9 },
-  effect: { marginTop: 2, color: colors.green, fontSize: 9, fontWeight: "800", fontFamily: fonts.bold },
-  ingredients: { marginTop: 5, flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  ingredients: { marginTop: 5, alignSelf: "stretch" },
   ingredient: { flexDirection: "row", alignItems: "center", gap: 2 },
-  ingredientImage: { width: 16, height: 16 },
-  ingredientText: { fontSize: 8, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  ingredientImage: { width: INGREDIENT_ICON, height: INGREDIENT_ICON },
+  ingredientText: { fontSize: INGREDIENT_FONT, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   ingredientShort: { color: colors.red },
   cookButton: { minWidth: 68 },
   cookButtonText: { fontSize: 9 },
