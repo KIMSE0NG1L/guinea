@@ -65,6 +65,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   magpie: 160,
   snowRabbit: 160,
   drunkCat: 160,
+  flowerSnake: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -95,6 +96,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   magpie: images.battleBackgroundSnowVillage,
   snowRabbit: images.battleBackgroundSnowMountain,
   drunkCat: images.battleBackgroundSnowTavern,
+  flowerSnake: images.battleBackgroundAzaleaPath,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

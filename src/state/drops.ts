@@ -258,6 +258,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "소금 결정", chance: 0.4 },
     ],
   },
+  // 진달래길: 꽃뱀이 꽃가루와 함께 핥고 다니는 봄나물; 구미호는 정자에서 나그네들에게
+  // 대접하던 귀한 고기와 과실을 품고 있다.
+  flowerSnake: {
+    mob: [
+      { name: "딜", chance: 0.3 },
+      { name: "고수", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 살코기", chance: 1, quantity: 2 },
+      { name: "뼈 갈빗살", chance: 0.6 },
+      { name: "레몬", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

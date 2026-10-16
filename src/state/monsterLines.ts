@@ -24,6 +24,7 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   magpie: ["곶감 내꺼!", "서리 내린다~"],
   snowRabbit: ["당근 녹기 전에!", "춥지 않아"],
   drunkCat: ["한 잔만 더...", "안 취했다구"],
+  flowerSnake: ["샤랄라~", "꽃밭이 좋아"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -47,4 +48,5 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   magpie: ["감히 내 산에서", "...졸려"],
   snowRabbit: ["안 녹는다", "눈사태 조심해"],
   drunkCat: ["외상값부터 내시죠", "손님, 자리 좀 비켜주세요"],
+  flowerSnake: ["정체를 들켰네", "꼬리 좀 봐줄래?"],
 };
