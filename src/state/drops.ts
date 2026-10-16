@@ -11,7 +11,6 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "초록 젤리", chance: 0.4 },
       { name: "이슬", chance: 0.3 },
-      { name: "고수", chance: 0.1 },
     ],
     boss: [
       { name: "로열 젤리", chance: 1 },

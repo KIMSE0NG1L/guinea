@@ -1,9 +1,11 @@
+import { useCallback, useState } from "react";
 import { Image, Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { frameImages } from "../assets";
 import { StrokedText } from "./StrokedText";
-import { BUFFS, formatDuration, type BuffSlot } from "../state/buffs";
+import { BUFFS, describeEffect, formatDuration, type BuffSlot } from "../state/buffs";
+import { InfoBubble } from "./InfoBubble";
 import { tutorialRef } from "./tutorialTargets";
 import { RECIPES } from "../state/recipes";
 
@@ -35,7 +37,8 @@ const WEDGE_COLOR = "#1c120bA6";
 const SLOT_BORDER = 2;
 
 // Three food slots: "+" when empty, otherwise the dish on its tint with a clock-style
-// wedge for time already spent and a live countdown in the middle.
+// wedge for time already spent and a live countdown in the middle. Tapping a running slot
+// toggles a black info bubble summarising its buff.
 export function BuffSlots({
   slots,
   now,
@@ -47,6 +50,8 @@ export function BuffSlots({
   onPressSlot: (index: number) => void;
   style?: object;
 }) {
+  const [infoIndex, setInfoIndex] = useState<number | null>(null);
+  const closeInfo = useCallback(() => setInfoIndex(null), []);
   return (
     <View style={[styles.row, style]}>
       {slots.map((slot, index) => {
@@ -59,8 +64,7 @@ export function BuffSlots({
           <Pressable
             key={index}
             ref={tutorialRef(`buff-slot-${index}`)}
-            onPress={() => onPressSlot(index)}
-            disabled={Boolean(running)}
+            onPress={() => (running ? setInfoIndex((current) => (current === index ? null : index)) : onPressSlot(index))}
             accessibilityRole="button"
             accessibilityLabel={running && recipe ? `${recipe.name} 버프 ${formatDuration(remaining)} 남음` : `음식 슬롯 ${index + 1}에 음식 넣기`}
             hitSlop={4}
@@ -77,9 +81,15 @@ export function BuffSlots({
                 </View>
               </View>
             ) : (
-              <>
-                <Image source={frameImages.slotPlus} style={styles.slotArt} />
-              </>
+              <Image source={frameImages.slotPlus} style={styles.slotArt} />
+            )}
+            {running && recipe && buff && infoIndex === index && (
+              <InfoBubble
+                title={recipe.name}
+                lines={[...describeEffect(buff.effect).split(" · "), `${formatDuration(remaining)} 남음`]}
+                anchorWidth={BUFF_SLOT_SIZE}
+                onClose={closeInfo}
+              />
             )}
           </Pressable>
         );

@@ -53,6 +53,17 @@ export const SKILLS: Skill[] = [
   { id: "glutton", name: "먹보", description: "장착하면 항상 적용 · 장착 중에 먹은 음식 버프가 2배로 오래가요.", passive: true, cooldownMs: 0 },
 ];
 
+// One-line effect summaries for the battle slot's info bubble.
+export const SKILL_SUMMARY: Record<SkillId, string> = {
+  beam: "일반 몹 즉사 · 보스 체력 -50%",
+  steal: "타격마다 처치 골드 10% 획득",
+  focus: "치명타 확률 100%",
+  execute: "체력 25% 이하 적 즉사",
+  shout: "일반 공격 피해 +30%",
+  diligent: "오프라인 골드 +50%",
+  glutton: "음식 버프 지속시간 2배",
+};
+
 export function getSkill(id: SkillId) {
   return SKILLS.find((skill) => skill.id === id)!;
 }

@@ -1,7 +1,9 @@
+import { useCallback, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { frameImages } from "../assets";
-import { getSkill, type SkillId, type SkillTimers } from "../state/skills";
+import { getSkill, SKILL_SUMMARY, type SkillId, type SkillTimers } from "../state/skills";
+import { InfoBubble } from "./InfoBubble";
 import { formatDuration } from "../state/buffs";
 import { SkillIcon } from "./SkillIcon";
 import { StrokedText } from "./StrokedText";
@@ -10,7 +12,8 @@ export const SKILL_SLOT_HEIGHT = 44;
 
 // The battle scene's single skill slot. Empty → "+" that opens the skill page. Active skill
 // → tap to cast; darkened with seconds left while cooling down, gold ring while its buff
-// runs. Passive skill → always on, tapping opens the skill page to swap it.
+// runs. While a skill is in effect (its buff running, or a passive that's always on),
+// tapping toggles a black info bubble summarising it instead.
 export function SkillSlot({
   skillId,
   timers,
@@ -26,6 +29,8 @@ export function SkillSlot({
   onCast: () => void;
   onOpenSkills: () => void;
 }) {
+  const [info, setInfo] = useState(false);
+  const closeInfo = useCallback(() => setInfo(false), []);
   if (!skillId) {
     return (
       <Pressable
@@ -45,11 +50,12 @@ export function SkillSlot({
   const activeLeft = Math.min(timers[skillId].activeUntil - now, skill.durationMs ?? 0);
   const cooling = cooldownLeft > 0;
   const running = activeLeft > 0;
+  const inEffect = skill.passive || running;
 
   return (
     <Pressable
-      onPress={skill.passive ? onOpenSkills : onCast}
-      disabled={!skill.passive && !canCast}
+      onPress={inEffect ? () => setInfo((current) => !current) : onCast}
+      disabled={!inEffect && !canCast}
       accessibilityRole="button"
       accessibilityLabel={
         skill.passive
@@ -79,6 +85,14 @@ export function SkillSlot({
         <View style={styles.passiveTag} pointerEvents="none">
           <Text style={styles.passiveText}>상시</Text>
         </View>
+      )}
+      {info && inEffect && (
+        <InfoBubble
+          title={skill.name}
+          lines={[SKILL_SUMMARY[skillId], skill.passive ? "장착 중 상시 적용" : `${Math.ceil(activeLeft / 1000)}초 남음`]}
+          anchorWidth={SKILL_SLOT_HEIGHT}
+          onClose={closeInfo}
+        />
       )}
     </Pressable>
   );
