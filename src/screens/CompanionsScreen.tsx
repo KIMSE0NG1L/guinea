@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { colors, radii, fonts } from "../theme";
-import { kit } from "../assets";
+import { colors, fonts } from "../theme";
+import { images, kit, shopKit } from "../assets";
 import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
@@ -62,6 +63,8 @@ const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string 
 ];
 
 const PREVIEW_SPRITE_SIZE = 108;
+// Height / width of the battle backgrounds (1168x880).
+const BACKDROP_ASPECT = 880 / 1168;
 
 export function CompanionsScreen({
   equippedOutfit,
@@ -71,22 +74,42 @@ export function CompanionsScreen({
   onEquip: (outfit: Outfit) => void;
 }) {
   const equippedItem = COMPANIONS.find((item) => item.outfit === equippedOutfit) ?? COMPANIONS[0];
+  const [previewWidth, setPreviewWidth] = useState(0);
 
   return (
     <View style={styles.page}>
       <PageHeading kicker="FRIENDS" title="동료" description="혼자보다 덜 쓸쓸하고, 조금 더 세다." />
 
-      <LinearGradient colors={[colors.greenDark, "#73835e"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.preview}>
-        <View>
-          <Text style={styles.previewLabel}>함께하는 중</Text>
-          <Text style={styles.previewTitle}>{equippedItem.name}</Text>
-          <Text style={styles.previewBlurb}>{equippedItem.blurb}</Text>
-          <Text style={styles.previewSub}>{equippedItem.detail}</Text>
+      {/* Wooden frame around a slice of the forest stage, with the companion standing on its
+          ground and a dark scrim behind the copy that fades out toward the right. */}
+      <Panel slice={shopKit.frameWide} scale={0.32} style={styles.previewFrame}>
+        <View style={styles.preview} onLayout={(event) => setPreviewWidth(event.nativeEvent.layout.width)}>
+          {previewWidth > 0 && (
+            <Image
+              source={images.battleBackground}
+              resizeMode="stretch"
+              style={[styles.previewBackdrop, { width: previewWidth, height: previewWidth * BACKDROP_ASPECT }]}
+            />
+          )}
+          <LinearGradient
+            colors={["#14100ce6", "#14100cb3", "#14100c00"]}
+            locations={[0, 0.45, 0.78]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.previewScrim}
+            pointerEvents="none"
+          />
+          <View style={styles.previewCopy}>
+            <Text style={styles.previewLabel}>함께하는 중</Text>
+            <Text style={styles.previewTitle}>{equippedItem.name}</Text>
+            <Text style={styles.previewBlurb}>{equippedItem.blurb}</Text>
+            <Text style={styles.previewSub}>{equippedItem.detail}</Text>
+          </View>
+          <View style={styles.previewSprite}>
+            <CharacterSprite outfit={equippedOutfit} animation="idle" size={PREVIEW_SPRITE_SIZE} restartKey={equippedOutfit} />
+          </View>
         </View>
-        <View style={styles.previewSprite}>
-          <CharacterSprite outfit={equippedOutfit} animation="idle" size={PREVIEW_SPRITE_SIZE} restartKey={equippedOutfit} />
-        </View>
-      </LinearGradient>
+      </Panel>
 
       <View style={styles.list}>
         {COMPANIONS.map((item) => {
@@ -120,24 +143,18 @@ export function CompanionsScreen({
 
 const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
-  preview: {
-    minHeight: 150,
-    marginBottom: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 3,
-    borderColor: colors.line,
-    borderRadius: radii.lg,
-    overflow: "hidden",
-  },
+  previewFrame: { padding: 11, marginBottom: 12 },
+  preview: { height: 170, flexDirection: "row", alignItems: "center", overflow: "hidden", borderRadius: 4 },
+  // Pinned to the bottom so the forest floor sits under the companion's feet.
+  previewBackdrop: { position: "absolute", left: 0, bottom: -10 },
+  previewScrim: { position: "absolute", top: 0, left: 0, bottom: 0, right: 0 },
+  // Copy takes the left part; the companion gets the rest and is centred inside it.
+  previewCopy: { width: "58%", paddingLeft: 16, paddingRight: 4 },
   previewLabel: { color: "#d7dfab", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1.5 },
-  previewTitle: { marginTop: 5, fontSize: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
-  previewBlurb: { marginTop: 4, color: "#e4ddca", fontSize: 9, fontStyle: "italic" },
-  previewSub: { marginTop: 5, color: "#e4ddca", fontSize: 9 },
-  previewSprite: { marginRight: -2, marginBottom: -18 },
+  previewTitle: { marginTop: 4, fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  previewBlurb: { marginTop: 4, color: "#efe7d4", fontSize: 9, fontStyle: "italic", lineHeight: 13 },
+  previewSub: { marginTop: 5, color: "#f3d993", fontSize: 9, fontWeight: "800", fontFamily: fonts.bold },
+  previewSprite: { flex: 1, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
   list: { gap: 8 },
   card: {
     paddingHorizontal: 12,
