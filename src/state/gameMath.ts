@@ -70,12 +70,33 @@ export function getExpReward(stageNumber: number, boss: boolean) {
   return Math.round(boss ? base * BOSS_EXP_MULTIPLIER : base);
 }
 
+// A `base * rate^n`-style exponential, left alone below `safeN` steps but switched to a
+// straight line past it (matching the exponential's own slope right at the switchover, so
+// there's no visible kink) — otherwise, given enough steps, it eventually overflows to
+// literal `Infinity` (found this the hard way: getExpToLevel did exactly that around level
+// ~6263, since 1.12^6262 exceeds a float64's ~1.8e308 ceiling). That's not just a display
+// glitch — `experience >= Infinity` can never be true again, so leveling (and therefore
+// every level-gated unlock) halts forever once it happens. `safeN` is chosen with large
+// margin below the real overflow point in each call site below, so this only ever matters
+// for a level of play far beyond anything reachable in practice; it exists purely so the
+// math literally cannot produce a hard wall, no matter how long someone idles.
+function safeExponential(base: number, rate: number, n: number, safeN: number) {
+  if (n <= safeN) return base * rate ** n;
+  const atCap = base * rate ** safeN;
+  const slopeAtCap = atCap * Math.log(rate);
+  return atCap + slopeAtCap * (n - safeN);
+}
+
 // Each level needs more exp than the last, climbing at the same kind of pace as
 // getUpgradeCost's cost growth, so leveling stays meaningful instead of flattening out.
 const LEVEL_EXP_GROWTH = 1.12;
+// 1.12^4999 ≈ 1e246 — nowhere near the ~1.8e308 float ceiling (level 5000 is itself far
+// past anything reachable in practice; see gini_balance_economy memory), just a large
+// safety margin so the exponential truly never has a chance to overflow.
+const LEVEL_EXP_SAFE_LEVELS = 5000;
 
 export function getExpToLevel(level: number) {
-  return Math.round((100 * LEVEL_EXP_GROWTH ** (level - 1)) / 10) * 10;
+  return Math.round(safeExponential(100, LEVEL_EXP_GROWTH, level - 1, LEVEL_EXP_SAFE_LEVELS) / 10) * 10;
 }
 
 export function getNumberSuffix(index: number) {
@@ -101,10 +122,16 @@ export function formatGameNumber(value: number) {
   return `${sign}${scaled.toFixed(3).replace(".", ",")}${getNumberSuffix(group - 1)}`;
 }
 
+// 1.35^1499 ≈ 1e195 — same overflow guard as LEVEL_EXP_SAFE_LEVELS above, same reason:
+// a purchase count this high is already astronomically beyond any realistic session, this
+// is just insurance so cost can never hit Infinity (which would permanently block that
+// stat from ever being upgraded again, same failure mode as the exp-to-level bug).
+const UPGRADE_COST_SAFE_LEVELS = 1500;
+
 export function getUpgradeCost(key: StatKey | "defense", level: number) {
   const resolvedKey: StatKey = key === "defense" ? "criticalChance" : key;
   const safeLevel = Number.isFinite(level) && level > 0 ? level : 1;
-  return Math.round((statInfo[resolvedKey].baseCost * Math.pow(1.35, safeLevel - 1)) / 10) * 10;
+  return Math.round(safeExponential(statInfo[resolvedKey].baseCost, 1.35, safeLevel - 1, UPGRADE_COST_SAFE_LEVELS) / 10) * 10;
 }
 
 // Stats with a hard ceiling on their purchased value — upgrading can't push past this no

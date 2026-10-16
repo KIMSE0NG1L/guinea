@@ -64,7 +64,7 @@ export function StatUpgradePanel({
                 <Image source={statIcons[key]} style={styles.markIcon} accessibilityLabel={info.label} />
               </Panel>
               <View style={styles.rowCopy}>
-                <Text style={styles.rowSmall}>Lv. {level} · {info.label}</Text>
+                <Text style={styles.rowSmall}>Lv. {formatGameNumber(level)} · {info.label}</Text>
                 <Text style={styles.rowValue}>{formatGameNumber(value)}{suffix}</Text>
               </View>
               <View style={styles.gain}>

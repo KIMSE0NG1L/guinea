@@ -4,7 +4,7 @@ import { colors, fonts } from "../theme";
 import { frameImages, headerKit, icons, navIcons } from "../assets";
 import { Panel } from "./NineSlice";
 import { ProgressBar } from "./ProgressBar";
-import { getExpToLevel } from "../state/gameMath";
+import { formatGameNumber, getExpToLevel } from "../state/gameMath";
 import { CHIP_WIDTH, ResourceBar } from "./ResourceBar";
 import { ConfirmModal } from "./ConfirmModal";
 import { SettingsModal } from "./SettingsModal";
@@ -53,13 +53,13 @@ export function GameHeader({
           </View>
           <View style={styles.profileCopy}>
             <View style={styles.nameRow}>
-              <Text style={styles.levelText}>Lv.{state.level}</Text>
+              <Text style={styles.levelText}>Lv.{formatGameNumber(state.level)}</Text>
               <Text style={styles.nickname} numberOfLines={1}>{getCompanionName(state.equippedOutfit)}</Text>
             </View>
             <ProgressBar
               progress={(state.experience / getExpToLevel(state.level)) * 100}
               height={13}
-              label={`${state.experience} / ${getExpToLevel(state.level)}`}
+              label={`${formatGameNumber(state.experience)} / ${formatGameNumber(getExpToLevel(state.level))}`}
             />
           </View>
         </Panel>

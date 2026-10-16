@@ -61,7 +61,7 @@ export function OfflineRewardModal({
             {summary.levelsGained > 0 && (
               <View style={styles.statItem}>
                 <Image source={icons.star} style={styles.statIcon} />
-                <Text style={styles.statValue}>+{summary.levelsGained}</Text>
+                <Text style={styles.statValue}>+{formatGameNumber(summary.levelsGained)}</Text>
                 <Text style={styles.statLabel}>레벨업</Text>
               </View>
             )}

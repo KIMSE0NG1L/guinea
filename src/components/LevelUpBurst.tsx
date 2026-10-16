@@ -12,6 +12,7 @@ import Animated, {
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { icons, statIcons } from "../assets";
+import { formatGameNumber } from "../state/gameMath";
 import { StrokedText } from "./StrokedText";
 
 const STAGE = 150; // square the burst elements radiate within, centered under the label
@@ -112,7 +113,7 @@ export function LevelUpBurst({ level, attackGain }: { level: number; attackGain:
           LEVEL UP
         </StrokedText>
         <StrokedText style={styles.level} strokeColor={colors.line} strokeWidth={2}>
-          {`Lv.${level}`}
+          {`Lv.${formatGameNumber(level)}`}
         </StrokedText>
         <Animated.View style={[styles.gainBadge, gainStyle]}>
           <Image source={statIcons.attack} style={styles.gainIcon} />
