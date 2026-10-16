@@ -6,15 +6,17 @@ type DropEntry = { name: string; chance: number; quantity?: number };
 // Bosses roll their own richer table instead of the mob one. Every drop has to make sense
 // for the creature (a slime drops jelly, a crab drops crab meat) — nothing random.
 const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
-  // 뒷산: slimes shed green jelly; the king's crown drips royal jelly.
+  // 뒷산: slimes shed green jelly and dew; the king's crown drips royal jelly.
   slime: {
     mob: [
       { name: "초록 젤리", chance: 0.4 },
+      { name: "이슬", chance: 0.3 },
       { name: "고수", chance: 0.1 },
     ],
     boss: [
       { name: "로열 젤리", chance: 1 },
       { name: "초록 젤리", chance: 1, quantity: 3 },
+      { name: "이슬", chance: 1, quantity: 3 },
     ],
   },
   // 버섯 늪: mushrooms and the swamp's wild herbs.
@@ -22,10 +24,12 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "버섯", chance: 0.35 },
       { name: "고수", chance: 0.1 },
+      { name: "딜", chance: 0.1 },
     ],
     boss: [
       { name: "버섯", chance: 1, quantity: 3 },
       { name: "고수", chance: 0.5 },
+      { name: "딜", chance: 0.5 },
     ],
   },
   // 거대 채소 농장: carrots and tomatoes.
@@ -163,12 +167,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "소금 결정", chance: 0.4 },
     ],
   },
-  // 사막시장: the fox snatches produce and spice off the stalls; the rattlesnake guards
+  // 사막시장: the fox snatches produce, lemons and spice off the stalls; the rattlesnake guards
   // the market's finest cured goods.
   fox: {
     mob: [
       { name: "토마토", chance: 0.3 },
       { name: "불꽃 고추", chance: 0.15 },
+      { name: "레몬", chance: 0.15 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
@@ -190,6 +195,14 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     ],
   },
 };
+
+// Every place an ingredient drops: which monster, mob or boss table, and the entry.
+export function getDropSources(name: string) {
+  return (Object.keys(DROPS) as EnemyKind[]).flatMap((kind) => [
+    ...DROPS[kind].mob.filter((entry) => entry.name === name).map((entry) => ({ kind, boss: false, entry })),
+    ...DROPS[kind].boss.filter((entry) => entry.name === name).map((entry) => ({ kind, boss: true, entry })),
+  ]);
+}
 
 // Every ingredient a monster can drop, mob table then boss table, for the codex.
 export function getDropTable(kind: EnemyKind, boss: boolean): DropEntry[] {

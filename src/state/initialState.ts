@@ -7,6 +7,7 @@ export const DEFAULT_NICKNAME = "꼬질꼬질 기니";
 export const initialState: GameState = {
   nickname: DEFAULT_NICKNAME,
   tutorialDone: false,
+  recipeTutorialDone: false,
   gold: 1250,
   gems: 10,
   level: 1,
@@ -19,12 +20,12 @@ export const initialState: GameState = {
   stageNumber: 0,
   stageKills: 0,
   highestStageNumber: 0,
-  knownRecipes: ["carrot-soup"],
+  knownRecipes: [],
   equippedOutfit: "default",
   equippedSkill: null,
   selectedTab: "battle",
   inventory: [
-    { name: "당근", quantity: 5, type: "food" },
+    { name: "초록 젤리", quantity: 5, type: "food" },
   ],
   bagExpansions: 0,
   equipment: { weapon: null, hat: null, armor: null, accessory: null },

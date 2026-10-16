@@ -17,7 +17,10 @@ export const BUFF_SLOT_COUNT = 3;
 const MINUTE = 60_000;
 
 export const BUFFS: Record<string, { effect: BuffEffect; durationMs: number; tint: string }> = {
-  "carrot-soup": { effect: { attack: 10 }, durationMs: 1 * MINUTE, tint: "#9ebdba" },
+  "green-jelly": { effect: { attack: 10 }, durationMs: 1 * MINUTE, tint: "#bfe08a" },
+  "slime-potion": { effect: { attack: 15 }, durationMs: 2 * MINUTE, tint: "#c9e39a" },
+  "royal-jelly": { effect: { attack: 15, criticalChance: 3 }, durationMs: 2 * MINUTE, tint: "#fbd56e" },
+  "carrot-soup": { effect: { criticalDamage: 30 }, durationMs: 2 * MINUTE, tint: "#9ebdba" },
   "fried-egg": { effect: { criticalChance: 5 }, durationMs: 2 * MINUTE, tint: "#dfc1a6" },
   "chopped-salad": { effect: { gold: 20 }, durationMs: 2 * MINUTE, tint: "#e0ab7b" },
   "veggie-stew": { effect: { attack: 20 }, durationMs: 3 * MINUTE, tint: "#f8a37e" },

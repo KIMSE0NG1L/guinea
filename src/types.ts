@@ -42,6 +42,8 @@ export interface GameState {
   nickname?: string;
   // Set once the first-run tutorial is finished or skipped; missing on older saves.
   tutorialDone?: boolean;
+  // Set once the follow-up tutorial that has the player buy their first recipe is done.
+  recipeTutorialDone?: boolean;
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
   equippedOutfit: Outfit;
   // The one skill in the battle slot (null = none); missing on older saves.

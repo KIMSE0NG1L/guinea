@@ -13,15 +13,51 @@ export type Recipe = {
 
 export const RECIPES: Recipe[] = [
   // Ordered by how easy the ingredients are to get: tier follows the stage where they
-  // first drop (common = first few stages … epic = late stages), and legendary/hidden
+  // first drop (slime dishes come first — slimes are the very first monster) (common = first few stages … epic = late stages), and legendary/hidden
   // need many different rare or boss-only ingredients. Price rises with the tier.
+  {
+    id: "green-jelly",
+    name: "말랑 초록 젤리",
+    description: "기니의 첫 요리. 탱글탱글 흔들리는 디저트.",
+    image: food.dishGreenJelly,
+    tier: "common",
+    // Bought for real during the recipe tutorial, so nothing is known from the start.
+    price: 50,
+    ingredients: [
+      { name: "초록 젤리", quantity: 3 },
+    ],
+  },
+  {
+    id: "slime-potion",
+    name: "말랑 에너지 물약",
+    description: "흔들면 찰랑, 마시면 기운이 번쩍.",
+    image: food.dishSlimePotion,
+    tier: "common",
+    price: 100,
+    ingredients: [
+      { name: "초록 젤리", quantity: 2 },
+      { name: "이슬", quantity: 1 },
+    ],
+  },
+  {
+    id: "royal-jelly",
+    name: "왕관 로열 젤리",
+    description: "왕 슬라임의 왕관에서 흘러내린 황금빛 한 그릇.",
+    image: food.dishRoyalJelly,
+    tier: "common",
+    price: 150,
+    ingredients: [
+      { name: "로열 젤리", quantity: 1 },
+      { name: "초록 젤리", quantity: 2 },
+    ],
+  },
   {
     id: "carrot-soup",
     name: "당근 수프",
-    description: "뭉근히 끓인 기니의 첫 요리.",
+    description: "뭉근히 끓여 속까지 따뜻해지는 맛.",
     image: food.cookPot,
     tier: "common",
-    price: 0,
+    price: 180,
     ingredients: [{ name: "당근", quantity: 3 }],
   },
   {
@@ -117,6 +153,8 @@ export const RECIPES: Recipe[] = [
     price: 600,
     ingredients: [
       { name: "두툼 생선 토막", quantity: 1 },
+      { name: "레몬", quantity: 1 },
+      { name: "딜", quantity: 1 },
       { name: "소금 결정", quantity: 1 },
     ],
   },
@@ -159,6 +197,7 @@ export const RECIPES: Recipe[] = [
       { name: "홍합", quantity: 2 },
       { name: "오징어", quantity: 1 },
       { name: "옥수수", quantity: 1 },
+      { name: "이슬", quantity: 2 },
     ],
   },
   {
@@ -213,6 +252,9 @@ export const ITEM_IMAGES: Record<string, number> = {
   "미역": food.seaweed,
   "초록 젤리": food.greenJelly,
   "고수": food.herb,
+  "딜": food.dill,
+  "이슬": food.dew,
+  "레몬": food.lemon,
   "풋사과": food.greenApple,
   "로열 젤리": food.royalJelly,
   "소금 결정": food.salt,

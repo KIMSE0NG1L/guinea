@@ -110,7 +110,10 @@ export function useGameState() {
         // Re-reads titles/targets/gem rewards from the quest ladders (older saves had
         // one-shot gold quests).
         const quests = migrateQuests(save.state.quests);
-        let loadedState = { ...save.state, equippedOutfit, inventory, quests };
+        // 당근 수프 used to be the free starter recipe; there is none now (the first one is
+        // bought in the recipe tutorial), so older saves drop the freebie.
+        const knownRecipes = (save.state.knownRecipes ?? []).filter((id) => id !== "carrot-soup");
+        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, quests, knownRecipes };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const result = simulateOfflineProgress(loadedState, Date.now() - save.lastSeenAt);

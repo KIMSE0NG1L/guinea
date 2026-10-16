@@ -19,6 +19,8 @@ import { KitchenScreen } from "./screens/KitchenScreen";
 import { GroceryScreen } from "./screens/GroceryScreen";
 import { RecipeShopScreen } from "./screens/RecipeShopScreen";
 import { TutorialOverlay } from "./components/TutorialOverlay";
+import { RecipeTutorial } from "./components/RecipeTutorial";
+import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
 import { getBagCapacity } from "./state/bag";
 import type { Tab } from "./types";
 
@@ -143,6 +145,20 @@ export function GameScreen() {
         {/* Waits for the save to load (so returning players never see it flash) and for the offline popup. */}
         {game.loaded && !state.tutorialDone && !game.offlineSummary && (
           <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true }))} />
+        )}
+        {game.loaded && state.tutorialDone && !state.recipeTutorialDone && !game.offlineSummary && (
+          <RecipeTutorial
+            knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
+            canCookFirst={canCook(state.inventory, RECIPES.find((recipe) => recipe.id === "green-jelly")!)}
+            onGoTo={onSelectTab}
+            onLearn={game.learnRecipe}
+            onCook={game.cook}
+            onEat={(recipeId) => {
+              const free = game.buffSlots.findIndex((slot) => !slot || slot.expiresAt <= game.now);
+              game.eatDish(Math.max(0, free), recipeId);
+            }}
+            onFinish={() => setState((previous) => ({ ...previous, recipeTutorialDone: true }))}
+          />
         )}
       </SafeAreaView>
     </View>

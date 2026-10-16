@@ -42,7 +42,40 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const last = step === STEPS.length - 1;
   const { line, icon } = STEPS[step];
+  const next = () => (last ? onFinish() : setStep((current) => current + 1));
+  return (
+    <GuideScene
+      stepKey={step}
+      line={line}
+      icon={icon}
+      dots={{ count: STEPS.length, index: step }}
+      onTap={last ? undefined : next}
+      onSkip={last ? undefined : onFinish}
+      action={last ? { label: "출발!", onPress: onFinish } : undefined}
+    />
+  );
+}
 
+// The shared stage for every guided moment: 모험기니 in the corner, a dimmed game behind,
+// and one speech-bubble line. Tapping advances when `onTap` is set; otherwise the bubble
+// waits for its `action` button (used when the step needs the player to do something).
+export function GuideScene({
+  stepKey,
+  line,
+  icon,
+  dots,
+  onTap,
+  onSkip,
+  action,
+}: {
+  stepKey: number | string;
+  line: string;
+  icon?: number;
+  dots?: { count: number; index: number };
+  onTap?: () => void;
+  onSkip?: () => void;
+  action?: { label: string; onPress: () => void; accessibilityLabel?: string };
+}) {
   const pop = useSharedValue(0);
   const blink = useSharedValue(1);
 
@@ -50,7 +83,7 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
     pop.value = 0;
     pop.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.back(1.8)) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [stepKey]);
 
   useEffect(() => {
     blink.value = withRepeat(withSequence(withTiming(0.35, { duration: 600 }), withTiming(1, { duration: 600 })), -1);
@@ -63,11 +96,9 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
   }));
   const hintStyle = useAnimatedStyle(() => ({ opacity: blink.value }));
 
-  const next = () => (last ? onFinish() : setStep((current) => current + 1));
-
   return (
     <View style={styles.overlay}>
-      <Pressable style={styles.scrim} onPress={next} accessibilityRole="button" accessibilityLabel="다음 설명">
+      <Pressable style={styles.scrim} onPress={onTap} accessibilityRole={onTap ? "button" : undefined} accessibilityLabel={onTap ? "다음 설명" : undefined}>
         {/* Extra darkness behind the guinea and bubble so they read clearly. */}
         <LinearGradient colors={["rgba(20,16,12,0)", "rgba(20,16,12,0.6)"]} style={styles.scrimFade} pointerEvents="none" />
       </Pressable>
@@ -80,12 +111,14 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
       </View>
 
       <Animated.View style={[styles.bubbleWrap, bubbleStyle]} pointerEvents="box-none">
-        {!last && (
-          <GameButton variant="pillGray" onPress={onFinish} style={styles.skip} textStyle={styles.skipText} accessibilityLabel="튜토리얼 건너뛰기">
+        {onSkip && (
+          <GameButton variant="pillGray" onPress={onSkip} style={styles.skip} textStyle={styles.skipText} accessibilityLabel="튜토리얼 건너뛰기">
             건너뛰기 ▸▸
           </GameButton>
         )}
-        <Pressable onPress={next} style={styles.bubble} accessibilityRole="button" accessibilityLabel={last ? "튜토리얼 끝내기" : "다음 설명"}>
+        {/* Only a tap-to-continue bubble is pressable — a disabled Pressable would swallow
+            presses meant for the action button inside it on web. */}
+        <BubbleBody onPress={onTap}>
           {/* A dark silhouette of the bubble, nudged down-right, is its drop shadow. */}
           <View style={styles.bubbleShadow}>
             <NineSlice slice={shopKit.bubble} scale={0.42} tint="#140c06" />
@@ -105,21 +138,30 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
           </View>
           <View style={styles.footer}>
             <View style={styles.dots}>
-              {STEPS.map((_, index) => (
-                <View key={index} style={[styles.dot, index === step && styles.dotActive]} />
+              {dots && Array.from({ length: dots.count }, (_, index) => (
+                <View key={index} style={[styles.dot, index === dots.index && styles.dotActive]} />
               ))}
             </View>
-            {last ? (
-              <GameButton variant="green" onPress={onFinish} style={styles.start} textStyle={styles.startText}>
-                출발!
+            {action ? (
+              <GameButton variant="green" onPress={action.onPress} style={styles.start} textStyle={styles.startText} accessibilityLabel={action.accessibilityLabel}>
+                {action.label}
               </GameButton>
             ) : (
-              <Animated.Text style={[styles.hint, hintStyle]}>터치해서 계속 ▸</Animated.Text>
+              onTap && <Animated.Text style={[styles.hint, hintStyle]}>터치해서 계속 ▸</Animated.Text>
             )}
           </View>
-        </Pressable>
+        </BubbleBody>
       </Animated.View>
     </View>
+  );
+}
+
+function BubbleBody({ onPress, children }: { onPress?: () => void; children: React.ReactNode }) {
+  if (!onPress) return <View style={styles.bubble}>{children}</View>;
+  return (
+    <Pressable onPress={onPress} style={styles.bubble} accessibilityRole="button" accessibilityLabel="다음 설명">
+      {children}
+    </Pressable>
   );
 }
 
