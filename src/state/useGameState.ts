@@ -3,7 +3,7 @@ import { AppState } from "react-native";
 import type { GameState, SkillId, StatKey, UpgradeMode } from "../types";
 import { GLUTTON_FOOD_MULTIPLIER, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
-import { getExpReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, statInfo } from "./gameMath";
+import { applyUpgradeLevels, getExpReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { advanceQuest, migrateQuests } from "./quests";
@@ -196,9 +196,13 @@ export function useGameState() {
     if (state.level > previousLevelRef.current) {
       setLevelUpAnnouncement(state.level);
       setLevelUpAttackGain(state.level - previousLevelRef.current);
-      // Held longer when something unlocks, so its toast can actually be read.
+      // Held longer when something unlocks, so its toast can actually be read. The plain
+      // case holds a bit past when LevelUpBurst's own fade-out finishes (~1.25s in, see
+      // its contentOpacity timeline) so the component unmounts only once it's already
+      // fully invisible — cutting this too close (tried 1300) unmounted it mid-fade,
+      // popping it off abruptly instead of letting it finish dissolving.
       const unlocks = getUnlocksAtLevel(state.level);
-      const holdMs = unlocks.outfits.length + unlocks.skills.length > 0 ? 2800 : 1100;
+      const holdMs = unlocks.outfits.length + unlocks.skills.length > 0 ? 2800 : 1500;
       const timer = setTimeout(() => setLevelUpAnnouncement(null), holdMs);
       previousLevelRef.current = state.level;
       return () => clearTimeout(timer);
@@ -324,7 +328,6 @@ export function useGameState() {
 
   const upgradeStat = (key: StatKey) => {
     setState((previous) => {
-      const info = statInfo[key];
       const quote = getUpgradeQuote(key, getStatLevel(previous, key), previous.gold, upgradeMode, getStatValue(previous, key));
       if (quote.levels === 0 || previous.gold < quote.cost) return previous;
       const attackUpgrades =
@@ -340,7 +343,7 @@ export function useGameState() {
       return {
         ...previous,
         gold: previous.gold - quote.cost,
-        [key]: getStatValue(previous, key) + info.step * quote.levels,
+        [key]: applyUpgradeLevels(key, getStatValue(previous, key), quote.levels),
         statLevels: {
           ...previousLevels,
           [key]: previousLevels[key] + quote.levels,

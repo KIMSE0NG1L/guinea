@@ -1,12 +1,40 @@
 import type { GameState, StatKey, UpgradeMode } from "../types";
 import { BOSS_BASE_HP, getEnemyMaxHp, MOB_BASE_HP } from "./stages";
 
+// `step` is a flat add-per-level, used for every stat except attack (see
+// ATTACK_UPGRADE_RATE below and applyUpgradeLevels) — kept here anyway so attack still
+// has a value for getUpgradeQuote's STAT_CAP math, which never actually reads it since
+// attack has no cap.
 export const statInfo: Record<StatKey, { label: string; mark: string; step: number; baseCost: number }> = {
   attack: { label: "공격력", mark: "ATK", step: 1.5, baseCost: 120 },
   criticalDamage: { label: "치명타 피해", mark: "DMG", step: 2.5, baseCost: 100 },
   criticalChance: { label: "치명타 확률", mark: "CRIT", step: 1, baseCost: 140 },
   goldBonus: { label: "골드 획득", mark: "GOLD", step: 2.5, baseCost: 160 },
 };
+
+// Attack upgrades are multiplicative (% of current attack) instead of a flat add. A flat
+// add next to upgrade cost's own exponential growth (see getUpgradeCost) means the gold
+// cost per point of attack diverges to infinity as purchases pile up, while enemy HP
+// (STAGE_HP_GROWTH in stages.ts) grows geometrically every stage regardless — so a flat
+// step always loses that race eventually, no matter how generous the gold curve is,
+// and runs headlong into a wall where no amount of grinding closes the gap.
+// Making the gain geometric too fixes this structurally: simulating 100 stages of a
+// maximally-efficient player (every gold coin spent on attack the instant it's earned)
+// against the current HP/gold/cost curves found the required rate empirically — below
+// ~10% the wall still hits by stage 100 (swings-needed-per-kill blows up past 1e9);
+// by 12.5% it's already comfortable (under 5,000 swings for the single hardest kill
+// across all 100 stages); 15% leaves real margin for a less-than-perfectly-optimal
+// player (under 300). Don't drop this below ~0.12 without re-running that simulation.
+export const ATTACK_UPGRADE_RATE = 0.15;
+
+// How much a purchased stat levels up by: attack compounds (see ATTACK_UPGRADE_RATE
+// above), every other stat still just adds its flat `step` — those are percentage-point
+// stats already (crit chance, crit damage, gold bonus), so "percent of current value"
+// wouldn't make sense for them the way it does for a raw number like attack.
+export function applyUpgradeLevels(key: StatKey, currentValue: number, levels: number) {
+  if (key === "attack") return currentValue * (1 + ATTACK_UPGRADE_RATE) ** levels;
+  return currentValue + statInfo[key].step * levels;
+}
 
 // Extra payout for killing the boss, beyond its sheer HP being 10x a regular mob's — it's
 // the stage's one-time milestone moment and should feel like a real payday.

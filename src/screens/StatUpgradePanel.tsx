@@ -3,7 +3,7 @@ import { colors, fonts } from "../theme";
 import { frameKit, kit, statIcons } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
-import { formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo, STAT_CAP } from "../state/gameMath";
+import { applyUpgradeLevels, formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo, STAT_CAP } from "../state/gameMath";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 
 
@@ -51,7 +51,11 @@ export function StatUpgradePanel({
           const value = key === "attack" ? getTotalAttack(state) : getStatValue(state, key);
           const level = getStatLevel(state, key);
           const quote = getUpgradeQuote(key, level, state.gold, upgradeMode, getStatValue(state, key));
-          const nextValue = value + info.step * quote.levels;
+          const rawValue = getStatValue(state, key);
+          // For attack, `value` above is the total (raw purchased attack + flat level
+          // bonus) — only the raw purchased part actually compounds on upgrade, so apply
+          // the delta on top of `value` rather than upgrading the total directly.
+          const nextValue = value + (applyUpgradeLevels(key, rawValue, quote.levels) - rawValue);
           const suffix = key === "attack" ? "" : "%";
           const atCap = STAT_CAP[key] !== undefined && getStatValue(state, key) >= STAT_CAP[key]!;
           return (
