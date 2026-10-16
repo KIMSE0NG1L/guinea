@@ -31,6 +31,12 @@ export const BUFFS: Record<string, { effect: BuffEffect; durationMs: number; tin
   "pumpkin-roast": { effect: { gold: 50 }, durationMs: 5 * MINUTE, tint: "#f8b37c" },
   "salmon-steak": { effect: { criticalDamage: 70 }, durationMs: 6 * MINUTE, tint: "#fbb989" },
   steak: { effect: { attack: 40 }, durationMs: 7 * MINUTE, tint: "#d69f7c" },
+  "mussel-seaweed-soup": { effect: { gold: 45 }, durationMs: 6 * MINUTE, tint: "#c9d69a" },
+  "shrimp-sashimi": { effect: { gold: 55 }, durationMs: 6 * MINUTE, tint: "#f8c1a8" },
+  yukhoe: { effect: { attack: 35 }, durationMs: 6 * MINUTE, tint: "#e79a8c" },
+  octopus: { effect: { criticalChance: 8 }, durationMs: 6 * MINUTE, tint: "#f2c4c8" },
+  "tuna-sashimi": { effect: { attack: 30, criticalChance: 5 }, durationMs: 7 * MINUTE, tint: "#e98f8f" },
+  "salmon-sashimi": { effect: { criticalDamage: 80 }, durationMs: 7 * MINUTE, tint: "#f9b48a" },
   "seafood-boil": { effect: { attack: 30, criticalDamage: 60, gold: 40 }, durationMs: 9 * MINUTE, tint: "#faa880" },
   "guinea-feast": { effect: { attack: 50, criticalChance: 10, gold: 50 }, durationMs: 10 * MINUTE, tint: "#dab8a2" },
 };
