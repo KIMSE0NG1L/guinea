@@ -30,7 +30,9 @@ import {
   StealCoins,
 } from "../components/SkillAuras";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
+import { MonsterSpeechBubble } from "../components/MonsterSpeechBubble";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
+import { BOSS_LINES, MOB_LINES } from "../state/monsterLines";
 import { ITEM_IMAGES } from "../state/recipes";
 import type { DropEvent } from "../state/useGameState";
 import { tutorialRef } from "../components/tutorialTargets";
@@ -100,6 +102,10 @@ const FIGHTERS_SIDE = 15;
 const STEAL_DURATION = getSkill("steal").durationMs ?? 0;
 const FOCUS_DURATION = getSkill("focus").durationMs ?? 0;
 const SHOUT_DURATION = getSkill("shout").durationMs ?? 0;
+// A boss always gets a speech bubble on entrance (it's the stage's big moment); a regular
+// mob only some of the time, or the fast auto-battle kill-chain would pop a bubble over
+// every single death.
+const MOB_SPEECH_CHANCE = 0.45;
 
 // Turns a skill's ever-increasing cast counter into what the scene should play:
 // - `id` is 0 for casts from before this scene mounted (e.g. before visiting another
@@ -248,6 +254,16 @@ export function BattleScene({
         ? { key: `shout-${shout.id}`, durationMs: SHOUT_DURATION }
         : null;
 
+  // Monster chatter: a boss always speaks on entrance (the stage's big moment); a regular
+  // mob only some of the time, or the fast auto-battle kill-chain would pop a bubble over
+  // every single death. Rendered at the scene's top level (not nested under the enemy's
+  // own clipped sprite column) so it has room to actually show instead of being cut off.
+  const [speechLine, setSpeechLine] = useState<string | null>(null);
+  useEffect(() => {
+    const pool = boss ? BOSS_LINES[enemyKind] : MOB_LINES[enemyKind];
+    setSpeechLine(boss || Math.random() < MOB_SPEECH_CHANCE ? pool[Math.floor(Math.random() * pool.length)] : null);
+  }, [enemyId, boss, enemyKind]);
+
   const executing = phase === "defeated" && executedKill;
   const playerAnimation: PlayerAnimation =
     executing || beaming
@@ -266,6 +282,11 @@ export function BattleScene({
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
   const enemySize = boss ? BOSS_SIZE[enemyKind] : MOB_SIZE[enemyKind] ?? 108;
+  // Sits just past the enemy's left edge at roughly its mid-height, scaling with its own
+  // size (the sprite is always centred on ENEMY_CENTER_RIGHT regardless of how wide it
+  // renders, so half its size is exactly the gap to clear it) — works the same for a
+  // compact mob or a sprawling boss without the bubble ever overlapping the sprite.
+  const speechAnchor = { right: ENEMY_CENTER_RIGHT + enemySize / 2 + 10, bottom: FIGHTERS_BOTTOM + enemySize * 0.5 };
   // Drops pop out of the enemy's middle and fly into the bag button's centre.
   const dropFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 };
   const dropTo = { dx: ENEMY_CENTER_RIGHT - BAG_CENTER.right, dy: dropFrom.bottom - BAG_CENTER.bottom };
@@ -359,6 +380,7 @@ export function BattleScene({
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
+          {speechLine && <MonsterSpeechBubble key={enemyId} line={speechLine} anchor={speechAnchor} onClose={() => setSpeechLine(null)} />}
 
 
           <Animated.View
