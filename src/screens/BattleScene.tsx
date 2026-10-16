@@ -58,6 +58,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   cactus: 150,
   fox: 150,
   lizard: 160,
+  mantou: 160,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -76,6 +77,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   cactus: images.battleBackgroundDesert,
   fox: images.battleBackgroundDesertMarket,
   lizard: images.battleBackgroundSilkRoadNight,
+  mantou: images.battleBackgroundBambooCloudCity,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
@@ -178,6 +180,7 @@ export function BattleScene({
   dropEvents,
   bossEntranceKey,
   levelUpAnnouncement,
+  levelUpAttackGain,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean; missed?: boolean }[];
@@ -215,6 +218,7 @@ export function BattleScene({
   dropEvents: DropEvent[];
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
+  levelUpAttackGain: number;
 }) {
   const { id: executeId } = useSkillEvent(rawExecuteId, 0);
   // Guinea Beam holds a crit pose from the cast until the beam has faded.
@@ -359,7 +363,9 @@ export function BattleScene({
               stealAuraId={steal.active ? steal.id : 0}
               focusAuraId={focus.active ? focus.id : 0}
             />
-            {levelUpAnnouncement !== null && <LevelUpBurst key={levelUpAnnouncement} level={levelUpAnnouncement} />}
+            {levelUpAnnouncement !== null && (
+              <LevelUpBurst key={levelUpAnnouncement} level={levelUpAnnouncement} attackGain={levelUpAttackGain} />
+            )}
 
             <EnemyFighter
               animation={enemyAnimation}

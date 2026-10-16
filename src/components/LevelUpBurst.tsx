@@ -5,7 +5,7 @@ import { colors, fonts } from "../theme";
 
 // A radial flash + popping level number over the player, mounted fresh via `key={level}`
 // at the call site so it restarts on every level-up.
-export function LevelUpBurst({ level }: { level: number }) {
+export function LevelUpBurst({ level, attackGain }: { level: number; attackGain: number }) {
   const flash = useSharedValue(0);
   const punch = useSharedValue(0.4);
   const spin = useSharedValue(-16);
@@ -39,6 +39,7 @@ export function LevelUpBurst({ level }: { level: number }) {
       <Animated.View style={[styles.content, contentStyle]}>
         <Text style={styles.label}>LEVEL UP</Text>
         <Text style={styles.level}>Lv.{level}</Text>
+        <Text style={styles.gain}>공격력 +{attackGain}</Text>
       </Animated.View>
     </View>
   );
@@ -58,4 +59,5 @@ const styles = StyleSheet.create({
   content: { alignItems: "center" },
   label: { color: colors.gold, fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 2 },
   level: { marginTop: 1, color: "#fff4bd", fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
+  gain: { marginTop: 1, color: colors.gold, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold },
 });

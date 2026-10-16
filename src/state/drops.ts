@@ -193,6 +193,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "우유", chance: 0.4 },
     ],
   },
+  // 죽운성: dumpling filling spilled from the mantou men's own steamer baskets; the panda
+  // hoards the richest stash of meat and dairy between bites of bamboo shoot.
+  mantou: {
+    mob: [
+      { name: "당근", chance: 0.3 },
+      { name: "양파", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 살코기", chance: 1, quantity: 2 },
+      { name: "치즈", chance: 0.6 },
+      { name: "우유", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

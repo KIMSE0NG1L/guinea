@@ -173,10 +173,14 @@ export function useGameState() {
   // `loaded` and previousLevelRef is synced inside the load effect above, so loading a
   // save at a higher level (or an offline-progress jump) never triggers a spurious burst.
   const [levelUpAnnouncement, setLevelUpAnnouncement] = useState<number | null>(null);
+  // +1 attack per level (see getTotalAttack) — if a single kill's exp carries the player
+  // past more than one level, this is the sum across all of them, not just the last.
+  const [levelUpAttackGain, setLevelUpAttackGain] = useState(1);
   useEffect(() => {
     if (!loaded) return;
     if (state.level > previousLevelRef.current) {
       setLevelUpAnnouncement(state.level);
+      setLevelUpAttackGain(state.level - previousLevelRef.current);
       // Held longer when something unlocks, so its toast can actually be read.
       const unlocks = getUnlocksAtLevel(state.level);
       const holdMs = unlocks.outfits.length + unlocks.skills.length > 0 ? 2800 : 1100;
@@ -378,6 +382,19 @@ export function useGameState() {
     battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
   };
 
+  // Dev-convenience shortcut from the settings menu — bumps the level by a flat amount
+  // without touching experience. Done live (not loaded), so it fires the normal level-up
+  // burst and its attack-gain text same as leveling up for real.
+  const cheatAddLevels = (amount: number) => {
+    setState((previous) => ({ ...previous, level: previous.level + amount }));
+  };
+
+  // Dev-convenience shortcut from the settings menu — unlocks every stage on the
+  // milestone map for selection, without marking them cleared or moving the player.
+  const cheatUnlockAllStages = () => {
+    setState((previous) => ({ ...previous, highestStageNumber: LAST_STAGE_NUMBER }));
+  };
+
   // Spends the recipe's ingredients from the bag and adds one of the dish.
   const cook = (recipeId: string) => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
@@ -512,6 +529,7 @@ export function useGameState() {
     defeatedStageNumber,
     stageAnnouncement,
     levelUpAnnouncement,
+    levelUpAttackGain,
     upgradeMode,
     setUpgradeMode,
     upgraded,
@@ -522,6 +540,8 @@ export function useGameState() {
     expandBag,
     selectStage,
     skipToBoss,
+    cheatAddLevels,
+    cheatUnlockAllStages,
     equipSkill,
     skillSwapReadyAt,
     resetSave,

@@ -24,6 +24,8 @@ export function GameHeader({
   onReset,
   onSkipToBoss,
   onKillEnemy,
+  onAddLevels,
+  onUnlockAllStages,
   onOpenShop,
   onReplayTutorial,
 }: {
@@ -31,6 +33,8 @@ export function GameHeader({
   onReset: () => void;
   onSkipToBoss: () => void;
   onKillEnemy: () => void;
+  onAddLevels: () => void;
+  onUnlockAllStages: () => void;
   onOpenShop: () => void;
   onReplayTutorial: () => void;
 }) {
@@ -76,6 +80,8 @@ export function GameHeader({
         <SettingsModal
           onSkipToBoss={onSkipToBoss}
           onKillEnemy={onKillEnemy}
+          onAddLevels={onAddLevels}
+          onUnlockAllStages={onUnlockAllStages}
           onReplayTutorial={onReplayTutorial}
           onResetRequest={() => {
             setSettingsOpen(false);

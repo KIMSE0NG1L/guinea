@@ -141,6 +141,8 @@ export function GameScreen() {
           onReset={game.resetSave}
           onSkipToBoss={game.skipToBoss}
           onKillEnemy={game.battle.killEnemy}
+          onAddLevels={() => game.cheatAddLevels(50)}
+          onUnlockAllStages={game.cheatUnlockAllStages}
           onOpenShop={() => onSelectTab("shop")}
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
         />

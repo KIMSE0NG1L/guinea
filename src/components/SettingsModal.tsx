@@ -7,12 +7,16 @@ import { GameButton } from "./GameButton";
 export function SettingsModal({
   onSkipToBoss,
   onKillEnemy,
+  onAddLevels,
+  onUnlockAllStages,
   onReplayTutorial,
   onResetRequest,
   onClose,
 }: {
   onSkipToBoss: () => void;
   onKillEnemy: () => void;
+  onAddLevels: () => void;
+  onUnlockAllStages: () => void;
   onReplayTutorial: () => void;
   onResetRequest: () => void;
   onClose: () => void;
@@ -43,6 +47,26 @@ export function SettingsModal({
               style={styles.button}
             >
               몹 즉사
+            </GameButton>
+            <GameButton
+              variant="green"
+              onPress={() => {
+                onAddLevels();
+                onClose();
+              }}
+              style={styles.button}
+            >
+              +50레벨
+            </GameButton>
+            <GameButton
+              variant="green"
+              onPress={() => {
+                onUnlockAllStages();
+                onClose();
+              }}
+              style={styles.button}
+            >
+              맵 다 깨기
             </GameButton>
             <GameButton
               variant="cream"

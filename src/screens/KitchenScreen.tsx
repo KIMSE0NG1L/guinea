@@ -2,6 +2,7 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { chef, grandma, kit } from "../assets";
 import { SEALED_RECIPE } from "../state/recipeTiers";
+import { BUFFS, describeEffect } from "../state/buffs";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
@@ -75,6 +76,11 @@ export function KitchenScreen({
                   {owned > 0 && <Text style={styles.owned}>보유 {owned}</Text>}
                 </View>
                 <Text style={styles.cardSpan}>{recipe.description}</Text>
+                {BUFFS[recipe.id] && (
+                  <Text style={styles.effect}>
+                    {describeEffect(BUFFS[recipe.id].effect)} · {Math.round(BUFFS[recipe.id].durationMs / 60_000)}분
+                  </Text>
+                )}
                 <View style={styles.ingredients}>
                   {recipe.ingredients.map((ingredient) => {
                     const have = getItemQuantity(inventory, ingredient.name);
@@ -147,6 +153,7 @@ const styles = StyleSheet.create({
   cardStrong: { fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   owned: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
   cardSpan: { marginTop: 2, color: colors.muted, fontSize: 9 },
+  effect: { marginTop: 2, color: colors.green, fontSize: 9, fontWeight: "800", fontFamily: fonts.bold },
   ingredients: { marginTop: 5, flexDirection: "row", flexWrap: "wrap", gap: 6 },
   ingredient: { flexDirection: "row", alignItems: "center", gap: 2 },
   ingredientImage: { width: 16, height: 16 },

@@ -16,6 +16,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   cactus: "꼬마 선인장",
   fox: "사막여우",
   lizard: "사막 도마뱀",
+  mantou: "만두맨",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -34,26 +35,30 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   cactus: "탈수 직전 낙타",
   fox: "방울뱀",
   lizard: "귀신들린 염소",
+  mantou: "죽순중독 판다",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
-// clearing the last one's boss loops back to the first.
-export const STAGES: { area: string; enemyKind: EnemyKind }[] = [
-  { area: "뒷산", enemyKind: "slime" },
-  { area: "버섯 늪", enemyKind: "mushroom" },
-  { area: "거대 채소 농장", enemyKind: "carrot" },
-  { area: "꼬꼬 농장", enemyKind: "chicken" },
-  { area: "감자 동굴", enemyKind: "potato" },
-  { area: "평범한 마을", enemyKind: "mouse" },
-  { area: "부잣집 주방", enemyKind: "cauldron" },
-  { area: "항구 해변", enemyKind: "mudskipper" },
-  { area: "침몰선 산호초", enemyKind: "bluefish" },
-  { area: "화산섬", enemyKind: "salamander" },
-  { area: "열대 정글", enemyKind: "monkey" },
-  { area: "오아시스", enemyKind: "carp" },
-  { area: "사막", enemyKind: "cactus" },
-  { area: "사막시장", enemyKind: "fox" },
-  { area: "밤의 실크로드", enemyKind: "lizard" },
+// clearing the last one's boss loops back to the first. `story` is a one-line blurb shown
+// on the milestone map — what the area is plus a touch of its monster's story, not the full
+// codex entry (see bestiary.ts's MOB_LORE/BOSS_LORE for that).
+export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
+  { area: "뒷산", enemyKind: "slime", story: "비 온 다음 날이면 말랑한 슬라임들이 양배추 잎을 몰래 녹여 먹는 뒷산 풀숲." },
+  { area: "버섯 늪", enemyKind: "mushroom", story: "축축한 버섯들이 느긋하게 자라나는, 포자 냄새 가득한 그늘진 늪지." },
+  { area: "거대 채소 농장", enemyKind: "carrot", story: "당근과 양배추가 집채만큼 자란 농장, 토끼들이 몰래 갉아먹는 중." },
+  { area: "꼬꼬 농장", enemyKind: "chicken", story: "짚더미 속 병아리들이 계란과 닭다리살을 흘리며 뛰노는 농장." },
+  { area: "감자 동굴", enemyKind: "potato", story: "햇빛을 피해 싹을 틔우지 않으려는 감자들이 숨어 사는 어두운 동굴." },
+  { area: "평범한 마을", enemyKind: "mouse", story: "빵집과 치즈 가게 골목을 누비는 쥐들이 활개 치는 작은 마을." },
+  { area: "부잣집 주방", enemyKind: "cauldron", story: "백 년 묵은 냄비가 투덜대며 음식을 끓이는 부잣집의 거대한 주방." },
+  { area: "항구 해변", enemyKind: "mudskipper", story: "망둥어가 진흙을 튀기며 뛰노는, 어부들의 활기찬 항구 해변." },
+  { area: "침몰선 산호초", enemyKind: "bluefish", story: "가라앉은 보물선 주위를 꽁치 떼가 맴도는 화려한 산호초." },
+  { area: "화산섬", enemyKind: "salamander", story: "식은 용암 위에서 일광욕하는 도마뱀들이 사는 뜨거운 화산섬." },
+  { area: "열대 정글", enemyKind: "monkey", story: "바나나 껍질 장난이 끊이지 않는, 원숭이들의 무성한 열대 정글." },
+  { area: "오아시스", enemyKind: "carp", story: "용이 되길 꿈꾸는 잉어가 매일 점프 연습을 하는 사막 한가운데 오아시스." },
+  { area: "사막", enemyKind: "cactus", story: "물이 급한 낙타와 다정한 선인장들이 신기루 사이를 헤매는 사막." },
+  { area: "사막시장", enemyKind: "fox", story: "흥정 소리 요란한 천막 시장, 여우들이 떨어진 물건을 주워 되파는 곳." },
+  { area: "밤의 실크로드", enemyKind: "lizard", story: "달빛 아래 대상의 등불이 늘어선, 유령 들린 염소가 떠도는 밤의 사막길." },
+  { area: "죽운성", enemyKind: "mantou", story: "구름에 닿은 누각과 다리 사이로, 솥에서 몰래 빠져나온 만두맨들이 돌아다니는 대나무 도시." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

@@ -185,6 +185,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-haunted-goat-hit-strip.webp"),
     die: require("../assets/sprites/boss-haunted-goat-die-strip.webp"),
   },
+  mantou: {
+    idle: require("../assets/sprites/mantou-man-idle-strip.webp"),
+    hit: require("../assets/sprites/mantou-man-hit-strip.webp"),
+    die: require("../assets/sprites/mantou-man-die-strip.webp"),
+  },
+  bossBambooPanda: {
+    idle: require("../assets/sprites/boss-bamboo-panda-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-bamboo-panda-hit-strip.webp"),
+    die: require("../assets/sprites/boss-bamboo-panda-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -203,6 +213,7 @@ export const images = {
   battleBackgroundDesert: require("../assets/sprites/battle-desert.webp"),
   battleBackgroundDesertMarket: require("../assets/sprites/battle-desert-market.webp"),
   battleBackgroundSilkRoadNight: require("../assets/sprites/battle-silk-road-night.webp"),
+  battleBackgroundBambooCloudCity: require("../assets/sprites/battle-bamboo-cloud-city.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

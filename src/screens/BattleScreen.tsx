@@ -92,6 +92,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         dropEvents={game.dropEvents}
         bossEntranceKey={bossEntranceKey}
         levelUpAnnouncement={game.levelUpAnnouncement}
+        levelUpAttackGain={game.levelUpAttackGain}
       />
       {pickingSlot !== null && (
         <DishPicker

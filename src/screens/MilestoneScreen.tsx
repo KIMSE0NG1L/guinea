@@ -62,9 +62,12 @@ export function MilestoneScreen({
                     <Text style={styles.cardStrong}>{stage.area}</Text>
                     {cleared && <Image source={icons.star} style={styles.statusIcon} />}
                   </View>
-                  <Text style={styles.cardSpan}>
-                    {unlocked ? `${ENEMY_NAME[stage.enemyKind]} · 보스 ${BOSS_NAME[stage.enemyKind]}` : "이전 스테이지 보스를 처치하세요"}
-                  </Text>
+                  <Text style={styles.cardSpan}>{unlocked ? stage.story : "이전 스테이지 보스를 처치하세요"}</Text>
+                  {unlocked && (
+                    <Text style={styles.cardMonsters}>
+                      {ENEMY_NAME[stage.enemyKind]} · 보스 {BOSS_NAME[stage.enemyKind]}
+                    </Text>
+                  )}
                 </View>
                 {current ? (
                   <GameButton variant="green" style={styles.moveButton} textStyle={styles.moveButtonText} onPress={onBack}>
@@ -118,6 +121,7 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   cardStrong: { marginVertical: 2, fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   cardSpan: { color: colors.muted, fontSize: 9 },
+  cardMonsters: { marginTop: 3, color: colors.brown, fontSize: 8, fontWeight: "800", fontFamily: fonts.bold },
   statusIcon: { width: 16, height: 16 },
   lockIcon: { width: 34, height: 34, marginRight: 18, opacity: 0.6 },
   moveButton: { minWidth: 70 },
