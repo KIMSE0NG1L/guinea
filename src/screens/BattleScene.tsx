@@ -64,6 +64,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   pig: 160,
   magpie: 160,
   snowRabbit: 160,
+  drunkCat: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -93,6 +94,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   pig: images.battleBackgroundBambooCloudPalace,
   magpie: images.battleBackgroundSnowVillage,
   snowRabbit: images.battleBackgroundSnowMountain,
+  drunkCat: images.battleBackgroundSnowTavern,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

@@ -20,6 +20,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   pig: "잡졸돼지",
   magpie: "감서리 까치",
   snowRabbit: "설산토끼",
+  drunkCat: "술주정 뚱뚱냥",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -42,6 +43,7 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   pig: "거북신령",
   magpie: "산군",
   snowRabbit: "얼음골렘",
+  drunkCat: "주모 뚱냥",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -68,6 +70,7 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "죽운성 누각", enemyKind: "pig", story: "붉은 깃발과 등불이 늘어선 달밤의 대전, 톱니 낫을 든 졸개 돼지들이 거북 신령의 궁을 지킨다." },
   { area: "설산", enemyKind: "snowRabbit", story: "달빛 아래 눈 덮인 산문, 얼음 당근 창을 든 설산토끼들이 돌사자 곁을 지나는 이들을 노린다." },
   { area: "설화골", enemyKind: "magpie", story: "눈꽃 쌓인 초가와 돌다리가 이어진 산골 마을, 감서리 까치들이 처마 밑 감을 훔쳐 달아난다." },
+  { area: "주막", enemyKind: "drunkCat", story: "눈 쌓인 산길의 주막, 거나하게 취한 뚱뚱냥이들이 술독을 끌어안고 비틀대는 곳." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

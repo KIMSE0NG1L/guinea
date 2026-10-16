@@ -245,6 +245,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "치즈", chance: 0.4 },
     ],
   },
+  // 주막: 취한 뚱뚱냥들이 안주로 집어먹다 흘린 것들; 주모는 단골들에게만 내어주는
+  // 진짜 좋은 고기와 소금을 챙겨뒀다.
+  drunkCat: {
+    mob: [
+      { name: "겹겹 뱃살", chance: 0.3 },
+      { name: "계란", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 살코기", chance: 1, quantity: 2 },
+      { name: "뼈 갈빗살", chance: 0.6 },
+      { name: "소금 결정", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

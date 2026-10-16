@@ -225,6 +225,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-ice-golem-hit-strip.webp"),
     die: require("../assets/sprites/boss-ice-golem-die-strip.webp"),
   },
+  drunkCat: {
+    idle: require("../assets/sprites/drunk-cat-idle-strip.webp"),
+    hit: require("../assets/sprites/drunk-cat-hit-strip.webp"),
+    die: require("../assets/sprites/drunk-cat-die-strip.webp"),
+  },
+  bossTavernKeeper: {
+    idle: require("../assets/sprites/boss-tavern-keeper-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-tavern-keeper-hit-strip.webp"),
+    die: require("../assets/sprites/boss-tavern-keeper-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -247,6 +257,7 @@ export const images = {
   battleBackgroundBambooCloudPalace: require("../assets/sprites/battle-bamboo-cloud-palace.webp"),
   battleBackgroundSnowVillage: require("../assets/sprites/battle-snow-village.webp"),
   battleBackgroundSnowMountain: require("../assets/sprites/battle-snow-mountain.webp"),
+  battleBackgroundSnowTavern: require("../assets/sprites/battle-snow-tavern.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
