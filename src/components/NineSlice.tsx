@@ -17,7 +17,9 @@ function spans(sourceLength: number, startInset: number, endInset: number, lengt
 // Draws a framed piece of UI art at any size, filling its parent: corners keep their art
 // (scaled by `scale`), edges stretch along one axis and the middle stretches both ways.
 // RN has no border-image, so each of the 9 cells is a clipped window onto the same image.
-export function NineSlice({ slice, scale = 0.5 }: { slice: UiSlice; scale?: number }) {
+// `tint` paints every opaque pixel one flat colour — offset behind the real frame, that
+// silhouette makes a drop shadow that follows the art's own outline (tails, rounded corners).
+export function NineSlice({ slice, scale = 0.5, tint }: { slice: UiSlice; scale?: number; tint?: string }) {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -37,7 +39,7 @@ export function NineSlice({ slice, scale = 0.5 }: { slice: UiSlice; scale?: numb
         // +0.5px overlap hides hairline seams between cells from subpixel rounding.
         const frame = { left: column.start, top: row.start, width: column.length + 0.5, height: row.length + 0.5 };
         if (r === 1 && c === 1 && slice.centerColor) {
-          return <View key="center" style={[styles.cell, frame, { backgroundColor: slice.centerColor }]} />;
+          return <View key="center" style={[styles.cell, frame, { backgroundColor: tint ?? slice.centerColor }]} />;
         }
         const sx = column.length / column.srcLength;
         const sy = row.length / row.srcLength;
@@ -46,7 +48,7 @@ export function NineSlice({ slice, scale = 0.5 }: { slice: UiSlice; scale?: numb
             <Image
               source={slice.source}
               resizeMode="stretch"
-              style={{ position: "absolute", left: -column.srcStart * sx, top: -row.srcStart * sy, width: slice.width * sx, height: slice.height * sy }}
+              style={{ position: "absolute", left: -column.srcStart * sx, top: -row.srcStart * sy, width: slice.width * sx, height: slice.height * sy, tintColor: tint }}
             />
           </View>
         );

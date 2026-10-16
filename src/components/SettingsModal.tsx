@@ -7,11 +7,13 @@ import { GameButton } from "./GameButton";
 export function SettingsModal({
   onSkipToBoss,
   onKillEnemy,
+  onReplayTutorial,
   onResetRequest,
   onClose,
 }: {
   onSkipToBoss: () => void;
   onKillEnemy: () => void;
+  onReplayTutorial: () => void;
   onResetRequest: () => void;
   onClose: () => void;
 }) {
@@ -41,6 +43,16 @@ export function SettingsModal({
               style={styles.button}
             >
               몹 즉사
+            </GameButton>
+            <GameButton
+              variant="cream"
+              onPress={() => {
+                onReplayTutorial();
+                onClose();
+              }}
+              style={styles.button}
+            >
+              튜토리얼 다시 보기
             </GameButton>
             <GameButton variant="red" onPress={onResetRequest} style={styles.button}>
               세이브 초기화

@@ -38,6 +38,8 @@ export interface GameState {
   speedBoostUntil?: number;
   // Shown on the header profile; missing on older saves (falls back to DEFAULT_NICKNAME).
   nickname?: string;
+  // Set once the first-run tutorial is finished or skipped; missing on older saves.
+  tutorialDone?: boolean;
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
   equippedOutfit: Outfit;
   // The one skill in the battle slot (null = none); missing on older saves.

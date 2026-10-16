@@ -462,6 +462,7 @@ export function useGameState() {
 
   return {
     state,
+    loaded,
     setState,
     questOpen,
     setQuestOpen,

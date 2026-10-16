@@ -6,6 +6,7 @@ export const DEFAULT_NICKNAME = "꼬질꼬질 기니";
 
 export const initialState: GameState = {
   nickname: DEFAULT_NICKNAME,
+  tutorialDone: false,
   gold: 1250,
   gems: 10,
   level: 1,

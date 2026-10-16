@@ -18,6 +18,7 @@ import { MilestoneScreen } from "./screens/MilestoneScreen";
 import { KitchenScreen } from "./screens/KitchenScreen";
 import { GroceryScreen } from "./screens/GroceryScreen";
 import { RecipeShopScreen } from "./screens/RecipeShopScreen";
+import { TutorialOverlay } from "./components/TutorialOverlay";
 import type { Tab } from "./types";
 
 export function GameScreen() {
@@ -113,6 +114,7 @@ export function GameScreen() {
           onSkipToBoss={game.skipToBoss}
           onKillEnemy={game.battle.killEnemy}
           onOpenShop={() => onSelectTab("shop")}
+          onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
         />
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {renderContent()}
@@ -127,6 +129,10 @@ export function GameScreen() {
             onClaim={game.dismissOfflineSummary}
             onClaimDouble={game.claimOfflineDouble}
           />
+        )}
+        {/* Waits for the save to load (so returning players never see it flash) and for the offline popup. */}
+        {game.loaded && !state.tutorialDone && !game.offlineSummary && (
+          <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true }))} />
         )}
       </SafeAreaView>
     </View>

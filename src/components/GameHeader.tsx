@@ -25,12 +25,14 @@ export function GameHeader({
   onSkipToBoss,
   onKillEnemy,
   onOpenShop,
+  onReplayTutorial,
 }: {
   state: GameState;
   onReset: () => void;
   onSkipToBoss: () => void;
   onKillEnemy: () => void;
   onOpenShop: () => void;
+  onReplayTutorial: () => void;
 }) {
   const { width: screenWidth } = useWindowDimensions();
   const fit = Math.min(1, (Math.min(screenWidth, FRAME_WIDTH) - HEADER_PADDING * 2) / DESIGN_ROW);
@@ -74,6 +76,7 @@ export function GameHeader({
         <SettingsModal
           onSkipToBoss={onSkipToBoss}
           onKillEnemy={onKillEnemy}
+          onReplayTutorial={onReplayTutorial}
           onResetRequest={() => {
             setSettingsOpen(false);
             setConfirmingReset(true);
