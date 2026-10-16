@@ -195,6 +195,36 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-bamboo-panda-hit-strip.webp"),
     die: require("../assets/sprites/boss-bamboo-panda-die-strip.webp"),
   },
+  pig: {
+    idle: require("../assets/sprites/pig-grunt-idle-strip.webp"),
+    hit: require("../assets/sprites/pig-grunt-hit-strip.webp"),
+    die: require("../assets/sprites/pig-grunt-die-strip.webp"),
+  },
+  bossTurtleSpirit: {
+    idle: require("../assets/sprites/boss-turtle-spirit-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-turtle-spirit-hit-strip.webp"),
+    die: require("../assets/sprites/boss-turtle-spirit-die-strip.webp"),
+  },
+  magpie: {
+    idle: require("../assets/sprites/magpie-persimmon-idle-strip.webp"),
+    hit: require("../assets/sprites/magpie-persimmon-hit-strip.webp"),
+    die: require("../assets/sprites/magpie-persimmon-die-strip.webp"),
+  },
+  bossTigerSpirit: {
+    idle: require("../assets/sprites/boss-tiger-spirit-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-tiger-spirit-hit-strip.webp"),
+    die: require("../assets/sprites/boss-tiger-spirit-die-strip.webp"),
+  },
+  snowRabbit: {
+    idle: require("../assets/sprites/snow-rabbit-idle-strip.webp"),
+    hit: require("../assets/sprites/snow-rabbit-hit-strip.webp"),
+    die: require("../assets/sprites/snow-rabbit-die-strip.webp"),
+  },
+  bossIceGolem: {
+    idle: require("../assets/sprites/boss-ice-golem-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-ice-golem-hit-strip.webp"),
+    die: require("../assets/sprites/boss-ice-golem-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -214,6 +244,9 @@ export const images = {
   battleBackgroundDesertMarket: require("../assets/sprites/battle-desert-market.webp"),
   battleBackgroundSilkRoadNight: require("../assets/sprites/battle-silk-road-night.webp"),
   battleBackgroundBambooCloudCity: require("../assets/sprites/battle-bamboo-cloud-city.webp"),
+  battleBackgroundBambooCloudPalace: require("../assets/sprites/battle-bamboo-cloud-palace.webp"),
+  battleBackgroundSnowVillage: require("../assets/sprites/battle-snow-village.webp"),
+  battleBackgroundSnowMountain: require("../assets/sprites/battle-snow-mountain.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

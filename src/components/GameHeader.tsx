@@ -5,10 +5,10 @@ import { frameImages, headerKit, icons, navIcons } from "../assets";
 import { Panel } from "./NineSlice";
 import { ProgressBar } from "./ProgressBar";
 import { getExpToLevel } from "../state/gameMath";
-import { DEFAULT_NICKNAME } from "../state/initialState";
 import { CHIP_WIDTH, ResourceBar } from "./ResourceBar";
 import { ConfirmModal } from "./ConfirmModal";
 import { SettingsModal } from "./SettingsModal";
+import { getCompanionName } from "../screens/CompanionsScreen";
 import type { GameState } from "../types";
 
 // The header row is laid out for the 430px app frame (406px inside its padding):
@@ -54,7 +54,7 @@ export function GameHeader({
           <View style={styles.profileCopy}>
             <View style={styles.nameRow}>
               <Text style={styles.levelText}>Lv.{state.level}</Text>
-              <Text style={styles.nickname} numberOfLines={1}>{state.nickname ?? DEFAULT_NICKNAME}</Text>
+              <Text style={styles.nickname} numberOfLines={1}>{getCompanionName(state.equippedOutfit)}</Text>
             </View>
             <ProgressBar
               progress={(state.experience / getExpToLevel(state.level)) * 100}

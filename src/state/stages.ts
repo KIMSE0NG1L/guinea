@@ -17,6 +17,9 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   fox: "사막여우",
   lizard: "사막 도마뱀",
   mantou: "만두맨",
+  pig: "잡졸돼지",
+  magpie: "감서리 까치",
+  snowRabbit: "설산토끼",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -36,6 +39,9 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   fox: "방울뱀",
   lizard: "귀신들린 염소",
   mantou: "죽순중독 판다",
+  pig: "거북신령",
+  magpie: "산군",
+  snowRabbit: "얼음골렘",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -59,6 +65,9 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "사막시장", enemyKind: "fox", story: "흥정 소리 요란한 천막 시장, 여우들이 떨어진 물건을 주워 되파는 곳." },
   { area: "밤의 실크로드", enemyKind: "lizard", story: "달빛 아래 대상의 등불이 늘어선, 유령 들린 염소가 떠도는 밤의 사막길." },
   { area: "죽운성", enemyKind: "mantou", story: "구름에 닿은 누각과 다리 사이로, 솥에서 몰래 빠져나온 만두맨들이 돌아다니는 대나무 도시." },
+  { area: "죽운성 누각", enemyKind: "pig", story: "붉은 깃발과 등불이 늘어선 달밤의 대전, 톱니 낫을 든 졸개 돼지들이 거북 신령의 궁을 지킨다." },
+  { area: "설산", enemyKind: "snowRabbit", story: "달빛 아래 눈 덮인 산문, 얼음 당근 창을 든 설산토끼들이 돌사자 곁을 지나는 이들을 노린다." },
+  { area: "설화골", enemyKind: "magpie", story: "눈꽃 쌓인 초가와 돌다리가 이어진 산골 마을, 감서리 까치들이 처마 밑 감을 훔쳐 달아난다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

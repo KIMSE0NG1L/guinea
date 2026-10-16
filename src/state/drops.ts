@@ -206,6 +206,45 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "우유", chance: 0.4 },
     ],
   },
+  // 죽운성 누각: the pig guards skim scraps from the palace kitchen between patrols; the
+  // turtle spirit has centuries of the palace's finest offerings stored away.
+  pig: {
+    mob: [
+      { name: "계란", chance: 0.3 },
+      { name: "치즈", chance: 0.15 },
+    ],
+    boss: [
+      { name: "뼈 갈빗살", chance: 1, quantity: 2 },
+      { name: "두툼 살코기", chance: 0.6 },
+      { name: "치즈", chance: 0.4 },
+    ],
+  },
+  // 설화골: the magpies drop whatever fruit they swiped off the eaves between bites; the
+  // tiger spirit guards the valley's richest winter stores.
+  magpie: {
+    mob: [
+      { name: "풋사과", chance: 0.3 },
+      { name: "레몬", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 살코기", chance: 1, quantity: 2 },
+      { name: "뼈 갈빗살", chance: 0.6 },
+      { name: "우유", chance: 0.4 },
+    ],
+  },
+  // 설산: the rabbits carry frozen carrots down from their own stash; the ice golem has
+  // been crushing whatever caravans tried to cross the mountain pass for centuries.
+  snowRabbit: {
+    mob: [
+      { name: "당근", chance: 0.3 },
+      { name: "우유", chance: 0.15 },
+    ],
+    boss: [
+      { name: "뼈 갈빗살", chance: 1, quantity: 2 },
+      { name: "두툼 살코기", chance: 0.6 },
+      { name: "치즈", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

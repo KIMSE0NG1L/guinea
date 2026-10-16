@@ -59,6 +59,16 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   fox: 150,
   lizard: 160,
   mantou: 160,
+  pig: 160,
+  magpie: 160,
+  snowRabbit: 160,
+};
+
+// Regular mobs render at a flat 108px by default; override here for the rare mob whose
+// art reads too small or large at that size (same idea as BOSS_SIZE, just sparse since
+// most mobs look fine at the default).
+const MOB_SIZE: Partial<Record<EnemyKind, number>> = {
+  pig: 140,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -78,6 +88,9 @@ const BACKGROUND: Record<EnemyKind, number> = {
   fox: images.battleBackgroundDesertMarket,
   lizard: images.battleBackgroundSilkRoadNight,
   mantou: images.battleBackgroundBambooCloudCity,
+  pig: images.battleBackgroundBambooCloudPalace,
+  magpie: images.battleBackgroundSnowVillage,
+  snowRabbit: images.battleBackgroundSnowMountain,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
@@ -252,7 +265,7 @@ export function BattleScene({
 
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
-  const enemySize = boss ? BOSS_SIZE[enemyKind] : 108;
+  const enemySize = boss ? BOSS_SIZE[enemyKind] : MOB_SIZE[enemyKind] ?? 108;
   // Drops pop out of the enemy's middle and fly into the bag button's centre.
   const dropFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 };
   const dropTo = { dx: ENEMY_CENTER_RIGHT - BAG_CENTER.right, dy: dropFrom.bottom - BAG_CENTER.bottom };
