@@ -1,6 +1,7 @@
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit, uiImages } from "../assets";
+import { frameKit, kit, uiImages } from "../assets";
+import { getQuestIcon } from "../state/quests";
 import { NineSlice, Panel } from "./NineSlice";
 import { ProgressBar } from "./ProgressBar";
 import { formatGameNumber } from "../state/gameMath";
@@ -41,22 +42,28 @@ export function QuestModal({
                 const progress = Math.min(100, (quest.current / quest.target) * 100);
                 return (
                   <Panel slice={kit.panel} scale={0.4} style={styles.item} key={quest.id}>
-                    {complete ? (
-                      <View style={styles.symbol}>
-                        <Text style={styles.symbolText}>✓</Text>
-                      </View>
-                    ) : (
-                      <Image source={uiImages.badgeAlert} style={styles.symbolImage} />
-                    )}
+                    <Panel slice={frameKit.squareWood} scale={0.45} style={styles.iconSlot}>
+                      {getQuestIcon(quest.id) !== undefined && (
+                        <Image source={getQuestIcon(quest.id)} style={styles.icon} resizeMode="contain" />
+                      )}
+                      {complete && !quest.claimed && (
+                        <View style={styles.check}>
+                          <Text style={styles.checkText}>✓</Text>
+                        </View>
+                      )}
+                    </Panel>
                     <View style={styles.info}>
-                      <Text style={styles.infoTitle}>{quest.title}</Text>
+                      <View style={styles.titleRow}>
+                        <Text style={styles.infoTitle}>{quest.title}</Text>
+                        <Text style={styles.tier}>{(quest.tier ?? 0) + 1}단계</Text>
+                      </View>
                       <ProgressBar progress={progress} fill="green" height={12} style={styles.track} />
                       <View style={styles.infoSubRow}>
                         <Text style={styles.infoSub}>
                           {formatGameNumber(Math.min(quest.current, quest.target))} / {formatGameNumber(quest.target)} · 보상
                         </Text>
-                        <Image source={uiImages.coin} style={styles.rewardCoin} />
-                        <Text style={styles.infoSub}>{formatGameNumber(quest.reward)} G</Text>
+                        <Image source={uiImages.crystal} style={styles.rewardCoin} />
+                        <Text style={styles.infoSub}>{formatGameNumber(quest.reward)}</Text>
                       </View>
                     </View>
                     <GameButton
@@ -113,22 +120,29 @@ const styles = StyleSheet.create({
     paddingTop: 9,
     paddingBottom: 11,
   },
-  symbol: {
-    width: 30,
-    height: 30,
+  iconSlot: { width: 42, height: 42, alignItems: "center", justifyContent: "center" },
+  icon: { width: 30, height: 30 },
+  // Gold tick on the tile's corner while the reward is waiting to be claimed.
+  check: {
+    position: "absolute",
+    right: -4,
+    top: -4,
+    width: 17,
+    height: 17,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.gold,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: colors.line,
-    borderRadius: 15,
+    borderRadius: 9,
   },
-  symbolText: { color: "white", fontWeight: "900", fontFamily: fonts.bold },
-  symbolImage: { width: 30, height: 30 },
+  checkText: { color: "white", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  tier: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
   info: { flex: 1 },
   infoTitle: { fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   infoSubRow: { flexDirection: "row", alignItems: "center", gap: 2 },
-  rewardCoin: { width: 10, height: 10 },
+  rewardCoin: { width: 12, height: 12 },
   infoSub: { color: colors.muted, fontSize: 8, fontWeight: "700", fontFamily: fonts.bold },
   track: { marginVertical: 4 },
   claimButton: { minWidth: 50, paddingHorizontal: 8 },

@@ -10,12 +10,14 @@ import type { GameState } from "../types";
 
 export function KitchenScreen({
   inventory,
+  bagCapacity,
   knownRecipes,
   onCook,
   onOpenGrocery,
   onOpenRecipes,
 }: {
   inventory: GameState["inventory"];
+  bagCapacity: number;
   knownRecipes: string[] | undefined;
   onCook: (recipeId: string) => void;
   onOpenGrocery: () => void;
@@ -60,6 +62,10 @@ export function KitchenScreen({
         {recipes.map((recipe) => {
           const ready = canCook(inventory, recipe);
           const owned = getItemQuantity(inventory, recipe.name);
+          // A new dish needs a free slot — counting the ones its ingredients free up.
+          const freed = recipe.ingredients.filter((ingredient) => getItemQuantity(inventory, ingredient.name) === ingredient.quantity).length;
+          const room = owned > 0 || inventory.length - freed < bagCapacity;
+          const cookable = ready && room;
           return (
             <Panel slice={ready ? kit.panel : kit.inset} style={styles.card} key={recipe.id}>
               <Image source={recipe.image} style={styles.dish} />
@@ -87,13 +93,13 @@ export function KitchenScreen({
                 </View>
               </View>
               <GameButton
-                variant={ready ? "green" : "gray"}
-                disabled={!ready}
+                variant={cookable ? "green" : "gray"}
+                disabled={!cookable}
                 onPress={() => onCook(recipe.id)}
                 style={styles.cookButton}
                 textStyle={styles.cookButtonText}
               >
-                {ready ? "요리하기" : "재료 부족"}
+                {!ready ? "재료 부족" : room ? "요리하기" : "가방 가득"}
               </GameButton>
             </Panel>
           );

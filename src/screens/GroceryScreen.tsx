@@ -42,7 +42,7 @@ export function GroceryScreen({
 }: {
   inventory: GameState["inventory"];
   gold: number;
-  onBuy: (name: string, price: number) => boolean;
+  onBuy: (name: string, price: number) => "ok" | "gold" | "full";
   onBack: () => void;
   onOpenRecipes: () => void;
 }) {
@@ -55,8 +55,11 @@ export function GroceryScreen({
   };
 
   const buy = (name: string, price: number) => {
-    if (onBuy(name, price)) {
+    const result = onBuy(name, price);
+    if (result === "ok") {
       say(grandma.wave, `${name} 하나 담아뒀단다. 맛있게 해먹으렴!`);
+    } else if (result === "full") {
+      say(grandma.happy, "가방이 꽉 찼구나. 가방을 좀 늘려서 오렴.");
     } else {
       say(grandma.happy, "어이쿠, 골드가 조금 모자라구나.");
     }

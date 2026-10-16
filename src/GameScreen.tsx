@@ -19,6 +19,7 @@ import { KitchenScreen } from "./screens/KitchenScreen";
 import { GroceryScreen } from "./screens/GroceryScreen";
 import { RecipeShopScreen } from "./screens/RecipeShopScreen";
 import { TutorialOverlay } from "./components/TutorialOverlay";
+import { getBagCapacity } from "./state/bag";
 import type { Tab } from "./types";
 
 export function GameScreen() {
@@ -41,7 +42,15 @@ export function GameScreen() {
           />
         );
       case "inventory":
-        return <InventoryScreen inventory={state.inventory} />;
+        return (
+          <InventoryScreen
+            inventory={state.inventory}
+            gems={state.gems}
+            expansions={state.bagExpansions ?? 0}
+            onExpand={game.expandBag}
+            onOpenShop={() => onSelectTab("shop")}
+          />
+        );
       case "wardrobe":
         return (
           <WardrobeScreen
@@ -64,6 +73,7 @@ export function GameScreen() {
         return (
           <KitchenScreen
             inventory={state.inventory}
+            bagCapacity={getBagCapacity(state.bagExpansions)}
             knownRecipes={state.knownRecipes}
             onCook={game.cook}
             onOpenGrocery={() => onSelectTab("grocery")}

@@ -8,6 +8,7 @@ import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
 import { getEnemyKind, getStageLabel } from "../state/stages";
+import { getBagCapacity } from "../state/bag";
 import type { EnemyKind } from "../types";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
@@ -70,6 +71,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
         onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
+        bagFull={state.inventory.length >= getBagCapacity(state.bagExpansions)}
         skillBar={
           <SkillSlot
             skillId={state.equippedSkill ?? null}

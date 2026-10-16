@@ -163,6 +163,7 @@ export function BattleScene({
   onOpenMap,
   onOpenKitchen,
   onOpenBag,
+  bagFull,
   skillBar,
   goldEvents,
   executeId: rawExecuteId,
@@ -195,6 +196,7 @@ export function BattleScene({
   onOpenMap: () => void;
   onOpenKitchen: () => void;
   onOpenBag: () => void;
+  bagFull: boolean;
   skillBar: ReactNode;
   // Gold scattered by the Steal skill, one popup per hit.
   goldEvents: { id: number; amount: number }[];
@@ -383,7 +385,7 @@ export function BattleScene({
             </View>
           </Animated.View>
 
-          <BagButton onPress={onOpenBag} dropEvents={dropEvents} />
+          <BagButton onPress={onOpenBag} dropEvents={dropEvents} full={bagFull} />
 
           <Pressable
             onPress={onOpenKitchen}
@@ -465,7 +467,7 @@ export function BattleScene({
 }
 
 // Opens the bag; bumps each time a dropped ingredient lands in it.
-function BagButton({ onPress, dropEvents }: { onPress: () => void; dropEvents: DropEvent[] }) {
+function BagButton({ onPress, dropEvents, full }: { onPress: () => void; dropEvents: DropEvent[]; full: boolean }) {
   const bump = useSharedValue(1);
   const lastSeen = useRef(0);
 
@@ -484,11 +486,16 @@ function BagButton({ onPress, dropEvents }: { onPress: () => void; dropEvents: D
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="가방 열기"
+      accessibilityLabel={full ? "가방 열기 (가득 참)" : "가방 열기"}
       hitSlop={8}
       style={({ pressed }) => [styles.bagButton, pressed && styles.mapButtonPressed]}
     >
       <Animated.Image source={BAG_ICON.source} style={[fitInBox(BAG_ICON), style]} />
+      {full && (
+        <View style={styles.bagFull} pointerEvents="none">
+          <Text style={styles.bagFullText}>가득</Text>
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -791,6 +798,9 @@ const styles = StyleSheet.create({
   questPressed: { transform: [{ scale: 0.92 }] },
   questIcon: { width: 38, height: 38 },
   // Just a dot — whether there's something to claim, not how many.
+  // Red tag on the bag's corner while new kinds of drops are being turned away.
+  bagFull: { position: "absolute", top: -4, right: -6, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 7, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.line },
+  bagFullText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   questDot: { position: "absolute", right: 3, top: 2, width: 12, height: 12 },
   fighters: {
     position: "absolute",

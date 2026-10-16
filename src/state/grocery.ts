@@ -39,7 +39,7 @@ export const GROCERY: { name: string; price: number; category: GroceryCategory }
   { name: "지느러미", price: 350, category: "seafood" },
   // Herbs, seasoning and things only monsters usually leave behind — priced as rarities.
   { name: "소금 결정", price: 40, category: "special" },
-  { name: "들풀 다발", price: 50, category: "special" },
+  { name: "고수", price: 50, category: "special" },
   { name: "불꽃 고추", price: 80, category: "special" },
   { name: "초록 젤리", price: 90, category: "special" },
   { name: "화염 열매", price: 160, category: "special" },

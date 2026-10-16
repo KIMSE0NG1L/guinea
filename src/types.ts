@@ -15,6 +15,8 @@ export interface Quest {
   target: number;
   reward: number;
   claimed: boolean;
+  // Rung on this quest's ladder (state/quests.ts); missing on saves from before ladders.
+  tier?: number;
 }
 
 export interface GameState {
@@ -48,6 +50,8 @@ export interface GameState {
   skillEquippedAt?: number;
   selectedTab: Tab;
   inventory: { name: string; quantity: number; type: string }[];
+  // Bought bag expansions (see state/bag.ts); missing on older saves = none.
+  bagExpansions?: number;
   equipment: Record<string, string | null>;
   quests: Quest[];
   kills: number;

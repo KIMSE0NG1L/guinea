@@ -117,7 +117,6 @@ export const RECIPES: Recipe[] = [
     price: 600,
     ingredients: [
       { name: "두툼 생선 토막", quantity: 1 },
-      { name: "들풀 다발", quantity: 1 },
       { name: "소금 결정", quantity: 1 },
     ],
   },
@@ -213,7 +212,7 @@ export const ITEM_IMAGES: Record<string, number> = {
   "화염 열매": food.fireFruit,
   "미역": food.seaweed,
   "초록 젤리": food.greenJelly,
-  "들풀 다발": food.herb,
+  "고수": food.herb,
   "풋사과": food.greenApple,
   "로열 젤리": food.royalJelly,
   "소금 결정": food.salt,

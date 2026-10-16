@@ -6,6 +6,8 @@ import { initialState } from "./initialState";
 import { getExpReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, statInfo } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
+import { advanceQuest, migrateQuests } from "./quests";
+import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
 import { BUFFS, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
@@ -100,8 +102,15 @@ export function useGameState() {
         // Placeholder starter materials that were never used by any recipe — strip them
         // from older saves so they stop cluttering the bag.
         const retiredItems = ["낡은 천", "작은 돌"];
-        const inventory = save.state.inventory.filter((item) => !retiredItems.includes(item.name));
-        let loadedState = { ...save.state, equippedOutfit, inventory };
+        // Items renamed since the save was written keep their count under the new name.
+        const renamedItems: Record<string, string> = { "들풀 다발": "고수" };
+        const inventory = save.state.inventory
+          .filter((item) => !retiredItems.includes(item.name))
+          .map((item) => (renamedItems[item.name] ? { ...item, name: renamedItems[item.name] } : item));
+        // Re-reads titles/targets/gem rewards from the quest ladders (older saves had
+        // one-shot gold quests).
+        const quests = migrateQuests(save.state.quests);
+        let loadedState = { ...save.state, equippedOutfit, inventory, quests };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const result = simulateOfflineProgress(loadedState, Date.now() - save.lastSeenAt);
@@ -179,7 +188,8 @@ export function useGameState() {
     if (reachesBossThreshold) setBoss(true);
 
     // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
-    const drops = rollDrops(getEnemyKind(state.stageNumber), boss);
+    // A full bag only turns away kinds it doesn't already hold — those just don't drop.
+    const drops = fitItems(state.inventory, rollDrops(getEnemyKind(state.stageNumber), boss), getBagCapacity(state.bagExpansions)).kept;
     if (drops.length > 0) {
       // One flying icon per item, staggered so a boss's pile spills out one by one.
       const events = drops
@@ -229,7 +239,7 @@ export function useGameState() {
         }),
       };
     });
-  }, [boss, state.stageKills, state.stageNumber]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -316,8 +326,8 @@ export function useGameState() {
       if (!quest || quest.claimed || quest.current < quest.target) return previous;
       return {
         ...previous,
-        gold: previous.gold + quest.reward,
-        quests: previous.quests.map((item) => item.id === id ? { ...item, claimed: true } : item),
+        gems: previous.gems + quest.reward,
+        quests: previous.quests.map((item) => (item.id === id ? advanceQuest(item) : item)),
       };
     });
   };
@@ -367,6 +377,7 @@ export function useGameState() {
         })
         .filter((item) => item.quantity > 0);
       const dish = inventory.find((item) => item.name === recipe.name);
+      if (!dish && inventory.length >= getBagCapacity(previous.bagExpansions)) return previous;
       const dishesCooked = (previous.dishesCooked ?? 0) + 1;
       return {
         ...previous,
@@ -381,12 +392,28 @@ export function useGameState() {
     });
   };
 
-  // Returns whether the purchase went through, so the shop can react either way.
-  const buyIngredient = (name: string, price: number) => {
-    if (state.gold < price) return false;
+  // Reports why a purchase failed (or "ok"), so the shop can react either way.
+  const buyIngredient = (name: string, price: number): "ok" | "gold" | "full" => {
+    if (state.gold < price) return "gold";
+    if (fitItems(state.inventory, [{ name }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
     setState((previous) => {
       if (previous.gold < price) return previous;
-      return { ...previous, gold: previous.gold - price, inventory: addItems(previous.inventory, [{ name, quantity: 1 }]) };
+      const { kept } = fitItems(previous.inventory, [{ name, quantity: 1 }], getBagCapacity(previous.bagExpansions));
+      return { ...previous, gold: previous.gold - price, inventory: addItems(previous.inventory, kept) };
+    });
+    return "ok";
+  };
+
+  // Spends gems for more bag slots; returns whether it went through.
+  const expandBag = () => {
+    const expansions = state.bagExpansions ?? 0;
+    const cost = getBagExpandCost(expansions);
+    if (state.gems < cost || getBagCapacity(expansions) >= BAG_MAX_SLOTS) return false;
+    setState((previous) => {
+      const current = previous.bagExpansions ?? 0;
+      const price = getBagExpandCost(current);
+      if (previous.gems < price || getBagCapacity(current) >= BAG_MAX_SLOTS) return previous;
+      return { ...previous, gems: previous.gems - price, bagExpansions: current + 1 };
     });
     return true;
   };
@@ -478,6 +505,7 @@ export function useGameState() {
     battle,
     upgradeStat,
     claimQuest,
+    expandBag,
     selectStage,
     skipToBoss,
     equipSkill,

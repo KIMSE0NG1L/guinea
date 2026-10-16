@@ -10,7 +10,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   slime: {
     mob: [
       { name: "초록 젤리", chance: 0.4 },
-      { name: "들풀 다발", chance: 0.1 },
+      { name: "고수", chance: 0.1 },
     ],
     boss: [
       { name: "로열 젤리", chance: 1 },
@@ -21,11 +21,11 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   mushroom: {
     mob: [
       { name: "버섯", chance: 0.35 },
-      { name: "들풀 다발", chance: 0.1 },
+      { name: "고수", chance: 0.1 },
     ],
     boss: [
       { name: "버섯", chance: 1, quantity: 3 },
-      { name: "들풀 다발", chance: 0.5 },
+      { name: "고수", chance: 0.5 },
     ],
   },
   // 거대 채소 농장: carrots and tomatoes.
