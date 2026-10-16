@@ -24,8 +24,12 @@ export const statInfo: Record<StatKey, { label: string; mark: string; step: numb
 // ~10% the wall still hits by stage 100 (swings-needed-per-kill blows up past 1e9);
 // by 12.5% it's already comfortable (under 5,000 swings for the single hardest kill
 // across all 100 stages); 15% leaves real margin for a less-than-perfectly-optimal
-// player (under 300). Don't drop this below ~0.12 without re-running that simulation.
-export const ATTACK_UPGRADE_RATE = 0.15;
+// player (under 300).
+// Set to 0.10 on 2026-10-17 at the user's explicit request after being shown the above —
+// this reopens the stage-100 wall this whole mechanism exists to prevent (simulated
+// worst-case kill needs ~2.3e10 swings, i.e. unwinnable). If the game is meant to
+// actually reach stage 100, raise this back to >=0.12 (re-run the sim first).
+export const ATTACK_UPGRADE_RATE = 0.1;
 
 // How much a purchased stat levels up by: attack compounds (see ATTACK_UPGRADE_RATE
 // above), every other stat still just adds its flat `step` — those are percentage-point
