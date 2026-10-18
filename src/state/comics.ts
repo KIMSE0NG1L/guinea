@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -268,6 +268,49 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  // Reaching stage 24 (stage 23's pirate-octopus boss down): the party sails to the cherry
+  // blossom island and is mobbed by blossom crabs on landing; a silent wandering samurai
+  // clears the beach in one draw (사무라이기니's opening strike), then his stomach gives him
+  // away — tuna sashimi, his partner dish, wins him over.
+  samurai: {
+    title: "벚꽃 해변의 떠돌이 무사",
+    panels: [
+      {
+        image: comics.samurai1,
+        aspect: 512 / 768,
+        sfx: "bossEnter",
+        bubbles: [
+          { text: "섬에 오자마자\n이게 뭐야?!", left: 0.06, top: 0.22, maxWidth: 0.32, tail: "bottom", tailAt: 0.6 },
+          { text: "옆으로 옆으로~", right: 0.02, top: 0.4, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.samurai2,
+        aspect: 512 / 768,
+        bubbles: [{ text: "......", left: 0.34, top: 0.34, maxWidth: 0.2, tail: "left", tailAt: 0.6 }],
+      },
+      {
+        image: comics.samurai3,
+        aspect: 512 / 768,
+        sfx: "crit",
+        shake: true,
+        bubbles: [
+          { text: "착—", right: 0.08, top: 0.08, maxWidth: 0.2, tail: "bottom", tailAt: 0.3, shout: true },
+          { text: "한 칼에...?!", left: 0.02, top: 0.36, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.samurai4,
+        aspect: 512 / 768,
+        sfx: "cookDone",
+        bubbles: [
+          { text: "배고프지?\n참치 회 먹을래?", left: 0.3, top: 0.08, maxWidth: 0.34, tail: "bottom", tailAt: 0.55 },
+          { text: "...신세 지겠소.", right: 0.02, top: 0.14, maxWidth: 0.3, tail: "bottom", tailAt: 0.55 },
+          { text: "꼬르륵", left: 0.52, top: 0.5, maxWidth: 0.16, tail: "right", tailAt: 0.6 },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
@@ -277,6 +320,7 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   8: "teto",
   12: "assassin",
   19: "egen",
+  22: "samurai",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.

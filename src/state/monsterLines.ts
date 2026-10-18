@@ -29,6 +29,8 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   mackerel: ["...뭘 봐", "그물은 질색이야"],
   blossomCrab: ["꽃 떨어진다!", "옆으로 옆으로~"],
   shrineFox: ["흥, 참배는 저쪽", "유부는 안 먹었어"],
+  armorBeetle: ["이 뿔이 투구다!", "젤리 시간인가?"],
+  onsenMonkey: ["물 튀기지 마!", "수건은 안 담가"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -57,4 +59,6 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   mackerel: ["돛을 올려라!", "배는... 묻지 마"],
   blossomCrab: ["예쁘다고 하지 마!", "에취! 꽃가루..."],
   shrineFox: ["싸다 싸!", "값은... 그때그때 달라"],
+  armorBeetle: ["감히 천수각에!", "내가 제일 반짝여"],
+  onsenMonkey: ["어서 오세요...", "물 식기 전에 들어가세요"],
 };

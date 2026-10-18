@@ -71,6 +71,8 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   mackerel: 160,
   blossomCrab: 160,
   shrineFox: 160,
+  armorBeetle: 160,
+  onsenMonkey: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -108,6 +110,8 @@ const BACKGROUND: Record<EnemyKind, number> = {
   mackerel: images.battleBackgroundFishingPort,
   blossomCrab: images.battleBackgroundBlossomBeach,
   shrineFox: images.battleBackgroundFoxShrine,
+  armorBeetle: images.battleBackgroundCastleKeep,
+  onsenMonkey: images.battleBackgroundHotSpring,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

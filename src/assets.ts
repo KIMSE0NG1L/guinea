@@ -291,6 +291,26 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-tanuki-merchant-hit-strip.webp"),
     die: require("../assets/sprites/boss-tanuki-merchant-die-strip.webp"),
   },
+  armorBeetle: {
+    idle: require("../assets/sprites/armor-beetle-idle-strip.webp"),
+    hit: require("../assets/sprites/armor-beetle-hit-strip.webp"),
+    die: require("../assets/sprites/armor-beetle-die-strip.webp"),
+  },
+  bossGoldenShachi: {
+    idle: require("../assets/sprites/boss-golden-shachi-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-golden-shachi-hit-strip.webp"),
+    die: require("../assets/sprites/boss-golden-shachi-die-strip.webp"),
+  },
+  onsenMonkey: {
+    idle: require("../assets/sprites/onsen-monkey-idle-strip.webp"),
+    hit: require("../assets/sprites/onsen-monkey-hit-strip.webp"),
+    die: require("../assets/sprites/onsen-monkey-die-strip.webp"),
+  },
+  bossCapybaraInnkeeper: {
+    idle: require("../assets/sprites/boss-capybara-innkeeper-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-capybara-innkeeper-hit-strip.webp"),
+    die: require("../assets/sprites/boss-capybara-innkeeper-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -319,6 +339,8 @@ export const images = {
   battleBackgroundFishingPort: require("../assets/sprites/battle-fishing-port.webp"),
   battleBackgroundBlossomBeach: require("../assets/sprites/battle-blossom-beach.webp"),
   battleBackgroundFoxShrine: require("../assets/sprites/battle-fox-shrine.webp"),
+  battleBackgroundCastleKeep: require("../assets/sprites/battle-castle-keep.webp"),
+  battleBackgroundHotSpring: require("../assets/sprites/battle-hot-spring-village.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -644,6 +666,10 @@ export const comics = {
   egen2: require("../assets/comics/egen-2.webp"),
   egen3: require("../assets/comics/egen-3.webp"),
   egen4: require("../assets/comics/egen-4.webp"),
+  samurai1: require("../assets/comics/samurai-1.webp"),
+  samurai2: require("../assets/comics/samurai-2.webp"),
+  samurai3: require("../assets/comics/samurai-3.webp"),
+  samurai4: require("../assets/comics/samurai-4.webp"),
 };
 
 export const bgm = {

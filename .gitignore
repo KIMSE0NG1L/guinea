@@ -42,3 +42,6 @@ yarn-error.*
 
 # redundant archive of assets/sprites
 assets/sprites.zip
+
+# Claude Code personal settings
+.claude/settings.local.json

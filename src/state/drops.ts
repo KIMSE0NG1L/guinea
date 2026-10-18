@@ -323,6 +323,32 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "풋사과", chance: 0.4 },
     ],
   },
+  // 벚꽃 성 천수각: 장수풍뎅이 무사가 아껴 둔 젤리와 마당 버섯; 황금 샤치호코는 금빛 비늘
+  // 사이에 품고 있던 생선알과 지느러미를 떨어뜨린다.
+  armorBeetle: {
+    mob: [
+      { name: "로열 젤리", chance: 0.15 },
+      { name: "버섯", chance: 0.3 },
+    ],
+    boss: [
+      { name: "반짝 생선알", chance: 1, quantity: 2 },
+      { name: "지느러미", chance: 0.6 },
+      { name: "분홍 생선살", chance: 0.4 },
+    ],
+  },
+  // 눈 내리는 온천 마을: 원숭이들이 탕에 담가 둔 온천 계란과 목욕 후 우유; 카피바라 여관
+  // 주인은 유자탕에 띄우던 레몬과 여관 부엌의 계란, 치즈를 남긴다.
+  onsenMonkey: {
+    mob: [
+      { name: "계란", chance: 0.3 },
+      { name: "우유", chance: 0.15 },
+    ],
+    boss: [
+      { name: "레몬", chance: 1, quantity: 2 },
+      { name: "계란", chance: 0.6 },
+      { name: "치즈", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

@@ -26,6 +26,8 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   mackerel: "뚱한 고등어",
   blossomCrab: "벚꽃 게",
   shrineFox: "신사 여우",
+  armorBeetle: "갑옷 장수풍뎅이",
+  onsenMonkey: "온천 원숭이",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -54,6 +56,8 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   mackerel: "문어 해적선장",
   blossomCrab: "벚꽃 상어",
   shrineFox: "너구리 행상",
+  armorBeetle: "황금 샤치호코",
+  onsenMonkey: "카피바라 여관 주인",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -86,6 +90,8 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "수군 포구", enemyKind: "mackerel", story: "돛배가 드나드는 성곽 아래 포구, 그물을 빠져나온 고등어들이 부둣가를 뚱한 얼굴로 어슬렁거린다." },
   { area: "벚꽃 해변", enemyKind: "blossomCrab", story: "벚꽃잎이 파도에 실려 오는 섬마을 해변, 꽃잎을 등에 인 게들이 모래사장을 옆으로 옆으로 누빈다." },
   { area: "여우 신사", enemyKind: "shrineFox", story: "보름달 아래 등롱이 줄지어 밝힌 대나무 숲 신사, 여우불을 띄운 신사 여우들이 돌계단을 지킨다." },
+  { area: "벚꽃 성 천수각", enemyKind: "armorBeetle", story: "노을빛에 물든 흰 성벽과 겹겹 지붕의 천수각, 갑옷을 걸친 장수풍뎅이들이 돌 마당을 순찰한다." },
+  { area: "눈 내리는 온천 마을", enemyKind: "onsenMonkey", story: "함박눈이 소복이 쌓인 산속 온천 마을, 머리에 수건을 얹은 원숭이들이 김 오르는 노천탕 자리를 지킨다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;
