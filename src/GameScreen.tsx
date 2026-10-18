@@ -20,6 +20,8 @@ import { KitchenScreen } from "./screens/KitchenScreen";
 import { GroceryScreen } from "./screens/GroceryScreen";
 import { RecipeShopScreen } from "./screens/RecipeShopScreen";
 import { TutorialOverlay } from "./components/TutorialOverlay";
+import { BagFullToast } from "./components/BagFullToast";
+import { FirstClearCelebration } from "./components/FirstClearCelebration";
 import { RecipeTutorial } from "./components/RecipeTutorial";
 import { CookCompleteBurst } from "./components/CookCompleteBurst";
 import { FlightLayer, launchFlight } from "./components/FlightLayer";
@@ -245,6 +247,17 @@ export function GameScreen() {
             onClaimDouble={game.claimOfflineDouble}
           />
         )}
+        {game.firstClear && (
+          <FirstClearCelebration
+            key={game.firstClear.key}
+            bossName={game.firstClear.bossName}
+            gems={game.firstClear.gems}
+            onDone={game.dismissFirstClear}
+          />
+        )}
+        {game.bagFullAt !== null && (
+          <BagFullToast key={game.bagFullAt} onOpenBag={() => onSelectTab("inventory")} onDone={game.dismissBagFull} />
+        )}
         {/* Waits for the save to load (so returning players never see it flash) and for the offline popup. */}
         {game.loaded && !state.tutorialDone && !game.offlineSummary && (
           <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true }))} />
@@ -257,7 +270,7 @@ export function GameScreen() {
             dishesCooked={state.dishesCooked ?? 0}
             firstDishPot={cookingPots.findIndex((pot) => pot?.recipeId === "green-jelly")}
             dishesEaten={state.dishesEaten ?? 0}
-            freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot) => !slot || slot.expiresAt <= game.now))}
+            freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot, index) => index < (state.buffSlotsUnlocked ?? 1) && (!slot || slot.expiresAt <= game.now)))}
             onGoTo={onSelectTab}
             onFinish={() => setState((previous) => ({ ...previous, recipeTutorialDone: true }))}
           />

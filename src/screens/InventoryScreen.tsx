@@ -10,6 +10,7 @@ import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { ProgressBar } from "../components/ProgressBar";
+import { IconCaption } from "../components/IconCaption";
 import type { GameState } from "../types";
 
 type InventoryItem = GameState["inventory"][number];
@@ -89,6 +90,7 @@ export function InventoryScreen({
           style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
         >
           <Image source={codex ? icons.backpackTrim : icons.codexIngredient} style={styles.toggleIcon} resizeMode="contain" />
+          <IconCaption>{codex ? "가방" : "식재료 도감"}</IconCaption>
         </Pressable>
       </View>
       {codex ? (

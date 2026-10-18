@@ -7,6 +7,7 @@ import { Panel } from "./NineSlice";
 import { GROCERY, type GroceryCategory } from "../state/grocery";
 import { getDropSources } from "../state/drops";
 import { ITEM_IMAGES, RECIPES } from "../state/recipes";
+import { CoinPrice } from "./CoinPrice";
 import { getStageCode, STAGES } from "../state/stages";
 
 const CATEGORY_LABEL: Record<GroceryCategory, string> = {
@@ -54,7 +55,7 @@ export function IngredientCodex({ discovered, fresh = [] }: { discovered: string
               <View style={[styles.tag, { backgroundColor: CATEGORY_COLOR[item.category] }]}>
                 <Text style={styles.tagText}>{CATEGORY_LABEL[item.category]}</Text>
               </View>
-              <Text style={styles.price}>{item.price} G</Text>
+              <CoinPrice amount={item.price} textStyle={styles.priceText} style={styles.price} />
               <View>
                 <Image
                   source={ITEM_IMAGES[item.name]}
@@ -138,7 +139,8 @@ const styles = StyleSheet.create({
   card: { width: "48.5%", alignItems: "center", paddingHorizontal: 10, paddingTop: 10, paddingBottom: 12 },
   tag: { position: "absolute", top: 8, left: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, zIndex: 1 },
   tagText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  price: { position: "absolute", top: 9, right: 10, fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
+  price: { position: "absolute", top: 8, right: 9, gap: 2 },
+  priceText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
   icon: { marginTop: 14, width: 54, height: 54 },
   iconUnknown: { tintColor: "#3d3128", opacity: 0.85 },
   name: { marginTop: 4, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },

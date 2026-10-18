@@ -7,13 +7,14 @@ import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { MonsterCodex } from "../components/MonsterCodex";
+import { IconCaption } from "../components/IconCaption";
 import { BOSS_NAME, ENEMY_NAME, getStageCode, STAGES } from "../state/stages";
 
 type Page = "map" | "monsters";
 
-const HEADINGS: Record<Page, { kicker: string; title: string; description: string; icon: number; open: string }> = {
-  map: { kicker: "MILESTONE", title: "모험 지도", description: "보스를 쓰러뜨리면 다음 스테이지가 열려요.", icon: icons.map, open: "모험 지도로 돌아가기" },
-  monsters: { kicker: "BESTIARY", title: "몬스터 도감", description: "만난 몬스터와 떨어뜨리는 재료를 모아봐요.", icon: icons.codexMonster, open: "몬스터 도감 열기" },
+const HEADINGS: Record<Page, { kicker: string; title: string; description: string; icon: number; open: string; caption: string }> = {
+  map: { kicker: "MILESTONE", title: "모험 지도", description: "보스를 쓰러뜨리면 다음 스테이지가 열려요.", icon: icons.map, open: "모험 지도로 돌아가기", caption: "지도" },
+  monsters: { kicker: "BESTIARY", title: "몬스터 도감", description: "만난 몬스터와 떨어뜨리는 재료를 모아봐요.", icon: icons.codexMonster, open: "몬스터 도감 열기", caption: "몬스터 도감" },
 };
 
 export function MilestoneScreen({
@@ -62,6 +63,7 @@ export function MilestoneScreen({
                 style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
               >
                 <Image source={HEADINGS[item].icon} style={styles.toggleIcon} />
+                <IconCaption shift={item === "map" ? 4 : 0}>{HEADINGS[item].caption}</IconCaption>
               </Pressable>
             ))}
         </View>

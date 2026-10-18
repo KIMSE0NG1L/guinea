@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { shopImages, shopKit } from "../assets";
+import { shopImages, shopKit, uiImages } from "../assets";
 import { NineSlice, Panel } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { tutorialRef } from "./tutorialTargets";
@@ -57,6 +57,8 @@ export function ShopTopBar({
         <Text style={styles.title}>{title}</Text>
       </View>
       <Panel slice={shopKit.coinPill} scale={0.36} style={styles.goldPill}>
+        {/* The pill's art has an older coin baked into its socket — the current one sits over it. */}
+        <Image source={uiImages.coin} style={styles.goldPillCoin} />
         <Text style={styles.goldText} numberOfLines={1}>{formatGameNumber(gold)}</Text>
       </Panel>
       {other && (
@@ -120,6 +122,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
   // Text starts past the coin baked into the pill's left end.
   goldPill: { height: 36, minWidth: 92, paddingLeft: 38, paddingRight: 12, justifyContent: "center" },
+  goldPillCoin: { position: "absolute", left: 3, top: 3, width: 30, height: 30 },
   otherButton: { minHeight: 38, paddingLeft: 3, paddingRight: 10 },
   otherContent: { flexDirection: "row", alignItems: "center", gap: 2 },
   // Pokes up out of the pill, like the other shopkeeper is peeking over it.

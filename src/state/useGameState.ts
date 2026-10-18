@@ -9,9 +9,9 @@ import { clearSave, loadSave, writeSave } from "./storage";
 import { advanceQuest, migrateQuests } from "./quests";
 import { getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag";
-import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
+import { BOSS_NAME, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFFS, INSTANT_DISHES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
@@ -22,6 +22,17 @@ export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
 const SPEED_BOOST_DURATION_MS = 60 * 60_000; // 1 hour
+const BAG_FULL_DROP_COOLDOWN_MS = 8000;
+const FLYING_COIN_GEM_CHANCE = 1 / 20;
+const FLYING_COIN_GEMS = 2;
+// Gems for beating a stage's boss for the very first time.
+export const FIRST_CLEAR_GEMS = 50;
+
+// Stages whose boss has been beaten at least once. Saves from before this was tracked
+// count every stage below the furthest one reached — those bosses had to fall to get there.
+function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highestStageNumber" | "stageNumber">) {
+  return state.bossesCleared ?? Array.from({ length: state.highestStageNumber ?? state.stageNumber }, (_, index) => index);
+}
 
 // Grocery category of each ingredient, for the category drop buffs (vegetableDrop, seafoodDrop).
 const ITEM_CATEGORY = new Map(GROCERY.map((item) => [item.name, item.category]));
@@ -53,6 +64,7 @@ export function useGameState() {
   // which would otherwise swap the die animation to the *next* stage's boss mid-clip.
   const [defeatedStageNumber, setDefeatedStageNumber] = useState(0);
   const [stageAnnouncement, setStageAnnouncement] = useState<string | null>(null);
+  const [firstClear, setFirstClear] = useState<{ key: number; bossName: string; gems: number } | null>(null);
   const [upgradeMode, setUpgradeMode] = useState<UpgradeMode>(1);
   const [upgraded, setUpgraded] = useState<StatKey | null>(null);
   // Set when the player jumps stages from the milestone map, so the stageNumber change
@@ -243,7 +255,9 @@ export function useGameState() {
     const tutorialJelly = state.tutorialDone && !state.recipeTutorialDone && !boss
       && getEnemyKind(state.stageNumber) === "slime" && !state.inventory.some((item) => item.name === "초록 젤리");
     if (tutorialJelly) rolled = [...rolled.filter((drop) => drop.name !== "초록 젤리"), { name: "초록 젤리", quantity: 3 }];
-    const drops = fitItems(state.inventory, rolled, getBagCapacity(state.bagExpansions)).kept;
+    const fitted = fitItems(state.inventory, rolled, getBagCapacity(state.bagExpansions));
+    const drops = fitted.kept;
+    if (fitted.overflow.length > 0) notifyBagFull(true);
     if (drops.length > 0) {
       // One flying icon per item, staggered so a boss's pile spills out one by one.
       const events = drops
@@ -254,8 +268,20 @@ export function useGameState() {
       setTimeout(() => setDropEvents((current) => current.filter((event) => !ids.includes(event.id))), 2000 + events.length * 110);
     }
 
+    // First time this stage's boss goes down: a gem bonus and a big celebration.
+    const firstClear = boss && !getClearedBosses({
+      bossesCleared: state.bossesCleared,
+      highestStageNumber: state.highestStageNumber,
+      stageNumber: state.stageNumber,
+    }).includes(state.stageNumber);
+    if (firstClear) {
+      setFirstClear({ key: Date.now(), bossName: BOSS_NAME[getEnemyKind(state.stageNumber)], gems: FIRST_CLEAR_GEMS });
+    }
+
     setState((previous) => {
       if (boss) setDefeatedStageNumber(previous.stageNumber);
+      const cleared = getClearedBosses(previous);
+      const paysFirstClear = firstClear && !cleared.includes(previous.stageNumber);
 
       const kills = previous.kills + 1;
       let level = previous.level;
@@ -275,6 +301,8 @@ export function useGameState() {
       return {
         ...previous,
         gold: previous.gold + goldReward,
+        gems: previous.gems + (paysFirstClear ? FIRST_CLEAR_GEMS : 0),
+        bossesCleared: paysFirstClear ? [...cleared, previous.stageNumber] : previous.bossesCleared,
         inventory: addItems(previous.inventory, drops),
         discoveredItems: discover(previous.discoveredItems, drops.map((drop) => drop.name)),
         kills,
@@ -295,7 +323,7 @@ export function useGameState() {
         }),
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, state.bossesCleared, state.highestStageNumber, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -309,6 +337,18 @@ export function useGameState() {
       };
     });
   }, []);
+
+  // The winged coin that flutters across the battle: a quarter of what the current stage's
+  // regular mob pays (buffs included), plus a 1-in-20 shot at 2 gems.
+  const catchFlyingCoin = () => {
+    const attack = Math.round(getTotalAttack(state) * (1 + buffs.attack / 100));
+    const mobGold = getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyMaxHp(state.stageNumber, false), false);
+    const gold = Math.max(1, Math.round(mobGold / 4));
+    const gems = Math.random() < FLYING_COIN_GEM_CHANCE ? FLYING_COIN_GEMS : 0;
+    addBonusGold(gold);
+    if (gems > 0) setState((previous) => ({ ...previous, gems: previous.gems + gems }));
+    return { gold, gems };
+  };
 
   const battle = useAutoBattle({
     // Food buffs and the equipped companion's bonus apply on top of the upgraded stats.
@@ -444,6 +484,19 @@ export function useGameState() {
     setState((previous) => ({ ...previous, highestStageNumber: LAST_STAGE_NUMBER }));
   };
 
+  // Says so when an action needed a fresh bag slot and there wasn't one. Drops come every
+  // kill during auto-battle, so those re-raise it at most every BAG_FULL_DROP_COOLDOWN_MS.
+  const [bagFullAt, setBagFullAt] = useState<number | null>(null);
+  const lastDropNoticeRef = useRef(0);
+  function notifyBagFull(fromDrop = false) {
+    const at = Date.now();
+    if (fromDrop) {
+      if (at - lastDropNoticeRef.current < BAG_FULL_DROP_COOLDOWN_MS) return;
+      lastDropNoticeRef.current = at;
+    }
+    setBagFullAt(at);
+  }
+
   // Spends the recipe's ingredients from the bag and adds one of the dish.
   // Puts a dish on to simmer in the first free pot — the ingredients go in now, the dish
   // comes out once its tier's cook time has passed (see collectDish).
@@ -534,7 +587,10 @@ export function useGameState() {
   const buyIngredient = (name: string, listPrice: number): "ok" | "gold" | "full" => {
     const price = applyDiscount(listPrice, foodBuffs.groceryDiscount);
     if (state.gold < price) return "gold";
-    if (fitItems(state.inventory, [{ name, quantity: 1 }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
+    if (fitItems(state.inventory, [{ name, quantity: 1 }], getBagCapacity(state.bagExpansions)).overflow.length > 0) {
+      notifyBagFull();
+      return "full";
+    }
     setState((previous) => {
       if (previous.gold < price) return previous;
       const { kept } = fitItems(previous.inventory, [{ name, quantity: 1 }], getBagCapacity(previous.bagExpansions));
@@ -546,6 +602,20 @@ export function useGameState() {
       };
     });
     return "ok";
+  };
+
+  // Opens the next locked food slot for gems; returns whether it went through.
+  const unlockBuffSlot = () => {
+    const index = state.buffSlotsUnlocked ?? 1;
+    const price = BUFF_SLOT_PRICES[index];
+    if (price === undefined || state.gems < price) return false;
+    setState((previous) => {
+      const current = previous.buffSlotsUnlocked ?? 1;
+      const cost = BUFF_SLOT_PRICES[current];
+      if (cost === undefined || previous.gems < cost) return previous;
+      return { ...previous, gems: previous.gems - cost, buffSlotsUnlocked: current + 1 };
+    });
+    return true;
   };
 
   // Spends gems for more bag slots; returns whether it went through.
@@ -635,6 +705,7 @@ export function useGameState() {
       const slots = previous.buffSlots ?? emptyBuffSlots();
       const running = (slot: (typeof slots)[number]) => slot && slot.expiresAt > startedAt;
       if (running(slots[slotIndex])) return previous;
+      if (slotIndex >= (previous.buffSlotsUnlocked ?? 1)) return previous;
       // One of each dish at a time — its buff wouldn't stack meaningfully anyway.
       if (slots.some((slot) => running(slot) && slot?.recipeId === recipeId)) return previous;
       const dish = previous.inventory.find((item) => item.name === recipe.name);
@@ -681,6 +752,8 @@ export function useGameState() {
     displayBoss,
     isBossDefeatFlash,
     stageAnnouncement,
+    firstClear,
+    dismissFirstClear: () => setFirstClear(null),
     levelUpAnnouncement,
     levelUpAttackGain,
     upgradeMode,
@@ -690,7 +763,12 @@ export function useGameState() {
     battle,
     upgradeStat,
     claimQuest,
+    catchFlyingCoin,
     expandBag,
+    unlockBuffSlot,
+    bagFullAt,
+    notifyBagFull: () => notifyBagFull(),
+    dismissBagFull: () => setBagFullAt(null),
     selectStage,
     skipToBoss,
     cheatAddLevels,

@@ -31,6 +31,9 @@ export interface GameState {
   currentStage: string;
   stageNumber: number;
   stageKills: number;
+  // Stage indices whose boss has been beaten at least once (first-clear gem bonus);
+  // missing on older saves.
+  bossesCleared?: number[];
   // Furthest stage reached — every stage up to it can be revisited from the milestone map.
   highestStageNumber?: number;
   // Recipe ids the player has learned; missing on saves from before the recipe shop.
@@ -44,6 +47,8 @@ export interface GameState {
   tutorialDone?: boolean;
   // Set once the follow-up tutorial that has the player buy their first recipe is done.
   recipeTutorialDone?: boolean;
+  // How many food slots are open (1–3); missing on older saves = 1.
+  buffSlotsUnlocked?: number;
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
   equippedOutfit: Outfit;
   // The one skill in the battle slot (null = none); missing on older saves.

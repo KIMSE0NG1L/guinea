@@ -4,6 +4,7 @@ import { NineSlice } from "./NineSlice";
 import { kit, navIcons } from "../assets";
 import { tutorialRef } from "./tutorialTargets";
 import { playSfx } from "../sound";
+import { IconCaption } from "./IconCaption";
 import type { Tab } from "../types";
 
 // Only these 4 tabs are reachable from the bottom bar; the rest of the screens open from
@@ -40,7 +41,7 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
           >
             {active && <NineSlice slice={kit.tabGreen} scale={0.4} />}
             <Image source={item.icon} style={[styles.icon, active && styles.iconActive]} />
-            {active && <Text style={styles.label}>{item.label}</Text>}
+            {active ? <Text style={styles.label}>{item.label}</Text> : <IconCaption size={10} offset={2}>{item.label}</IconCaption>}
           </Pressable>
         );
       })}

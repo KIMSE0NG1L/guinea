@@ -8,9 +8,9 @@ import { chef, grandma, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
-import { formatGameNumber } from "../state/gameMath";
 import { getKnownRecipes, ITEM_IMAGES, RECIPES, type Recipe } from "../state/recipes";
 import { RECIPE_TIERS } from "../state/recipeTiers";
+import { CoinPrice } from "../components/CoinPrice";
 import { RecipeArt } from "../components/RecipeArt";
 
 const GREETING = { pose: chef.spoon, line: "어떤 요리를 배워볼래? 레시피는 내가 직접 썼지!" };
@@ -142,9 +142,11 @@ function RecipeCard({ recipe, learned, affordable, onLearn }: { recipe: Recipe; 
           accessibilityLabel={learned ? `${recipe.name} 배움` : `${sealed ? "히든" : recipe.name} 레시피 ${recipe.price}골드에 배우기`}
           style={styles.button}
         >
-          <Text style={[styles.buttonText, learned && styles.buttonTextLearned, !learned && !affordable && styles.buttonTextOff]}>
-            {learned ? "배움 ✓" : `${formatGameNumber(recipe.price)} G`}
-          </Text>
+          {learned ? (
+            <Text style={[styles.buttonText, styles.buttonTextLearned]}>배움 ✓</Text>
+          ) : (
+            <CoinPrice amount={recipe.price} textStyle={[styles.buttonText, !affordable && styles.buttonTextOff]} />
+          )}
         </GameButton>
       </Animated.View>
     </Panel>

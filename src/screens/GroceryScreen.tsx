@@ -9,10 +9,10 @@ import { measureTarget, tutorialRef } from "../components/tutorialTargets";
 import { useBumpOnChange, useShake } from "../components/motion";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
-import { formatGameNumber } from "../state/gameMath";
 import { applyDiscount } from "../state/cooking";
 import { GROCERY, type GroceryCategory } from "../state/grocery";
 import { getItemQuantity, ITEM_IMAGES } from "../state/recipes";
+import { CoinPrice } from "../components/CoinPrice";
 import type { GameState } from "../types";
 
 type Filter = "all" | GroceryCategory;
@@ -147,7 +147,7 @@ function GroceryCard({ name, price, owned, gold, onBuy }: { name: string; price:
           accessibilityLabel={`${name} ${price}골드에 구매`}
           style={styles.buyButton}
         >
-          <Text style={[styles.buyText, !affordable && styles.buyTextOff, short && styles.buyTextShort]}>{formatGameNumber(price)} G</Text>
+          <CoinPrice amount={price} textStyle={[styles.buyText, !affordable && styles.buyTextOff, short && styles.buyTextShort]} />
         </GameButton>
       </Animated.View>
     </Panel>

@@ -3,9 +3,9 @@ import { Image, Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { frameImages } from "../assets";
+import { frameImages, uiImages } from "../assets";
 import { StrokedText } from "./StrokedText";
-import { BUFFS, DISH_PARTNERS, describeEffect, formatDuration, getActiveSet, PARTNER_MULTIPLIER, runningSlots, type BuffSlot } from "../state/buffs";
+import { BUFF_SLOT_PRICES, BUFFS, DISH_PARTNERS, describeEffect, formatDuration, getActiveSet, PARTNER_MULTIPLIER, runningSlots, type BuffSlot } from "../state/buffs";
 import { InfoBubble } from "./InfoBubble";
 import { tutorialRef } from "./tutorialTargets";
 import { RECIPES } from "../state/recipes";
@@ -45,13 +45,18 @@ export function BuffSlots({
   slots,
   now,
   outfit,
+  unlocked,
   onPressSlot,
+  onPressLocked,
   style,
 }: {
   slots: BuffSlot[];
   now: number;
   outfit: Outfit;
+  // How many slots are open; the rest show a padlock and their gem price.
+  unlocked: number;
   onPressSlot: (index: number) => void;
+  onPressLocked: (index: number) => void;
   style?: object;
 }) {
   const [infoIndex, setInfoIndex] = useState<number | null>(null);
@@ -69,6 +74,28 @@ export function BuffSlots({
         const buff = running ? BUFFS[running.recipeId] : undefined;
         const remaining = running ? running.expiresAt - now : 0;
         const elapsed = running ? 1 - remaining / running.durationMs : 0;
+        // A buff already running in a now-locked slot (older saves) plays out first.
+        if (index >= unlocked && !running) {
+          return (
+            <Pressable
+              key={index}
+              onPress={() => onPressLocked(index)}
+              accessibilityRole="button"
+              accessibilityLabel={`음식 슬롯 ${index + 1} 잠김, 보석 ${BUFF_SLOT_PRICES[index]}개로 열기`}
+              hitSlop={4}
+              style={({ pressed }) => [styles.slot, pressed && styles.pressed]}
+            >
+              {/* Locked: the slot under a dark cover, the gem price in the middle. */}
+              <Image source={frameImages.slotPlus} style={styles.slotArt} />
+              <View style={styles.lockCover} pointerEvents="none">
+                <Image source={uiImages.crystal} style={styles.priceGem} />
+                <StrokedText style={styles.priceText} strokeColor={colors.line} strokeWidth={1}>
+                  {BUFF_SLOT_PRICES[index]}
+                </StrokedText>
+              </View>
+            </Pressable>
+          );
+        }
         return (
           <Pressable
             key={index}
@@ -184,6 +211,19 @@ const styles = StyleSheet.create({
   slot: { width: BUFF_SLOT_SIZE, height: BUFF_SLOT_SIZE, alignItems: "center", justifyContent: "center" },
   pressed: { transform: [{ scale: 0.92 }] },
   slotArt: { width: "100%", height: "100%" },
+  lockCover: {
+    position: "absolute",
+    top: 2,
+    left: 2,
+    right: 2,
+    bottom: 2,
+    borderRadius: 8,
+    backgroundColor: "rgba(20, 14, 8, 0.68)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  priceGem: { width: 18, height: 18 },
+  priceText: { marginTop: -1, fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   active: {
     width: "100%",
     height: "100%",

@@ -14,6 +14,7 @@ import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { NineSlice, Panel } from "../components/NineSlice";
 import { canCook, getItemQuantity, getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
+import { IconCaption } from "../components/IconCaption";
 import type { GameState } from "../types";
 
 export type KitchenLayout = "list" | "grid";
@@ -161,6 +162,7 @@ export function KitchenScreen({
               <View>
                 <LayoutIcon mode={mode} active={layout === mode} />
               </View>
+              <IconCaption size={10} offset={-12}>{mode === "list" ? "목록" : "카드"}</IconCaption>
             </Pressable>
           ))}
         </View>
@@ -292,7 +294,7 @@ const styles = StyleSheet.create({
   moreImage: { width: 50, height: 50 },
   moreText: { flex: 1, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   notice: { marginTop: -6, marginBottom: 10, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.red, textAlign: "center" },
-  toolbar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8, paddingLeft: 4 },
+  toolbar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 18, paddingLeft: 4 },
   toolbarText: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   layoutToggle: { flexDirection: "row", gap: 4 },
   layoutButton: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },

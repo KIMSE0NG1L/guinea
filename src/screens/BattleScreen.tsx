@@ -10,6 +10,8 @@ import type { UseGameState } from "../state/useGameState";
 import { getEnemyKind, getStageLabel } from "../state/stages";
 import { getBagCapacity, slotsUsed } from "../state/bag";
 import { playSfx } from "../sound";
+import { ConfirmModal } from "../components/ConfirmModal";
+import { BUFF_SLOT_PRICES } from "../state/buffs";
 import type { EnemyKind } from "../types";
 import { getCookingPots } from "../state/cooking";
 import { RECIPES } from "../state/recipes";
@@ -29,6 +31,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   // The first finished dish waiting in a pot, shown floating over the kitchen button.
   const readyPot = getCookingPots(state.cookingPots).find((pot) => pot && pot.readyAt <= game.now);
   const readyDish = readyPot ? RECIPES.find((recipe) => recipe.id === readyPot.recipeId) : undefined;
+  // A locked food slot that was tapped: confirm the gem price (slots open in order).
+  const [unlockingSlot, setUnlockingSlot] = useState<number | null>(null);
   const [adModalOpen, setAdModalOpen] = useState(false);
 
   // Fires once right as the boss sprite actually appears (displayBoss flips false→true),
@@ -73,6 +77,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         kitchenReadyDish={readyDish?.image ?? null}
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
         bagFull={slotsUsed(state.inventory) >= getBagCapacity(state.bagExpansions)}
+        onCatchFlyingCoin={game.catchFlyingCoin}
         skillBar={
           <SkillSlot
             skillId={state.equippedSkill ?? null}
@@ -95,6 +100,31 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         levelUpAnnouncement={game.levelUpAnnouncement}
         levelUpAttackGain={game.levelUpAttackGain}
       />
+      {unlockingSlot !== null && (() => {
+        const next = state.buffSlotsUnlocked ?? 1;
+        const price = BUFF_SLOT_PRICES[next];
+        const outOfOrder = unlockingSlot > next;
+        const affordable = state.gems >= price;
+        return (
+          <ConfirmModal
+            title={`음식 슬롯 ${next + 1} 열기`}
+            message={
+              outOfOrder
+                ? `슬롯은 차례대로 열려요. 먼저 슬롯 ${next + 1}을 보석 ${price}개로 열 수 있어요.`
+                : affordable
+                  ? `보석 ${price}개로 음식 슬롯을 하나 더 열까요? 음식 버프를 동시에 더 받을 수 있어요.`
+                  : `보석이 ${price - state.gems}개 모자라요. 상점에서 보석을 모아 올까요?`
+            }
+            confirmLabel={affordable ? `보석 ${price}개로 열기` : "상점으로"}
+            onConfirm={() => {
+              if (affordable) game.unlockBuffSlot();
+              else game.setState((previous) => ({ ...previous, selectedTab: "shop" }));
+              setUnlockingSlot(null);
+            }}
+            onCancel={() => setUnlockingSlot(null)}
+          />
+        );
+      })()}
       {pickingSlot !== null && (
         <DishPicker
           inventory={state.inventory}
@@ -129,7 +159,16 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         speedBoostActive={game.speedMultiplier > 1}
         speedBoostRemainingMs={game.speedBoostRemainingMs}
         onWatchAd={() => setAdModalOpen(true)}
-        left={<BuffSlots slots={game.buffSlots} now={game.now} outfit={state.equippedOutfit} onPressSlot={setPickingSlot} />}
+        left={
+          <BuffSlots
+            slots={game.buffSlots}
+            now={game.now}
+            outfit={state.equippedOutfit}
+            unlocked={state.buffSlotsUnlocked ?? 1}
+            onPressSlot={setPickingSlot}
+            onPressLocked={setUnlockingSlot}
+          />
+        }
       />
       <StatUpgradePanel
         state={state}

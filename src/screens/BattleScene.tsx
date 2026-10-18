@@ -38,6 +38,8 @@ import type { DropEvent } from "../state/useGameState";
 import { tutorialRef } from "../components/tutorialTargets";
 import { getUnlocksAtLevel } from "../state/unlocks";
 import { getCompanionName } from "./CompanionsScreen";
+import { FlyingCoin } from "../components/FlyingCoin";
+import { IconCaption } from "../components/IconCaption";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
 
 // Each boss art source fills a different fraction of its 160px frame (the original
@@ -193,6 +195,7 @@ export function BattleScene({
   kitchenReadyDish,
   onOpenBag,
   bagFull,
+  onCatchFlyingCoin,
   skillBar,
   goldEvents,
   executeId: rawExecuteId,
@@ -229,6 +232,7 @@ export function BattleScene({
   kitchenReadyDish: number | null;
   onOpenBag: () => void;
   bagFull: boolean;
+  onCatchFlyingCoin: () => { gold: number; gems: number };
   skillBar: ReactNode;
   // Gold scattered by the Steal skill, one popup per hit.
   goldEvents: { id: number; amount: number }[];
@@ -380,10 +384,12 @@ export function BattleScene({
               style={({ pressed }) => [styles.questButton, pressed && styles.questPressed]}
             >
               <WobblingMedal wobble={questReady} />
+              <IconCaption offset={-5}>퀘스트</IconCaption>
               {questReady && <Image source={kitImages.dotRed} style={styles.questDot} accessibilityLabel="받을 보상 있음" />}
             </Pressable>
           </LinearGradient>
 
+          <FlyingCoin onCatch={onCatchFlyingCoin} />
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
@@ -448,6 +454,7 @@ export function BattleScene({
           >
             <Image source={POT_ICON.source} style={fitInBox(POT_ICON)} />
             {kitchenReadyDish !== null && <KitchenReadyBadge dish={kitchenReadyDish} />}
+            <IconCaption>요리</IconCaption>
           </Pressable>
 
           <Pressable
@@ -458,6 +465,7 @@ export function BattleScene({
             style={({ pressed }) => [styles.mapButton, pressed && styles.mapButtonPressed]}
           >
             <Image source={MAP_ICON.source} style={fitInBox(MAP_ICON)} />
+            <IconCaption shift={5}>지도</IconCaption>
           </Pressable>
 
           <View style={styles.skillBar}>{skillBar}</View>
@@ -564,6 +572,7 @@ function BagButton({ onPress, dropEvents, full }: { onPress: () => void; dropEve
       style={({ pressed }) => [styles.bagButton, pressed && styles.mapButtonPressed]}
     >
       <Animated.Image source={BAG_ICON.source} style={[fitInBox(BAG_ICON), style]} />
+      <IconCaption>가방</IconCaption>
       {full && (
         <View style={styles.bagFull} pointerEvents="none">
           <Text style={styles.bagFullText}>가득</Text>

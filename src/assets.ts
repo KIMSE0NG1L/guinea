@@ -312,6 +312,8 @@ export const icons = {
 
 export const uiImages = {
   coin: require("../assets/ui/coin.png"),
+  // Winged coin that flutters across the battle scene to be tapped.
+  coinWinged: require("../assets/ui/coin-winged.png"),
   coins: require("../assets/ui/item-coins.png"),
   crystal: require("../assets/ui/item-crystal.png"),
   gear: require("../assets/ui/item-gear.png"),

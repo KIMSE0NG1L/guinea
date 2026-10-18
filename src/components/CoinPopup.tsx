@@ -30,7 +30,7 @@ export function CoinPopup({ amount }: { amount: number }) {
   return (
     <Animated.View style={[styles.wrap, style]}>
       <Image source={uiImages.coin} style={styles.coin} />
-      <Text style={styles.text}>+{formatGameNumber(amount)} G</Text>
+      <Text style={styles.text}>+{formatGameNumber(amount)}</Text>
     </Animated.View>
   );
 }

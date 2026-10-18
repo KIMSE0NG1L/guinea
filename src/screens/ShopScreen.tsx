@@ -7,12 +7,13 @@ import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { kit, uiImages } from "../assets";
 import { Panel } from "../components/NineSlice";
+import { CoinPrice } from "../components/CoinPrice";
 import { formatGameNumber } from "../state/gameMath";
 
 const products = [
   { group: "골드 상품", name: "주머니 골드", detail: `골드 ${formatGameNumber(1000)}`, price: "보석 10", tone: "gold" as const },
   { group: "보석 상품", name: "반짝 보석", detail: "보석 50", price: "준비 중", tone: "gem" as const },
-  { group: "아이템 상품", name: "당근 한 묶음", detail: "당근 10개", price: "500 G", tone: "carrot" as const },
+  { group: "아이템 상품", name: "당근 한 묶음", detail: "당근 10개", price: 500, tone: "carrot" as const },
 ];
 
 export function ShopScreen() {
@@ -57,7 +58,9 @@ function ProductCard({ product, index }: { product: (typeof products)[number]; i
         <Text style={styles.cardSpan}>{product.detail}</Text>
       </View>
       <Animated.View style={shakeStyle}>
-        <GameButton variant="beige" onPress={shake} style={styles.buyButton} textStyle={styles.buyButtonText}>{product.price}</GameButton>
+        <GameButton variant="beige" onPress={shake} style={styles.buyButton} textStyle={styles.buyButtonText}>
+          {typeof product.price === "number" ? <CoinPrice amount={product.price} textStyle={styles.buyButtonText} /> : product.price}
+        </GameButton>
       </Animated.View>
     </Panel>
   );

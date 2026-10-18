@@ -9,6 +9,7 @@ import { CHIP_WIDTH, ResourceBar } from "./ResourceBar";
 import { ConfirmModal } from "./ConfirmModal";
 import { SettingsModal } from "./SettingsModal";
 import { getCompanionName } from "../screens/CompanionsScreen";
+import { IconCaption } from "./IconCaption";
 import type { GameState } from "../types";
 
 // The header row is laid out for the 430px app frame (406px inside its padding):
@@ -73,6 +74,7 @@ export function GameHeader({
             style={({ pressed }) => [styles.iconButton, { width: 36 * fit }, pressed && styles.pressed]}
           >
             <Image source={icons.settingsGear} style={[styles.headerIcon, { width: 34 * fit, height: 34 * fit }]} />
+            <IconCaption size={9} offset={-9}>설정</IconCaption>
           </Pressable>
         </View>
       </View>

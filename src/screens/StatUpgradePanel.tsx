@@ -7,6 +7,7 @@ import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { FloatText, useFlash, useHoldRepeat, useShake } from "../components/motion";
 import { applyUpgradeLevels, formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo, STAT_CAP } from "../state/gameMath";
+import { CoinPrice } from "../components/CoinPrice";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 
 
@@ -144,9 +145,11 @@ function StatRow({
               {atCap ? "최대" : upgradeMode === "max" ? `MAX +${quote.levels}` : `+${quote.levels} 강화`}
             </Text>
             {!atCap && (
-              <Text style={[styles.upgradeButtonCost, (broke || !affordable) && styles.upgradeButtonCostShort]}>
-                {formatGameNumber(quote.cost)} G
-              </Text>
+              <CoinPrice
+                amount={quote.cost}
+                textStyle={[styles.upgradeButtonCost, (broke || !affordable) && styles.upgradeButtonCostShort]}
+                style={styles.upgradeButtonCostRow}
+              />
             )}
           </View>
         </GameButton>
@@ -191,7 +194,8 @@ const styles = StyleSheet.create({
   gainValue: { color: colors.green, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10 },
   upgradeButton: { minWidth: 70, paddingHorizontal: 8 },
   upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10, textAlign: "center" },
-  upgradeButtonCost: { color: colors.brown, fontSize: 8, marginTop: 1, textAlign: "center" },
+  upgradeButtonCost: { color: colors.brown, fontSize: 8, textAlign: "center" },
+  upgradeButtonCostRow: { marginTop: 1, gap: 2 },
   upgradeButtonCostShort: { color: colors.red },
   markFlash: { position: "absolute", top: 4, left: 4, right: 4, bottom: 4, borderRadius: 6, backgroundColor: "#fff3b0" },
   gainFloat: { left: 0, top: 4, fontSize: 13, fontFamily: fonts.bold, color: colors.green },
