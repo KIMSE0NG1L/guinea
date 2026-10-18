@@ -25,11 +25,12 @@ export const statInfo: Record<StatKey, { label: string; mark: string; step: numb
 // by 12.5% it's already comfortable (under 5,000 swings for the single hardest kill
 // across all 100 stages); 15% leaves real margin for a less-than-perfectly-optimal
 // player (under 300).
-// Set to 0.10 on 2026-10-17 at the user's explicit request after being shown the above —
-// this reopens the stage-100 wall this whole mechanism exists to prevent (simulated
-// worst-case kill needs ~2.3e10 swings, i.e. unwinnable). If the game is meant to
-// actually reach stage 100, raise this back to >=0.12 (re-run the sim first).
-export const ATTACK_UPGRADE_RATE = 0.1;
+// Was 0.10 (user's call on 2026-10-17); raised to 0.13 on 2026-10-19 after re-simulating
+// the real 25-stage loop (every coin into attack, auto-battle, no food/crit/skills):
+// 0.10 kept falling behind enemy HP — stage 25 needed ~3,600 swings per mob and ~37,000
+// per boss (~153h to get there); 0.15 snowballed into 3-hit mobs by stage 25; 0.13 holds
+// difficulty roughly flat from stage 10 on (~60 swings a mob, ~500 a boss, ~9h to 25).
+export const ATTACK_UPGRADE_RATE = 0.13;
 
 // How much a purchased stat levels up by: attack compounds (see ATTACK_UPGRADE_RATE
 // above), every other stat still just adds its flat `step` — those are percentage-point
