@@ -44,16 +44,19 @@ const STARS = [
 // "완성!" — the head chef bounces in cheering while the finished dish floats up over their
 // head, inside the same glow + sunburst + sparks + stars recipe LevelUpBurst uses. Mount it
 // fresh (via `key`) for every dish collected.
-// `great`: a great-success double — the title reads "대성공!" and the name gets "×2".
+// `great`: a great-success double — a gold flash, the dish splitting in two and "×2"
+// slammed on. `isNew`: the first time this dish was ever made — a "NEW!" stamp.
 export function CookCompleteBurst({
   dishName,
   dishImage,
   great = false,
+  isNew = false,
   onDone,
 }: {
   dishName: string;
   dishImage: number;
   great?: boolean;
+  isNew?: boolean;
   onDone: () => void;
 }) {
   const glow = useSharedValue(0);
@@ -62,6 +65,9 @@ export function CookCompleteBurst({
   const dishRise = useSharedValue(0);
   const bob = useSharedValue(0);
   const fade = useSharedValue(0);
+  const flash = useSharedValue(0);
+  const split = useSharedValue(0);
+  const slam = useSharedValue(0);
 
   useEffect(() => {
     playSfx("levelup");
@@ -80,6 +86,12 @@ export function CookCompleteBurst({
     );
     dishRise.value = withDelay(180, withTiming(1, { duration: 420, easing: Easing.out(Easing.back(1.6)) }));
     bob.value = withDelay(600, withRepeat(withTiming(1, { duration: 420, easing: Easing.inOut(Easing.quad) }), -1, true));
+    if (great) {
+      flash.value = withSequence(withTiming(1, { duration: 90 }), withTiming(0, { duration: 500 }));
+      split.value = withDelay(420, withTiming(1, { duration: 380, easing: Easing.out(Easing.back(1.8)) }));
+    }
+    // Stamps ("×2", "NEW!") drop in big and thump down once everything else has landed.
+    slam.value = withDelay(650, withSequence(withTiming(1.25, { duration: 0 }), withTiming(1, { duration: 200, easing: Easing.in(Easing.quad) })));
     const timer = setTimeout(onDone, SHOW_MS);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,6 +104,16 @@ export function CookCompleteBurst({
     opacity: dishRise.value,
     transform: [{ translateY: 30 - dishRise.value * 74 - bob.value * 6 }, { scale: 0.4 + dishRise.value * 0.6 }],
   }));
+  const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value * 0.7 }));
+  const leftDishStyle = useAnimatedStyle(() => ({
+    opacity: split.value,
+    transform: [{ translateX: -split.value * 52 }, { translateY: -44 - bob.value * 6 }, { rotate: `${-split.value * 12}deg` }],
+  }));
+  const rightDishStyle = useAnimatedStyle(() => ({
+    opacity: split.value,
+    transform: [{ translateX: split.value * 52 }, { translateY: -44 - bob.value * 6 }, { rotate: `${split.value * 12}deg` }],
+  }));
+  const slamStyle = useAnimatedStyle(() => ({ opacity: slam.value === 0 ? 0 : 1, transform: [{ scale: slam.value }, { rotate: "-12deg" }] }));
   const titleStyle = useAnimatedStyle(() => ({ transform: [{ scale: 0.6 + Math.min(1, burst.value * 2) * 0.4 }] }));
 
   return (
@@ -123,7 +145,26 @@ export function CookCompleteBurst({
           <Twinkle key={index} {...star} />
         ))}
         <Animated.Image source={chef.cheer} style={[styles.chef, chefStyle]} />
-        <Animated.Image source={dishImage} style={[styles.dish, dishStyle]} />
+        {great ? (
+          <>
+            <Animated.Image source={dishImage} style={[styles.dish, leftDishStyle]} />
+            <Animated.Image source={dishImage} style={[styles.dish, rightDishStyle]} />
+            <Animated.View style={[styles.stampDouble, slamStyle]}>
+              <StrokedText style={styles.stampDoubleText} strokeColor={colors.line} strokeWidth={2}>
+                ×2
+              </StrokedText>
+            </Animated.View>
+          </>
+        ) : (
+          <Animated.Image source={dishImage} style={[styles.dish, dishStyle]} />
+        )}
+        {isNew && (
+          <Animated.View style={[styles.stampNew, slamStyle]}>
+            <StrokedText style={styles.stampNewText} strokeColor={colors.line} strokeWidth={1.5}>
+              NEW!
+            </StrokedText>
+          </Animated.View>
+        )}
       </View>
       <Animated.View style={[styles.copy, titleStyle]} pointerEvents="none">
         <StrokedText style={styles.title} strokeColor={colors.line} strokeWidth={2.5}>
@@ -133,6 +174,7 @@ export function CookCompleteBurst({
           {great ? `${dishName} ×2` : dishName}
         </StrokedText>
       </Animated.View>
+      <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
     </Animated.View>
   );
 }
@@ -236,6 +278,21 @@ const styles = StyleSheet.create({
   chef: { position: "absolute", width: 150, height: 150, top: CENTER - 50 },
   dish: { position: "absolute", width: 84, height: 84, top: CENTER - 92 },
   copy: { marginTop: -10, alignItems: "center" },
+  flash: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "#ffd34d" },
+  stampDouble: { position: "absolute", top: CENTER - 120, right: STAGE / 2 - 96 },
+  stampDoubleText: { color: "#ffe066", fontSize: 30, fontWeight: "900", fontFamily: fonts.bold },
+  stampNew: {
+    position: "absolute",
+    top: CENTER - 110,
+    left: STAGE / 2 - 108,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.red,
+  },
+  stampNewText: { color: colors.cream, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
   title: { color: "#fff4bd", fontSize: 30, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
   name: { marginTop: 2, color: colors.gold, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
 });

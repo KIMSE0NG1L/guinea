@@ -1,6 +1,7 @@
 import type { RecipeTier } from "./recipeTiers";
 
-export type CookingPot = { recipeId: string; startedAt: number; readyAt: number } | null;
+// `fast`: started under a cook-speed buff (the pot shows a ⚡).
+export type CookingPot = { recipeId: string; startedAt: number; readyAt: number; fast?: boolean } | null;
 
 const MINUTE = 60 * 1000;
 

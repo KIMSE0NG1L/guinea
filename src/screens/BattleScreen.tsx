@@ -11,6 +11,8 @@ import { getEnemyKind, getStageLabel } from "../state/stages";
 import { getBagCapacity, slotsUsed } from "../state/bag";
 import { playSfx } from "../sound";
 import type { EnemyKind } from "../types";
+import { getCookingPots } from "../state/cooking";
+import { RECIPES } from "../state/recipes";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
   const { state, battle, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, displayBoss, isBossDefeatFlash, defeatedStageNumber } = game;
@@ -24,6 +26,9 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   const stageLabel = getStageLabel(displayStageNumber);
   // Which empty buff slot the dish picker is filling, if it's open.
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
+  // The first finished dish waiting in a pot, shown floating over the kitchen button.
+  const readyPot = getCookingPots(state.cookingPots).find((pot) => pot && pot.readyAt <= game.now);
+  const readyDish = readyPot ? RECIPES.find((recipe) => recipe.id === readyPot.recipeId) : undefined;
   const [adModalOpen, setAdModalOpen] = useState(false);
 
   // Fires once right as the boss sprite actually appears (displayBoss flips false→true),
@@ -65,7 +70,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
         onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
-        kitchenReady={game.readyPotCount > 0}
+        kitchenReadyDish={readyDish?.image ?? null}
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
         bagFull={slotsUsed(state.inventory) >= getBagCapacity(state.bagExpansions)}
         skillBar={

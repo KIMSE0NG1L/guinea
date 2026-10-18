@@ -470,7 +470,7 @@ export function useGameState() {
       return {
         ...previous,
         inventory: consumeIngredients(previous.inventory, used),
-        cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt } : pot)),
+        cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt, fast: foodBuffs.cookSpeed > 0 } : pot)),
       };
     });
   };
@@ -505,6 +505,7 @@ export function useGameState() {
           ? previous.inventory.map((item) => (item === dish ? { ...item, quantity: item.quantity + count } : item))
           : [...previous.inventory, { name: recipe.name, quantity: count, type: "dish" }],
         cookingPots: pots.map((item, index) => (index === potIndex ? null : item)),
+        cookedRecipes: previous.cookedRecipes?.includes(recipe.id) ? previous.cookedRecipes : [...(previous.cookedRecipes ?? []), recipe.id],
         dishesCooked,
         quests: previous.quests.map((quest) =>
           quest.id === "cook" ? { ...quest, current: dishesCooked } : quest

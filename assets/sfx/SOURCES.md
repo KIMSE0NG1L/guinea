@@ -1,4 +1,4 @@
-All files here are from Kenney.nl (CC0 — public domain, no attribution required), converted to mono WAV and peak-normalized to a consistent level.
+Files here are from Kenney.nl unless marked synthesized below (CC0 — public domain, no attribution required), converted to mono WAV and peak-normalized to a consistent level.
 
 | File | Source pack | Original file |
 | --- | --- | --- |
@@ -8,3 +8,5 @@ All files here are from Kenney.nl (CC0 — public domain, no attribution require
 | boss_enter.wav | [Impact Sounds](https://kenney.nl/assets/impact-sounds) (CC0) | impactBell_heavy_000.ogg |
 | ui_click.wav | [UI Audio](https://kenney.nl/assets/ui-audio) (CC0) | click2.ogg |
 | ui_toggle.wav | [UI Audio](https://kenney.nl/assets/ui-audio) (CC0) | switch1.ogg |
+| cook_start.wav | Synthesized for this project (filtered noise + crackles) | — |
+| cook_done.wav | Synthesized for this project (small bell, sine partials) | — |

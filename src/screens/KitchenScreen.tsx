@@ -4,6 +4,9 @@ import { colors, fonts } from "../theme";
 import { chef, frameKit, grandma, kit } from "../assets";
 import { COOK_TIME_MS, formatCookTime, type CookingPot } from "../state/cooking";
 import { CookingPots } from "../components/CookingPots";
+import { DishSetGuide } from "../components/DishSetGuide";
+import { launchFlight } from "../components/FlightLayer";
+import { measureTarget } from "../components/tutorialTargets";
 import { SEALED_RECIPE } from "../state/recipeTiers";
 import { BUFFS, describeDish, describeDishLinks, INSTANT_DISHES } from "../state/buffs";
 import { BalancedRows, estimateTextWidth } from "../components/BalancedLines";
@@ -56,6 +59,7 @@ export function KitchenScreen({
   onCollect,
   onRush,
   onUnlockPot,
+  onShowRecipe,
   onOpenGrocery,
   onOpenRecipes,
   layout,
@@ -73,14 +77,28 @@ export function KitchenScreen({
   onCook: (recipeId: string) => void;
   onCollect: (potIndex: number) => void;
   onRush: (potIndex: number) => void;
-  onUnlockPot: () => void;
+  onUnlockPot: () => boolean;
+  // Scroll the page to a recipe's card.
+  onShowRecipe: (recipeId: string) => void;
   onOpenGrocery: () => void;
   onOpenRecipes: () => void;
   layout: KitchenLayout;
   onLayoutChange: (layout: KitchenLayout) => void;
 }) {
   const known = getKnownRecipes(knownRecipes);
-  const freePot = pots.some((pot, index) => index < potsUnlocked && !pot);
+  const freePotIndex = pots.findIndex((pot, index) => index < potsUnlocked && !pot);
+  const freePot = freePotIndex >= 0;
+  // Ingredients hop from the recipe card into the pot the dish is going into.
+  const startCooking = (recipe: (typeof RECIPES)[number]) => {
+    onCook(recipe.id);
+    Promise.all([measureTarget(`cook-${recipe.id}`), measureTarget(`cook-pot-${freePotIndex}`)]).then(([from, to]) => {
+      if (!from || !to) return;
+      recipe.ingredients.forEach((ingredient, index) => {
+        const image = ITEM_IMAGES[ingredient.name];
+        if (image !== undefined) launchFlight({ image, from, to, delay: index * 90, duration: 480, arc: 60 });
+      });
+    });
+  };
   // What can be cooked right now floats to the top; otherwise recipe order is kept.
   const recipes = RECIPES.filter((recipe) => known.includes(recipe.id))
     .map((recipe) => ({ recipe, cookable: canCook(inventory, recipe) }))
@@ -110,8 +128,20 @@ export function KitchenScreen({
         </View>
       </View>
 
-      <CookingPots pots={pots} potsUnlocked={potsUnlocked} now={now} gems={gems} rushDiscount={rushDiscount} onCollect={onCollect} onRush={onRush} onUnlock={onUnlockPot} />
+      <CookingPots
+        pots={pots}
+        potsUnlocked={potsUnlocked}
+        now={now}
+        gems={gems}
+        rushDiscount={rushDiscount}
+        suggestion={recipes.find((recipe) => canCook(inventory, recipe)) ?? null}
+        onCollect={onCollect}
+        onRush={onRush}
+        onUnlock={onUnlockPot}
+        onShowRecipe={onShowRecipe}
+      />
       {bagFullNotice && <Text style={styles.notice}>가방이 가득 찼어요. 자리를 비우고 다시 받아 주세요.</Text>}
+      <DishSetGuide known={known} />
 
       <View style={styles.toolbar}>
         <Text style={styles.toolbarText}>아는 레시피 {recipes.length}개</Text>
@@ -169,7 +199,7 @@ export function KitchenScreen({
             <GameButton
               variant={cookable ? "green" : "gray"}
               disabled={!cookable}
-              onPress={() => onCook(recipe.id)}
+              onPress={() => startCooking(recipe)}
               tutorialId={`cook-${recipe.id}`}
               style={layout === "grid" ? styles.gridCookButton : styles.cookButton}
               textStyle={styles.cookButtonText}

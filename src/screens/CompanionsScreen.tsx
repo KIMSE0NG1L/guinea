@@ -13,8 +13,11 @@ import {
   OUTFIT_FOOD_DURATION_BONUS_SEC,
   OUTFIT_HIT_COUNT,
   OUTFIT_MISS_CHANCE,
+  DISH_PARTNERS,
+  PARTNER_MULTIPLIER,
   describeEffect,
 } from "../state/buffs";
+import { RECIPES } from "../state/recipes";
 import { LockBadge } from "../components/LockBadge";
 import { isOutfitUnlocked, OUTFIT_UNLOCK_LEVEL } from "../state/unlocks";
 import type { Outfit } from "../types";
@@ -64,6 +67,23 @@ const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string 
   },
 ];
 
+// Dishes whose buff this companion boosts (DISH_PARTNERS), with their icons.
+function PartnerDishes({ outfit, light = false }: { outfit: Outfit; light?: boolean }) {
+  const dishes = RECIPES.filter((recipe) => DISH_PARTNERS[recipe.id] === outfit);
+  if (dishes.length === 0) return null;
+  return (
+    <View style={styles.partners}>
+      <Text style={[styles.partnerLabel, light && styles.partnerLabelLight]}>궁합 요리 ×{PARTNER_MULTIPLIER}</Text>
+      {dishes.map((recipe) => (
+        <View style={styles.partner} key={recipe.id}>
+          <Image source={recipe.image} style={styles.partnerImage} />
+          <Text style={[styles.partnerName, light && styles.partnerNameLight]}>{recipe.name}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const PREVIEW_SPRITE_SIZE = 108;
 // Height / width of the battle backgrounds (1168x880).
 const BACKDROP_ASPECT = 880 / 1168;
@@ -112,6 +132,7 @@ export function CompanionsScreen({
             <Text style={styles.previewTitle}>{equippedItem.name}</Text>
             <Text style={styles.previewBlurb}>{equippedItem.blurb}</Text>
             <Text style={styles.previewSub}>{equippedItem.detail}</Text>
+            <PartnerDishes outfit={equippedItem.outfit} light />
           </View>
           <View style={styles.previewSprite}>
             <CharacterSprite outfit={equippedOutfit} animation="idle" size={PREVIEW_SPRITE_SIZE} restartKey={equippedOutfit} />
@@ -141,6 +162,7 @@ export function CompanionsScreen({
                 <Text style={styles.cardStrong}>{item.name}</Text>
                 <Text style={styles.cardBlurb}>{item.blurb}</Text>
                 <Text style={styles.cardSpan}>{item.detail}</Text>
+                <PartnerDishes outfit={item.outfit} />
               </View>
               <GameButton
                 variant={equipped ? "green" : locked ? "gray" : "beige"}
@@ -174,6 +196,13 @@ const styles = StyleSheet.create({
   previewSub: { marginTop: 5, color: "#f3d993", fontSize: 9, fontWeight: "800", fontFamily: fonts.bold },
   previewSprite: { flex: 1, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
   list: { gap: 8 },
+  partners: { marginTop: 4, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 2 },
+  partnerLabel: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: "#b0632a" },
+  partnerLabelLight: { color: "#f3d993" },
+  partner: { flexDirection: "row", alignItems: "center", gap: 2 },
+  partnerImage: { width: 16, height: 16 },
+  partnerName: { fontSize: 8, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  partnerNameLight: { color: "#efe7d4" },
   card: {
     paddingHorizontal: 12,
     paddingTop: 10,

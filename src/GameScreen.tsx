@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "./theme";
@@ -22,6 +22,8 @@ import { RecipeShopScreen } from "./screens/RecipeShopScreen";
 import { TutorialOverlay } from "./components/TutorialOverlay";
 import { RecipeTutorial } from "./components/RecipeTutorial";
 import { CookCompleteBurst } from "./components/CookCompleteBurst";
+import { FlightLayer, launchFlight } from "./components/FlightLayer";
+import { measureTarget } from "./components/tutorialTargets";
 import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
@@ -52,7 +54,7 @@ export function GameScreen() {
 
   // The dish whose "완성!" burst is playing (keyed so each collect replays it), and whether
   // the last collect bounced off a full bag.
-  const [collected, setCollected] = useState<{ key: number; recipeId: string; great: boolean } | null>(null);
+  const [collected, setCollected] = useState<{ key: number; recipeId: string; great: boolean; isNew: boolean } | null>(null);
   const [bagFullNotice, setBagFullNotice] = useState(false);
   useEffect(() => {
     if (!bagFullNotice) return;
@@ -60,13 +62,41 @@ export function GameScreen() {
     return () => clearTimeout(timer);
   }, [bagFullNotice]);
   const cookingPots = getCookingPots(state.cookingPots);
+  const collectCount = useRef(0);
   const onCollect = (potIndex: number, rush = false) => {
     const recipeId = cookingPots[potIndex]?.recipeId;
     const result = game.collectDish(potIndex, rush);
-    if ((result === "ok" || result === "great") && recipeId) setCollected({ key: Date.now(), recipeId, great: result === "great" });
+    if ((result === "ok" || result === "great") && recipeId) {
+      const isNew = !(state.cookedRecipes ?? []).includes(recipeId);
+      collectCount.current += 1;
+      setCollected({ key: collectCount.current, recipeId, great: result === "great", isNew });
+    }
     setBagFullNotice(result === "full");
   };
   const collectedRecipe = collected && RECIPES.find((recipe) => recipe.id === collected.recipeId);
+
+  // Once the burst closes, the dish flies from the middle of the screen into its recipe card.
+  const finishCollect = () => {
+    const recipe = collectedRecipe;
+    setCollected(null);
+    if (!recipe) return;
+    measureTarget(`cook-${recipe.id}`).then((to) => {
+      if (to) launchFlight({ image: recipe.image, from: "center", to, size: 44, duration: 560, arc: 40 });
+    });
+  };
+
+  // Scrolls the page so a recipe card (tagged via tutorialRef) sits near the top.
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+  const showRecipe = (recipeId: string) => {
+    const scroll = scrollRef.current;
+    Promise.all([
+      measureTarget(`cook-${recipeId}`),
+      new Promise<number>((resolve) => (scroll as unknown as View | null)?.measureInWindow((_x, y) => resolve(y)) ?? resolve(0)),
+    ]).then(([target, top]) => {
+      if (target) scroll?.scrollTo({ y: Math.max(0, scrollY.current + target.y - top - 90), animated: true });
+    });
+  };
 
   const renderContent = () => {
     switch (state.selectedTab) {
@@ -129,6 +159,7 @@ export function GameScreen() {
             onCollect={onCollect}
             onRush={(potIndex) => onCollect(potIndex, true)}
             onUnlockPot={game.unlockPot}
+            onShowRecipe={showRecipe}
             onOpenGrocery={() => onSelectTab("grocery")}
             onOpenRecipes={() => onSelectTab("recipes")}
             layout={state.kitchenLayout ?? "list"}
@@ -184,7 +215,16 @@ export function GameScreen() {
           onOpenShop={() => onSelectTab("shop")}
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
         />
-        <ScrollView key={state.selectedTab} style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView
+          key={state.selectedTab}
+          ref={scrollRef}
+          onScroll={(event) => {
+            scrollY.current = event.nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={32}
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
           {renderContent()}
         </ScrollView>
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
@@ -221,9 +261,11 @@ export function GameScreen() {
             dishName={collectedRecipe.name}
             dishImage={collectedRecipe.image}
             great={collected.great}
-            onDone={() => setCollected(null)}
+            isNew={collected.isNew}
+            onDone={finishCollect}
           />
         )}
+        <FlightLayer />
       </SafeAreaView>
     </View>
   );

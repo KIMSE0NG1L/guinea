@@ -561,6 +561,8 @@ export const sfx = {
   bossEnter: require("../assets/sfx/boss_enter.wav"),
   uiClick: require("../assets/sfx/ui_click.wav"),
   uiToggle: require("../assets/sfx/ui_toggle.wav"),
+  cookStart: require("../assets/sfx/cook_start.wav"),
+  cookDone: require("../assets/sfx/cook_done.wav"),
 };
 
 // Looping background tracks — "Counter-Rhythms" by Buant for the field, "8-bit 보스전" while a boss is up.

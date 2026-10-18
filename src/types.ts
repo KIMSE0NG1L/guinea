@@ -60,8 +60,10 @@ export interface GameState {
   bagExpansions?: number;
   // Dishes simmering in the kitchen (null = empty pot), and how many pots are open; see
   // state/cooking.ts. Missing on older saves = one empty pot.
-  cookingPots?: ({ recipeId: string; startedAt: number; readyAt: number } | null)[];
+  cookingPots?: ({ recipeId: string; startedAt: number; readyAt: number; fast?: boolean } | null)[];
   potsUnlocked?: number;
+  // Recipe ids cooked at least once (for the "NEW" badge); missing on older saves.
+  cookedRecipes?: string[];
   equipment: Record<string, string | null>;
   quests: Quest[];
   kills: number;
