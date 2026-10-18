@@ -311,6 +311,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-capybara-innkeeper-hit-strip.webp"),
     die: require("../assets/sprites/boss-capybara-innkeeper-die-strip.webp"),
   },
+  ninjaFrog: {
+    idle: require("../assets/sprites/ninja-frog-idle-strip.webp"),
+    hit: require("../assets/sprites/ninja-frog-hit-strip.webp"),
+    die: require("../assets/sprites/ninja-frog-die-strip.webp"),
+  },
+  bossScrollRat: {
+    idle: require("../assets/sprites/boss-scroll-rat-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-scroll-rat-hit-strip.webp"),
+    die: require("../assets/sprites/boss-scroll-rat-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -341,6 +351,7 @@ export const images = {
   battleBackgroundFoxShrine: require("../assets/sprites/battle-fox-shrine.webp"),
   battleBackgroundCastleKeep: require("../assets/sprites/battle-castle-keep.webp"),
   battleBackgroundHotSpring: require("../assets/sprites/battle-hot-spring-village.webp"),
+  battleBackgroundNinjaVillage: require("../assets/sprites/battle-ninja-village.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

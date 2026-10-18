@@ -31,6 +31,7 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   shrineFox: ["흥, 참배는 저쪽", "유부는 안 먹었어"],
   armorBeetle: ["이 뿔이 투구다!", "젤리 시간인가?"],
   onsenMonkey: ["물 튀기지 마!", "수건은 안 담가"],
+  ninjaFrog: ["개굴! 둔갑술!", "연기가 안 나..."],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -61,4 +62,5 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   shrineFox: ["싸다 싸!", "값은... 그때그때 달라"],
   armorBeetle: ["감히 천수각에!", "내가 제일 반짝여"],
   onsenMonkey: ["어서 오세요...", "물 식기 전에 들어가세요"],
+  ninjaFrog: ["그 당근, 내 거였지", "쥐도 새도 모르게!"],
 };

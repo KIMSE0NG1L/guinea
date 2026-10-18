@@ -73,6 +73,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   shrineFox: 160,
   armorBeetle: 160,
   onsenMonkey: 160,
+  ninjaFrog: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -112,6 +113,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   shrineFox: images.battleBackgroundFoxShrine,
   armorBeetle: images.battleBackgroundCastleKeep,
   onsenMonkey: images.battleBackgroundHotSpring,
+  ninjaFrog: images.battleBackgroundNinjaVillage,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

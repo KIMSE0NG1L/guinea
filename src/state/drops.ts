@@ -349,6 +349,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "치즈", chance: 0.4 },
     ],
   },
+  // 대나무 닌자 마을: 닌자 개구리가 대나무 잎에서 모은 이슬과 수련장 텃밭의 양배추; 쥐 두목은
+  // 패거리가 그동안 훔쳐 모은 치즈, 옥수수, 당근을 쏟아 놓는다.
+  ninjaFrog: {
+    mob: [
+      { name: "이슬", chance: 0.2 },
+      { name: "양배추", chance: 0.3 },
+    ],
+    boss: [
+      { name: "치즈", chance: 1, quantity: 2 },
+      { name: "옥수수", chance: 0.6 },
+      { name: "당근", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.
