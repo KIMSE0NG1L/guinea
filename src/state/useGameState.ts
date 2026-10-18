@@ -7,13 +7,14 @@ import { applyUpgradeLevels, getExpReward, getGoldReward, getExpToLevel, getStat
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { advanceQuest, migrateQuests } from "./quests";
-import { getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
+import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag";
-import { BOSS_NAME, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
+import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
-import { canCook, consumeIngredients, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
+import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES, STARTER_RECIPES } from "./recipes";
+import { getCookbookProgress } from "./cookbook";
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
@@ -28,11 +29,6 @@ const FLYING_COIN_GEMS = 2;
 // Gems for beating a stage's boss for the very first time.
 export const FIRST_CLEAR_GEMS = 50;
 
-// Stages whose boss has been beaten at least once. Saves from before this was tracked
-// count every stage below the furthest one reached — those bosses had to fall to get there.
-function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highestStageNumber" | "stageNumber">) {
-  return state.bossesCleared ?? Array.from({ length: state.highestStageNumber ?? state.stageNumber }, (_, index) => index);
-}
 
 // Grocery category of each ingredient, for the category drop buffs (vegetableDrop, seafoodDrop).
 const ITEM_CATEGORY = new Map(GROCERY.map((item) => [item.name, item.category]));
@@ -64,7 +60,7 @@ export function useGameState() {
   // which would otherwise swap the die animation to the *next* stage's boss mid-clip.
   const [defeatedStageNumber, setDefeatedStageNumber] = useState(0);
   const [stageAnnouncement, setStageAnnouncement] = useState<string | null>(null);
-  const [firstClear, setFirstClear] = useState<{ key: number; bossName: string; gems: number } | null>(null);
+  const [firstClear, setFirstClear] = useState<{ key: number; stageNumber: number; bossName: string; gems: number; companions: string[] } | null>(null);
   const [upgradeMode, setUpgradeMode] = useState<UpgradeMode>(1);
   const [upgraded, setUpgraded] = useState<StatKey | null>(null);
   // Set when the player jumps stages from the milestone map, so the stageNumber change
@@ -149,7 +145,13 @@ export function useGameState() {
         const recipeTutorialDone = save.state.recipeTutorialDone ?? false;
         // Saves from before the ingredient codex start it from whatever's in the bag now.
         const discoveredItems = save.state.discoveredItems ?? inventory.filter((item) => item.type === "food").map((item) => item.name);
-        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, quests, knownRecipes, recipeTutorialDone, discoveredItems };
+        // Saves from before the cookbook have no cooked-recipe record; anything already sitting
+        // in the bag as a dish was clearly cooked, so that's the starting page count.
+        const cookedRecipes =
+          save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
+        // The cookbook quest counts pages from the cooked-recipe record (new to older saves).
+        const questsWithBook = quests.map((quest) => (quest.id === "cookbook" ? { ...quest, current: getCookbookProgress(cookedRecipes) } : quest));
+        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, quests: questsWithBook, knownRecipes, recipeTutorialDone, discoveredItems, cookedRecipes };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const result = simulateOfflineProgress(loadedState, Date.now() - save.lastSeenAt);
@@ -223,7 +225,7 @@ export function useGameState() {
       // fully invisible — cutting this too close (tried 1300) unmounted it mid-fade,
       // popping it off abruptly instead of letting it finish dissolving.
       const unlocks = getUnlocksAtLevel(state.level);
-      const holdMs = unlocks.outfits.length + unlocks.skills.length > 0 ? 2800 : 1500;
+      const holdMs = unlocks.skills.length > 0 ? 2800 : 1500;
       const timer = setTimeout(() => setLevelUpAnnouncement(null), holdMs);
       previousLevelRef.current = state.level;
       return () => clearTimeout(timer);
@@ -275,7 +277,18 @@ export function useGameState() {
       stageNumber: state.stageNumber,
     }).includes(state.stageNumber);
     if (firstClear) {
-      setFirstClear({ key: Date.now(), bossName: BOSS_NAME[getEnemyKind(state.stageNumber)], gems: FIRST_CLEAR_GEMS });
+      setFirstClear({
+        key: Date.now(),
+        stageNumber: state.stageNumber,
+        bossName: BOSS_NAME[getEnemyKind(state.stageNumber)],
+        gems: FIRST_CLEAR_GEMS,
+        // Beating this boss for the first time is what opens the next stage, so a companion
+        // waiting there is announced with it — unless that stage was already reached.
+        companions:
+          (state.highestStageNumber ?? state.stageNumber) > state.stageNumber
+            ? []
+            : getOutfitsUnlockedByStage(state.stageNumber + 1).map((outfit) => OUTFIT_NAMES[outfit]),
+      });
     }
 
     setState((previous) => {
@@ -551,6 +564,7 @@ export function useGameState() {
       if (pots[potIndex]?.recipeId !== recipe.id || previous.gems < rushCost) return previous;
       const dish = previous.inventory.find((item) => item.name === recipe.name);
       const dishesCooked = (previous.dishesCooked ?? 0) + count;
+      const cookedRecipes = previous.cookedRecipes?.includes(recipe.id) ? previous.cookedRecipes : [...(previous.cookedRecipes ?? []), recipe.id];
       return {
         ...previous,
         gems: previous.gems - rushCost,
@@ -558,11 +572,13 @@ export function useGameState() {
           ? previous.inventory.map((item) => (item === dish ? { ...item, quantity: item.quantity + count } : item))
           : [...previous.inventory, { name: recipe.name, quantity: count, type: "dish" }],
         cookingPots: pots.map((item, index) => (index === potIndex ? null : item)),
-        cookedRecipes: previous.cookedRecipes?.includes(recipe.id) ? previous.cookedRecipes : [...(previous.cookedRecipes ?? []), recipe.id],
+        cookedRecipes,
         dishesCooked,
-        quests: previous.quests.map((quest) =>
-          quest.id === "cook" ? { ...quest, current: dishesCooked } : quest
-        ),
+        quests: previous.quests.map((quest) => {
+          if (quest.id === "cook") return { ...quest, current: dishesCooked };
+          if (quest.id === "cookbook") return { ...quest, current: getCookbookProgress(cookedRecipes) };
+          return quest;
+        }),
       };
     });
     return great ? "great" : "ok";
@@ -632,11 +648,12 @@ export function useGameState() {
     return true;
   };
 
-  // Returns whether the recipe was learned, so the shop can react either way.
+  // Returns whether the recipe was learned, so the shop can react either way. A recipe is
+  // only for sale once the boss of its stage has fallen (isRecipeForSale).
   const learnRecipe = (recipeId: string) => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     const known = getKnownRecipes(state.knownRecipes);
-    if (!recipe || known.includes(recipeId) || state.gold < recipe.price) return false;
+    if (!recipe || known.includes(recipeId) || state.gold < recipe.price || !isRecipeForSale(recipe, getClearedBosses(state))) return false;
     setState((previous) => {
       const previousKnown = getKnownRecipes(previous.knownRecipes);
       if (previousKnown.includes(recipeId) || previous.gold < recipe.price) return previous;
@@ -753,6 +770,7 @@ export function useGameState() {
     isBossDefeatFlash,
     stageAnnouncement,
     firstClear,
+    clearedStages: getClearedBosses(state),
     dismissFirstClear: () => setFirstClear(null),
     levelUpAnnouncement,
     levelUpAttackGain,

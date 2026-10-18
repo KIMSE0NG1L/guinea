@@ -20,7 +20,7 @@ import {
 } from "../state/buffs";
 import { RECIPES } from "../state/recipes";
 import { LockBadge } from "../components/LockBadge";
-import { isOutfitUnlocked, OUTFIT_UNLOCK_LEVEL } from "../state/unlocks";
+import { isOutfitUnlocked, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
 import type { Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and grants whichever of these
@@ -150,13 +150,14 @@ export function getCompanionName(outfit: Outfit) {
 
 export function CompanionsScreen({
   equippedOutfit,
-  level,
+  highestStageNumber,
   onEquip,
   outfitsSeen,
   onSeen,
 }: {
   equippedOutfit: Outfit;
-  level: number;
+  // Furthest stage reached (0-based) — companions join on arriving at their stage.
+  highestStageNumber: number;
   onEquip: (outfit: Outfit) => void;
   // Companions shown unlocked last visit (undefined = never tracked), and the report on leaving.
   outfitsSeen: Outfit[] | undefined;
@@ -164,7 +165,7 @@ export function CompanionsScreen({
 }) {
   const equippedItem = COMPANIONS.find((item) => item.outfit === equippedOutfit) ?? COMPANIONS[0];
   const [previewWidth, setPreviewWidth] = useState(0);
-  const unlockedNow = COMPANIONS.filter((item) => isOutfitUnlocked(item.outfit, level)).map((item) => item.outfit);
+  const unlockedNow = COMPANIONS.filter((item) => isOutfitUnlocked(item.outfit, highestStageNumber)).map((item) => item.outfit);
   // Unlocked since the last visit: their padlock breaks open this time.
   const [freshlyUnlocked] = useState(() => (outfitsSeen ? unlockedNow.filter((outfit) => !outfitsSeen.includes(outfit)) : []));
   const [outfitOnArrival] = useState(equippedOutfit);
@@ -215,8 +216,8 @@ export function CompanionsScreen({
       <View style={styles.list}>
         {COMPANIONS.map((item) => {
           const equipped = item.outfit === equippedOutfit;
-          const unlockLevel = OUTFIT_UNLOCK_LEVEL[item.outfit];
-          const locked = !equipped && !isOutfitUnlocked(item.outfit, level);
+          const unlockStage = OUTFIT_UNLOCK_STAGE[item.outfit];
+          const locked = !equipped && !isOutfitUnlocked(item.outfit, highestStageNumber);
           return (
             <Panel slice={equipped ? kit.panel : kit.inset} style={styles.card} key={item.outfit}>
               <View>
@@ -230,7 +231,7 @@ export function CompanionsScreen({
               </View>
               <View style={styles.cardCopy}>
                 <Text style={[styles.cardSmall, locked && styles.cardSmallLocked]}>
-                  {equipped ? "함께하는 중" : locked ? `Lv.${unlockLevel}에 합류` : "같이 다닐 수 있음"}
+                  {equipped ? "함께하는 중" : locked ? `${unlockStage}스테이지에 도착하면 합류` : "같이 다닐 수 있음"}
                 </Text>
                 <Text style={styles.cardStrong}>{item.name}</Text>
                 <Text style={styles.cardBlurb}>{item.blurb}</Text>
@@ -244,7 +245,7 @@ export function CompanionsScreen({
                 style={styles.equipButton}
                 textStyle={styles.equipButtonText}
               >
-                {equipped ? "함께 중" : locked ? `Lv.${unlockLevel}` : "함께하기"}
+                {equipped ? "함께 중" : locked ? `${unlockStage}스테이지` : "함께하기"}
               </GameButton>
             </Panel>
           );

@@ -37,7 +37,6 @@ import { ITEM_IMAGES } from "../state/recipes";
 import type { DropEvent } from "../state/useGameState";
 import { tutorialRef } from "../components/tutorialTargets";
 import { getUnlocksAtLevel } from "../state/unlocks";
-import { getCompanionName } from "./CompanionsScreen";
 import { FlyingCoin } from "../components/FlyingCoin";
 import { IconCaption } from "../components/IconCaption";
 import type { BattlePhase, EnemyAnimation, EnemyKind, Outfit, PlayerAnimation } from "../types";
@@ -538,13 +537,10 @@ export function BattleScene({
 }
 
 // Opens the bag; bumps each time a dropped ingredient lands in it.
-// Under the stage bar on a level-up that opens a companion or skill — says what just opened.
+// Under the stage bar on a level-up that opens a skill — says what just opened.
 function UnlockToast({ level }: { level: number }) {
-  const { outfits, skills } = getUnlocksAtLevel(level);
-  const lines = [
-    ...outfits.map((outfit) => `새 동료 합류! ${getCompanionName(outfit)}`),
-    ...skills.map((id) => `새 스킬 해금! ${getSkill(id).name}`),
-  ];
+  const { skills } = getUnlocksAtLevel(level);
+  const lines = skills.map((id) => `새 스킬 해금! ${getSkill(id).name}`);
   if (lines.length === 0) return null;
   return (
     <View style={styles.unlockToast} pointerEvents="none">

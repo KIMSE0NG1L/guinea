@@ -74,6 +74,7 @@ export function getGroceryPrice(name: string, shopPrice?: number) {
 }
 
 // Cheapest first.
-export const GROCERY: { name: string; price: number; category: GroceryCategory }[] = STOCK
-  .map((item) => ({ name: item.name, category: item.category, price: getGroceryPrice(item.name, item.shopPrice) }))
+// `shopOnly`: sold here on purpose without any monster dropping it (a fixed shopPrice).
+export const GROCERY: { name: string; price: number; category: GroceryCategory; shopOnly: boolean }[] = STOCK
+  .map((item) => ({ name: item.name, category: item.category, price: getGroceryPrice(item.name, item.shopPrice), shopOnly: item.shopPrice !== undefined }))
   .sort((a, b) => a.price - b.price);

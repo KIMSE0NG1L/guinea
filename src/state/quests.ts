@@ -3,6 +3,7 @@ import { food, icons, navIcons, statIcons } from "../assets";
 import { formatGameNumber } from "./gameMath";
 import { LAST_STAGE_NUMBER, STAGES } from "./stages";
 import { RECIPES, STARTER_RECIPES } from "./recipes";
+import { getCookbookQuestTargets } from "./cookbook";
 
 type QuestDef = {
   icon: number;
@@ -67,6 +68,15 @@ const QUEST_DEFS: Record<string, QuestDef> = {
     icon: icons.scroll,
     title: (target) => `레시피 ${target}개 배우기`,
     targets: [2, 5, 8, RECIPES.length - STARTER_RECIPES.length],
+    finite: true,
+    reward: 25,
+    step: 5,
+  },
+  // 《세상의 모든 맛》 pages: every 5, then the whole book (grows as recipes are added).
+  cookbook: {
+    icon: icons.codexBook,
+    title: (target) => (target >= RECIPES.length ? `요리책 완성 (${target}장)` : `요리책 ${target}장 채우기`),
+    targets: getCookbookQuestTargets(),
     finite: true,
     reward: 25,
     step: 5,

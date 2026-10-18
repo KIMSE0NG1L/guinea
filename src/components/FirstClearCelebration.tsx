@@ -103,7 +103,18 @@ function RibbonTail({ flip = false }: { flip?: boolean }) {
 
 // The first time a stage's boss falls: dim the game, spin a sunburst, rain confetti, unroll
 // a red ribbon that reveals "최초 토벌!", then burst the gem reward out underneath.
-export function FirstClearCelebration({ bossName, gems, onDone }: { bossName: string; gems: number; onDone: () => void }) {
+// `companions`: names of companions joining on this clear, shown under the reward.
+export function FirstClearCelebration({
+  bossName,
+  gems,
+  companions = [],
+  onDone,
+}: {
+  bossName: string;
+  gems: number;
+  companions?: string[];
+  onDone: () => void;
+}) {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const backdrop = useSharedValue(0);
   const spin = useSharedValue(0);
@@ -192,6 +203,13 @@ export function FirstClearCelebration({ bossName, gems, onDone }: { bossName: st
           </StrokedText>
         </Animated.View>
         <Text style={styles.rewardLabel}>보석 보너스!</Text>
+        {companions.map((name) => (
+          <Animated.View key={name} style={[styles.companion, rewardStyle]}>
+            <StrokedText style={styles.companionText} strokeColor={colors.line} strokeWidth={2}>
+              {`새 동료 합류! ${name}`}
+            </StrokedText>
+          </Animated.View>
+        ))}
         <Text style={styles.hint}>터치해서 닫기</Text>
       </View>
     </Pressable>
@@ -216,6 +234,8 @@ const styles = StyleSheet.create({
   gemGlow: { position: "absolute", left: -18, width: 96, height: 96, borderRadius: 48, backgroundColor: "#7fd6ff" },
   gem: { width: 60, height: 60 },
   rewardText: { fontSize: 40, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
+  companion: { marginTop: 14, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 12, backgroundColor: "#c8553de6" },
+  companionText: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   rewardLabel: { marginTop: 4, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   hint: { marginTop: 26, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: "#d8cdb8" },
 });

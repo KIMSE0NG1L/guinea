@@ -29,6 +29,7 @@ export function GameHeader({
   onUnlockAllStages,
   onOpenShop,
   onReplayTutorial,
+  onOpenComics,
 }: {
   state: GameState;
   onReset: () => void;
@@ -38,6 +39,7 @@ export function GameHeader({
   onUnlockAllStages: () => void;
   onOpenShop: () => void;
   onReplayTutorial: () => void;
+  onOpenComics: () => void;
 }) {
   const { width: screenWidth } = useWindowDimensions();
   const fit = Math.min(1, (Math.min(screenWidth, FRAME_WIDTH) - HEADER_PADDING * 2) / DESIGN_ROW);
@@ -85,6 +87,7 @@ export function GameHeader({
           onAddLevels={onAddLevels}
           onUnlockAllStages={onUnlockAllStages}
           onReplayTutorial={onReplayTutorial}
+          onOpenComics={onOpenComics}
           onResetRequest={() => {
             setSettingsOpen(false);
             setConfirmingReset(true);

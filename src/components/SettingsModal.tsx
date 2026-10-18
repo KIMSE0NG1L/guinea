@@ -11,6 +11,7 @@ export function SettingsModal({
   onAddLevels,
   onUnlockAllStages,
   onReplayTutorial,
+  onOpenComics,
   onResetRequest,
   onClose,
 }: {
@@ -19,6 +20,8 @@ export function SettingsModal({
   onAddLevels: () => void;
   onUnlockAllStages: () => void;
   onReplayTutorial: () => void;
+  // Opens the comic album (추억 앨범).
+  onOpenComics: () => void;
   onResetRequest: () => void;
   onClose: () => void;
 }) {
@@ -104,6 +107,16 @@ export function SettingsModal({
               style={styles.button}
             >
               튜토리얼 다시 보기
+            </GameButton>
+            <GameButton
+              variant="cream"
+              onPress={() => {
+                onOpenComics();
+                onClose();
+              }}
+              style={styles.button}
+            >
+              만화 다시 보기 (추억 앨범)
             </GameButton>
             <GameButton variant="red" onPress={onResetRequest} style={styles.button}>
               세이브 초기화

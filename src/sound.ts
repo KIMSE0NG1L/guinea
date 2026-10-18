@@ -10,7 +10,7 @@ const MUTE_KEY = "gini.sfx.muted";
 // call cutting the previous one off.
 const POOL_SIZE = 3;
 
-type SfxKey = keyof typeof sfx;
+export type SfxKey = keyof typeof sfx;
 
 setAudioModeAsync({ playsInSilentMode: true, interruptionMode: "mixWithOthers" }).catch(() => {});
 

@@ -1,4 +1,4 @@
-export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes";
+export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
@@ -70,12 +70,15 @@ export interface GameState {
   // What the bag and the ingredient codex held when last looked at — anything newer gets a
   // "NEW"/"발견!" mark on the next visit. Missing on older saves (= nothing marked).
   bagSeen?: string[];
+  // Story comics already shown (state/comics.ts); missing on older saves = none.
+  seenComics?: string[];
   // Companions already shown unlocked — one unlocked since gets its lock broken on the next visit.
   outfitsSeen?: Outfit[];
   // Furthest stage the map has shown — a newer one gets its path drawn in on the next visit.
   mapSeenStage?: number;
   codexSeen?: string[];
-  // Recipe ids cooked at least once (for the "NEW" badge); missing on older saves.
+  // Recipe ids cooked at least once (the "NEW" badge, and the cookbook goal — see
+  // state/cookbook.ts). Older saves are seeded from the dishes in their bag on load.
   cookedRecipes?: string[];
   equipment: Record<string, string | null>;
   quests: Quest[];

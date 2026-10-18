@@ -95,10 +95,25 @@ export const INSTANT_DISHES: Record<string, { goldKills: number }> = {
   "pork-belly": { goldKills: 40 },
 };
 
+// A recipe added without its own EFFECTS entry still works (and can be eaten): a plain
+// attack buff sized to its tier's budget. contentCheck.ts warns about these in dev.
+const DEFAULT_EFFECT: Record<RecipeTier, BuffEffect> = {
+  common: { attack: 12 },
+  rare: { attack: 25 },
+  epic: { attack: 40 },
+  legendary: { attack: 90 },
+  hidden: { attack: 120 },
+};
+
+export function hasOwnEffect(recipeId: string) {
+  return recipeId in EFFECTS;
+}
+
+// Every recipe has an entry, so lookups never come up empty.
 export const BUFFS: Record<string, { effect: BuffEffect; durationMs: number; tint: string }> = Object.fromEntries(
-  RECIPES.filter((recipe) => EFFECTS[recipe.id]).map((recipe) => [
+  RECIPES.map((recipe) => [
     recipe.id,
-    { ...EFFECTS[recipe.id], durationMs: BUFF_DURATION_MS[recipe.tier] },
+    { ...(EFFECTS[recipe.id] ?? { effect: DEFAULT_EFFECT[recipe.tier], tint: "#e8d5b0" }), durationMs: BUFF_DURATION_MS[recipe.tier] },
   ]),
 );
 

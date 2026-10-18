@@ -334,6 +334,12 @@ const PRICE_IN_KILLS: Record<RecipeTier, number> = { common: 10, rare: 15, epic:
 // Bought for real during the recipe tutorial on the starting gold, so it stays a token price.
 const TUTORIAL_RECIPE_PRICE = 50;
 
+// The chef only sells a recipe once the boss of its stage (getRecipeStage) has been beaten.
+// The tutorial's first recipe is the exception — it's bought before any boss falls.
+export function isRecipeForSale(recipe: RecipeDef, clearedStages: number[]) {
+  return recipe.id === "green-jelly" || clearedStages.includes(getRecipeStage(recipe));
+}
+
 export const RECIPES: Recipe[] = RECIPE_DEFS.map((recipe) => ({
   ...recipe,
   price:

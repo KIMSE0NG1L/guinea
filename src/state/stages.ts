@@ -1,4 +1,4 @@
-import type { EnemyKind } from "../types";
+import type { EnemyKind, GameState } from "../types";
 
 export const ENEMY_NAME: Record<EnemyKind, string> = {
   slime: "뒷산 슬라임",
@@ -89,6 +89,12 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;
+
+// Stages whose boss has been beaten at least once. Saves from before this was tracked
+// count every stage below the furthest one reached — those bosses had to fall to get there.
+export function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highestStageNumber" | "stageNumber">) {
+  return state.bossesCleared ?? Array.from({ length: state.highestStageNumber ?? state.stageNumber }, (_, index) => index);
+}
 
 // Regular-mob kills needed in a stage before the boss spawns automatically.
 export const STAGE_KILL_TARGET = 25;

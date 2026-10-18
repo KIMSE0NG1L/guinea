@@ -2,6 +2,8 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Rect } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { chef, frameKit, grandma, kit } from "../assets";
+import { ProgressBar } from "../components/ProgressBar";
+import { getCookbookProgress } from "../state/cookbook";
 import { COOK_TIME_MS, formatCookTime, type CookingPot } from "../state/cooking";
 import { CookingPots } from "../components/CookingPots";
 import { DishSetGuide } from "../components/DishSetGuide";
@@ -61,6 +63,8 @@ export function KitchenScreen({
   onRush,
   onUnlockPot,
   onShowRecipe,
+  cookedRecipes,
+  onOpenCookbook,
   onOpenGrocery,
   onOpenRecipes,
   layout,
@@ -81,6 +85,8 @@ export function KitchenScreen({
   onUnlockPot: () => boolean;
   // Scroll the page to a recipe's card.
   onShowRecipe: (recipeId: string) => void;
+  cookedRecipes: string[] | undefined;
+  onOpenCookbook: () => void;
   onOpenGrocery: () => void;
   onOpenRecipes: () => void;
   layout: KitchenLayout;
@@ -142,6 +148,22 @@ export function KitchenScreen({
         onShowRecipe={onShowRecipe}
       />
       {bagFullNotice && <Text style={styles.notice}>가방이 가득 찼어요. 자리를 비우고 다시 받아 주세요.</Text>}
+      <Pressable
+        onPress={onOpenCookbook}
+        accessibilityRole="button"
+        accessibilityLabel="요리책 열기"
+        style={({ pressed }) => [styles.cookbook, pressed && styles.pressed]}
+      >
+        <Panel slice={kit.panelParchment} scale={0.5} style={styles.cookbookCard}>
+          <Image source={chef.book} style={styles.cookbookImage} />
+          <View style={styles.cookbookCopy}>
+            <Text style={styles.cookbookTitle}>
+              요리책 《세상의 모든 맛》 <Text style={styles.cookbookCount}>{getCookbookProgress(cookedRecipes)} / {RECIPES.length}</Text>
+            </Text>
+            <ProgressBar progress={(getCookbookProgress(cookedRecipes) / RECIPES.length) * 100} height={12} />
+          </View>
+        </Panel>
+      </Pressable>
       <DishSetGuide known={known} />
 
       <View style={styles.toolbar}>
@@ -293,6 +315,12 @@ const styles = StyleSheet.create({
   more: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
   moreImage: { width: 50, height: 50 },
   moreText: { flex: 1, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  cookbook: { marginBottom: 12 },
+  cookbookCard: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 9 },
+  cookbookImage: { width: 44, height: 44 },
+  cookbookCopy: { flex: 1, gap: 4 },
+  cookbookTitle: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  cookbookCount: { color: colors.brown },
   notice: { marginTop: -6, marginBottom: 10, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.red, textAlign: "center" },
   toolbar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 18, paddingLeft: 4 },
   toolbarText: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },

@@ -19,12 +19,18 @@ import { MilestoneScreen } from "./screens/MilestoneScreen";
 import { KitchenScreen } from "./screens/KitchenScreen";
 import { GroceryScreen } from "./screens/GroceryScreen";
 import { RecipeShopScreen } from "./screens/RecipeShopScreen";
+import { CookbookScreen } from "./screens/CookbookScreen";
+import { getCookbookProgress, isCookbookComplete } from "./state/cookbook";
+import { CookbookEnding } from "./components/CookbookEnding";
 import { TutorialOverlay } from "./components/TutorialOverlay";
 import { BagFullToast } from "./components/BagFullToast";
 import { FirstClearCelebration } from "./components/FirstClearCelebration";
 import { RecipeTutorial } from "./components/RecipeTutorial";
 import { CookCompleteBurst } from "./components/CookCompleteBurst";
 import { FlightLayer, launchFlight } from "./components/FlightLayer";
+import { ComicViewer } from "./components/ComicViewer";
+import { COMIC_ON_FIRST_CLEAR, type ComicId } from "./state/comics";
+import { ComicsScreen } from "./screens/ComicsScreen";
 import { measureTarget } from "./components/tutorialTargets";
 import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
@@ -57,6 +63,13 @@ export function GameScreen() {
   // The dish whose "완성!" burst is playing (keyed so each collect replays it), and whether
   // the last collect bounced off a full bag.
   const [collected, setCollected] = useState<{ key: number; recipeId: string; great: boolean; isNew: boolean } | null>(null);
+  const [cookbookEndingOpen, setCookbookEndingOpen] = useState(false);
+  // The opening comic plays once on a new game; story comics follow a boss's first clear
+  // (COMIC_ON_FIRST_CLEAR); any reached one can be replayed from settings.
+  const openingSeen = (state.seenComics ?? []).includes("opening");
+  const [playingComic, setPlayingComic] = useState<ComicId | null>(null);
+  const markComicSeen = (id: ComicId) =>
+    setState((previous) => ({ ...previous, seenComics: [...new Set([...(previous.seenComics ?? []), id])] }));
   const [bagFullNotice, setBagFullNotice] = useState(false);
   useEffect(() => {
     if (!bagFullNotice) return;
@@ -80,6 +93,8 @@ export function GameScreen() {
   // Once the burst closes, the dish flies from the middle of the screen into its recipe card.
   const finishCollect = () => {
     const recipe = collectedRecipe;
+    // That dish filled the book's last page: the epilogue follows the burst.
+    if (collected?.isNew && isCookbookComplete(state.cookedRecipes)) setCookbookEndingOpen(true);
     setCollected(null);
     if (!recipe) return;
     measureTarget(`cook-${recipe.id}`).then((to) => {
@@ -110,11 +125,11 @@ export function GameScreen() {
         return (
           <CompanionsScreen
             equippedOutfit={state.equippedOutfit}
-            level={state.level}
+            highestStageNumber={state.highestStageNumber ?? state.stageNumber}
             outfitsSeen={state.outfitsSeen}
             onSeen={(outfitsSeen) => setState((previous) => ({ ...previous, outfitsSeen }))}
             onEquip={(equippedOutfit) =>
-              setState((previous) => (isOutfitUnlocked(equippedOutfit, previous.level) ? { ...previous, equippedOutfit } : previous))
+              setState((previous) => (isOutfitUnlocked(equippedOutfit, previous.highestStageNumber ?? previous.stageNumber) ? { ...previous, equippedOutfit } : previous))
             }
           />
         );
@@ -167,16 +182,30 @@ export function GameScreen() {
             onRush={(potIndex) => onCollect(potIndex, true)}
             onUnlockPot={game.unlockPot}
             onShowRecipe={showRecipe}
+            cookedRecipes={state.cookedRecipes}
+            onOpenCookbook={() => onSelectTab("cookbook")}
             onOpenGrocery={() => onSelectTab("grocery")}
             onOpenRecipes={() => onSelectTab("recipes")}
             layout={state.kitchenLayout ?? "list"}
             onLayoutChange={(kitchenLayout) => setState((previous) => ({ ...previous, kitchenLayout }))}
           />
         );
+      case "cookbook":
+        return (
+          <CookbookScreen
+            cookedRecipes={state.cookedRecipes}
+            knownRecipes={state.knownRecipes}
+            clearedStages={game.clearedStages}
+            gold={state.gold}
+            onBack={() => onSelectTab("kitchen")}
+            onOpenEnding={() => setCookbookEndingOpen(true)}
+          />
+        );
       case "recipes":
         return (
           <RecipeShopScreen
             knownRecipes={state.knownRecipes}
+            clearedStages={game.clearedStages}
             gold={state.gold}
             onLearn={game.learnRecipe}
             onBack={() => onSelectTab("kitchen")}
@@ -203,6 +232,16 @@ export function GameScreen() {
             seenStage={state.mapSeenStage}
             onSeen={(mapSeenStage) => setState((previous) => ({ ...previous, mapSeenStage }))}
             onBack={() => onSelectTab("battle")}
+            onOpenComics={() => onSelectTab("comics")}
+          />
+        );
+      case "comics":
+        return (
+          <ComicsScreen
+            clearedStages={game.clearedStages}
+            seenComics={state.seenComics}
+            onPlay={setPlayingComic}
+            onBack={() => onSelectTab("milestone")}
           />
         );
       default:
@@ -223,6 +262,7 @@ export function GameScreen() {
           onUnlockAllStages={game.cheatUnlockAllStages}
           onOpenShop={() => onSelectTab("shop")}
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
+          onOpenComics={() => onSelectTab("comics")}
         />
         <ScrollView
           key={state.selectedTab}
@@ -252,14 +292,34 @@ export function GameScreen() {
             key={game.firstClear.key}
             bossName={game.firstClear.bossName}
             gems={game.firstClear.gems}
-            onDone={game.dismissFirstClear}
+            companions={game.firstClear.companions}
+            onDone={() => {
+              // A story comic waiting on this boss plays once the celebration closes.
+              const comic = COMIC_ON_FIRST_CLEAR[game.firstClear!.stageNumber];
+              game.dismissFirstClear();
+              if (comic && !(state.seenComics ?? []).includes(comic)) setPlayingComic(comic);
+            }}
           />
         )}
         {game.bagFullAt !== null && (
           <BagFullToast key={game.bagFullAt} onOpenBag={() => onSelectTab("inventory")} onDone={game.dismissBagFull} />
         )}
         {/* Waits for the save to load (so returning players never see it flash) and for the offline popup. */}
-        {game.loaded && !state.tutorialDone && !game.offlineSummary && (
+        {/* A brand-new game opens on the story comic, then the tutorial picks up after it. */}
+        {game.loaded && !state.tutorialDone && !openingSeen && !game.offlineSummary && !playingComic && (
+          <ComicViewer id="opening" onClose={() => markComicSeen("opening")} />
+        )}
+        {playingComic && (
+          <ComicViewer
+            key={playingComic}
+            id={playingComic}
+            onClose={() => {
+              markComicSeen(playingComic);
+              setPlayingComic(null);
+            }}
+          />
+        )}
+        {game.loaded && !state.tutorialDone && openingSeen && !game.offlineSummary && (
           <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true }))} />
         )}
         {game.loaded && state.tutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && (
@@ -282,9 +342,12 @@ export function GameScreen() {
             dishImage={collectedRecipe.image}
             great={collected.great}
             isNew={collected.isNew}
+            // The page count after this dish — it's already in cookedRecipes by now.
+            pageText={collected.isNew ? `요리책 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}` : undefined}
             onDone={finishCollect}
           />
         )}
+        {cookbookEndingOpen && <CookbookEnding onClose={() => setCookbookEndingOpen(false)} />}
         <FlightLayer />
       </SafeAreaView>
     </View>

@@ -24,12 +24,15 @@ export function MilestoneScreen({
   onBack,
   seenStage,
   onSeen,
+  onOpenComics,
 }: {
   stageNumber: number;
   highestStageNumber: number;
   // Furthest stage shown last visit (undefined = never tracked), and the report on leaving.
   seenStage: number | undefined;
   onSeen: (stage: number) => void;
+  // Opens the comic album (추억 앨범).
+  onOpenComics: () => void;
   onSelectStage: (stageNumber: number) => void;
   onBack: () => void;
 }) {
@@ -66,6 +69,15 @@ export function MilestoneScreen({
                 <IconCaption shift={item === "map" ? 4 : 0}>{HEADINGS[item].caption}</IconCaption>
               </Pressable>
             ))}
+          <Pressable
+            onPress={onOpenComics}
+            accessibilityRole="button"
+            accessibilityLabel="추억 앨범 열기"
+            hitSlop={6}
+            style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
+          >
+            <Image source={icons.scroll} style={styles.toggleIcon} />
+          </Pressable>
         </View>
       </View>
       {view === "monsters" ? (

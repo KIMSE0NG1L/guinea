@@ -612,6 +612,34 @@ export const sfx = {
 };
 
 // Looping background tracks — "Counter-Rhythms" by Buant for the field, "8-bit 보스전" while a boss is up.
+// Story comic panels (see state/comics.ts for their speech bubbles).
+export const comics = {
+  opening1: require("../assets/comics/opening-1.webp"),
+  opening2: require("../assets/comics/opening-2.webp"),
+  opening3: require("../assets/comics/opening-3.webp"),
+  opening4: require("../assets/comics/opening-4.webp"),
+  cookbook1: require("../assets/comics/cookbook-1.webp"),
+  cookbook2: require("../assets/comics/cookbook-2.webp"),
+  cookbook3: require("../assets/comics/cookbook-3.webp"),
+  cookbook4: require("../assets/comics/cookbook-4.webp"),
+  explorer1: require("../assets/comics/explorer-1.webp"),
+  explorer2: require("../assets/comics/explorer-2.webp"),
+  explorer3: require("../assets/comics/explorer-3.webp"),
+  explorer4: require("../assets/comics/explorer-4.webp"),
+  teto1: require("../assets/comics/teto-1.webp"),
+  teto2: require("../assets/comics/teto-2.webp"),
+  teto3: require("../assets/comics/teto-3.webp"),
+  teto4: require("../assets/comics/teto-4.webp"),
+  assassin1: require("../assets/comics/assassin-1.webp"),
+  assassin2: require("../assets/comics/assassin-2.webp"),
+  assassin3: require("../assets/comics/assassin-3.webp"),
+  assassin4: require("../assets/comics/assassin-4.webp"),
+  egen1: require("../assets/comics/egen-1.webp"),
+  egen2: require("../assets/comics/egen-2.webp"),
+  egen3: require("../assets/comics/egen-3.webp"),
+  egen4: require("../assets/comics/egen-4.webp"),
+};
+
 export const bgm = {
   field: require("../assets/bgm/main_theme.mp3"),
   boss: require("../assets/bgm/boss_theme.mp3"),

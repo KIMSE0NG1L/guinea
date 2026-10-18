@@ -5,6 +5,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GameScreen } from "./src/GameScreen";
 import { colors } from "./src/theme";
 import { startBgm } from "./src/sound";
+import { checkContent } from "./src/state/contentCheck";
+
+// Lists any half-added recipe/ingredient in the console (dev builds only).
+if (__DEV__) checkContent();
 
 export default function App() {
   const [fontsLoaded] = useFonts({

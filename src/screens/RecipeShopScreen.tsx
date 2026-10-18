@@ -8,7 +8,7 @@ import { chef, grandma, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
-import { getKnownRecipes, ITEM_IMAGES, RECIPES, type Recipe } from "../state/recipes";
+import { getKnownRecipes, getRecipeStage, isRecipeForSale, ITEM_IMAGES, RECIPES, type Recipe } from "../state/recipes";
 import { RECIPE_TIERS } from "../state/recipeTiers";
 import { CoinPrice } from "../components/CoinPrice";
 import { RecipeArt } from "../components/RecipeArt";
@@ -17,12 +17,15 @@ const GREETING = { pose: chef.spoon, line: "어떤 요리를 배워볼래? 레�
 
 export function RecipeShopScreen({
   knownRecipes,
+  clearedStages,
   gold,
   onLearn,
   onBack,
   onOpenGrocery,
 }: {
   knownRecipes: string[] | undefined;
+  // Stages whose boss has fallen — a recipe is on sale once its stage is among them.
+  clearedStages: number[];
   gold: number;
   onLearn: (recipeId: string) => boolean;
   onBack: () => void;
@@ -33,9 +36,8 @@ export function RecipeShopScreen({
 
   // Card order is fixed when the shop opens, so a recipe learned here stays put for its
   // stamp instead of jumping to the bottom.
-  const [order] = useState(() =>
-    [...RECIPES].sort((a, b) => Number(known.includes(a.id)) - Number(known.includes(b.id))).map((recipe) => recipe.id),
-  );
+  const rank = (recipe: (typeof RECIPES)[number]) => (known.includes(recipe.id) ? 2 : isRecipeForSale(recipe, clearedStages) ? 0 : 1);
+  const [order] = useState(() => [...RECIPES].sort((a, b) => rank(a) - rank(b)).map((recipe) => recipe.id));
 
   // Reports whether it went through, so the card can rattle on short gold.
   const learn = (recipeId: string, name: string) => {
@@ -63,7 +65,7 @@ export function RecipeShopScreen({
       </Text>
 
       <View style={styles.grid}>
-        {/* Already-learned recipes sink below the ones still to buy (stable within each group). */}
+        {/* For sale first, then ones a stage clear away, then already-learned ones. */}
         {order.map((id) => {
           const recipe = RECIPES.find((item) => item.id === id)!;
           return (
@@ -71,6 +73,7 @@ export function RecipeShopScreen({
               key={id}
               recipe={recipe}
               learned={known.includes(id)}
+              forSale={isRecipeForSale(recipe, clearedStages)}
               affordable={gold >= recipe.price}
               onLearn={() => learn(recipe.id, recipe.name)}
             />
@@ -83,7 +86,20 @@ export function RecipeShopScreen({
 
 // One recipe for sale. Learning it unrolls the scroll and thumps a "배움!" stamp on it; a
 // sealed hidden recipe glows softly now and then; short gold rattles the button.
-function RecipeCard({ recipe, learned, affordable, onLearn }: { recipe: Recipe; learned: boolean; affordable: boolean; onLearn: () => boolean }) {
+function RecipeCard({
+  recipe,
+  learned,
+  forSale,
+  affordable,
+  onLearn,
+}: {
+  recipe: Recipe;
+  learned: boolean;
+  // False until its stage's boss has been beaten.
+  forSale: boolean;
+  affordable: boolean;
+  onLearn: () => boolean;
+}) {
   const tier = RECIPE_TIERS[recipe.tier];
   // Hidden recipes keep their dish and ingredients secret until learned.
   const sealed = recipe.tier === "hidden" && !learned;
@@ -134,7 +150,8 @@ function RecipeCard({ recipe, learned, affordable, onLearn }: { recipe: Recipe; 
       </View>
       <Animated.View style={[styles.buttonWrap, shakeStyle]}>
         <GameButton
-          variant={learned ? "pillCream" : affordable ? "red" : "pillGray"}
+          variant={learned ? "pillCream" : affordable && forSale ? "red" : "pillGray"}
+          disabled={!learned && !forSale}
           onPress={() => {
             if (!onLearn()) shake();
           }}
@@ -144,8 +161,10 @@ function RecipeCard({ recipe, learned, affordable, onLearn }: { recipe: Recipe; 
         >
           {learned ? (
             <Text style={[styles.buttonText, styles.buttonTextLearned]}>배움 ✓</Text>
-          ) : (
+          ) : forSale ? (
             <CoinPrice amount={recipe.price} textStyle={[styles.buttonText, !affordable && styles.buttonTextOff]} />
+          ) : (
+            <Text style={[styles.buttonText, styles.buttonTextOff]}>{`${getRecipeStage(recipe) + 1}스테이지 클리어`}</Text>
           )}
         </GameButton>
       </Animated.View>
