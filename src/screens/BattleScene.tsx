@@ -70,6 +70,8 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   flowerSnake: 160,
   riceSack: 160,
   mackerel: 160,
+  blossomCrab: 160,
+  shrineFox: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -77,6 +79,8 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
 // most mobs look fine at the default).
 const MOB_SIZE: Partial<Record<EnemyKind, number>> = {
   pig: 140,
+  // Its frames also hold its fox-fires and fanned tails, so the fox itself reads small.
+  shrineFox: 140,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -103,6 +107,8 @@ const BACKGROUND: Record<EnemyKind, number> = {
   flowerSnake: images.battleBackgroundAzaleaPath,
   riceSack: images.battleBackgroundJoseonMarket,
   mackerel: images.battleBackgroundFishingPort,
+  blossomCrab: images.battleBackgroundBlossomBeach,
+  shrineFox: images.battleBackgroundFoxShrine,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

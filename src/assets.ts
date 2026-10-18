@@ -265,6 +265,26 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-pirate-octopus-hit-strip.webp"),
     die: require("../assets/sprites/boss-pirate-octopus-die-strip.webp"),
   },
+  blossomCrab: {
+    idle: require("../assets/sprites/blossom-crab-idle-strip.webp"),
+    hit: require("../assets/sprites/blossom-crab-hit-strip.webp"),
+    die: require("../assets/sprites/blossom-crab-die-strip.webp"),
+  },
+  bossBlossomShark: {
+    idle: require("../assets/sprites/boss-blossom-shark-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-blossom-shark-hit-strip.webp"),
+    die: require("../assets/sprites/boss-blossom-shark-die-strip.webp"),
+  },
+  shrineFox: {
+    idle: require("../assets/sprites/shrine-fox-idle-strip.webp"),
+    hit: require("../assets/sprites/shrine-fox-hit-strip.webp"),
+    die: require("../assets/sprites/shrine-fox-die-strip.webp"),
+  },
+  bossTanukiMerchant: {
+    idle: require("../assets/sprites/boss-tanuki-merchant-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-tanuki-merchant-hit-strip.webp"),
+    die: require("../assets/sprites/boss-tanuki-merchant-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -291,6 +311,8 @@ export const images = {
   battleBackgroundAzaleaPath: require("../assets/sprites/battle-azalea-path.webp"),
   battleBackgroundJoseonMarket: require("../assets/sprites/battle-joseon-market.webp"),
   battleBackgroundFishingPort: require("../assets/sprites/battle-fishing-port.webp"),
+  battleBackgroundBlossomBeach: require("../assets/sprites/battle-blossom-beach.webp"),
+  battleBackgroundFoxShrine: require("../assets/sprites/battle-fox-shrine.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

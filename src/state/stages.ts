@@ -24,6 +24,8 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   flowerSnake: "꽃 뱀",
   riceSack: "심술 쌀가마",
   mackerel: "뚱한 고등어",
+  blossomCrab: "벚꽃 게",
+  shrineFox: "신사 여우",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -50,6 +52,8 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   flowerSnake: "구미호",
   riceSack: "고춧가루 대감",
   mackerel: "문어 해적선장",
+  blossomCrab: "벚꽃 상어",
+  shrineFox: "너구리 행상",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -80,6 +84,8 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "진달래길", enemyKind: "flowerSnake", story: "진달래가 흐드러지게 핀 산길, 꽃 사이에 똬리를 튼 꽃뱀 너머로 구미호가 사는 정자가 보인다." },
   { area: "궁궐 앞 장터", enemyKind: "riceSack", story: "궁궐 문 앞 너른 마당에 장이 선 날, 팔려 가기 싫은 쌀가마들이 씩씩대며 좌판 사이를 돌아다닌다." },
   { area: "수군 포구", enemyKind: "mackerel", story: "돛배가 드나드는 성곽 아래 포구, 그물을 빠져나온 고등어들이 부둣가를 뚱한 얼굴로 어슬렁거린다." },
+  { area: "벚꽃 해변", enemyKind: "blossomCrab", story: "벚꽃잎이 파도에 실려 오는 섬마을 해변, 꽃잎을 등에 인 게들이 모래사장을 옆으로 옆으로 누빈다." },
+  { area: "여우 신사", enemyKind: "shrineFox", story: "보름달 아래 등롱이 줄지어 밝힌 대나무 숲 신사, 여우불을 띄운 신사 여우들이 돌계단을 지킨다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

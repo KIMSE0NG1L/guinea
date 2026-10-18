@@ -27,6 +27,8 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   flowerSnake: ["샤랄라~", "꽃밭이 좋아"],
   riceSack: ["안 팔려!", "쌀 흘리지 마"],
   mackerel: ["...뭘 봐", "그물은 질색이야"],
+  blossomCrab: ["꽃 떨어진다!", "옆으로 옆으로~"],
+  shrineFox: ["흥, 참배는 저쪽", "유부는 안 먹었어"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -53,4 +55,6 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   flowerSnake: ["정체를 들켰네", "꼬리 좀 봐줄래?"],
   riceSack: ["맵게 해 주마!", "에취! 아니 안 매워"],
   mackerel: ["돛을 올려라!", "배는... 묻지 마"],
+  blossomCrab: ["예쁘다고 하지 마!", "에취! 꽃가루..."],
+  shrineFox: ["싸다 싸!", "값은... 그때그때 달라"],
 };

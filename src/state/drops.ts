@@ -297,6 +297,32 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "반짝 생선알", chance: 0.4 },
     ],
   },
+  // 벚꽃 해변: 벚꽃 게가 모래사장에서 주워 온 조개; 벚꽃 상어는 이름 그대로 지느러미와
+  // 두툼한 살을 남긴다.
+  blossomCrab: {
+    mob: [
+      { name: "꽃게", chance: 0.3 },
+      { name: "홍합", chance: 0.15 },
+    ],
+    boss: [
+      { name: "지느러미", chance: 1, quantity: 2 },
+      { name: "두툼 생선 토막", chance: 0.6 },
+      { name: "게살", chance: 0.4 },
+    ],
+  },
+  // 여우 신사: 신사 여우가 공물에서 슬쩍한 우유와 풋사과; 너구리 행상은 등짐에서 쏟아지는
+  // 생선과 과일을 남긴다.
+  shrineFox: {
+    mob: [
+      { name: "우유", chance: 0.3 },
+      { name: "풋사과", chance: 0.15 },
+    ],
+    boss: [
+      { name: "결 고운 생선살", chance: 1, quantity: 2 },
+      { name: "토마토", chance: 0.6 },
+      { name: "풋사과", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.
