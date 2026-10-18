@@ -245,6 +245,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-nine-tailed-fox-hit-strip.webp"),
     die: require("../assets/sprites/boss-nine-tailed-fox-die-strip.webp"),
   },
+  riceSack: {
+    idle: require("../assets/sprites/rice-sack-idle-strip.webp"),
+    hit: require("../assets/sprites/rice-sack-hit-strip.webp"),
+    die: require("../assets/sprites/rice-sack-die-strip.webp"),
+  },
+  bossChiliSack: {
+    idle: require("../assets/sprites/boss-chili-sack-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-chili-sack-hit-strip.webp"),
+    die: require("../assets/sprites/boss-chili-sack-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -269,6 +279,7 @@ export const images = {
   battleBackgroundSnowMountain: require("../assets/sprites/battle-snow-mountain.webp"),
   battleBackgroundSnowTavern: require("../assets/sprites/battle-snow-tavern.webp"),
   battleBackgroundAzaleaPath: require("../assets/sprites/battle-azalea-path.webp"),
+  battleBackgroundJoseonMarket: require("../assets/sprites/battle-joseon-market.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

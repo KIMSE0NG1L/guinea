@@ -271,6 +271,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "레몬", chance: 0.4 },
     ],
   },
+  // 궁궐 앞 장터: 쌀가마가 좌판에서 굴러다니며 묻혀 온 채소; 고춧가루 대감은 이름값대로
+  // 고추를 잔뜩 달고 다니고, 장터 최고급 고기도 챙겨 둔다.
+  riceSack: {
+    mob: [
+      { name: "감자", chance: 0.3 },
+      { name: "양파", chance: 0.15 },
+    ],
+    boss: [
+      { name: "불꽃 고추", chance: 1, quantity: 3 },
+      { name: "화염 열매", chance: 0.6 },
+      { name: "두툼 살코기", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.
