@@ -57,6 +57,22 @@ export function getGoldReward(attack: number, goldBonus: number, enemyMaxHp: num
   return Math.round(boss ? base * BOSS_GOLD_MULTIPLIER : base);
 }
 
+// What one regular kill pays at this stage for a player keeping a normal pace (starting
+// attack growing ~1.5x a stage, no gold bonus) — the yardstick the grocery and recipe shop
+// price against, so their prices keep pace with gold income instead of going trivial a
+// few stages in (kill gold grows ~2.4x a stage).
+export function getReferenceMobGold(stageNumber: number) {
+  return getGoldReward(6 * 1.5 ** stageNumber, 0, getEnemyMaxHp(stageNumber, false), false);
+}
+
+// Shop prices rounded to two significant figures (80, 540, 17,000, 1,400,000) so they
+// read as set prices rather than formula output.
+export function roundPrice(value: number) {
+  if (value < 100) return Math.max(10, Math.round(value / 10) * 10);
+  const unit = 10 ** (Math.floor(Math.log10(value)) - 1);
+  return Math.round(value / unit) * unit;
+}
+
 // Boss kills are the stage's milestone moment, so they pay out notably more exp than a
 // regular mob at the same stage — on top of already being worth 10x a mob's HP.
 const BOSS_EXP_MULTIPLIER = 3;

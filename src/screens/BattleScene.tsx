@@ -190,6 +190,7 @@ export function BattleScene({
   onManualAttack,
   onOpenMap,
   onOpenKitchen,
+  kitchenReady,
   onOpenBag,
   bagFull,
   skillBar,
@@ -224,6 +225,8 @@ export function BattleScene({
   onManualAttack: () => void;
   onOpenMap: () => void;
   onOpenKitchen: () => void;
+  // A dish is done in a kitchen pot and waiting to be taken out.
+  kitchenReady: boolean;
   onOpenBag: () => void;
   bagFull: boolean;
   skillBar: ReactNode;
@@ -444,6 +447,7 @@ export function BattleScene({
             style={({ pressed }) => [styles.kitchenButton, pressed && styles.mapButtonPressed]}
           >
             <Image source={POT_ICON.source} style={fitInBox(POT_ICON)} />
+            {kitchenReady && <Image source={kitImages.dotRed} style={styles.kitchenDot} accessibilityLabel="완성된 요리 있음" />}
           </Pressable>
 
           <Pressable
@@ -887,6 +891,7 @@ const styles = StyleSheet.create({
   bagFull: { position: "absolute", top: -4, right: -6, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 7, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.line },
   bagFullText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   questDot: { position: "absolute", right: 3, top: 2, width: 12, height: 12 },
+  kitchenDot: { position: "absolute", right: -2, top: -2, width: 12, height: 12 },
   fighters: {
     position: "absolute",
     top: 42,

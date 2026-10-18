@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { AppState, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from "expo-audio";
-import { sfx } from "./assets";
+import { bgm, sfx } from "./assets";
 
 const MUTE_KEY = "gini.sfx.muted";
 // Short effects can overlap themselves (a burst of auto-battle hits, several coin pickups
@@ -59,5 +60,84 @@ export function subscribeSfxMuted(listener: (muted: boolean) => void) {
 export function useSfxMuted() {
   const [value, setValue] = useState(muted);
   useEffect(() => subscribeSfxMuted(setValue), []);
+  return value;
+}
+
+// --- Background music ---------------------------------------------------------------
+
+const BGM_MUTE_KEY = "gini.bgm.muted";
+const BGM_VOLUME = 0.35;
+
+type BgmTrack = keyof typeof bgm;
+
+const bgmPlayers = (Object.keys(bgm) as BgmTrack[]).reduce((acc, track) => {
+  const player = createAudioPlayer(bgm[track]);
+  player.loop = true;
+  player.volume = BGM_VOLUME;
+  acc[track] = player;
+  return acc;
+}, {} as Record<BgmTrack, AudioPlayer>);
+
+let bgmTrack: BgmTrack = "field";
+let bgmMuted = false;
+let bgmStarted = false;
+let appActive = AppState.currentState === "active";
+const bgmListeners = new Set<(muted: boolean) => void>();
+
+function syncBgm() {
+  const shouldPlay = bgmStarted && !bgmMuted && appActive;
+  (Object.keys(bgmPlayers) as BgmTrack[]).forEach((track) => {
+    if (shouldPlay && track === bgmTrack) bgmPlayers[track].play();
+    else bgmPlayers[track].pause();
+  });
+}
+
+// The boss theme restarts from the top on every boss; the field theme picks up where it
+// left off once the boss is down.
+export function setBgmTrack(track: BgmTrack) {
+  if (track === bgmTrack) return;
+  bgmTrack = track;
+  if (track === "boss") bgmPlayers.boss.seekTo(0);
+  syncBgm();
+}
+
+AsyncStorage.getItem(BGM_MUTE_KEY)
+  .then((raw) => {
+    if (raw !== "1") return;
+    bgmMuted = true;
+    bgmListeners.forEach((listener) => listener(bgmMuted));
+    syncBgm();
+  })
+  .catch(() => {});
+
+AppState.addEventListener("change", (status) => {
+  appActive = status === "active";
+  syncBgm();
+});
+
+export function startBgm() {
+  bgmStarted = true;
+  syncBgm();
+  // Browsers block audio until the first user gesture — retry on the first tap.
+  if (Platform.OS === "web" && typeof document !== "undefined") {
+    document.addEventListener("pointerdown", syncBgm, { once: true });
+  }
+}
+
+export function setBgmMuted(value: boolean) {
+  bgmMuted = value;
+  bgmListeners.forEach((listener) => listener(bgmMuted));
+  syncBgm();
+  AsyncStorage.setItem(BGM_MUTE_KEY, value ? "1" : "0").catch(() => {});
+}
+
+export function useBgmMuted() {
+  const [value, setValue] = useState(bgmMuted);
+  useEffect(() => {
+    bgmListeners.add(setValue);
+    return () => {
+      bgmListeners.delete(setValue);
+    };
+  }, []);
   return value;
 }

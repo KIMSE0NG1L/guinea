@@ -6,6 +6,7 @@ import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
 import { formatGameNumber } from "../state/gameMath";
+import { applyDiscount } from "../state/cooking";
 import { GROCERY, type GroceryCategory } from "../state/grocery";
 import { getItemQuantity, ITEM_IMAGES } from "../state/recipes";
 import type { GameState } from "../types";
@@ -37,12 +38,15 @@ export function GroceryScreen({
   inventory,
   gold,
   onBuy,
+  discount,
   onBack,
   onOpenRecipes,
 }: {
   inventory: GameState["inventory"];
   gold: number;
   onBuy: (name: string, price: number) => "ok" | "gold" | "full";
+  // % off every price while a discount dish is running.
+  discount: number;
   onBack: () => void;
   onOpenRecipes: () => void;
 }) {
@@ -90,7 +94,8 @@ export function GroceryScreen({
 
       <View style={styles.grid}>
         {items.map((item) => {
-          const affordable = gold >= item.price;
+          const price = applyDiscount(item.price, discount);
+          const affordable = gold >= price;
           return (
             <Panel slice={shopKit.cardWood} scale={0.4} style={styles.card} key={item.name}>
               <Image source={ITEM_IMAGES[item.name]} style={styles.itemImage} />
@@ -99,10 +104,10 @@ export function GroceryScreen({
               <GameButton
                 variant={affordable ? "red" : "pillGray"}
                 onPress={() => buy(item.name, item.price)}
-                accessibilityLabel={`${item.name} ${item.price}골드에 구매`}
+                accessibilityLabel={`${item.name} ${price}골드에 구매`}
                 style={styles.buyButton}
               >
-                <Text style={[styles.buyText, !affordable && styles.buyTextOff]}>{formatGameNumber(item.price)} G</Text>
+                <Text style={[styles.buyText, !affordable && styles.buyTextOff]}>{formatGameNumber(price)} G</Text>
               </GameButton>
             </Panel>
           );

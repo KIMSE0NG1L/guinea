@@ -2,14 +2,15 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Rect } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { chef, frameKit, grandma, kit } from "../assets";
+import { COOK_TIME_MS, formatCookTime, type CookingPot } from "../state/cooking";
+import { CookingPots } from "../components/CookingPots";
 import { SEALED_RECIPE } from "../state/recipeTiers";
-import { BUFFS, describeEffect } from "../state/buffs";
+import { BUFFS, describeDish, describeDishLinks, INSTANT_DISHES } from "../state/buffs";
 import { BalancedRows, estimateTextWidth } from "../components/BalancedLines";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { NineSlice, Panel } from "../components/NineSlice";
-import { canCook, consumeIngredients, getItemQuantity, getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
-import { fitItems } from "../state/bag";
+import { canCook, getItemQuantity, getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
 import type { GameState } from "../types";
 
 export type KitchenLayout = "list" | "grid";
@@ -18,12 +19,14 @@ const EFFECT_FONT = 9;
 const INGREDIENT_FONT = 8;
 const INGREDIENT_ICON = 16;
 
-// ["공격력 +10%", "1분"] — what eating the dish does, and for how long, as separate parts
-// so a long list can break between them.
+// ["공격력 +10%", "3분", "세트: 디저트 타임"] — what eating the dish does, for how long
+// (snacks are eaten on the spot), and its set/partner, as separate parts so a long list
+// can break between them.
 function describeBuffParts(recipeId: string) {
   const buff = BUFFS[recipeId];
   if (!buff) return [];
-  return [...describeEffect(buff.effect).split(" · "), `${Math.round(buff.durationMs / 60000)}분`];
+  const duration = INSTANT_DISHES[recipeId] ? [] : [formatCookTime(buff.durationMs)];
+  return [...describeDish(recipeId).split(" · "), ...duration, ...describeDishLinks(recipeId)];
 }
 
 // Toggle glyphs: three bars for the list, a 2×2 of squares for the cards.
@@ -42,29 +45,45 @@ function LayoutIcon({ mode, active }: { mode: KitchenLayout; active: boolean }) 
 
 export function KitchenScreen({
   inventory,
-  bagCapacity,
   knownRecipes,
+  pots,
+  potsUnlocked,
+  now,
+  gems,
+  rushDiscount,
+  bagFullNotice,
   onCook,
+  onCollect,
+  onRush,
+  onUnlockPot,
   onOpenGrocery,
   onOpenRecipes,
   layout,
   onLayoutChange,
 }: {
   inventory: GameState["inventory"];
-  bagCapacity: number;
   knownRecipes: string[] | undefined;
+  pots: CookingPot[];
+  potsUnlocked: number;
+  now: number;
+  gems: number;
+  rushDiscount: number;
+  // Shown under the pots after a collect bounced off a full bag.
+  bagFullNotice: boolean;
   onCook: (recipeId: string) => void;
+  onCollect: (potIndex: number) => void;
+  onRush: (potIndex: number) => void;
+  onUnlockPot: () => void;
   onOpenGrocery: () => void;
   onOpenRecipes: () => void;
   layout: KitchenLayout;
   onLayoutChange: (layout: KitchenLayout) => void;
 }) {
   const known = getKnownRecipes(knownRecipes);
+  const freePot = pots.some((pot, index) => index < potsUnlocked && !pot);
   // What can be cooked right now floats to the top; otherwise recipe order is kept.
-  const roomFor = (recipe: (typeof RECIPES)[number]) =>
-    fitItems(consumeIngredients(inventory, recipe), [{ name: recipe.name, quantity: 1 }], bagCapacity).overflow.length === 0;
   const recipes = RECIPES.filter((recipe) => known.includes(recipe.id))
-    .map((recipe) => ({ recipe, cookable: canCook(inventory, recipe) && roomFor(recipe) }))
+    .map((recipe) => ({ recipe, cookable: canCook(inventory, recipe) }))
     .sort((a, b) => Number(b.cookable) - Number(a.cookable))
     .map(({ recipe }) => recipe);
   const unlearned = RECIPES.length - recipes.length;
@@ -91,14 +110,8 @@ export function KitchenScreen({
         </View>
       </View>
 
-      <Panel slice={kit.panelParchment} style={styles.hero}>
-        <Image source={chef.wok} style={styles.heroImage} />
-        <View style={styles.heroCopy}>
-          <Text style={styles.heroLabel}>오늘의 주방</Text>
-          <Text style={styles.heroTitle}>보글보글 끓는 중</Text>
-          <Text style={styles.heroSub}>요리는 가방에 담겨요.</Text>
-        </View>
-      </Panel>
+      <CookingPots pots={pots} potsUnlocked={potsUnlocked} now={now} gems={gems} rushDiscount={rushDiscount} onCollect={onCollect} onRush={onRush} onUnlock={onUnlockPot} />
+      {bagFullNotice && <Text style={styles.notice}>가방이 가득 찼어요. 자리를 비우고 다시 받아 주세요.</Text>}
 
       <View style={styles.toolbar}>
         <Text style={styles.toolbarText}>아는 레시피 {recipes.length}개</Text>
@@ -127,10 +140,8 @@ export function KitchenScreen({
         {recipes.map((recipe) => {
           const ready = canCook(inventory, recipe);
           const owned = getItemQuantity(inventory, recipe.name);
-          // The dish needs room once its ingredients are out of the bag — a free slot or
-          // space in its last stack of 64.
-          const room = roomFor(recipe);
-          const cookable = ready && room;
+          // Bag room is checked when the dish comes out of the pot, not when it goes in.
+          const cookable = ready && freePot;
           const ingredientLabels = recipe.ingredients.map(
             (ingredient) => `${layout === "grid" ? "" : `${ingredient.name} `}${getItemQuantity(inventory, ingredient.name)}/${ingredient.quantity}`,
           );
@@ -163,10 +174,10 @@ export function KitchenScreen({
               style={layout === "grid" ? styles.gridCookButton : styles.cookButton}
               textStyle={styles.cookButtonText}
             >
-              {!ready ? "재료 부족" : room ? "요리하기" : "가방 가득"}
+              {!ready ? "재료 부족" : freePot ? "요리하기" : "냄비 가득"}
             </GameButton>
           );
-          const effectParts = describeBuffParts(recipe.id);
+          const effectParts = [...describeBuffParts(recipe.id), `⏱${formatCookTime(COOK_TIME_MS[recipe.tier])}`];
           const effect = (
             <BalancedRows
               items={effectParts}
@@ -250,12 +261,7 @@ const styles = StyleSheet.create({
   more: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
   moreImage: { width: 50, height: 50 },
   moreText: { flex: 1, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
-  hero: { marginBottom: 12, paddingHorizontal: 16, paddingVertical: 14, flexDirection: "row", alignItems: "center", gap: 12 },
-  heroImage: { width: 72, height: 72 },
-  heroCopy: { flex: 1 },
-  heroLabel: { color: colors.brown, fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
-  heroTitle: { marginTop: 3, fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  heroSub: { marginTop: 3, fontSize: 9, color: colors.brown },
+  notice: { marginTop: -6, marginBottom: 10, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.red, textAlign: "center" },
   toolbar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8, paddingLeft: 4 },
   toolbarText: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   layoutToggle: { flexDirection: "row", gap: 4 },

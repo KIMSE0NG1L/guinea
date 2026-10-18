@@ -1,5 +1,6 @@
 import { getDropSources } from "./drops";
-import { STAGES } from "./stages";
+import { STAGE_KILL_TARGET, STAGES } from "./stages";
+import { getReferenceMobGold, roundPrice } from "./gameMath";
 
 // Grandma's grocery stock. Prices are in gold, one item per purchase.
 export type GroceryCategory = "vegetable" | "fruit" | "farm" | "meat" | "seafood" | "special";
@@ -52,28 +53,24 @@ const STOCK: { name: string; category: GroceryCategory; shopPrice?: number }[] =
   { name: "로열 젤리", category: "special" },
 ];
 
-const BASE_PRICE = 20;
-// Price climbs this much per stage, following how much stronger each stage's monsters are.
-const STAGE_PRICE_GROWTH = 1.3;
+// Buying costs this much more than the gold you'd earn farming the item yourself, so the
+// shop saves time rather than replacing the hunt.
+const BUY_PREMIUM = 1.5;
 
-// How hard one drop entry is to come by: common mob drops ×1, rarer mob drops more, and
-// boss-only loot (one boss per 25 kills) the most — scaled up further when even the boss
-// doesn't always drop it.
-function rarityMultiplier(boss: boolean, chance: number) {
-  if (boss) return 3 + (1 - chance) * 2;
-  if (chance >= 0.3) return 1;
-  if (chance >= 0.15) return 1.5;
-  return 2;
+// Kills it takes on average to farm one: 1/chance for a mob drop, and for boss loot the
+// whole stage (25 mobs + the boss) per boss, split over how many it drops.
+function expectedKills(boss: boolean, chance: number, quantity = 1) {
+  return (boss ? STAGE_KILL_TARGET + 1 : 1) / (chance * quantity);
 }
 
-// The cheapest way to get an item sets its price: the earliest, most common place it drops.
+// Priced as the gold those kills would pay at the item's stage (getReferenceMobGold), so a
+// stage-10 ingredient costs what stage-10 kills are worth. The cheapest source sets it.
 export function getGroceryPrice(name: string, shopPrice?: number) {
   const prices = getDropSources(name).map(({ kind, boss, entry }) => {
     const stage = Math.max(0, STAGES.findIndex((item) => item.enemyKind === kind));
-    return BASE_PRICE * STAGE_PRICE_GROWTH ** stage * rarityMultiplier(boss, entry.chance);
+    return getReferenceMobGold(stage) * expectedKills(boss, entry.chance, entry.quantity) * BUY_PREMIUM;
   });
-  const raw = prices.length > 0 ? Math.min(...prices) : (shopPrice ?? BASE_PRICE);
-  return Math.round(raw / 10) * 10;
+  return prices.length > 0 ? roundPrice(Math.min(...prices)) : (shopPrice ?? 30);
 }
 
 // Cheapest first.

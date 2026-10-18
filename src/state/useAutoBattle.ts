@@ -37,6 +37,9 @@ export function useAutoBattle({
   missChance = 0,
   hitCount = 1,
   cooldownReductionMs = 0,
+  bossDamage = 0,
+  extraHitChance = 0,
+  executeBonus = 0,
   enemyMaxHp,
   boss,
   speedMultiplier = 1,
@@ -56,6 +59,11 @@ export function useAutoBattle({
   hitCount?: number;
   // Shaved off every active skill's cooldown on cast (e.g. egenGini) — never below 0.
   cooldownReductionMs?: number;
+  // Food buffs: % more damage to bosses, % chance a swing lands one extra strike, and
+  // points added to Execute's HP threshold.
+  bossDamage?: number;
+  extraHitChance?: number;
+  executeBonus?: number;
   enemyMaxHp: number;
   boss: boolean;
   // Scales down every auto-battle timer delay — e.g. 2 halves them, doubling the pace.
@@ -98,6 +106,9 @@ export function useAutoBattle({
   const missChanceRef = useRef(missChance);
   const hitCountRef = useRef(hitCount);
   const cooldownReductionRef = useRef(cooldownReductionMs);
+  const bossDamageRef = useRef(bossDamage);
+  const extraHitChanceRef = useRef(extraHitChance);
+  const executeBonusRef = useRef(executeBonus);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
   const speedMultiplierRef = useRef(speedMultiplier);
@@ -159,6 +170,9 @@ export function useAutoBattle({
     missChanceRef.current = missChance;
     hitCountRef.current = hitCount;
     cooldownReductionRef.current = cooldownReductionMs;
+    bossDamageRef.current = bossDamage;
+    extraHitChanceRef.current = extraHitChance;
+    executeBonusRef.current = executeBonus;
     maxHpRef.current = enemyMaxHp;
     bossRef.current = boss;
     speedMultiplierRef.current = speedMultiplier;
@@ -215,7 +229,8 @@ export function useAutoBattle({
     }
     let nextHp = Math.max(0, hpRef.current - damage);
     // Execute (passive): a hit that leaves the enemy low enough finishes it off.
-    const executed = equippedSkillRef.current === "execute" && nextHp > 0 && nextHp <= maxHpRef.current * EXECUTE_HP_RATIO;
+    const executeRatio = EXECUTE_HP_RATIO + executeBonusRef.current / 100;
+    const executed = equippedSkillRef.current === "execute" && nextHp > 0 && nextHp <= maxHpRef.current * executeRatio;
     if (executed) {
       nextHp = 0;
       setExecuteId((value) => value + 1);
@@ -239,9 +254,16 @@ export function useAutoBattle({
       isSkillActive(skillTimersRef.current, "focus", now) ||
       Math.random() * 100 < Math.min(100, criticalChanceRef.current);
     const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS : 1;
-    const damage = Math.round(attackRef.current * (isCritical ? criticalDamageRef.current / 100 : 1) * shout);
+    const bossBonus = bossRef.current ? 1 + bossDamageRef.current / 100 : 1;
+    const damage = Math.round(attackRef.current * (isCritical ? criticalDamageRef.current / 100 : 1) * shout * bossBonus);
     return { isCritical, damage, missed: false };
   }, []);
+
+  // Strikes this swing lands: the outfit's hit count, plus one on a lucky extra-hit roll.
+  const rollStrikes = useCallback(
+    () => hitCountRef.current + (Math.random() * 100 < extraHitChanceRef.current ? 1 : 0),
+    [],
+  );
 
   useEffect(() => {
     if (!isAutoBattle) return;
@@ -262,6 +284,7 @@ export function useAutoBattle({
         // The enemy's mid death/respawn — enterEnemy resumes the loop once it's back.
         if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
         const { isCritical, damage, missed } = rollAttack();
+        const strikes = rollStrikes();
         setLastCritical(isCritical);
         phaseRef.current = "attacking";
         setPhase("attacking");
@@ -279,7 +302,7 @@ export function useAutoBattle({
             anyLanded = true;
             if (dealDamage(damage, isCritical)) killed = true;
           }
-          for (let i = 1; i < hitCountRef.current && !killed; i++) {
+          for (let i = 1; i < strikes && !killed; i++) {
             const extra = rollAttack();
             if (extra.missed) {
               pushMissEvent();
@@ -315,7 +338,7 @@ export function useAutoBattle({
         setPhase("idle");
       }
     };
-  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack]);
+  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
 
   const manualAttack = useCallback(() => {
     if (isAutoBattle) return;
@@ -336,7 +359,8 @@ export function useAutoBattle({
       anyLanded = true;
       if (dealDamage(damage, isCritical)) killed = true;
     }
-    for (let i = 1; i < hitCountRef.current && !killed; i++) {
+    const strikes = rollStrikes();
+    for (let i = 1; i < strikes && !killed; i++) {
       const extra = rollAttack();
       if (extra.missed) {
         pushMissEvent();
@@ -365,7 +389,7 @@ export function useAutoBattle({
       manualTimersRef.current.push(readyTimer);
     }, 260);
     manualTimersRef.current.push(hitTimer);
-  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack]);
+  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
 
   // Whether the equipped skill can be cast right now (an active skill, off cooldown, with
   // an enemy present). `now` is passed in so the UI can re-check on its own clock.
@@ -408,6 +432,15 @@ export function useAutoBattle({
       eventTimersRef.current.push(hitTimer);
     }
   }, [dealDamage]);
+
+  // A food buff (skillReset) makes the equipped skill ready to cast right now.
+  const resetSkillCooldown = useCallback(() => {
+    const id = equippedSkillRef.current;
+    if (!id) return;
+    const next = { ...skillTimersRef.current, [id]: { ...skillTimersRef.current[id], readyAt: 0 } };
+    skillTimersRef.current = next;
+    setSkillTimers(next);
+  }, []);
 
   useEffect(() => {
     if (!isAutoBattle) return;
@@ -460,5 +493,6 @@ export function useAutoBattle({
     killEnemy,
     castSkill,
     canCastSkill,
+    resetSkillCooldown,
   };
 }

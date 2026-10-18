@@ -286,8 +286,26 @@ export function getDropTable(kind: EnemyKind, boss: boolean): DropEntry[] {
   return boss ? DROPS[kind].boss : DROPS[kind].mob;
 }
 
-export function rollDrops(kind: EnemyKind, boss: boolean): { name: string; quantity: number }[] {
+// Food buffs that bend the roll (see BuffEffect in buffs.ts).
+export type DropModifiers = {
+  // Extra % on top of each entry's chance, for that item (all items + its category).
+  chanceBonus?: (name: string) => number;
+  // % chance each dropped item comes in twos.
+  doubleChance?: number;
+  // Every boss entry drops, whatever its chance.
+  bossSure?: boolean;
+};
+
+export function rollDrops(kind: EnemyKind, boss: boolean, modifiers: DropModifiers = {}): { name: string; quantity: number }[] {
   return (boss ? DROPS[kind].boss : DROPS[kind].mob)
-    .filter((entry) => Math.random() < entry.chance)
-    .map((entry) => ({ name: entry.name, quantity: entry.quantity ?? 1 }));
+    .filter((entry) => {
+      if (boss && modifiers.bossSure) return true;
+      const chance = entry.chance * (1 + (modifiers.chanceBonus?.(entry.name) ?? 0) / 100);
+      return Math.random() < chance;
+    })
+    .map((entry) => {
+      const quantity = entry.quantity ?? 1;
+      const doubled = Math.random() * 100 < (modifiers.doubleChance ?? 0);
+      return { name: entry.name, quantity: doubled ? quantity * 2 : quantity };
+    });
 }

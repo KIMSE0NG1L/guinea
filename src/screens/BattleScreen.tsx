@@ -13,28 +13,21 @@ import { playSfx } from "../sound";
 import type { EnemyKind } from "../types";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
-  const { state, battle, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, defeatedBoss, defeatedStageNumber } = game;
+  const { state, battle, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, displayBoss, isBossDefeatFlash, defeatedStageNumber } = game;
   // stageNumber advances the instant a boss dies, before its ~650ms death clip finishes —
   // keep showing the stage it died in (not the next one) for the rest of that clip, same
-  // as the `boss` flag below already does, or the die animation flashes the next boss.
-  const isDefeatFlash = battle.phase === "defeated" && defeatedBoss;
-  const displayStageNumber = isDefeatFlash ? defeatedStageNumber : state.stageNumber;
+  // as `displayBoss` already does, or the die animation flashes the next boss.
+  const displayStageNumber = isBossDefeatFlash ? defeatedStageNumber : state.stageNumber;
   const regularEnemyKind: EnemyKind = getEnemyKind(displayStageNumber);
   // Derived live from stageNumber rather than the saved `state.currentStage` string, so a
   // save written before a stage-label wording change can't show a stale label.
   const stageLabel = getStageLabel(displayStageNumber);
-  // The 25th regular-mob kill flips `boss` true immediately (so the next spawn is the
-  // boss), but that mob's own ~650ms death clip is still playing — keep rendering it as
-  // the mob until the clip (and `phase`) actually moves past "defeated", or the die
-  // animation flashes the boss for a frame.
-  const isMobToBossTransition = battle.phase === "defeated" && !defeatedBoss && boss;
-  const displayBoss = (boss && !isMobToBossTransition) || isDefeatFlash;
   // Which empty buff slot the dish picker is filling, if it's open.
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
   const [adModalOpen, setAdModalOpen] = useState(false);
 
   // Fires once right as the boss sprite actually appears (displayBoss flips false→true),
-  // not at the 25th-kill moment — that's still mid mob-death-clip, see isMobToBossTransition.
+  // not at the 25th-kill moment — that's still mid mob-death-clip, see displayBoss.
   const [bossEntranceKey, setBossEntranceKey] = useState<string | null>(null);
   const wasDisplayBoss = useRef(displayBoss);
   useEffect(() => {
@@ -72,6 +65,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
         onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
+        kitchenReady={game.readyPotCount > 0}
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
         bagFull={slotsUsed(state.inventory) >= getBagCapacity(state.bagExpansions)}
         skillBar={
@@ -101,6 +95,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
           inventory={state.inventory}
           slots={game.buffSlots}
           now={game.now}
+          outfit={state.equippedOutfit}
           onEat={(recipeId) => {
             game.eatDish(pickingSlot, recipeId);
             setPickingSlot(null);
@@ -129,7 +124,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         speedBoostActive={game.speedMultiplier > 1}
         speedBoostRemainingMs={game.speedBoostRemainingMs}
         onWatchAd={() => setAdModalOpen(true)}
-        left={<BuffSlots slots={game.buffSlots} now={game.now} onPressSlot={setPickingSlot} />}
+        left={<BuffSlots slots={game.buffSlots} now={game.now} outfit={state.equippedOutfit} onPressSlot={setPickingSlot} />}
       />
       <StatUpgradePanel
         state={state}

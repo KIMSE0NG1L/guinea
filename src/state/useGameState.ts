@@ -3,7 +3,7 @@ import { AppState } from "react-native";
 import type { GameState, SkillId, StatKey, UpgradeMode } from "../types";
 import { GLUTTON_FOOD_MULTIPLIER, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
-import { applyUpgradeLevels, getExpReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
+import { applyUpgradeLevels, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { advanceQuest, migrateQuests } from "./quests";
@@ -11,8 +11,10 @@ import { getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag";
 import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFFS, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFFS, INSTANT_DISHES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { GROCERY } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
+import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
@@ -20,6 +22,9 @@ export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
 const SPEED_BOOST_DURATION_MS = 60 * 60_000; // 1 hour
+
+// Grocery category of each ingredient, for the category drop buffs (vegetableDrop, seafoodDrop).
+const ITEM_CATEGORY = new Map(GROCERY.map((item) => [item.name, item.category]));
 
 // Ingredient names ever obtained, for the ingredient codex — kept even after they're used up.
 function discover(known: string[] | undefined, names: string[]) {
@@ -63,7 +68,7 @@ export function useGameState() {
     return () => clearInterval(timer);
   }, []);
   const buffSlots = state.buffSlots ?? emptyBuffSlots();
-  const foodBuffs = getBuffTotals(buffSlots, now);
+  const foodBuffs = getBuffTotals(buffSlots, now, state.equippedOutfit);
   const outfitBuff = OUTFIT_BUFFS[state.equippedOutfit];
   const buffs = {
     attack: foodBuffs.attack + (outfitBuff?.attack ?? 0),
@@ -79,6 +84,8 @@ export function useGameState() {
   // wall-clock time like the food buffs, so it keeps counting down while the app is closed.
   const speedBoostRemainingMs = state.speedBoostUntil ? Math.max(0, state.speedBoostUntil - now) : 0;
   const speedMultiplier = speedBoostRemainingMs > 0 ? 2 : 1;
+  // The ad boost and attack-speed food stack.
+  const battleSpeed = speedMultiplier * (1 + foodBuffs.attackSpeed / 100);
   const watchAdForSpeedBoost = () => {
     if (speedBoostRemainingMs > 0) return;
     const startedAt = Date.now();
@@ -212,6 +219,7 @@ export function useGameState() {
     previousLevelRef.current = state.level;
   }, [state.level, loaded]);
 
+  const { dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, exp: expBonus } = foodBuffs;
   const handleEnemyDefeat = useCallback((goldReward: number) => {
     setDefeatedBoss(boss);
     if (boss) setBoss(false);
@@ -222,7 +230,14 @@ export function useGameState() {
     // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
     // A full bag turns away whatever has no room left (no free slot, no space in its
     // last stack of 64) — those just don't drop.
-    let rolled = rollDrops(getEnemyKind(state.stageNumber), boss);
+    let rolled = rollDrops(getEnemyKind(state.stageNumber), boss, {
+      chanceBonus: (name) =>
+        dropRate +
+        (ITEM_CATEGORY.get(name) === "vegetable" ? vegetableDrop : 0) +
+        (ITEM_CATEGORY.get(name) === "seafood" ? seafoodDrop : 0),
+      doubleChance: dropDouble,
+      bossSure: bossDropSure > 0,
+    });
     // The first slime after the intro always leaves a 초록 젤리 ×3 — exactly one 말랑 초록
     // 젤리's worth, which kicks off the recipe tutorial.
     const tutorialJelly = state.tutorialDone && !state.recipeTutorialDone && !boss
@@ -244,7 +259,8 @@ export function useGameState() {
 
       const kills = previous.kills + 1;
       let level = previous.level;
-      let experience = previous.experience + getExpReward(previous.stageNumber, boss);
+      const expReward = Math.round(getExpReward(previous.stageNumber, boss) * (1 + expBonus / 100));
+      let experience = previous.experience + expReward;
       while (experience >= getExpToLevel(level)) {
         experience -= getExpToLevel(level);
         level += 1;
@@ -279,7 +295,7 @@ export function useGameState() {
         }),
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -300,16 +316,27 @@ export function useGameState() {
     criticalDamage: state.criticalDamage + buffs.criticalDamage,
     criticalChance: (state.criticalChance ?? 5) + buffs.criticalChance,
     goldBonus: state.goldBonus + buffs.gold,
-    missChance: OUTFIT_MISS_CHANCE[state.equippedOutfit] ?? 0,
+    missChance: Math.max(0, (OUTFIT_MISS_CHANCE[state.equippedOutfit] ?? 0) - foodBuffs.missReduction),
     hitCount: OUTFIT_HIT_COUNT[state.equippedOutfit] ?? 1,
-    cooldownReductionMs: (OUTFIT_COOLDOWN_REDUCTION_SEC[state.equippedOutfit] ?? 0) * 1000,
+    cooldownReductionMs: ((OUTFIT_COOLDOWN_REDUCTION_SEC[state.equippedOutfit] ?? 0) + foodBuffs.skillCooldown) * 1000,
+    bossDamage: foodBuffs.bossDamage,
+    extraHitChance: foodBuffs.extraHit,
+    executeBonus: foodBuffs.execute,
     enemyMaxHp,
     boss,
-    speedMultiplier,
+    speedMultiplier: battleSpeed,
     onDefeat: handleEnemyDefeat,
     onBonusGold: addBonusGold,
     equippedSkill: state.equippedSkill ?? null,
   });
+
+  // Whether the boss sprite is actually on screen — lags `boss` by the death clip on both
+  // ends. The 25th regular-mob kill flips `boss` true immediately (so the next spawn is
+  // the boss), but that mob's own ~650ms death clip is still playing; likewise a dying
+  // boss flips `boss` false while its die animation is still running.
+  const isMobToBossTransition = battle.phase === "defeated" && !defeatedBoss && boss;
+  const isBossDefeatFlash = battle.phase === "defeated" && defeatedBoss;
+  const displayBoss = (boss && !isMobToBossTransition) || isBossDefeatFlash;
 
   // Only one skill fits the battle slot — equipping one replaces whatever was there.
   // A new skill can only go in once SKILL_SWAP_LOCK_MS has passed since the last cast.
@@ -418,31 +445,93 @@ export function useGameState() {
   };
 
   // Spends the recipe's ingredients from the bag and adds one of the dish.
+  // Puts a dish on to simmer in the first free pot — the ingredients go in now, the dish
+  // comes out once its tier's cook time has passed (see collectDish).
   const cook = (recipeId: string) => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     if (!recipe) return;
     setState((previous) => {
       if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return previous;
-      const inventory = consumeIngredients(previous.inventory, recipe);
-      const dish = inventory.find((item) => item.name === recipe.name);
-      // The finished dish needs room — a free slot, or space left in its last stack.
-      if (fitItems(inventory, [{ name: recipe.name, quantity: 1 }], getBagCapacity(previous.bagExpansions)).overflow.length > 0) return previous;
-      const dishesCooked = (previous.dishesCooked ?? 0) + 1;
+      const pots = getCookingPots(previous.cookingPots);
+      const potIndex = pots.findIndex((pot, index) => index < getPotsUnlocked(previous.potsUnlocked) && !pot);
+      if (potIndex < 0) return previous;
+      const inTutorial = previous.tutorialDone && !previous.recipeTutorialDone && recipe.id === "green-jelly";
+      const startedAt = Date.now();
+      // cookSpeed shortens it (never below a quarter); ingredientSave may spare one of each.
+      const cookTime = COOK_TIME_MS[recipe.tier] * Math.max(0.25, 1 - foodBuffs.cookSpeed / 100);
+      const readyAt = startedAt + (inTutorial ? TUTORIAL_COOK_MS : cookTime);
+      const used = {
+        ...recipe,
+        ingredients: recipe.ingredients.map((ingredient) => ({
+          ...ingredient,
+          quantity: ingredient.quantity - (Math.random() * 100 < foodBuffs.ingredientSave ? 1 : 0),
+        })),
+      };
       return {
         ...previous,
+        inventory: consumeIngredients(previous.inventory, used),
+        cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt } : pot)),
+      };
+    });
+  };
+
+  // Takes a finished dish out of its pot and into the bag. Reports why it couldn't (or
+  // "ok"), so the kitchen can play the completion burst or explain.
+  // With `rush`, a dish still simmering is finished on the spot for gems (getRushCost) —
+  // checked against the bag first, so gems are never spent on a dish that can't come out.
+  const collectDish = (potIndex: number, rush = false): "ok" | "great" | "full" | "notReady" | "gems" => {
+    const pot = getCookingPots(state.cookingPots)[potIndex];
+    const recipe = pot && RECIPES.find((item) => item.id === pot.recipeId);
+    if (!pot || !recipe) return "notReady";
+    const rushCost = rush ? applyDiscount(getRushCost(pot.readyAt - Date.now()), foodBuffs.rushDiscount) : 0;
+    if (!rush && pot.readyAt > Date.now()) return "notReady";
+    // The finished dish needs room — a free slot, or space left in its last stack.
+    if (fitItems(state.inventory, [{ name: recipe.name, quantity: 1 }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
+    if (state.gems < rushCost) return "gems";
+    // Great success: the pot gives two — if the bag has room for the second.
+    const great =
+      Math.random() * 100 < foodBuffs.greatSuccess &&
+      fitItems(state.inventory, [{ name: recipe.name, quantity: 2 }], getBagCapacity(state.bagExpansions)).overflow.length === 0;
+    const count = great ? 2 : 1;
+    setState((previous) => {
+      const pots = getCookingPots(previous.cookingPots);
+      if (pots[potIndex]?.recipeId !== recipe.id || previous.gems < rushCost) return previous;
+      const dish = previous.inventory.find((item) => item.name === recipe.name);
+      const dishesCooked = (previous.dishesCooked ?? 0) + count;
+      return {
+        ...previous,
+        gems: previous.gems - rushCost,
         inventory: dish
-          ? inventory.map((item) => (item === dish ? { ...item, quantity: item.quantity + 1 } : item))
-          : [...inventory, { name: recipe.name, quantity: 1, type: "dish" }],
+          ? previous.inventory.map((item) => (item === dish ? { ...item, quantity: item.quantity + count } : item))
+          : [...previous.inventory, { name: recipe.name, quantity: count, type: "dish" }],
+        cookingPots: pots.map((item, index) => (index === potIndex ? null : item)),
         dishesCooked,
         quests: previous.quests.map((quest) =>
           quest.id === "cook" ? { ...quest, current: dishesCooked } : quest
         ),
       };
     });
+    return great ? "great" : "ok";
   };
 
+  // Spends gems to open another pot; returns whether it went through.
+  const unlockPot = () => {
+    const unlocked = getPotsUnlocked(state.potsUnlocked);
+    if (unlocked >= MAX_POTS || state.gems < getPotUnlockCost(unlocked)) return false;
+    setState((previous) => {
+      const current = getPotsUnlocked(previous.potsUnlocked);
+      const price = getPotUnlockCost(current);
+      if (current >= MAX_POTS || previous.gems < price) return previous;
+      return { ...previous, gems: previous.gems - price, potsUnlocked: current + 1 };
+    });
+    return true;
+  };
+
+  const readyPotCount = getCookingPots(state.cookingPots).filter((pot) => pot && pot.readyAt <= now).length;
+
   // Reports why a purchase failed (or "ok"), so the shop can react either way.
-  const buyIngredient = (name: string, price: number): "ok" | "gold" | "full" => {
+  const buyIngredient = (name: string, listPrice: number): "ok" | "gold" | "full" => {
+    const price = applyDiscount(listPrice, foodBuffs.groceryDiscount);
     if (state.gold < price) return "gold";
     if (fitItems(state.inventory, [{ name, quantity: 1 }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
     setState((previous) => {
@@ -495,10 +584,48 @@ export function useGameState() {
   };
 
   // Eats one of a cooked dish from the bag into an empty buff slot.
+  // A snack is eaten on the spot: no slot, just this many regular kills' gold right now.
+  const eatSnack = (name: string, goldKills: number) => {
+    const killGold = getGoldReward(
+      getTotalAttack(state),
+      state.goldBonus + buffs.gold,
+      getEnemyMaxHp(state.stageNumber, false),
+      false,
+    );
+    const amount = killGold * goldKills;
+    setState((previous) => {
+      const dish = previous.inventory.find((item) => item.name === name);
+      if (!dish) return previous;
+      const dishesEaten = (previous.dishesEaten ?? 0) + 1;
+      const totalGoldEarned = previous.totalGoldEarned + amount;
+      return {
+        ...previous,
+        gold: previous.gold + amount,
+        totalGoldEarned,
+        inventory: previous.inventory
+          .map((item) => (item === dish ? { ...item, quantity: item.quantity - 1 } : item))
+          .filter((item) => item.quantity > 0),
+        dishesEaten,
+        quests: previous.quests.map((quest) => {
+          if (quest.id === "buff") return { ...quest, current: dishesEaten };
+          if (quest.id === "gold") return { ...quest, current: totalGoldEarned };
+          return quest;
+        }),
+      };
+    });
+    playSfx("levelup");
+  };
+
   const eatDish = (slotIndex: number, recipeId: string) => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     const buff = BUFFS[recipeId];
     if (!recipe || !buff) return;
+    const instant = INSTANT_DISHES[recipeId];
+    if (instant) {
+      eatSnack(recipe.name, instant.goldKills);
+      return;
+    }
+    if (buff.effect.skillReset) battle.resetSkillCooldown();
     const startedAt = Date.now();
     setState((previous) => {
       // Glutton stretches dishes eaten while it's equipped; 모험기니 tacks on a flat bonus.
@@ -550,6 +677,8 @@ export function useGameState() {
     boss,
     defeatedBoss,
     defeatedStageNumber,
+    displayBoss,
+    isBossDefeatFlash,
     stageAnnouncement,
     levelUpAnnouncement,
     levelUpAttackGain,
@@ -586,6 +715,10 @@ export function useGameState() {
       setOfflineSummary(null);
     },
     cook,
+    foodBuffs,
+    collectDish,
+    unlockPot,
+    readyPotCount,
     buyIngredient,
     learnRecipe,
     dropEvents,

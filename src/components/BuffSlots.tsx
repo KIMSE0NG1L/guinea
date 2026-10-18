@@ -4,10 +4,11 @@ import Svg, { Path, Rect } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { frameImages } from "../assets";
 import { StrokedText } from "./StrokedText";
-import { BUFFS, describeEffect, formatDuration, type BuffSlot } from "../state/buffs";
+import { BUFFS, DISH_PARTNERS, describeEffect, formatDuration, getActiveSet, PARTNER_MULTIPLIER, type BuffSlot } from "../state/buffs";
 import { InfoBubble } from "./InfoBubble";
 import { tutorialRef } from "./tutorialTargets";
 import { RECIPES } from "../state/recipes";
+import type { Outfit } from "../types";
 
 export const BUFF_SLOT_SIZE = 44;
 
@@ -42,16 +43,19 @@ const SLOT_BORDER = 2;
 export function BuffSlots({
   slots,
   now,
+  outfit,
   onPressSlot,
   style,
 }: {
   slots: BuffSlot[];
   now: number;
+  outfit: Outfit;
   onPressSlot: (index: number) => void;
   style?: object;
 }) {
   const [infoIndex, setInfoIndex] = useState<number | null>(null);
   const closeInfo = useCallback(() => setInfoIndex(null), []);
+  const activeSet = getActiveSet(slots, now);
   return (
     <View style={[styles.row, style]}>
       {slots.map((slot, index) => {
@@ -71,7 +75,7 @@ export function BuffSlots({
             style={({ pressed }) => [styles.slot, pressed && styles.pressed]}
           >
             {running && recipe && buff ? (
-              <View style={[styles.active, { backgroundColor: buff.tint }]}>
+              <View style={[styles.active, { backgroundColor: buff.tint }, activeSet && styles.activeSet]}>
                 <Image source={recipe.image} style={styles.dish} />
                 <ElapsedWedge fraction={elapsed} />
                 <View style={styles.timer}>
@@ -86,7 +90,12 @@ export function BuffSlots({
             {running && recipe && buff && infoIndex === index && (
               <InfoBubble
                 title={recipe.name}
-                lines={[...describeEffect(buff.effect).split(" · "), `${formatDuration(remaining)} 남음`]}
+                lines={[
+                  ...describeEffect(buff.effect).split(" · "),
+                  ...(DISH_PARTNERS[running.recipeId] === outfit ? [`동료 궁합 ×${PARTNER_MULTIPLIER}`] : []),
+                  ...(activeSet ? [`${activeSet.name} 세트: ${describeEffect(activeSet.bonus)}`] : []),
+                  `${formatDuration(remaining)} 남음`,
+                ]}
                 anchorWidth={BUFF_SLOT_SIZE}
                 onClose={closeInfo}
               />
@@ -113,6 +122,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 9,
   },
+  activeSet: { borderColor: colors.gold },
   dish: { width: BUFF_SLOT_SIZE - 6, height: BUFF_SLOT_SIZE - 6 },
   timer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
   timerText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },

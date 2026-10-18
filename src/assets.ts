@@ -563,5 +563,11 @@ export const sfx = {
   uiToggle: require("../assets/sfx/ui_toggle.wav"),
 };
 
+// Looping background tracks — "Counter-Rhythms" by Buant for the field, "8-bit 보스전" while a boss is up.
+export const bgm = {
+  field: require("../assets/bgm/main_theme.mp3"),
+  boss: require("../assets/bgm/boss_theme.mp3"),
+};
+
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
 export const FRAME_SIZE = 160;

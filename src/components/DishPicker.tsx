@@ -4,15 +4,16 @@ import { kit } from "../assets";
 import { GameButton } from "./GameButton";
 import { ARROW_H, ARROW_W, GuideArrow } from "./GuideArrow";
 import { NineSlice, Panel } from "./NineSlice";
-import { BUFFS, describeEffect, formatDuration, type BuffSlot } from "../state/buffs";
+import { BUFFS, DISH_PARTNERS, describeDish, describeDishLinks, formatDuration, INSTANT_DISHES, PARTNER_MULTIPLIER, type BuffSlot } from "../state/buffs";
 import { getItemQuantity, RECIPES } from "../state/recipes";
-import type { GameState } from "../types";
+import type { GameState, Outfit } from "../types";
 
 // Choose a cooked dish from the bag to eat into a buff slot.
 export function DishPicker({
   inventory,
   slots,
   now,
+  outfit,
   onEat,
   onClose,
   onGoCook,
@@ -21,6 +22,8 @@ export function DishPicker({
   inventory: GameState["inventory"];
   slots: BuffSlot[];
   now: number;
+  // Equipped companion — a dish partnered with it shows its boosted strength.
+  outfit: Outfit;
   onEat: (recipeId: string) => void;
   onClose: () => void;
   onGoCook: () => void;
@@ -65,8 +68,14 @@ export function DishPicker({
                       <Text style={styles.name}>
                         {recipe.name} <Text style={styles.count}>x{getItemQuantity(inventory, recipe.name)}</Text>
                       </Text>
-                      <Text style={styles.effect}>{describeEffect(buff.effect)}</Text>
-                      <Text style={styles.duration}>{formatDuration(buff.durationMs)} 지속</Text>
+                      <Text style={styles.effect}>{describeDish(recipe.id)}</Text>
+                      <Text style={styles.duration}>
+                        {[
+                          INSTANT_DISHES[recipe.id] ? "즉시 효과" : `${formatDuration(buff.durationMs)} 지속`,
+                          ...describeDishLinks(recipe.id),
+                          ...(DISH_PARTNERS[recipe.id] === outfit ? [`효과 ×${PARTNER_MULTIPLIER}`] : []),
+                        ].join(" · ")}
+                      </Text>
                     </View>
                     <View>
                       <GameButton

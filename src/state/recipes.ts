@@ -1,5 +1,8 @@
 import { food, uiImages } from "../assets";
 import type { RecipeTier } from "./recipeTiers";
+import { getDropSources } from "./drops";
+import { STAGES } from "./stages";
+import { getReferenceMobGold, roundPrice } from "./gameMath";
 
 export type Recipe = {
   id: string;
@@ -11,18 +14,18 @@ export type Recipe = {
   ingredients: { name: string; quantity: number }[];
 };
 
-export const RECIPES: Recipe[] = [
+type RecipeDef = Omit<Recipe, "price">;
+
+const RECIPE_DEFS: RecipeDef[] = [
   // Ordered by how easy the ingredients are to get: tier follows the stage where they
   // first drop (slime dishes come first — slimes are the very first monster) (common = first few stages … epic = late stages), and legendary/hidden
-  // need many different rare or boss-only ingredients. Price rises with the tier.
+  // need many different rare or boss-only ingredients. Prices are worked out below.
   {
     id: "green-jelly",
     name: "말랑 초록 젤리",
     description: "기니의 첫 요리. 탱글탱글 흔들리는 디저트.",
     image: food.dishGreenJelly,
     tier: "common",
-    // Bought for real during the recipe tutorial, so nothing is known from the start.
-    price: 50,
     ingredients: [
       { name: "초록 젤리", quantity: 3 },
     ],
@@ -33,7 +36,6 @@ export const RECIPES: Recipe[] = [
     description: "흔들면 찰랑, 마시면 기운이 번쩍.",
     image: food.dishSlimePotion,
     tier: "common",
-    price: 100,
     ingredients: [
       { name: "초록 젤리", quantity: 2 },
       { name: "이슬", quantity: 1 },
@@ -45,7 +47,6 @@ export const RECIPES: Recipe[] = [
     description: "왕 슬라임의 왕관에서 흘러내린 황금빛 한 그릇.",
     image: food.dishRoyalJelly,
     tier: "common",
-    price: 150,
     ingredients: [
       { name: "로열 젤리", quantity: 1 },
       { name: "초록 젤리", quantity: 2 },
@@ -57,7 +58,6 @@ export const RECIPES: Recipe[] = [
     description: "뭉근히 끓여 속까지 따뜻해지는 맛.",
     image: food.cookPot,
     tier: "common",
-    price: 180,
     ingredients: [{ name: "당근", quantity: 3 }],
   },
   {
@@ -66,7 +66,6 @@ export const RECIPES: Recipe[] = [
     description: "노른자는 무조건 반숙.",
     image: food.fryingPan,
     tier: "common",
-    price: 200,
     ingredients: [{ name: "계란", quantity: 2 }],
   },
   {
@@ -75,7 +74,6 @@ export const RECIPES: Recipe[] = [
     description: "칼질은 서툴러도 신선함은 만점.",
     image: food.dishSalad,
     tier: "common",
-    price: 250,
     ingredients: [
       { name: "토마토", quantity: 1 },
       { name: "양배추", quantity: 1 },
@@ -88,7 +86,6 @@ export const RECIPES: Recipe[] = [
     description: "냄비째 들고 먹고 싶은 맛.",
     image: food.dishVeggieStew,
     tier: "rare",
-    price: 350,
     ingredients: [
       { name: "당근", quantity: 2 },
       { name: "감자", quantity: 1 },
@@ -101,7 +98,6 @@ export const RECIPES: Recipe[] = [
     description: "숟가락이 멈추지 않는 디저트.",
     image: food.pudding,
     tier: "rare",
-    price: 400,
     ingredients: [
       { name: "계란", quantity: 1 },
       { name: "우유", quantity: 1 },
@@ -113,7 +109,6 @@ export const RECIPES: Recipe[] = [
     description: "숲 향이 가득한 고소한 한 그릇.",
     image: food.mushroomSoup,
     tier: "rare",
-    price: 450,
     ingredients: [
       { name: "버섯", quantity: 2 },
       { name: "우유", quantity: 1 },
@@ -125,10 +120,32 @@ export const RECIPES: Recipe[] = [
     description: "달큰한 호박 위에 치즈가 사르르.",
     image: food.pumpkinRoast,
     tier: "rare",
-    price: 500,
     ingredients: [
       { name: "호박", quantity: 1 },
       { name: "치즈", quantity: 1 },
+    ],
+  },
+  {
+    id: "chicken-grill",
+    name: "바삭 통다리 구이",
+    description: "껍질은 바삭, 속은 촉촉. 큰 놈 잡기 전엔 이거지.",
+    image: food.chickenGrilled,
+    tier: "rare",
+    ingredients: [
+      { name: "통다리살", quantity: 2 },
+      { name: "고수", quantity: 1 },
+    ],
+  },
+  {
+    // A snack: eaten on the spot for gold instead of filling a buff slot (INSTANT_DISHES).
+    id: "pork-belly",
+    name: "지글지글 삼겹살",
+    description: "한 점 먹자마자 힘이 불끈, 지갑도 두둑.",
+    image: food.porkBellyGrilled,
+    tier: "rare",
+    ingredients: [
+      { name: "겹겹 뱃살", quantity: 2 },
+      { name: "양파", quantity: 1 },
     ],
   },
   {
@@ -137,7 +154,6 @@ export const RECIPES: Recipe[] = [
     description: "갈아서 부치면 겉바속촉.",
     image: food.dishPotatoPancake,
     tier: "epic",
-    price: 550,
     ingredients: [
       { name: "감자", quantity: 3 },
       { name: "양파", quantity: 1 },
@@ -150,7 +166,6 @@ export const RECIPES: Recipe[] = [
     description: "두툼한 생선살을 겉만 바삭하게.",
     image: food.dishSalmonSteak,
     tier: "epic",
-    price: 600,
     ingredients: [
       { name: "두툼 생선 토막", quantity: 1 },
       { name: "레몬", quantity: 1 },
@@ -164,7 +179,6 @@ export const RECIPES: Recipe[] = [
     description: "칼집 사이로 육즙이 주르륵.",
     image: food.dishSteak,
     tier: "epic",
-    price: 650,
     ingredients: [
       { name: "두툼 살코기", quantity: 2 },
       { name: "토마토", quantity: 1 },
@@ -177,7 +191,6 @@ export const RECIPES: Recipe[] = [
     description: "정글에서 따 온 바나나로 흔들흔들.",
     image: food.dishBananaMilk,
     tier: "epic",
-    price: 700,
     ingredients: [
       { name: "바나나", quantity: 2 },
       { name: "우유", quantity: 1 },
@@ -189,7 +202,6 @@ export const RECIPES: Recipe[] = [
     description: "바다 냄새 가득, 속이 확 풀리는 국.",
     image: food.dishMusselSeaweedSoup,
     tier: "epic",
-    price: 720,
     ingredients: [
       { name: "미역", quantity: 1 },
       { name: "홍합", quantity: 2 },
@@ -201,7 +213,6 @@ export const RECIPES: Recipe[] = [
     description: "입에서 사르르 녹는 달큰한 맛.",
     image: food.dishShrimpSashimi,
     tier: "epic",
-    price: 740,
     ingredients: [
       { name: "새우", quantity: 3 },
     ],
@@ -212,7 +223,6 @@ export const RECIPES: Recipe[] = [
     description: "결대로 썰어 부드럽게 녹는 회.",
     image: food.dishSalmonSashimi,
     tier: "epic",
-    price: 750,
     ingredients: [
       { name: "결 고운 생선살", quantity: 2 },
     ],
@@ -223,7 +233,6 @@ export const RECIPES: Recipe[] = [
     description: "노른자를 톡 터뜨려 비벼 먹는 별미.",
     image: food.dishYukhoe,
     tier: "epic",
-    price: 760,
     ingredients: [
       { name: "두툼 살코기", quantity: 1 },
       { name: "계란", quantity: 1 },
@@ -236,7 +245,6 @@ export const RECIPES: Recipe[] = [
     description: "살짝 데쳐 쫄깃함이 살아 있어요.",
     image: food.dishOctopus,
     tier: "epic",
-    price: 780,
     ingredients: [
       { name: "문어", quantity: 1 },
       { name: "소금 결정", quantity: 1 },
@@ -248,9 +256,31 @@ export const RECIPES: Recipe[] = [
     description: "붉은 살을 도톰하게 썰어 낸 회.",
     image: food.dishTunaSashimi,
     tier: "epic",
-    price: 800,
     ingredients: [
       { name: "두툼 생선 토막", quantity: 2 },
+    ],
+  },
+  {
+    id: "lamb-rib",
+    name: "매콤 갈비 구이",
+    description: "뼈째 뜯는 순간 기운이 확 돌아와요.",
+    image: food.lambGrilled,
+    tier: "epic",
+    ingredients: [
+      { name: "뼈 갈빗살", quantity: 2 },
+      { name: "불꽃 고추", quantity: 1 },
+    ],
+  },
+  {
+    id: "fire-skewer",
+    name: "불꽃 꼬치",
+    description: "입안이 불타서 정신이 하나도 없어요. 대신 힘은 최고!",
+    image: food.beefGrilled,
+    tier: "epic",
+    ingredients: [
+      { name: "두툼 살코기", quantity: 1 },
+      { name: "불꽃 고추", quantity: 2 },
+      { name: "화염 열매", quantity: 1 },
     ],
   },
   {
@@ -259,7 +289,6 @@ export const RECIPES: Recipe[] = [
     description: "냄비째 쏟아붓는 바다 한 상.",
     image: food.dishSeafoodBoil,
     tier: "legendary",
-    price: 1200,
     ingredients: [
       { name: "꽃게", quantity: 1 },
       { name: "바닷가재", quantity: 1 },
@@ -276,7 +305,6 @@ export const RECIPES: Recipe[] = [
     description: "오늘만큼은 배고프지 않다.",
     image: food.kitchen,
     tier: "hidden",
-    price: 1500,
     ingredients: [
       { name: "당근 수프", quantity: 1 },
       { name: "계란 프라이", quantity: 1 },
@@ -284,6 +312,35 @@ export const RECIPES: Recipe[] = [
     ],
   },
 ];
+
+// Earliest stage an ingredient drops at; a dish used as an ingredient counts from when its
+// own recipe can be cooked, and shop-only items (양배추) are available from the start.
+function firstStage(name: string): number {
+  const dish = RECIPE_DEFS.find((recipe) => recipe.name === name);
+  if (dish) return getRecipeStage(dish);
+  const stages = getDropSources(name).map(({ kind }) => STAGES.findIndex((stage) => stage.enemyKind === kind));
+  return stages.length > 0 ? Math.min(...stages) : 0;
+}
+
+// The stage a recipe first becomes cookable at — when its last ingredient starts dropping.
+export function getRecipeStage(recipe: RecipeDef) {
+  return Math.max(0, ...recipe.ingredients.map((ingredient) => firstStage(ingredient.name)));
+}
+
+// A recipe costs this many regular kills' gold at the stage it unlocks (getReferenceMobGold)
+// — a fraction of a stage (25 kills) for everyday dishes, about a stage for an epic one.
+const PRICE_IN_KILLS: Record<RecipeTier, number> = { common: 10, rare: 15, epic: 25, legendary: 40, hidden: 60 };
+
+// Bought for real during the recipe tutorial on the starting gold, so it stays a token price.
+const TUTORIAL_RECIPE_PRICE = 50;
+
+export const RECIPES: Recipe[] = RECIPE_DEFS.map((recipe) => ({
+  ...recipe,
+  price:
+    recipe.id === "green-jelly"
+      ? TUTORIAL_RECIPE_PRICE
+      : roundPrice(getReferenceMobGold(getRecipeStage(recipe)) * PRICE_IN_KILLS[recipe.tier]),
+}));
 
 export const STARTER_RECIPES = RECIPES.filter((recipe) => recipe.price === 0).map((recipe) => recipe.id);
 

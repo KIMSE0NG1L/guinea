@@ -21,14 +21,22 @@ import { GroceryScreen } from "./screens/GroceryScreen";
 import { RecipeShopScreen } from "./screens/RecipeShopScreen";
 import { TutorialOverlay } from "./components/TutorialOverlay";
 import { RecipeTutorial } from "./components/RecipeTutorial";
+import { CookCompleteBurst } from "./components/CookCompleteBurst";
+import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
-import { getBagCapacity } from "./state/bag";
 import { isOutfitUnlocked } from "./state/unlocks";
+import { setBgmTrack } from "./sound";
 import type { Tab } from "./types";
 
 export function GameScreen() {
   const game = useGameState();
   const { state, setState, questOpen, setQuestOpen, claimQuest } = game;
+
+  // Lives here rather than in BattleScreen so the boss theme keeps playing on other tabs.
+  // Keyed off displayBoss so the switch lands with the boss-entrance sfx, not the 25th kill.
+  useEffect(() => {
+    setBgmTrack(game.displayBoss ? "boss" : "field");
+  }, [game.displayBoss]);
 
   const onSelectTab = (selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab }));
 
@@ -41,6 +49,24 @@ export function GameScreen() {
     const timer = setTimeout(() => setRecipeTutorialArmed(true), 1600);
     return () => clearTimeout(timer);
   }, [hasJelly, recipeTutorialArmed]);
+
+  // The dish whose "완성!" burst is playing (keyed so each collect replays it), and whether
+  // the last collect bounced off a full bag.
+  const [collected, setCollected] = useState<{ key: number; recipeId: string; great: boolean } | null>(null);
+  const [bagFullNotice, setBagFullNotice] = useState(false);
+  useEffect(() => {
+    if (!bagFullNotice) return;
+    const timer = setTimeout(() => setBagFullNotice(false), 2500);
+    return () => clearTimeout(timer);
+  }, [bagFullNotice]);
+  const cookingPots = getCookingPots(state.cookingPots);
+  const onCollect = (potIndex: number, rush = false) => {
+    const recipeId = cookingPots[potIndex]?.recipeId;
+    const result = game.collectDish(potIndex, rush);
+    if ((result === "ok" || result === "great") && recipeId) setCollected({ key: Date.now(), recipeId, great: result === "great" });
+    setBagFullNotice(result === "full");
+  };
+  const collectedRecipe = collected && RECIPES.find((recipe) => recipe.id === collected.recipeId);
 
   const renderContent = () => {
     switch (state.selectedTab) {
@@ -92,9 +118,17 @@ export function GameScreen() {
         return (
           <KitchenScreen
             inventory={state.inventory}
-            bagCapacity={getBagCapacity(state.bagExpansions)}
             knownRecipes={state.knownRecipes}
+            pots={cookingPots}
+            potsUnlocked={getPotsUnlocked(state.potsUnlocked)}
+            now={game.now}
+            gems={state.gems}
+            rushDiscount={game.foodBuffs.rushDiscount}
+            bagFullNotice={bagFullNotice}
             onCook={game.cook}
+            onCollect={onCollect}
+            onRush={(potIndex) => onCollect(potIndex, true)}
+            onUnlockPot={game.unlockPot}
             onOpenGrocery={() => onSelectTab("grocery")}
             onOpenRecipes={() => onSelectTab("recipes")}
             layout={state.kitchenLayout ?? "list"}
@@ -117,6 +151,7 @@ export function GameScreen() {
             inventory={state.inventory}
             gold={state.gold}
             onBuy={game.buyIngredient}
+            discount={game.foodBuffs.groceryDiscount}
             onBack={() => onSelectTab("kitchen")}
             onOpenRecipes={() => onSelectTab("recipes")}
           />
@@ -173,10 +208,20 @@ export function GameScreen() {
             knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
             canCookFirst={canCook(state.inventory, RECIPES.find((recipe) => recipe.id === "green-jelly")!)}
             dishesCooked={state.dishesCooked ?? 0}
+            firstDishPot={cookingPots.findIndex((pot) => pot?.recipeId === "green-jelly")}
             dishesEaten={state.dishesEaten ?? 0}
             freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot) => !slot || slot.expiresAt <= game.now))}
             onGoTo={onSelectTab}
             onFinish={() => setState((previous) => ({ ...previous, recipeTutorialDone: true }))}
+          />
+        )}
+        {collected && collectedRecipe && (
+          <CookCompleteBurst
+            key={collected.key}
+            dishName={collectedRecipe.name}
+            dishImage={collectedRecipe.image}
+            great={collected.great}
+            onDone={() => setCollected(null)}
           />
         )}
       </SafeAreaView>
