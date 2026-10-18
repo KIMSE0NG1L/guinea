@@ -13,6 +13,7 @@ import { getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KI
 import { rollDrops } from "./drops";
 import { BUFFS, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { canCook, consumeIngredients, getKnownRecipes, RECIPES, STARTER_RECIPES } from "./recipes";
+import { playSfx } from "../sound";
 import { simulateOfflineProgress, type OfflineSummary } from "./offline";
 
 export type DropEvent = { id: number; name: string; delay: number };
@@ -196,6 +197,7 @@ export function useGameState() {
     if (state.level > previousLevelRef.current) {
       setLevelUpAnnouncement(state.level);
       setLevelUpAttackGain(state.level - previousLevelRef.current);
+      playSfx("levelup");
       // Held longer when something unlocks, so its toast can actually be read. The plain
       // case holds a bit past when LevelUpBurst's own fade-out finishes (~1.25s in, see
       // its contentOpacity timeline) so the component unmounts only once it's already

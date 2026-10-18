@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { BattlePhase } from "../types";
 import { getGoldReward } from "./gameMath";
+import { playSfx } from "../sound";
 import {
   BEAM_BOSS_HP_RATIO,
   BEAM_TIMING,
@@ -203,6 +204,7 @@ export function useAutoBattle({
   // Lands one hit on the current enemy. Returns true if it killed it.
   const dealDamage = useCallback((damage: number, critical: boolean) => {
     pushDamageEvent(damage, critical);
+    playSfx(critical ? "crit" : "hit");
     if (isSkillActive(skillTimersRef.current, "steal", Date.now())) {
       const killGold = getGoldReward(attackRef.current, goldBonusRef.current, maxHpRef.current, bossRef.current);
       const stolen = Math.round(killGold * STEAL_GOLD_RATIO);

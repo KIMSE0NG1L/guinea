@@ -9,6 +9,7 @@ import { StatUpgradePanel } from "./StatUpgradePanel";
 import type { UseGameState } from "../state/useGameState";
 import { getEnemyKind, getStageLabel } from "../state/stages";
 import { getBagCapacity, slotsUsed } from "../state/bag";
+import { playSfx } from "../sound";
 import type { EnemyKind } from "../types";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
@@ -40,6 +41,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
     if (displayBoss && !wasDisplayBoss.current) {
       const key = `${regularEnemyKind}-${battle.enemyId}`;
       setBossEntranceKey(key);
+      playSfx("bossEnter");
       const timer = setTimeout(() => setBossEntranceKey(null), 1300);
       wasDisplayBoss.current = displayBoss;
       return () => clearTimeout(timer);

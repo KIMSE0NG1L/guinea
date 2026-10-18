@@ -3,6 +3,7 @@ import { colors, fonts } from "../theme";
 import { kit, shopKit } from "../assets";
 import { tutorialRef } from "./tutorialTargets";
 import { NineSlice } from "./NineSlice";
+import { playSfx } from "../sound";
 
 export type ButtonVariant = "cream" | "green" | "beige" | "gray" | "brown" | "red" | "pillCream" | "pillGray";
 
@@ -52,7 +53,10 @@ export function GameButton({
   return (
     <Pressable
       ref={tutorialRef(tutorialId)}
-      onPress={onPress}
+      onPress={(event) => {
+        playSfx("uiClick");
+        onPress?.(event);
+      }}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}

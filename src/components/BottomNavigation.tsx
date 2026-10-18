@@ -3,6 +3,7 @@ import { colors, fonts } from "../theme";
 import { NineSlice } from "./NineSlice";
 import { kit, navIcons } from "../assets";
 import { tutorialRef } from "./tutorialTargets";
+import { playSfx } from "../sound";
 import type { Tab } from "../types";
 
 // Only these 4 tabs are reachable from the bottom bar; the rest of the screens open from
@@ -28,7 +29,10 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
           <Pressable
             key={item.id}
             ref={tutorialRef(`nav-${item.id}`)}
-            onPress={() => onSelect(item.id)}
+            onPress={() => {
+              playSfx("uiClick");
+              onSelect(item.id);
+            }}
             accessibilityRole="tab"
             accessibilityLabel={item.label}
             accessibilityState={{ selected: active }}

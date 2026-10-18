@@ -1,8 +1,9 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
+import { kit, kitImages } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
+import { playSfx, setSfxMuted, useSfxMuted } from "../sound";
 
 export function SettingsModal({
   onSkipToBoss,
@@ -21,12 +22,26 @@ export function SettingsModal({
   onResetRequest: () => void;
   onClose: () => void;
 }) {
+  const sfxMuted = useSfxMuted();
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
           <NineSlice slice={kit.panelLarge} />
           <Text style={styles.title}>설정</Text>
+          <Pressable
+            style={styles.sfxRow}
+            onPress={() => {
+              // Flip the state first, then play — so unmuting gives an audible confirm
+              // click, and muting plays nothing (silence is its own confirmation).
+              setSfxMuted(!sfxMuted);
+              playSfx("uiToggle");
+            }}
+            hitSlop={6}
+          >
+            <Text style={styles.sfxLabel}>효과음</Text>
+            <Image source={sfxMuted ? kitImages.toggleOff : kitImages.toggleOn} style={styles.sfxToggle} resizeMode="contain" />
+          </Pressable>
           <View style={styles.list}>
             <GameButton
               variant="green"
@@ -103,6 +118,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: { fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  sfxRow: {
+    marginTop: 14,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 4,
+  },
+  sfxLabel: { fontSize: 13, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
+  sfxToggle: { width: 52, height: 30 },
   list: { marginTop: 16, width: "100%", gap: 8 },
   button: { width: "100%" },
 });

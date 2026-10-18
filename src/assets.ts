@@ -552,5 +552,16 @@ export const kitImages = {
   dotRed: require("../assets/ui/kit-dot-red.png"),
 };
 
+// Kenney.nl CC0 sound effects (public domain, no attribution required) — see
+// assets/sfx/SOURCES.md for which pack and original file each one came from.
+export const sfx = {
+  hit: require("../assets/sfx/hit.wav"),
+  crit: require("../assets/sfx/crit.wav"),
+  levelup: require("../assets/sfx/levelup.wav"),
+  bossEnter: require("../assets/sfx/boss_enter.wav"),
+  uiClick: require("../assets/sfx/ui_click.wav"),
+  uiToggle: require("../assets/sfx/ui_toggle.wav"),
+};
+
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
 export const FRAME_SIZE = 160;
