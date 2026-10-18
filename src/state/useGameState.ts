@@ -11,7 +11,7 @@ import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked } from ".
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag";
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES, STARTER_RECIPES } from "./recipes";
 import { getCookbookProgress } from "./cookbook";
@@ -92,8 +92,8 @@ export function useGameState() {
   // wall-clock time like the food buffs, so it keeps counting down while the app is closed.
   const speedBoostRemainingMs = state.speedBoostUntil ? Math.max(0, state.speedBoostUntil - now) : 0;
   const speedMultiplier = speedBoostRemainingMs > 0 ? 2 : 1;
-  // The ad boost and attack-speed food stack.
-  const battleSpeed = speedMultiplier * (1 + foodBuffs.attackSpeed / 100);
+  // The ad boost, attack-speed food and a companion's own pace (사무라이기니 -25%) stack.
+  const battleSpeed = speedMultiplier * (1 + foodBuffs.attackSpeed / 100) * (1 + (OUTFIT_BUFFS[state.equippedOutfit]?.attackSpeed ?? 0) / 100);
   const watchAdForSpeedBoost = () => {
     if (speedBoostRemainingMs > 0) return;
     const startedAt = Date.now();
@@ -119,7 +119,7 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini"];
+        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
@@ -373,6 +373,7 @@ export function useGameState() {
     hitCount: OUTFIT_HIT_COUNT[state.equippedOutfit] ?? 1,
     cooldownReductionMs: ((OUTFIT_COOLDOWN_REDUCTION_SEC[state.equippedOutfit] ?? 0) + foodBuffs.skillCooldown) * 1000,
     bossDamage: foodBuffs.bossDamage,
+    firstStrikeMultiplier: OUTFIT_FIRST_STRIKE[state.equippedOutfit] ?? 0,
     extraHitChance: foodBuffs.extraHit,
     executeBonus: foodBuffs.execute,
     enemyMaxHp,

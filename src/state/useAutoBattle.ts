@@ -38,6 +38,7 @@ export function useAutoBattle({
   hitCount = 1,
   cooldownReductionMs = 0,
   bossDamage = 0,
+  firstStrikeMultiplier = 0,
   extraHitChance = 0,
   executeBonus = 0,
   enemyMaxHp,
@@ -62,6 +63,9 @@ export function useAutoBattle({
   // Food buffs: % more damage to bosses, % chance a swing lands one extra strike, and
   // points added to Execute's HP threshold.
   bossDamage?: number;
+  // 사무라이기니: the first strike on each enemy is a sure crit worth this many normal hits
+  // (0 = off). While it's on, battle is auto only — manual taps would waste the draw.
+  firstStrikeMultiplier?: number;
   extraHitChance?: number;
   executeBonus?: number;
   enemyMaxHp: number;
@@ -75,7 +79,11 @@ export function useAutoBattle({
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
   const [phase, setPhase] = useState<BattlePhase>("idle");
-  const [isAutoBattle, setIsAutoBattle] = useState(true);
+  const [autoChosen, setIsAutoBattle] = useState(true);
+  const autoLocked = firstStrikeMultiplier > 0;
+  const isAutoBattle = autoChosen || autoLocked;
+  // Bumped on each first-strike draw, so the scene can play its slash.
+  const [firstStrikeId, setFirstStrikeId] = useState(0);
   const [enemyId, setEnemyId] = useState(1);
   const [lastGoldReward, setLastGoldReward] = useState(0);
   const [lastCritical, setLastCritical] = useState(false);
@@ -107,6 +115,9 @@ export function useAutoBattle({
   const hitCountRef = useRef(hitCount);
   const cooldownReductionRef = useRef(cooldownReductionMs);
   const bossDamageRef = useRef(bossDamage);
+  const firstStrikeRef = useRef(firstStrikeMultiplier);
+  // The enemy (by epoch) that already took its first strike.
+  const firstStrikeEpochRef = useRef(-1);
   const extraHitChanceRef = useRef(extraHitChance);
   const executeBonusRef = useRef(executeBonus);
   const maxHpRef = useRef(enemyMaxHp);
@@ -171,6 +182,7 @@ export function useAutoBattle({
     hitCountRef.current = hitCount;
     cooldownReductionRef.current = cooldownReductionMs;
     bossDamageRef.current = bossDamage;
+    firstStrikeRef.current = firstStrikeMultiplier;
     extraHitChanceRef.current = extraHitChance;
     executeBonusRef.current = executeBonus;
     maxHpRef.current = enemyMaxHp;
@@ -249,14 +261,20 @@ export function useAutoBattle({
   const rollAttack = useCallback(() => {
     const now = Date.now();
     const missed = Math.random() * 100 < missChanceRef.current;
-    if (missed) return { isCritical: false, damage: 0, missed: true };
+    if (missed) return { isCritical: false, damage: 0, missed: true, firstStrike: false };
+    const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS : 1;
+    const bossBonus = bossRef.current ? 1 + bossDamageRef.current / 100 : 1;
+    // First strike on a fresh enemy: a sure crit, worth `firstStrikeMultiplier` normal hits.
+    if (firstStrikeRef.current > 0 && firstStrikeEpochRef.current !== enemyEpochRef.current) {
+      firstStrikeEpochRef.current = enemyEpochRef.current;
+      const damage = Math.round(attackRef.current * firstStrikeRef.current * (criticalDamageRef.current / 100) * shout * bossBonus);
+      return { isCritical: true, damage, missed: false, firstStrike: true };
+    }
     const isCritical =
       isSkillActive(skillTimersRef.current, "focus", now) ||
       Math.random() * 100 < Math.min(100, criticalChanceRef.current);
-    const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS : 1;
-    const bossBonus = bossRef.current ? 1 + bossDamageRef.current / 100 : 1;
     const damage = Math.round(attackRef.current * (isCritical ? criticalDamageRef.current / 100 : 1) * shout * bossBonus);
-    return { isCritical, damage, missed: false };
+    return { isCritical, damage, missed: false, firstStrike: false };
   }, []);
 
   // Strikes this swing lands: the outfit's hit count, plus one on a lucky extra-hit roll.
@@ -283,7 +301,7 @@ export function useAutoBattle({
       later(() => {
         // The enemy's mid death/respawn — enterEnemy resumes the loop once it's back.
         if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
-        const { isCritical, damage, missed } = rollAttack();
+        const { isCritical, damage, missed, firstStrike } = rollAttack();
         const strikes = rollStrikes();
         setLastCritical(isCritical);
         phaseRef.current = "attacking";
@@ -300,6 +318,7 @@ export function useAutoBattle({
             pushMissEvent();
           } else {
             anyLanded = true;
+            if (firstStrike) setFirstStrikeId((value) => value + 1);
             if (dealDamage(damage, isCritical)) killed = true;
           }
           for (let i = 1; i < strikes && !killed; i++) {
@@ -494,5 +513,7 @@ export function useAutoBattle({
     castSkill,
     canCastSkill,
     resetSkillCooldown,
+    firstStrikeId,
+    autoLocked,
   };
 }

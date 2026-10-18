@@ -7,6 +7,7 @@ import { formatDuration } from "../state/buffs";
 export function BattleActionsPanel({
   isAutoBattle,
   onToggleAuto,
+  autoLocked = false,
   speedBoostActive,
   speedBoostRemainingMs,
   onWatchAd,
@@ -14,6 +15,8 @@ export function BattleActionsPanel({
 }: {
   isAutoBattle: boolean;
   onToggleAuto: () => void;
+  // A companion that can't fight by hand (사무라이기니) pins auto-battle on.
+  autoLocked?: boolean;
   speedBoostActive: boolean;
   speedBoostRemainingMs: number;
   onWatchAd: () => void;
@@ -26,12 +29,13 @@ export function BattleActionsPanel({
       <View style={styles.spacer} />
       <GameButton
         onPress={onToggleAuto}
-        accessibilityLabel={`자동 전투 ${isAutoBattle ? "끄기" : "켜기"}`}
+        disabled={autoLocked}
+        accessibilityLabel={autoLocked ? "자동 전투 고정" : `자동 전투 ${isAutoBattle ? "끄기" : "켜기"}`}
         variant={isAutoBattle ? "green" : "gray"}
         style={styles.autoToggle}
         textStyle={styles.autoToggleText}
       >
-        {`자동 전투 ${isAutoBattle ? "ON" : "OFF"}`}
+        {autoLocked ? "자동 전투 고정" : `자동 전투 ${isAutoBattle ? "ON" : "OFF"}`}
       </GameButton>
 
       <GameButton

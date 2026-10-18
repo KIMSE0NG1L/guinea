@@ -2,7 +2,7 @@ import type { GameState } from "../types";
 import { getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
 import { getExpReward, getExpToLevel, getGoldReward, getTotalAttack } from "./gameMath";
 import { DILIGENT_OFFLINE_BONUS } from "./skills";
-import { getBuffTotals } from "./buffs";
+import { getBuffTotals, OUTFIT_BUFFS, OUTFIT_FIRST_STRIKE } from "./buffs";
 
 export type OfflineSummary = {
   mobsKilled: number;
@@ -82,8 +82,12 @@ export function simulateOfflineProgress(
     );
     if (dmg <= 0) continue;
     const mobExpReward = Math.round(getExpReward(state.stageNumber, false) * (1 + (food?.exp ?? 0) / 100));
-    const hits = Math.max(1, Math.ceil(enemyMaxHp / dmg));
-    const msPerMob = hits * AVG_HIT_INTERVAL_MS + MOB_RESPAWN_MS;
+    // 사무라이기니's opening draw (attack × N × crit damage) may finish a mob outright.
+    const firstStrike = OUTFIT_FIRST_STRIKE[state.equippedOutfit] ?? 0;
+    const opening = firstStrike > 0 ? attack * firstStrike * ((state.criticalDamage + (food?.criticalDamage ?? 0)) / 100) : 0;
+    const hits = opening >= enemyMaxHp ? 1 : (opening > 0 ? 1 : 0) + Math.max(1, Math.ceil((enemyMaxHp - opening) / dmg));
+    const pace = 1 + (OUTFIT_BUFFS[state.equippedOutfit]?.attackSpeed ?? 0) / 100;
+    const msPerMob = (hits * AVG_HIT_INTERVAL_MS) / pace + MOB_RESPAWN_MS;
 
     while (remainingMs >= msPerMob) {
       remainingMs -= msPerMob;

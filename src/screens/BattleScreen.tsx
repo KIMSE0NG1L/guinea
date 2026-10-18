@@ -90,6 +90,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         }
         goldEvents={battle.goldEvents}
         executeId={battle.executeId}
+        firstStrikeId={battle.firstStrikeId}
         executedKill={battle.lastKillExecuted}
         beamId={battle.castIds.beam}
         stealId={battle.castIds.steal}
@@ -156,6 +157,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       <BattleActionsPanel
         isAutoBattle={battle.isAutoBattle}
         onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
+        autoLocked={battle.autoLocked}
         speedBoostActive={game.speedMultiplier > 1}
         speedBoostRemainingMs={game.speedBoostRemainingMs}
         onWatchAd={() => setAdModalOpen(true)}

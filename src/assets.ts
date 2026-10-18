@@ -34,6 +34,12 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-egen-critical-strip.webp"),
       win: require("../assets/sprites/guinea-egen-win-strip.webp"),
     },
+    samuraiGini: {
+      idle: require("../assets/sprites/guinea-samurai-idle-strip.webp"),
+      attack: require("../assets/sprites/guinea-samurai-attack-strip.webp"),
+      critical: require("../assets/sprites/guinea-samurai-critical-strip.webp"),
+      win: require("../assets/sprites/guinea-samurai-win-strip.webp"),
+    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),

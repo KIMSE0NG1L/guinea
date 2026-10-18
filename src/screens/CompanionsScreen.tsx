@@ -14,6 +14,7 @@ import {
   OUTFIT_FOOD_DURATION_BONUS_SEC,
   OUTFIT_HIT_COUNT,
   OUTFIT_MISS_CHANCE,
+  OUTFIT_FIRST_STRIKE,
   DISH_PARTNERS,
   PARTNER_MULTIPLIER,
   describeEffect,
@@ -35,6 +36,8 @@ function companionDetail(outfit: Outfit) {
   if (hitCount) parts.push(`한 번에 ${hitCount}타씩 타격`);
   const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
   if (foodDurationBonus) parts.push(`음식 효과시간 +${foodDurationBonus}초`);
+  const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
+  if (firstStrike) parts.push(`적마다 첫 공격은 일반 공격 ×${firstStrike} 치명타`, "수동 공격 불가");
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
   if (cooldownReduction) parts.push(`스킬 쿨타임 -${cooldownReduction / 60}분`);
   return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
@@ -65,6 +68,12 @@ const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string 
     name: "에겐기니",
     blurb: "벚꽃 지팡이를 든 다정하고 상냥한 기니. 함께 있으면 마음이 편안해진다.",
     detail: companionDetail("egenGini"),
+  },
+  {
+    outfit: "samuraiGini",
+    name: "사무라이기니",
+    blurb: "벚꽃 해변을 떠도는 과묵한 떠돌이 무사. 칼은 단 한 번 뽑으면 충분하다.",
+    detail: companionDetail("samuraiGini"),
   },
 ];
 

@@ -208,6 +208,7 @@ export function BattleScene({
   skillBar,
   goldEvents,
   executeId: rawExecuteId,
+  firstStrikeId,
   executedKill,
   beamId: rawBeamId,
   stealId: rawStealId,
@@ -247,6 +248,8 @@ export function BattleScene({
   goldEvents: { id: number; amount: number }[];
   // Bumped each time Execute finishes an enemy (0 = never) — plays the teleport-slash.
   executeId: number;
+  // 사무라이기니's first-strike draws — each plays the execute slash, without the dash.
+  firstStrikeId: number;
   // The kill now playing out was an Execute — crit pose instead of the win pose.
   executedKill: boolean;
   // Bumped on each cast of that skill (0 = never).
@@ -506,6 +509,15 @@ export function BattleScene({
               />
             ))}
 
+          {firstStrikeId > 0 && fightersWidth > 0 && (
+            <ExecuteEffect
+              key={`first-strike-${firstStrikeId}`}
+              home={{ left: playerCenterLeft, bottom: bodyBottom }}
+              arrival={{ left: playerCenterLeft, bottom: bodyBottom }}
+              enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+              dash={false}
+            />
+          )}
           {executeId > 0 && fightersWidth > 0 && (
             <ExecuteEffect
               key={`execute-${executeId}`}

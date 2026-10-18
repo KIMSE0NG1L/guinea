@@ -158,6 +158,7 @@ export const DISH_PARTNERS: Record<string, Outfit> = {
   "fire-skewer": "tetoGini",
   octopus: "assassinGini",
   "lamb-rib": "egenGini",
+  "tuna-sashimi": "samuraiGini",
 };
 
 export const OUTFIT_NAMES: Record<Outfit, string> = {
@@ -166,6 +167,7 @@ export const OUTFIT_NAMES: Record<Outfit, string> = {
   tetoGini: "테토기니",
   assassinGini: "암살기니",
   egenGini: "에겐기니",
+  samuraiGini: "사무라이기니",
 };
 
 // "세트: 바다 한 상", "궁합: 테토기니" — the set a dish belongs to and its partner companion.
@@ -195,6 +197,14 @@ export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
   tetoGini: { attack: 100 },
   // Weaker per hit, but strikes twice per swing — see OUTFIT_HIT_COUNT.
   assassinGini: { attack: -30 },
+  // Draws slowly — the price of OUTFIT_FIRST_STRIKE's one huge opening cut.
+  samuraiGini: { attackSpeed: -25 },
+};
+
+// The first strike on each enemy is a sure crit worth this many normal hits (times crit
+// damage) — 사무라이기니's iaido draw. Auto-battle only while it's equipped.
+export const OUTFIT_FIRST_STRIKE: Partial<Record<Outfit, number>> = {
+  samuraiGini: 10,
 };
 
 // Percent chance an attack whiffs completely (0 damage, no kill, no on-hit effects) while

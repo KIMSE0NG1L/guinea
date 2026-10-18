@@ -17,11 +17,12 @@ export type Point = { left: number; bottom: number };
 // Mount with a fresh key per execute; everything ends fully transparent, so it can just
 // stay mounted until the next one replaces it.
 // `home` / `arrival` are where the guinea pig vanishes and reappears; `enemy` is the cut.
-export function ExecuteEffect({ home, arrival, enemy }: { home: Point; arrival: Point; enemy: Point }) {
+// `dash: false` keeps just the cut (사무라이기니's first strike is drawn from where it stands).
+export function ExecuteEffect({ home, arrival, enemy, dash = true }: { home: Point; arrival: Point; enemy: Point; dash?: boolean }) {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Flash color="#000000" peak={0.35} delay={0} rise={40} fall={300} />
-      <Dash left={home.left} right={arrival.left} bottom={home.bottom} />
+      {dash && <Dash left={home.left} right={arrival.left} bottom={home.bottom} />}
       {/* An uneven X: a long downward stroke, then a shorter one drawn back the other way. */}
       <Slash at={enemy} angle={-26} length={190} offset={{ x: -4, y: 6 }} delay={EXECUTE_TIMING.arrive} />
       <Slash at={enemy} angle={180 + 44} length={150} offset={{ x: 6, y: -4 }} delay={EXECUTE_TIMING.arrive + 70} />

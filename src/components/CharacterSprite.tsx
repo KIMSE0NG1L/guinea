@@ -54,6 +54,15 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.11 },
   },
+  // Frames are lined up on the straw hat and the feet; the sword (attack) and red slash
+  // (critical) needed a smaller fit, which these scales undo (idle × 1.25 / 1.37 / 0.95).
+  samuraiGini: {
+    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.15 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.44 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.58 },
+    // The sheet's 4th win frame (turned away, bowing) was dropped.
+    win: { frameCount: 3, frameSize: FRAME_SIZE, scale: 1.09 },
+  },
 };
 
 export function CharacterSprite({
