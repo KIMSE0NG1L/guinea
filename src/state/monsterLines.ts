@@ -26,6 +26,7 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   drunkCat: ["한 잔만 더...", "안 취했다구"],
   flowerSnake: ["샤랄라~", "꽃밭이 좋아"],
   riceSack: ["안 팔려!", "쌀 흘리지 마"],
+  mackerel: ["...뭘 봐", "그물은 질색이야"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -51,4 +52,5 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   drunkCat: ["외상값부터 내시죠", "손님, 자리 좀 비켜주세요"],
   flowerSnake: ["정체를 들켰네", "꼬리 좀 봐줄래?"],
   riceSack: ["맵게 해 주마!", "에취! 아니 안 매워"],
+  mackerel: ["돛을 올려라!", "배는... 묻지 마"],
 };

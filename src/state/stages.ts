@@ -23,6 +23,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   drunkCat: "술주정 뚱뚱냥",
   flowerSnake: "꽃 뱀",
   riceSack: "심술 쌀가마",
+  mackerel: "뚱한 고등어",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -48,6 +49,7 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   drunkCat: "주모 뚱냥",
   flowerSnake: "구미호",
   riceSack: "고춧가루 대감",
+  mackerel: "문어 해적선장",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -77,6 +79,7 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "주막", enemyKind: "drunkCat", story: "눈 쌓인 산길의 주막, 거나하게 취한 뚱뚱냥이들이 술독을 끌어안고 비틀대는 곳." },
   { area: "진달래길", enemyKind: "flowerSnake", story: "진달래가 흐드러지게 핀 산길, 꽃 사이에 똬리를 튼 꽃뱀 너머로 구미호가 사는 정자가 보인다." },
   { area: "궁궐 앞 장터", enemyKind: "riceSack", story: "궁궐 문 앞 너른 마당에 장이 선 날, 팔려 가기 싫은 쌀가마들이 씩씩대며 좌판 사이를 돌아다닌다." },
+  { area: "수군 포구", enemyKind: "mackerel", story: "돛배가 드나드는 성곽 아래 포구, 그물을 빠져나온 고등어들이 부둣가를 뚱한 얼굴로 어슬렁거린다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

@@ -255,6 +255,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-chili-sack-hit-strip.webp"),
     die: require("../assets/sprites/boss-chili-sack-die-strip.webp"),
   },
+  mackerel: {
+    idle: require("../assets/sprites/mackerel-idle-strip.webp"),
+    hit: require("../assets/sprites/mackerel-hit-strip.webp"),
+    die: require("../assets/sprites/mackerel-die-strip.webp"),
+  },
+  bossPirateOctopus: {
+    idle: require("../assets/sprites/boss-pirate-octopus-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-pirate-octopus-hit-strip.webp"),
+    die: require("../assets/sprites/boss-pirate-octopus-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -280,6 +290,7 @@ export const images = {
   battleBackgroundSnowTavern: require("../assets/sprites/battle-snow-tavern.webp"),
   battleBackgroundAzaleaPath: require("../assets/sprites/battle-azalea-path.webp"),
   battleBackgroundJoseonMarket: require("../assets/sprites/battle-joseon-market.webp"),
+  battleBackgroundFishingPort: require("../assets/sprites/battle-fishing-port.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.

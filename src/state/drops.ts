@@ -284,6 +284,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "두툼 살코기", chance: 0.4 },
     ],
   },
+  // 수군 포구: 고등어 떼에 섞여 올라오는 정어리와 미역; 문어 해적선장은 다리마다 노획물을
+  // 감고 다닌다.
+  mackerel: {
+    mob: [
+      { name: "정어리", chance: 0.35 },
+      { name: "미역", chance: 0.15 },
+    ],
+    boss: [
+      { name: "문어", chance: 1, quantity: 2 },
+      { name: "오징어", chance: 0.6 },
+      { name: "반짝 생선알", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.
