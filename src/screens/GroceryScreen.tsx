@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { chef, grandma, shopImages, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
+import Animated from "react-native-reanimated";
+import { launchFlight } from "../components/FlightLayer";
+import { measureTarget, tutorialRef } from "../components/tutorialTargets";
+import { useBumpOnChange, useShake } from "../components/motion";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
 import { formatGameNumber } from "../state/gameMath";
@@ -58,15 +62,22 @@ export function GroceryScreen({
     say(grandma.menu, TAB_LINES[id]);
   };
 
+  // Returns the result so the card can react (shake on short gold).
   const buy = (name: string, price: number) => {
     const result = onBuy(name, price);
     if (result === "ok") {
+      // Grandma hands it over: the item hops from her to its card.
+      Promise.all([measureTarget("shop-keeper"), measureTarget(`grocery-${name}`)]).then(([from, to]) => {
+        const image = ITEM_IMAGES[name];
+        if (from && to && image !== undefined) launchFlight({ image, from, to, size: 30, duration: 460, arc: 50 });
+      });
       say(grandma.wave, `${name} 하나 담아뒀단다. 맛있게 해먹으렴!`);
     } else if (result === "full") {
       say(grandma.happy, "가방이 꽉 찼구나. 가방을 좀 늘려서 오렴.");
     } else {
       say(grandma.happy, "어이쿠, 골드가 조금 모자라구나.");
     }
+    return result;
   };
 
   const items = GROCERY.filter((item) => filter === "all" || item.category === filter);
@@ -93,27 +104,53 @@ export function GroceryScreen({
       </ScrollView>
 
       <View style={styles.grid}>
-        {items.map((item) => {
-          const price = applyDiscount(item.price, discount);
-          const affordable = gold >= price;
-          return (
-            <Panel slice={shopKit.cardWood} scale={0.4} style={styles.card} key={item.name}>
-              <Image source={ITEM_IMAGES[item.name]} style={styles.itemImage} />
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.owned}>보유 {getItemQuantity(inventory, item.name)}</Text>
-              <GameButton
-                variant={affordable ? "red" : "pillGray"}
-                onPress={() => buy(item.name, item.price)}
-                accessibilityLabel={`${item.name} ${price}골드에 구매`}
-                style={styles.buyButton}
-              >
-                <Text style={[styles.buyText, !affordable && styles.buyTextOff]}>{formatGameNumber(price)} G</Text>
-              </GameButton>
-            </Panel>
-          );
-        })}
+        {items.map((item) => (
+          <GroceryCard
+            key={item.name}
+            name={item.name}
+            price={applyDiscount(item.price, discount)}
+            owned={getItemQuantity(inventory, item.name)}
+            gold={gold}
+            onBuy={() => buy(item.name, item.price)}
+          />
+        ))}
       </View>
     </View>
+  );
+}
+
+// One item: its stock count pops when it goes up; buying without enough gold rattles the
+// price and flashes it red.
+function GroceryCard({ name, price, owned, gold, onBuy }: { name: string; price: number; owned: number; gold: number; onBuy: () => "ok" | "gold" | "full" }) {
+  const affordable = gold >= price;
+  const { style: ownedBump } = useBumpOnChange(owned, 1.35);
+  const { style: shakeStyle, shake } = useShake();
+  const [short, setShort] = useState(false);
+  const shortTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  return (
+    <Panel slice={shopKit.cardWood} scale={0.4} style={styles.card}>
+      <View ref={tutorialRef(`grocery-${name}`)}>
+        <Image source={ITEM_IMAGES[name]} style={styles.itemImage} />
+      </View>
+      <Text style={styles.itemName}>{name}</Text>
+      <Animated.Text style={[styles.owned, ownedBump]}>보유 {owned}</Animated.Text>
+      <Animated.View style={[styles.buyWrap, shakeStyle]}>
+        <GameButton
+          variant={affordable ? "red" : "pillGray"}
+          onPress={() => {
+            if (onBuy() !== "gold") return;
+            shake();
+            setShort(true);
+            if (shortTimer.current) clearTimeout(shortTimer.current);
+            shortTimer.current = setTimeout(() => setShort(false), 500);
+          }}
+          accessibilityLabel={`${name} ${price}골드에 구매`}
+          style={styles.buyButton}
+        >
+          <Text style={[styles.buyText, !affordable && styles.buyTextOff, short && styles.buyTextShort]}>{formatGameNumber(price)} G</Text>
+        </GameButton>
+      </Animated.View>
+    </Panel>
   );
 }
 
@@ -130,7 +167,9 @@ const styles = StyleSheet.create({
   itemImage: { width: 54, height: 54 },
   itemName: { marginTop: 4, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   owned: { marginTop: 1, fontSize: 9, color: colors.muted },
-  buyButton: { marginTop: 8, alignSelf: "stretch", minHeight: 34 },
+  buyWrap: { marginTop: 8, alignSelf: "stretch" },
+  buyButton: { minHeight: 34 },
   buyText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   buyTextOff: { color: "#4f463c" },
+  buyTextShort: { color: colors.red },
 });

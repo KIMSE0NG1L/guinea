@@ -62,6 +62,14 @@ export interface GameState {
   // state/cooking.ts. Missing on older saves = one empty pot.
   cookingPots?: ({ recipeId: string; startedAt: number; readyAt: number; fast?: boolean } | null)[];
   potsUnlocked?: number;
+  // What the bag and the ingredient codex held when last looked at — anything newer gets a
+  // "NEW"/"발견!" mark on the next visit. Missing on older saves (= nothing marked).
+  bagSeen?: string[];
+  // Companions already shown unlocked — one unlocked since gets its lock broken on the next visit.
+  outfitsSeen?: Outfit[];
+  // Furthest stage the map has shown — a newer one gets its path drawn in on the next visit.
+  mapSeenStage?: number;
+  codexSeen?: string[];
   // Recipe ids cooked at least once (for the "NEW" badge); missing on older saves.
   cookedRecipes?: string[];
   equipment: Record<string, string | null>;

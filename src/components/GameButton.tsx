@@ -39,6 +39,8 @@ export function GameButton({
   textStyle,
   accessibilityLabel,
   tutorialId,
+  onPressIn,
+  onPressOut,
 }: {
   children: React.ReactNode;
   onPress?: (event: GestureResponderEvent) => void;
@@ -49,6 +51,9 @@ export function GameButton({
   accessibilityLabel?: string;
   // Lets a guided tutorial find this button and point an arrow at it.
   tutorialId?: string;
+  // For hold-to-repeat (see useHoldRepeat in motion.tsx).
+  onPressIn?: () => void;
+  onPressOut?: () => void;
 }) {
   return (
     <Pressable
@@ -57,6 +62,8 @@ export function GameButton({
         playSfx("uiClick");
         onPress?.(event);
       }}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}

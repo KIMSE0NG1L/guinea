@@ -1,8 +1,11 @@
+import { useRef, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { frameKit, kit, statIcons } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
+import { FloatText, useFlash, useHoldRepeat, useShake } from "../components/motion";
 import { applyUpgradeLevels, formatGameNumber, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote, getNextUpgradeMode, statInfo, STAT_CAP } from "../state/gameMath";
 import type { GameState, StatKey, UpgradeMode } from "../types";
 
@@ -46,49 +49,109 @@ export function StatUpgradePanel({
       </View>
 
       <View style={styles.list}>
-        {(Object.keys(statInfo) as StatKey[]).map((key) => {
-          const info = statInfo[key];
-          const value = key === "attack" ? getTotalAttack(state) : getStatValue(state, key);
-          const level = getStatLevel(state, key);
-          const quote = getUpgradeQuote(key, level, state.gold, upgradeMode, getStatValue(state, key));
-          const rawValue = getStatValue(state, key);
-          // For attack, `value` above is the total (raw purchased attack + flat level
-          // bonus) — only the raw purchased part actually compounds on upgrade, so apply
-          // the delta on top of `value` rather than upgrading the total directly.
-          const nextValue = value + (applyUpgradeLevels(key, rawValue, quote.levels) - rawValue);
-          const suffix = key === "attack" ? "" : "%";
-          const atCap = STAT_CAP[key] !== undefined && getStatValue(state, key) >= STAT_CAP[key]!;
-          return (
-            <Panel slice={upgraded === key ? kit.panel : kit.inset} scale={0.4} style={styles.row} key={key}>
-              <Panel slice={frameKit.squareWood} scale={0.4} style={styles.mark}>
-                <Image source={statIcons[key]} style={styles.markIcon} accessibilityLabel={info.label} />
-              </Panel>
-              <View style={styles.rowCopy}>
-                <Text style={styles.rowSmall}>Lv. {formatGameNumber(level)} · {info.label}</Text>
-                <Text style={styles.rowValue}>{formatGameNumber(value)}{suffix}</Text>
-              </View>
-              <View style={styles.gain}>
-                <Text style={styles.gainSmall}>다음</Text>
-                <Text style={styles.gainValue}>{formatGameNumber(nextValue)}{suffix}</Text>
-              </View>
-              <GameButton
-                variant="brown"
-                disabled={atCap || quote.levels === 0 || state.gold < quote.cost}
-                onPress={() => onUpgrade(key)}
-                style={styles.upgradeButton}
-              >
-                <View>
-                  <Text style={styles.upgradeButtonText}>
-                    {atCap ? "최대" : upgradeMode === "max" ? `MAX +${quote.levels}` : `+${quote.levels} 강화`}
-                  </Text>
-                  {!atCap && <Text style={styles.upgradeButtonCost}>{formatGameNumber(quote.cost)} G</Text>}
-                </View>
-              </GameButton>
-            </Panel>
-          );
-        })}
+        {(Object.keys(statInfo) as StatKey[]).map((key) => (
+          <StatRow key={key} statKey={key} state={state} upgradeMode={upgradeMode} highlighted={upgraded === key} onUpgrade={onUpgrade} />
+        ))}
       </View>
     </Panel>
+  );
+}
+
+// One stat: its value, what the next purchase brings, and the buy button. Buying floats
+// the gain over the value and flashes the icon; holding the button keeps buying; pressing
+// it without enough gold rattles the row and blinks the price red.
+function StatRow({
+  statKey: key,
+  state,
+  upgradeMode,
+  highlighted,
+  onUpgrade,
+}: {
+  statKey: StatKey;
+  state: GameState;
+  upgradeMode: UpgradeMode;
+  highlighted: boolean;
+  onUpgrade: (key: StatKey) => void;
+}) {
+  const info = statInfo[key];
+  const value = key === "attack" ? getTotalAttack(state) : getStatValue(state, key);
+  const level = getStatLevel(state, key);
+  const quote = getUpgradeQuote(key, level, state.gold, upgradeMode, getStatValue(state, key));
+  const rawValue = getStatValue(state, key);
+  // For attack, `value` above is the total (raw purchased attack + flat level
+  // bonus) — only the raw purchased part actually compounds on upgrade, so apply
+  // the delta on top of `value` rather than upgrading the total directly.
+  const nextValue = value + (applyUpgradeLevels(key, rawValue, quote.levels) - rawValue);
+  const suffix = key === "attack" ? "" : "%";
+  const atCap = STAT_CAP[key] !== undefined && getStatValue(state, key) >= STAT_CAP[key]!;
+  const affordable = quote.levels > 0 && state.gold >= quote.cost;
+
+  const [gains, setGains] = useState<{ id: number; text: string }[]>([]);
+  const gainId = useRef(0);
+  const [broke, setBroke] = useState(false);
+  const { style: shakeStyle, shake } = useShake();
+  const { value: flash, flash: flashIcon } = useFlash();
+  const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value * 0.8, transform: [{ scale: 1 + flash.value * 0.3 }] }));
+
+  // Kept fresh every render so a held button always buys at the current quote.
+  const latest = { affordable, gain: nextValue - value };
+  const buy = () => {
+    if (!latest.affordable) {
+      shake();
+      setBroke(true);
+      setTimeout(() => setBroke(false), 450);
+      return;
+    }
+    onUpgrade(key);
+    flashIcon();
+    const id = ++gainId.current;
+    setGains((current) => [...current.slice(-3), { id, text: `+${formatGameNumber(latest.gain)}${suffix}` }]);
+    setTimeout(() => setGains((current) => current.filter((gain) => gain.id !== id)), 800);
+  };
+  // Holding only keeps buying while it can — running dry just stops, no rattling.
+  const hold = useHoldRepeat(() => {
+    if (latest.affordable) buy();
+  });
+
+  return (
+    <Animated.View style={shakeStyle}>
+      <Panel slice={highlighted ? kit.panel : kit.inset} scale={0.4} style={styles.row}>
+        <Panel slice={frameKit.squareWood} scale={0.4} style={styles.mark}>
+          <Image source={statIcons[key]} style={styles.markIcon} accessibilityLabel={info.label} />
+          <Animated.View style={[styles.markFlash, flashStyle]} pointerEvents="none" />
+        </Panel>
+        <View style={styles.rowCopy}>
+          <Text style={styles.rowSmall}>Lv. {formatGameNumber(level)} · {info.label}</Text>
+          <Text style={styles.rowValue}>{formatGameNumber(value)}{suffix}</Text>
+          {gains.map((gain) => (
+            <FloatText key={gain.id} text={gain.text} style={styles.gainFloat} />
+          ))}
+        </View>
+        <View style={styles.gain}>
+          <Text style={styles.gainSmall}>다음</Text>
+          <Text style={styles.gainValue}>{formatGameNumber(nextValue)}{suffix}</Text>
+        </View>
+        <GameButton
+          variant="brown"
+          disabled={atCap || quote.levels === 0}
+          onPress={buy}
+          onPressIn={hold.onPressIn}
+          onPressOut={hold.onPressOut}
+          style={styles.upgradeButton}
+        >
+          <View>
+            <Text style={styles.upgradeButtonText}>
+              {atCap ? "최대" : upgradeMode === "max" ? `MAX +${quote.levels}` : `+${quote.levels} 강화`}
+            </Text>
+            {!atCap && (
+              <Text style={[styles.upgradeButtonCost, (broke || !affordable) && styles.upgradeButtonCostShort]}>
+                {formatGameNumber(quote.cost)} G
+              </Text>
+            )}
+          </View>
+        </GameButton>
+      </Panel>
+    </Animated.View>
   );
 }
 
@@ -129,4 +192,7 @@ const styles = StyleSheet.create({
   upgradeButton: { minWidth: 70, paddingHorizontal: 8 },
   upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10, textAlign: "center" },
   upgradeButtonCost: { color: colors.brown, fontSize: 8, marginTop: 1, textAlign: "center" },
+  upgradeButtonCostShort: { color: colors.red },
+  markFlash: { position: "absolute", top: 4, left: 4, right: 4, bottom: 4, borderRadius: 6, backgroundColor: "#fff3b0" },
+  gainFloat: { left: 0, top: 4, fontSize: 13, fontFamily: fonts.bold, color: colors.green },
 });

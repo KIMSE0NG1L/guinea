@@ -1,11 +1,15 @@
+import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import { StrokedText } from "../components/StrokedText";
+import { useShake } from "../components/motion";
 import { colors, fonts } from "../theme";
 import { chef, grandma, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
 import { formatGameNumber } from "../state/gameMath";
-import { getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
+import { getKnownRecipes, ITEM_IMAGES, RECIPES, type Recipe } from "../state/recipes";
 import { RECIPE_TIERS } from "../state/recipeTiers";
 import { RecipeArt } from "../components/RecipeArt";
 
@@ -27,14 +31,24 @@ export function RecipeShopScreen({
   const { talk, say } = useShopTalk(GREETING);
   const known = getKnownRecipes(knownRecipes);
 
+  // Card order is fixed when the shop opens, so a recipe learned here stays put for its
+  // stamp instead of jumping to the bottom.
+  const [order] = useState(() =>
+    [...RECIPES].sort((a, b) => Number(known.includes(a.id)) - Number(known.includes(b.id))).map((recipe) => recipe.id),
+  );
+
+  // Reports whether it went through, so the card can rattle on short gold.
   const learn = (recipeId: string, name: string) => {
     if (known.includes(recipeId)) {
       say(chef.serve, `${name}? 그건 이미 잘 알잖아!`);
-    } else if (onLearn(recipeId)) {
-      say(chef.cheer, `좋아! 이제 ${name}도 만들 수 있어!`);
-    } else {
-      say(chef.book, "음… 골드가 조금 부족한걸.");
+      return true;
     }
+    if (onLearn(recipeId)) {
+      say(chef.cheer, `좋아! 이제 ${name}도 만들 수 있어!`);
+      return true;
+    }
+    say(chef.book, "음… 골드가 조금 부족한걸.");
+    return false;
   };
 
   return (
@@ -50,46 +64,90 @@ export function RecipeShopScreen({
 
       <View style={styles.grid}>
         {/* Already-learned recipes sink below the ones still to buy (stable within each group). */}
-        {[...RECIPES].sort((a, b) => Number(known.includes(a.id)) - Number(known.includes(b.id))).map((recipe) => {
-          const learned = known.includes(recipe.id);
-          const affordable = gold >= recipe.price;
-          const tier = RECIPE_TIERS[recipe.tier];
-          // Hidden recipes keep their dish and ingredients secret until learned.
-          const sealed = recipe.tier === "hidden" && !learned;
+        {order.map((id) => {
+          const recipe = RECIPES.find((item) => item.id === id)!;
           return (
-            <Panel slice={shopKit.cardWood} scale={0.4} style={styles.card} key={recipe.id}>
-              <View style={[styles.tierBadge, { backgroundColor: tier.color }]}>
-                <Text style={styles.tierText}>{tier.label}</Text>
-              </View>
-              <View style={learned && styles.artLearned}>
-                <RecipeArt recipe={recipe} size={72} sealed={sealed} />
-              </View>
-              <Text style={styles.name}>{sealed ? "???" : recipe.name}</Text>
-              <View style={styles.ingredients}>
-                {sealed ? (
-                  <Text style={styles.secret}>재료 비밀</Text>
-                ) : (
-                  recipe.ingredients.map((ingredient) => (
-                    <Image key={ingredient.name} source={ITEM_IMAGES[ingredient.name]} style={styles.ingredient} accessibilityLabel={ingredient.name} />
-                  ))
-                )}
-              </View>
-              <GameButton
-                variant={learned ? "pillCream" : affordable ? "red" : "pillGray"}
-                onPress={() => learn(recipe.id, recipe.name)}
-                tutorialId={`learn-${recipe.id}`}
-                accessibilityLabel={learned ? `${recipe.name} 배움` : `${sealed ? "히든" : recipe.name} 레시피 ${recipe.price}골드에 배우기`}
-                style={styles.button}
-              >
-                <Text style={[styles.buttonText, learned && styles.buttonTextLearned, !learned && !affordable && styles.buttonTextOff]}>
-                  {learned ? "배움 ✓" : `${formatGameNumber(recipe.price)} G`}
-                </Text>
-              </GameButton>
-            </Panel>
+            <RecipeCard
+              key={id}
+              recipe={recipe}
+              learned={known.includes(id)}
+              affordable={gold >= recipe.price}
+              onLearn={() => learn(recipe.id, recipe.name)}
+            />
           );
         })}
       </View>
     </View>
+  );
+}
+
+// One recipe for sale. Learning it unrolls the scroll and thumps a "배움!" stamp on it; a
+// sealed hidden recipe glows softly now and then; short gold rattles the button.
+function RecipeCard({ recipe, learned, affordable, onLearn }: { recipe: Recipe; learned: boolean; affordable: boolean; onLearn: () => boolean }) {
+  const tier = RECIPE_TIERS[recipe.tier];
+  // Hidden recipes keep their dish and ingredients secret until learned.
+  const sealed = recipe.tier === "hidden" && !learned;
+  const [learnedAtOpen] = useState(learned);
+  const unroll = useSharedValue(1);
+  const stamp = useSharedValue(0);
+  const glow = useSharedValue(0);
+  const { style: shakeStyle, shake } = useShake();
+
+  useEffect(() => {
+    if (!learned || learnedAtOpen) return;
+    unroll.value = withSequence(withTiming(0.15, { duration: 0 }), withTiming(1, { duration: 420, easing: Easing.out(Easing.back(1.6)) }));
+    stamp.value = withDelay(300, withSequence(withTiming(1.6, { duration: 0 }), withTiming(1, { duration: 180, easing: Easing.in(Easing.quad) }), withDelay(1300, withTiming(0, { duration: 300 }))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [learned]);
+  useEffect(() => {
+    glow.value = sealed ? withRepeat(withSequence(withTiming(1, { duration: 900 }), withTiming(0, { duration: 900 }), withDelay(1200, withTiming(0, { duration: 0 }))), -1) : 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sealed]);
+
+  const unrollStyle = useAnimatedStyle(() => ({ transform: [{ scaleY: unroll.value }] }));
+  const stampStyle = useAnimatedStyle(() => ({ opacity: stamp.value === 0 ? 0 : 1, transform: [{ scale: stamp.value || 1 }, { rotate: "-14deg" }] }));
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value * 0.6, transform: [{ scale: 0.9 + glow.value * 0.2 }] }));
+
+  return (
+    <Panel slice={shopKit.cardWood} scale={0.4} style={styles.card}>
+      <View style={[styles.tierBadge, { backgroundColor: tier.color }]}>
+        <Text style={styles.tierText}>{tier.label}</Text>
+      </View>
+      <Animated.View style={[learned && styles.artLearned, unrollStyle]}>
+        {sealed && <Animated.View style={[styles.sealGlow, glowStyle]} pointerEvents="none" />}
+        <RecipeArt recipe={recipe} size={72} sealed={sealed} />
+      </Animated.View>
+      <Animated.View style={[styles.stamp, stampStyle]} pointerEvents="none">
+        <StrokedText style={styles.stampText} strokeColor={colors.line} strokeWidth={1.5}>
+          배움!
+        </StrokedText>
+      </Animated.View>
+      <Text style={styles.name}>{sealed ? "???" : recipe.name}</Text>
+      <View style={styles.ingredients}>
+        {sealed ? (
+          <Text style={styles.secret}>재료 비밀</Text>
+        ) : (
+          recipe.ingredients.map((ingredient) => (
+            <Image key={ingredient.name} source={ITEM_IMAGES[ingredient.name]} style={styles.ingredient} accessibilityLabel={ingredient.name} />
+          ))
+        )}
+      </View>
+      <Animated.View style={[styles.buttonWrap, shakeStyle]}>
+        <GameButton
+          variant={learned ? "pillCream" : affordable ? "red" : "pillGray"}
+          onPress={() => {
+            if (!onLearn()) shake();
+          }}
+          tutorialId={`learn-${recipe.id}`}
+          accessibilityLabel={learned ? `${recipe.name} 배움` : `${sealed ? "히든" : recipe.name} 레시피 ${recipe.price}골드에 배우기`}
+          style={styles.button}
+        >
+          <Text style={[styles.buttonText, learned && styles.buttonTextLearned, !learned && !affordable && styles.buttonTextOff]}>
+            {learned ? "배움 ✓" : `${formatGameNumber(recipe.price)} G`}
+          </Text>
+        </GameButton>
+      </Animated.View>
+    </Panel>
   );
 }
 
@@ -105,7 +163,22 @@ const styles = StyleSheet.create({
   name: { marginTop: 4, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   ingredients: { marginTop: 4, flexDirection: "row", gap: 3, minHeight: 18 },
   ingredient: { width: 18, height: 18 },
-  button: { marginTop: 8, alignSelf: "stretch", minHeight: 34 },
+  buttonWrap: { marginTop: 8, alignSelf: "stretch" },
+  button: { minHeight: 34 },
+  sealGlow: { position: "absolute", top: -6, left: -6, right: -6, bottom: -6, borderRadius: 40, backgroundColor: "#ffe27a" },
+  stamp: {
+    position: "absolute",
+    top: 38,
+    alignSelf: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.red,
+    zIndex: 2,
+  },
+  stampText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   buttonText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   buttonTextLearned: { color: colors.green },
   buttonTextOff: { color: "#4f463c" },

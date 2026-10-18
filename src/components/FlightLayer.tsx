@@ -15,6 +15,8 @@ export type Flight = {
   duration?: number;
   arc?: number; // how high the path bows up, px
   onArrive?: () => void;
+  // Which layer draws it — a modal mounts its own (it sits above the main one).
+  channel?: string;
 };
 
 type ActiveFlight = Flight & { id: number };
@@ -27,18 +29,20 @@ export function launchFlight(flight: Flight) {
   listeners.forEach((listener) => listener(active));
 }
 
-export function FlightLayer() {
+export function FlightLayer({ channel = "main" }: { channel?: string }) {
   const ref = useRef<View>(null);
   const [origin, setOrigin] = useState<TargetRect | null>(null);
   const [flights, setFlights] = useState<ActiveFlight[]>([]);
 
   useEffect(() => {
-    const listener = (flight: ActiveFlight) => setFlights((current) => [...current, flight]);
+    const listener = (flight: ActiveFlight) => {
+      if ((flight.channel ?? "main") === channel) setFlights((current) => [...current, flight]);
+    };
     listeners.add(listener);
     return () => {
       listeners.delete(listener);
     };
-  }, []);
+  }, [channel]);
 
   return (
     <View

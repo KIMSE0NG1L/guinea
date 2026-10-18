@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { frameImages } from "../assets";
@@ -81,6 +82,10 @@ export function SkillSlot({
           </StrokedText>
         </View>
       ) : null}
+      {/* Cooldown just ran out: a flash and "준비!" (keyed so each one plays once). */}
+      {!skill.passive && !cooling && timers[skillId].readyAt > 0 && now - timers[skillId].readyAt < 1500 && (
+        <ReadyFlash key={timers[skillId].readyAt} />
+      )}
       {skill.passive && (
         <View style={styles.passiveTag} pointerEvents="none">
           <Text style={styles.passiveText}>상시</Text>
@@ -98,7 +103,30 @@ export function SkillSlot({
   );
 }
 
+function ReadyFlash() {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withSequence(withTiming(1, { duration: 140, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 900 }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const flashStyle = useAnimatedStyle(() => ({ opacity: t.value * 0.85 }));
+  const textStyle = useAnimatedStyle(() => ({ opacity: Math.min(1, t.value * 2), transform: [{ translateY: -(1 - t.value) * 10 }, { scale: 0.8 + t.value * 0.3 }] }));
+  return (
+    <>
+      <Animated.View style={[styles.overlay, styles.readyFlash, flashStyle]} pointerEvents="none" />
+      <Animated.View style={[styles.readyLabel, textStyle]} pointerEvents="none">
+        <StrokedText style={styles.readyText} strokeColor={colors.line} strokeWidth={1.5}>
+          준비!
+        </StrokedText>
+      </Animated.View>
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
+  readyFlash: { backgroundColor: "#fff3b0" },
+  readyLabel: { position: "absolute", top: -18, left: -10, right: -10, alignItems: "center" },
+  readyText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.gold },
   slot: { height: SKILL_SLOT_HEIGHT },
   empty: { width: SKILL_SLOT_HEIGHT, height: SKILL_SLOT_HEIGHT, alignItems: "center", justifyContent: "center" },
   slotArt: { width: "100%", height: "100%" },

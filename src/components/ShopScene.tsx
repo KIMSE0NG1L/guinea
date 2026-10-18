@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { shopImages, shopKit } from "../assets";
 import { NineSlice, Panel } from "./NineSlice";
@@ -83,7 +84,7 @@ export function ShopHero({ speaker, talk }: { speaker: string; talk: Talk }) {
             style={[styles.heroImage, { width: heroWidth, height: heroWidth * BACKGROUND_ASPECT }]}
           />
         )}
-        <Image source={talk.pose} style={styles.keeper} resizeMode="contain" />
+        <HoppingKeeper pose={talk.pose} line={talk.line} />
         <View style={styles.bubble}>
           <NineSlice slice={shopKit.bubble} scale={0.32} />
           <Text style={styles.bubbleName}>{speaker}</Text>
@@ -91,6 +92,22 @@ export function ShopHero({ speaker, talk }: { speaker: string; talk: Talk }) {
         </View>
       </View>
     </Panel>
+  );
+}
+
+// The shopkeeper hops each time they say something (a sale, a tab switch). Tagged
+// "shop-keeper" so bought goods can fly out from them.
+function HoppingKeeper({ pose, line }: { pose: number; line: string }) {
+  const hop = useSharedValue(0);
+  useEffect(() => {
+    hop.value = withSequence(withTiming(1, { duration: 120, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 160, easing: Easing.in(Easing.quad) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [line]);
+  const style = useAnimatedStyle(() => ({ transform: [{ translateY: -hop.value * 8 }, { scale: 1 + hop.value * 0.05 }] }));
+  return (
+    <Animated.View ref={tutorialRef("shop-keeper")} style={[styles.keeper, style]}>
+      <Image source={pose} style={styles.keeperImage} resizeMode="contain" />
+    </Animated.View>
   );
 }
 
@@ -114,6 +131,7 @@ const styles = StyleSheet.create({
   // Full width, pinned to the bottom so the counter (lower half of the art) stays in view.
   heroImage: { position: "absolute", left: 0, bottom: 0 },
   keeper: { position: "absolute", left: 10, bottom: 4, width: 140, height: 140 },
+  keeperImage: { width: "100%", height: "100%" },
   bubble: { position: "absolute", top: 14, right: 12, width: "52%", paddingLeft: 16, paddingRight: 14, paddingTop: 11, paddingBottom: 24 },
   bubbleName: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
   bubbleText: { marginTop: 3, fontSize: 11, lineHeight: 15, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },

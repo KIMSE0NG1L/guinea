@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { Panel } from "./NineSlice";
@@ -34,7 +36,8 @@ function getSourceStages(name: string) {
 // Every ingredient in the game (cheapest first, so roughly in the order you meet them).
 // One you've ever had shows where it drops, its shop price and the dishes it goes into;
 // the rest are dark silhouettes with a hint of where to look.
-export function IngredientCodex({ discovered }: { discovered: string[] }) {
+// `fresh`: found since the codex was last opened — they light up from silhouette with "발견!".
+export function IngredientCodex({ discovered, fresh = [] }: { discovered: string[]; fresh?: string[] }) {
   const found = GROCERY.filter((item) => discovered.includes(item.name)).length;
   return (
     <View>
@@ -52,11 +55,14 @@ export function IngredientCodex({ discovered }: { discovered: string[] }) {
                 <Text style={styles.tagText}>{CATEGORY_LABEL[item.category]}</Text>
               </View>
               <Text style={styles.price}>{item.price} G</Text>
-              <Image
-                source={ITEM_IMAGES[item.name]}
-                style={[styles.icon, !known && styles.iconUnknown]}
-                accessibilityLabel={known ? item.name : "아직 모르는 식재료"}
-              />
+              <View>
+                <Image
+                  source={ITEM_IMAGES[item.name]}
+                  style={[styles.icon, !known && styles.iconUnknown]}
+                  accessibilityLabel={known ? item.name : "아직 모르는 식재료"}
+                />
+                {fresh.includes(item.name) && <Discovered image={ITEM_IMAGES[item.name]} />}
+              </View>
               <Text style={styles.name} numberOfLines={1}>{known ? item.name : "???"}</Text>
               {known ? (
                 <>
@@ -102,7 +108,31 @@ export function IngredientCodex({ discovered }: { discovered: string[] }) {
   );
 }
 
+// Newly found: a dark silhouette over the art fades away and "발견!" pops up.
+function Discovered({ image }: { image: number }) {
+  const reveal = useSharedValue(0);
+  const pop = useSharedValue(0);
+  useEffect(() => {
+    reveal.value = withDelay(250, withTiming(1, { duration: 650, easing: Easing.inOut(Easing.quad) }));
+    pop.value = withDelay(700, withSequence(withTiming(1.25, { duration: 160 }), withTiming(1, { duration: 140 })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const shadowStyle = useAnimatedStyle(() => ({ opacity: (1 - reveal.value) * 0.9 }));
+  const popStyle = useAnimatedStyle(() => ({ opacity: pop.value === 0 ? 0 : 1, transform: [{ scale: pop.value }, { rotate: "-10deg" }] }));
+  return (
+    <>
+      <Animated.Image source={image} style={[styles.icon, styles.iconUnknown, styles.overlay, shadowStyle]} />
+      <Animated.View style={[styles.found, popStyle]}>
+        <Text style={styles.foundText}>발견!</Text>
+      </Animated.View>
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
+  overlay: { position: "absolute", left: 0, top: 0 },
+  found: { position: "absolute", right: -18, top: 8, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, backgroundColor: colors.red },
+  foundText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   count: { marginBottom: 8, marginLeft: 4, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   card: { width: "48.5%", alignItems: "center", paddingHorizontal: 10, paddingTop: 10, paddingBottom: 12 },

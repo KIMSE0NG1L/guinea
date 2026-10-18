@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { frameImages, icons, kit } from "../assets";
 import { PageHeading } from "../components/PageHeading";
@@ -20,14 +21,26 @@ export function MilestoneScreen({
   highestStageNumber,
   onSelectStage,
   onBack,
+  seenStage,
+  onSeen,
 }: {
   stageNumber: number;
   highestStageNumber: number;
+  // Furthest stage shown last visit (undefined = never tracked), and the report on leaving.
+  seenStage: number | undefined;
+  onSeen: (stage: number) => void;
   onSelectStage: (stageNumber: number) => void;
   onBack: () => void;
 }) {
   const [view, setView] = useState<Page>("map");
   const heading = HEADINGS[view];
+  // A stage opened since the last visit: its path draws in and its badge drops onto the map.
+  const [newStage] = useState(() => (seenStage !== undefined && highestStageNumber > seenStage ? highestStageNumber : null));
+  const latest = useRef({ highestStageNumber, onSeen });
+  useEffect(() => {
+    latest.current = { highestStageNumber, onSeen };
+  });
+  useEffect(() => () => latest.current.onSeen(latest.current.highestStageNumber), []);
 
   return (
     <View style={styles.page}>
@@ -65,14 +78,16 @@ export function MilestoneScreen({
           return (
             <View key={stage.area}>
               <Panel slice={unlocked ? kit.panel : kit.inset} style={styles.card}>
-                <View style={[styles.badge, !unlocked && styles.badgeLocked]}>
-                  <Image source={current ? frameImages.ringGold : frameImages.ringWood} style={styles.badgeRing} />
-                  <Text style={[styles.badgeText, current && styles.badgeTextCurrent]}>{getStageCode(index)}</Text>
-                </View>
+                <StageBadge current={current} drop={index === newStage}>
+                  <View style={[styles.badge, !unlocked && styles.badgeLocked]}>
+                    <Image source={current ? frameImages.ringGold : frameImages.ringWood} style={styles.badgeRing} />
+                    <Text style={[styles.badgeText, current && styles.badgeTextCurrent]}>{getStageCode(index)}</Text>
+                  </View>
+                </StageBadge>
                 <View style={styles.cardCopy}>
                   <View style={styles.titleRow}>
                     <Text style={styles.cardStrong}>{stage.area}</Text>
-                    {cleared && <Image source={icons.star} style={styles.statusIcon} />}
+                    {cleared && <WavingStar delay={index * 120} />}
                   </View>
                   <Text style={styles.cardSpan}>{unlocked ? stage.story : "이전 스테이지 보스를 처치하세요"}</Text>
                   {unlocked && (
@@ -93,7 +108,7 @@ export function MilestoneScreen({
                   <Image source={icons.key} style={styles.lockIcon} accessibilityLabel="잠김" />
                 )}
               </Panel>
-              {!isLast && <View style={[styles.path, index >= highestStageNumber && styles.pathLocked]} />}
+              {!isLast && <TrailPath locked={index >= highestStageNumber} draw={index + 1 === newStage} />}
             </View>
           );
         })}
@@ -103,7 +118,53 @@ export function MilestoneScreen({
   );
 }
 
+// The current stage's badge bobs; a newly opened one drops in from above (after its path).
+function StageBadge({ current, drop, children }: { current: boolean; drop: boolean; children: React.ReactNode }) {
+  const bob = useSharedValue(0);
+  const fall = useSharedValue(drop ? 0 : 1);
+  useEffect(() => {
+    bob.value = current ? withRepeat(withTiming(1, { duration: 650, easing: Easing.inOut(Easing.sin) }), -1, true) : withTiming(0, { duration: 150 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current]);
+  useEffect(() => {
+    if (drop) fall.value = withDelay(650, withTiming(1, { duration: 500, easing: Easing.out(Easing.bounce) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity: Math.min(1, fall.value * 3),
+    transform: [{ translateY: -bob.value * 5 - (1 - fall.value) * 60 }],
+  }));
+  return <Animated.View style={style}>{children}</Animated.View>;
+}
+
+// The dashed trail to the next stage — drawn in top to bottom when that stage just opened.
+function TrailPath({ locked, draw }: { locked: boolean; draw: boolean }) {
+  const grow = useSharedValue(draw ? 0 : 1);
+  useEffect(() => {
+    if (draw) grow.value = withDelay(200, withTiming(1, { duration: 450, easing: Easing.inOut(Easing.quad) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ height: 22 * grow.value }));
+  return (
+    <View style={styles.pathSlot}>
+      <Animated.View style={[styles.path, locked && styles.pathLocked, style]} />
+    </View>
+  );
+}
+
+// A cleared stage's star, swaying like a little flag.
+function WavingStar({ delay }: { delay: number }) {
+  const sway = useSharedValue(0);
+  useEffect(() => {
+    sway.value = withDelay(delay, withRepeat(withSequence(withTiming(1, { duration: 700, easing: Easing.inOut(Easing.sin) }), withTiming(-1, { duration: 700, easing: Easing.inOut(Easing.sin) })), -1, true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${sway.value * 12}deg` }] }));
+  return <Animated.Image source={icons.star} style={[styles.statusIcon, style]} />;
+}
+
 const styles = StyleSheet.create({
+  pathSlot: { height: 22 },
   headingRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   heading: { flex: 1 },
   toggles: { flexDirection: "row", gap: 2, marginTop: 4 },

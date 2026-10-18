@@ -109,6 +109,8 @@ export function GameScreen() {
           <CompanionsScreen
             equippedOutfit={state.equippedOutfit}
             level={state.level}
+            outfitsSeen={state.outfitsSeen}
+            onSeen={(outfitsSeen) => setState((previous) => ({ ...previous, outfitsSeen }))}
             onEquip={(equippedOutfit) =>
               setState((previous) => (isOutfitUnlocked(equippedOutfit, previous.level) ? { ...previous, equippedOutfit } : previous))
             }
@@ -122,6 +124,9 @@ export function GameScreen() {
             gems={state.gems}
             expansions={state.bagExpansions ?? 0}
             onExpand={game.expandBag}
+            bagSeen={state.bagSeen}
+            codexSeen={state.codexSeen}
+            onSeen={({ bag, codex }) => setState((previous) => ({ ...previous, bagSeen: bag, codexSeen: codex }))}
             onOpenShop={() => onSelectTab("shop")}
           />
         );
@@ -193,6 +198,8 @@ export function GameScreen() {
             stageNumber={state.stageNumber}
             highestStageNumber={state.highestStageNumber ?? state.stageNumber}
             onSelectStage={game.selectStage}
+            seenStage={state.mapSeenStage}
+            onSeen={(mapSeenStage) => setState((previous) => ({ ...previous, mapSeenStage }))}
             onBack={() => onSelectTab("battle")}
           />
         );
@@ -229,7 +236,7 @@ export function GameScreen() {
         </ScrollView>
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
         {questOpen && (
-          <QuestModal quests={state.quests} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
+          <QuestModal quests={state.quests} gems={state.gems} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
         )}
         {game.offlineSummary && (
           <OfflineRewardModal

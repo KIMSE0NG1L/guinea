@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts } from "../theme";
 import { images, kit, shopKit } from "../assets";
@@ -84,6 +85,61 @@ function PartnerDishes({ outfit, light = false }: { outfit: Outfit; light?: bool
   );
 }
 
+// Puffs of smoke around the preview while the companion swaps outfits, then a little pop.
+const PUFFS = [
+  { x: -30, y: -10 },
+  { x: 28, y: -18 },
+  { x: -18, y: 26 },
+  { x: 24, y: 20 },
+  { x: 0, y: -34 },
+];
+
+function OutfitSwap({ animate, children }: { animate: boolean; children: React.ReactNode }) {
+  const pop = useSharedValue(animate ? 0 : 1);
+  useEffect(() => {
+    if (animate) pop.value = withDelay(180, withSequence(withTiming(1.15, { duration: 180, easing: Easing.out(Easing.quad) }), withTiming(1, { duration: 140 })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: Math.min(1, pop.value * 2), transform: [{ scale: pop.value }] }));
+  return (
+    <View style={styles.swap}>
+      {animate && PUFFS.map((puff, index) => <SmokePuff key={index} {...puff} />)}
+      <Animated.View style={style}>{children}</Animated.View>
+    </View>
+  );
+}
+
+function SmokePuff({ x, y }: { x: number; y: number }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withTiming(1, { duration: 650, easing: Easing.out(Easing.quad) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity: (1 - t.value) * 0.9,
+    transform: [{ translateX: x * t.value }, { translateY: y * t.value }, { scale: 0.5 + t.value * 1.1 }],
+  }));
+  return <Animated.View style={[styles.puff, style]} pointerEvents="none" />;
+}
+
+// The padlock of a newly joined companion jumps, spins off and fades away.
+function BreakingLock() {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withDelay(350, withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity: 1 - t.value,
+    transform: [{ translateY: -t.value * 26 + t.value * t.value * 30 }, { translateX: t.value * 14 }, { rotate: `${t.value * 200}deg` }, { scale: 1 + t.value * 0.3 }],
+  }));
+  return (
+    <Animated.View style={[styles.breaking, style]} pointerEvents="none">
+      <LockBadge />
+    </Animated.View>
+  );
+}
+
 const PREVIEW_SPRITE_SIZE = 108;
 // Height / width of the battle backgrounds (1168x880).
 const BACKDROP_ASPECT = 880 / 1168;
@@ -96,13 +152,27 @@ export function CompanionsScreen({
   equippedOutfit,
   level,
   onEquip,
+  outfitsSeen,
+  onSeen,
 }: {
   equippedOutfit: Outfit;
   level: number;
   onEquip: (outfit: Outfit) => void;
+  // Companions shown unlocked last visit (undefined = never tracked), and the report on leaving.
+  outfitsSeen: Outfit[] | undefined;
+  onSeen: (outfits: Outfit[]) => void;
 }) {
   const equippedItem = COMPANIONS.find((item) => item.outfit === equippedOutfit) ?? COMPANIONS[0];
   const [previewWidth, setPreviewWidth] = useState(0);
+  const unlockedNow = COMPANIONS.filter((item) => isOutfitUnlocked(item.outfit, level)).map((item) => item.outfit);
+  // Unlocked since the last visit: their padlock breaks open this time.
+  const [freshlyUnlocked] = useState(() => (outfitsSeen ? unlockedNow.filter((outfit) => !outfitsSeen.includes(outfit)) : []));
+  const [outfitOnArrival] = useState(equippedOutfit);
+  const latest = useRef({ unlockedNow, onSeen });
+  useEffect(() => {
+    latest.current = { unlockedNow, onSeen };
+  });
+  useEffect(() => () => latest.current.onSeen(latest.current.unlockedNow), []);
 
   return (
     <View style={styles.page}>
@@ -135,7 +205,9 @@ export function CompanionsScreen({
             <PartnerDishes outfit={equippedItem.outfit} light />
           </View>
           <View style={styles.previewSprite}>
-            <CharacterSprite outfit={equippedOutfit} animation="idle" size={PREVIEW_SPRITE_SIZE} restartKey={equippedOutfit} />
+            <OutfitSwap key={equippedOutfit} animate={equippedOutfit !== outfitOnArrival}>
+              <CharacterSprite outfit={equippedOutfit} animation="idle" size={PREVIEW_SPRITE_SIZE} restartKey={equippedOutfit} />
+            </OutfitSwap>
           </View>
         </View>
       </Panel>
@@ -154,6 +226,7 @@ export function CompanionsScreen({
                   </View>
                 </View>
                 {locked && <LockBadge />}
+                {freshlyUnlocked.includes(item.outfit) && <BreakingLock />}
               </View>
               <View style={styles.cardCopy}>
                 <Text style={[styles.cardSmall, locked && styles.cardSmallLocked]}>
@@ -196,6 +269,9 @@ const styles = StyleSheet.create({
   previewSub: { marginTop: 5, color: "#f3d993", fontSize: 9, fontWeight: "800", fontFamily: fonts.bold },
   previewSprite: { flex: 1, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
   list: { gap: 8 },
+  swap: { alignItems: "center", justifyContent: "center" },
+  puff: { position: "absolute", width: 36, height: 36, borderRadius: 18, backgroundColor: "#f3eee2" },
+  breaking: { position: "absolute", right: 0, bottom: 0, width: 24, height: 24 },
   partners: { marginTop: 4, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 2 },
   partnerLabel: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: "#b0632a" },
   partnerLabelLight: { color: "#f3d993" },

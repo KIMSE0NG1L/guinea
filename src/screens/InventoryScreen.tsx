@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { frameKit, icons, kit, uiImages } from "../assets";
 import { IngredientCodex } from "../components/IngredientCodex";
@@ -22,6 +23,9 @@ export function InventoryScreen({
   expansions,
   onExpand,
   onOpenShop,
+  bagSeen,
+  codexSeen,
+  onSeen,
 }: {
   inventory: GameState["inventory"];
   discoveredItems: string[];
@@ -29,6 +33,11 @@ export function InventoryScreen({
   expansions: number;
   onExpand: () => boolean;
   onOpenShop: () => void;
+  // What was in the bag / codex at the last visit (undefined = never tracked yet).
+  bagSeen: string[] | undefined;
+  codexSeen: string[] | undefined;
+  // Called on leaving with what's there now, so the next visit marks only newer things.
+  onSeen: (seen: { bag: string[]; codex: string[] }) => void;
 }) {
   const capacity = getBagCapacity(expansions);
   const cost = getBagExpandCost(expansions);
@@ -49,6 +58,17 @@ export function InventoryScreen({
   const cells = [...stacks, ...Array.from({ length: Math.max(0, shown - used) }, () => null)];
 
   const [codex, setCodex] = useState(false);
+
+  // Fixed for the whole visit: what's new since last time, and the bag size on arrival.
+  const bagNames = inventory.map((item) => item.name);
+  const [newInBag] = useState(() => (bagSeen ? bagNames.filter((name) => !bagSeen.includes(name)) : []));
+  const [newInCodex] = useState(() => (codexSeen ? discoveredItems.filter((name) => !codexSeen.includes(name)) : []));
+  const [expansionsOnArrival] = useState(expansions);
+  const latest = useRef({ bag: bagNames, codex: discoveredItems, onSeen });
+  useEffect(() => {
+    latest.current = { bag: bagNames, codex: discoveredItems, onSeen };
+  });
+  useEffect(() => () => latest.current.onSeen({ bag: latest.current.bag, codex: latest.current.codex }), []);
 
   return (
     <View style={styles.page}>
@@ -72,7 +92,7 @@ export function InventoryScreen({
         </Pressable>
       </View>
       {codex ? (
-        <IngredientCodex discovered={discoveredItems} />
+        <IngredientCodex discovered={discoveredItems} fresh={newInCodex} />
       ) : (
       <>
       <Panel slice={kit.buttonBeige} style={styles.summary}>
@@ -112,23 +132,61 @@ export function InventoryScreen({
       </Panel>
       <View style={styles.grid}>
         {cells.map((item, index) => (
-          <Panel slice={item ? frameKit.squareGold : frameKit.squareWood} scale={0.5} style={styles.cell} key={item?.key ?? `empty-${index}`}>
-            {item && (
-              <>
-                <ItemShape name={item.name} />
-                <Text style={styles.cellName} numberOfLines={1}>{item.name}</Text>
-                <View style={styles.cellQty}>
-                  <Text style={styles.cellQtyText}>x{item.quantity}</Text>
-                </View>
-              </>
-            )}
-          </Panel>
+          // Empty cells remount after an expansion so the new room pops in, one by one.
+          <PopIn
+            key={item?.key ?? `empty-${index}-${expansions}`}
+            delay={!item && expansions > expansionsOnArrival ? (index - used) * 45 : -1}
+            style={styles.cellWrap}
+          >
+            <Panel slice={item ? frameKit.squareGold : frameKit.squareWood} scale={0.5} style={styles.cell}>
+              {item && (
+                <>
+                  <ItemShape name={item.name} />
+                  <Text style={styles.cellName} numberOfLines={1}>{item.name}</Text>
+                  <View style={styles.cellQty}>
+                    <Text style={styles.cellQtyText}>x{item.quantity}</Text>
+                  </View>
+                  {newInBag.includes(item.name) && <NewBadge />}
+                </>
+              )}
+            </Panel>
+          </PopIn>
         ))}
       </View>
       {shown < capacity && <Text style={styles.moreSlots}>빈 칸 {capacity - shown}개 더 있어요</Text>}
       </>
       )}
     </View>
+  );
+}
+
+// Pops in after `delay` ms; a negative delay means it just appears (no animation).
+function PopIn({ delay, style, children }: { delay: number; style: object; children: React.ReactNode }) {
+  const t = useSharedValue(delay < 0 ? 1 : 0);
+  useEffect(() => {
+    if (delay >= 0) t.value = withDelay(delay, withTiming(1, { duration: 260, easing: Easing.out(Easing.back(2)) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const animated = useAnimatedStyle(() => ({ opacity: Math.min(1, t.value * 2), transform: [{ scale: t.value }] }));
+  return <Animated.View style={[style, animated]}>{children}</Animated.View>;
+}
+
+// "NEW" on a cell holding something that wasn't in the bag last visit, with a twinkle.
+function NewBadge() {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0, { duration: 500 })), -1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: 1 + t.value * 0.12 }] }));
+  const starStyle = useAnimatedStyle(() => ({ opacity: t.value, transform: [{ rotate: `${t.value * 90}deg` }, { scale: 0.6 + t.value * 0.6 }] }));
+  return (
+    <>
+      <Animated.Image source={icons.star} style={[styles.newStar, starStyle]} />
+      <Animated.View style={[styles.newBadge, style]}>
+        <Text style={styles.newText}>NEW</Text>
+      </Animated.View>
+    </>
   );
 }
 
@@ -142,6 +200,9 @@ function ItemShape({ name }: { name: string }) {
 }
 
 const styles = StyleSheet.create({
+  newBadge: { position: "absolute", top: 3, left: 3, paddingHorizontal: 4, borderRadius: 5, backgroundColor: colors.red },
+  newText: { fontSize: 7, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  newStar: { position: "absolute", top: 2, right: 4, width: 12, height: 12 },
   headingRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   heading: { flex: 1 },
   toggle: { marginTop: 4 },
@@ -174,8 +235,9 @@ const styles = StyleSheet.create({
   maxedText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
   moreSlots: { marginTop: 10, textAlign: "center", fontSize: 10, fontFamily: fonts.bold, color: colors.muted },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  cellWrap: { width: "23%" },
   cell: {
-    width: "23%",
+    width: "100%",
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",

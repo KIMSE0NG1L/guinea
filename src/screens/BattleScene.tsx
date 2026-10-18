@@ -379,7 +379,7 @@ export function BattleScene({
               hitSlop={6}
               style={({ pressed }) => [styles.questButton, pressed && styles.questPressed]}
             >
-              <Image source={icons.questMedal} style={styles.questIcon} />
+              <WobblingMedal wobble={questReady} />
               {questReady && <Image source={kitImages.dotRed} style={styles.questDot} accessibilityLabel="받을 보상 있음" />}
             </Pressable>
           </LinearGradient>
@@ -838,6 +838,19 @@ function EnemyFighter({
       )}
     </Animated.View>
   );
+}
+
+// The quest medal — rocks back and forth now and then while a reward waits to be claimed.
+function WobblingMedal({ wobble }: { wobble: boolean }) {
+  const r = useSharedValue(0);
+  useEffect(() => {
+    r.value = wobble
+      ? withRepeat(withSequence(withTiming(-14, { duration: 90 }), withTiming(12, { duration: 120 }), withTiming(-8, { duration: 110 }), withTiming(0, { duration: 90 }), withDelay(1300, withTiming(0, { duration: 0 }))), -1)
+      : withTiming(0, { duration: 100 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wobble]);
+  const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${r.value}deg` }] }));
+  return <Animated.Image source={icons.questMedal} style={[styles.questIcon, style]} />;
 }
 
 // On the kitchen button while a dish waits in a pot: the red dot hops and the dish
