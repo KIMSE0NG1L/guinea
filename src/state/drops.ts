@@ -37,12 +37,14 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "당근", chance: 0.4 },
       { name: "토마토", chance: 0.15 },
       { name: "보리", chance: 0.1 },
+      { name: "딸기", chance: 0.1 },
     ],
     boss: [
       { name: "당근", chance: 1, quantity: 4 },
       { name: "토마토", chance: 0.6 },
       { name: "호박", chance: 0.3 },
       { name: "귀리", chance: 0.4 },
+      { name: "참외", chance: 0.4 },
     ],
   },
   // 꼬꼬 농장: eggs and drumsticks, plus the corn and grain they're fed.
@@ -76,11 +78,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "치즈", chance: 0.35 },
       { name: "우유", chance: 0.15 },
+      { name: "배", chance: 0.1 },
     ],
     boss: [
       { name: "치즈", chance: 1, quantity: 3 },
       { name: "결 고운 생선살", chance: 0.5 },
       { name: "우유", chance: 0.4 },
+      { name: "귤", chance: 0.4 },
     ],
   },
   // 부잣집 주방: pots of pork belly; the fridge is packed with the good cuts.
@@ -138,11 +142,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "바나나", chance: 0.4 },
       { name: "망고", chance: 0.15 },
+      { name: "키위", chance: 0.1 },
     ],
     boss: [
       { name: "바나나", chance: 1, quantity: 3 },
       { name: "망고", chance: 0.5 },
       { name: "코코넛", chance: 0.4 },
+      { name: "석류", chance: 0.3 },
     ],
   },
   // 오아시스: carp from the pool, palm coconuts; the dragon carp's prized roe.
@@ -230,12 +236,14 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "풋사과", chance: 0.3 },
       { name: "곶감", chance: 0.2 },
       { name: "흑미", chance: 0.15 },
+      { name: "감", chance: 0.25 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
       { name: "뼈 갈빗살", chance: 0.6 },
       { name: "우유", chance: 0.4 },
       { name: "검은콩", chance: 0.5 },
+      { name: "대추", chance: 0.5 },
     ],
   },
   // 설산: the rabbits carry frozen carrots down from their own stash; the ice golem has
@@ -270,11 +278,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "딜", chance: 0.3 },
       { name: "진달래꽃", chance: 0.25 },
+      { name: "산딸기", chance: 0.15 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
       { name: "뼈 갈빗살", chance: 0.6 },
       { name: "레몬", chance: 0.4 },
+      { name: "오미자", chance: 0.5 },
     ],
   },
   // 궁궐 앞 장터: 쌀가마가 좌판에서 굴러다니며 묻혀 온 채소; 고춧가루 대감은 이름값대로
@@ -325,11 +335,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "우유", chance: 0.3 },
       { name: "유부", chance: 0.2 },
+      { name: "매실", chance: 0.15 },
     ],
     boss: [
       { name: "결 고운 생선살", chance: 1, quantity: 2 },
       { name: "무", chance: 0.6 },
       { name: "풋사과", chance: 0.4 },
+      { name: "살구", chance: 0.4 },
     ],
   },
   // 벚꽃 성 천수각: 장수풍뎅이 무사가 아껴 둔 젤리와 마당 버섯; 황금 샤치호코는 금빛 비늘
@@ -351,11 +363,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "계란", chance: 0.3 },
       { name: "우유", chance: 0.15 },
+      { name: "복숭아", chance: 0.15 },
     ],
     boss: [
       { name: "유자", chance: 1, quantity: 2 },
       { name: "계란", chance: 0.6 },
       { name: "치즈", chance: 0.4 },
+      { name: "천도복숭아", chance: 0.4 },
     ],
   },
   // 대나무 닌자 마을: 닌자 개구리가 대나무 잎에서 모은 이슬과 수련장 텃밭의 양배추; 쥐 두목은
@@ -438,11 +452,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "풋사과", chance: 0.3 },
       { name: "레몬", chance: 0.15 },
+      { name: "거봉", chance: 0.3 },
     ],
     boss: [
       { name: "토마토", chance: 1, quantity: 2 },
       { name: "양파", chance: 0.6 },
       { name: "딜", chance: 0.4 },
+      { name: "샤인머스캣", chance: 0.6 },
     ],
   },
   // 과자 숲: 진저브레드 꼬마가 반죽에서 슬쩍한 계란과 로열 젤리; 과자집 마녀 박쥐는 과자집을 굽던 우유와 계란, 로열 젤리를 떨어뜨린다.
