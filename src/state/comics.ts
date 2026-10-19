@@ -1241,36 +1241,37 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
     ],
   },
   sledbakery: {
-    title: "썰매 타고 빵 냄새 따라",
+    title: "빵집의 셰프 기니",
     panels: [
       {
         image: comics.sledbakery1,
         aspect: 500 / 768,
         sfx: "hit",
         bubbles: [
-          { text: "으악,\n침범벅이야!", left: 0.02, top: 0.06, maxWidth: 0.32, tail: "bottom", tailAt: 0.8 },
+          { text: "꽉 잡아라,\n내려간다!", right: 0.05, top: 0.08, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
         ],
       },
       {
         image: comics.sledbakery2,
         aspect: 500 / 768,
         bubbles: [
-          { text: "꽉 잡아라,\n내려간다!", left: 0.02, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+          { text: "으앙~\n또 태웠어...!", right: 0.05, top: 0.04, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
         ],
       },
       {
         image: comics.sledbakery3,
-        aspect: 502 / 768,
+        aspect: 501 / 768,
         bubbles: [
-          { text: "으아아아!!", left: 0.55, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.3, shout: true },
+          { text: "불은 줄이고\n천천히~", left: 0.2, top: 0.04, maxWidth: 0.28, tail: "bottom", tailAt: 0.5 },
         ],
       },
       {
         image: comics.sledbakery4,
-        aspect: 499 / 768,
+        aspect: 501 / 768,
         sfx: "levelup",
         bubbles: [
-          { text: "이 냄새는...\n갓 구운 빵?!", left: 0.3, top: 0.06, maxWidth: 0.36, tail: "bottom", tailAt: 0.6 },
+          { text: "나도 데려가 줘!\n맛있는 거 해 줄게!", left: 0.28, top: 0.06, maxWidth: 0.36, tail: "bottom", tailAt: 0.6 },
+          { text: "좋아!", right: 0.17, top: 0.14, maxWidth: 0.13, tail: "bottom", tailAt: 0.4 },
         ],
       },
     ],
