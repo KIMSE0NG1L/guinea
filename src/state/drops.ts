@@ -198,10 +198,10 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   mantou: {
     mob: [
       { name: "당근", chance: 0.3 },
-      { name: "양파", chance: 0.15 },
+      { name: "만두피", chance: 0.25 },
     ],
     boss: [
-      { name: "두툼 살코기", chance: 1, quantity: 2 },
+      { name: "죽순", chance: 1, quantity: 2 },
       { name: "치즈", chance: 0.6 },
       { name: "우유", chance: 0.4 },
     ],
@@ -224,7 +224,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   magpie: {
     mob: [
       { name: "풋사과", chance: 0.3 },
-      { name: "레몬", chance: 0.15 },
+      { name: "곶감", chance: 0.2 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
@@ -250,7 +250,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   drunkCat: {
     mob: [
       { name: "겹겹 뱃살", chance: 0.3 },
-      { name: "계란", chance: 0.15 },
+      { name: "막걸리", chance: 0.2 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
@@ -263,7 +263,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   flowerSnake: {
     mob: [
       { name: "딜", chance: 0.3 },
-      { name: "고수", chance: 0.15 },
+      { name: "진달래꽃", chance: 0.25 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
@@ -276,10 +276,10 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   riceSack: {
     mob: [
       { name: "감자", chance: 0.3 },
-      { name: "양파", chance: 0.15 },
+      { name: "쌀", chance: 0.3 },
     ],
     boss: [
-      { name: "불꽃 고추", chance: 1, quantity: 3 },
+      { name: "고춧가루", chance: 1, quantity: 2 },
       { name: "화염 열매", chance: 0.6 },
       { name: "두툼 살코기", chance: 0.4 },
     ],
@@ -289,11 +289,11 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   mackerel: {
     mob: [
       { name: "정어리", chance: 0.35 },
-      { name: "미역", chance: 0.15 },
+      { name: "고등어", chance: 0.25 },
     ],
     boss: [
       { name: "문어", chance: 1, quantity: 2 },
-      { name: "오징어", chance: 0.6 },
+      { name: "먹물", chance: 0.6 },
       { name: "반짝 생선알", chance: 0.4 },
     ],
   },
@@ -302,7 +302,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   blossomCrab: {
     mob: [
       { name: "꽃게", chance: 0.3 },
-      { name: "홍합", chance: 0.15 },
+      { name: "벚꽃잎", chance: 0.25 },
     ],
     boss: [
       { name: "지느러미", chance: 1, quantity: 2 },
@@ -315,11 +315,11 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
   shrineFox: {
     mob: [
       { name: "우유", chance: 0.3 },
-      { name: "풋사과", chance: 0.15 },
+      { name: "유부", chance: 0.2 },
     ],
     boss: [
       { name: "결 고운 생선살", chance: 1, quantity: 2 },
-      { name: "토마토", chance: 0.6 },
+      { name: "무", chance: 0.6 },
       { name: "풋사과", chance: 0.4 },
     ],
   },
@@ -344,7 +344,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "우유", chance: 0.15 },
     ],
     boss: [
-      { name: "레몬", chance: 1, quantity: 2 },
+      { name: "유자", chance: 1, quantity: 2 },
       { name: "계란", chance: 0.6 },
       { name: "치즈", chance: 0.4 },
     ],
@@ -385,7 +385,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     boss: [
       { name: "두툼 생선 토막", chance: 1, quantity: 2 },
       { name: "꽃게", chance: 0.6 },
-      { name: "문어", chance: 0.4 },
+      { name: "전복", chance: 0.5 },
     ],
   },
 };

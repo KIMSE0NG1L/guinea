@@ -86,6 +86,18 @@ const EFFECTS: Record<string, { effect: BuffEffect; tint: string }> = {
   // All in on raw power: no crits at all while it runs.
   "fire-skewer": { effect: { attack: 90, criticalChance: -100 }, tint: "#f27b5b" },
   "seafood-boil": { effect: { bossDropSure: 1, seafoodDrop: 50, attack: 50, gold: 30 }, tint: "#faa880" },
+  "bamboo-dumpling": { effect: { cookSpeed: 40, attack: 20 }, tint: "#e9e2b0" },
+  "persimmon-roll": { effect: { gold: 40, offlineGold: 30 }, tint: "#f2a65a" },
+  "haemul-pajeon": { effect: { extraHit: 20, attack: 30, dropRate: 20 }, tint: "#e8c27a" },
+  "azalea-hwajeon": { effect: { skillCooldown: 30, exp: 30 }, tint: "#f0a6c8" },
+  "tteokbokki": { effect: { attackSpeed: 30, criticalChance: 10 }, tint: "#e8604a" },
+  "braised-mackerel": { effect: { seafoodDrop: 60, bossDamage: 40 }, tint: "#c97a5a" },
+  "squid-ink-risotto": { effect: { criticalDamage: 120, criticalChance: 10 }, tint: "#6a6a7a" },
+  "sakura-mochi": { effect: { greatSuccess: 20, gold: 40 }, tint: "#f7c6d4" },
+  "inari-sushi": { effect: { execute: 12, attack: 30 }, tint: "#e3a95a" },
+  "yuzu-sherbet": { effect: { offlineBuffs: 1, offlineGold: 60 }, tint: "#f6d76a" },
+  "abalone-porridge": { effect: { exp: 50, attack: 40 }, tint: "#cfd6b8" },
+  "dragon-feast": { effect: { bossDropSure: 1, attack: 80, gold: 60, dropDouble: 25 }, tint: "#f3c36a" },
   "guinea-feast": { effect: { attack: 60, criticalChance: 10, gold: 60, exp: 30 }, tint: "#dab8a2" },
 };
 

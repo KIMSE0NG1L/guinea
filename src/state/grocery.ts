@@ -51,6 +51,20 @@ const STOCK: { name: string; category: GroceryCategory; shopPrice?: number }[] =
   { name: "초록 젤리", category: "special" },
   { name: "화염 열매", category: "special" },
   { name: "로열 젤리", category: "special" },
+  { name: "죽순", category: "vegetable" },
+  { name: "만두피", category: "special" },
+  { name: "곶감", category: "fruit" },
+  { name: "막걸리", category: "special" },
+  { name: "진달래꽃", category: "special" },
+  { name: "쌀", category: "farm" },
+  { name: "고춧가루", category: "special" },
+  { name: "고등어", category: "seafood" },
+  { name: "먹물", category: "seafood" },
+  { name: "벚꽃잎", category: "special" },
+  { name: "유부", category: "farm" },
+  { name: "무", category: "vegetable" },
+  { name: "유자", category: "fruit" },
+  { name: "전복", category: "seafood" },
 ];
 
 // Buying costs this much more than the gold you'd earn farming the item yourself, so the
