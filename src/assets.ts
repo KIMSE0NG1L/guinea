@@ -417,6 +417,36 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-band-bear-hit-strip.webp"),
     die: require("../assets/sprites/boss-band-bear-die-strip.webp"),
   },
+  puffinFisher: {
+    idle: require("../assets/sprites/puffin-fisher-idle-strip.webp"),
+    hit: require("../assets/sprites/puffin-fisher-hit-strip.webp"),
+    die: require("../assets/sprites/puffin-fisher-die-strip.webp"),
+  },
+  bossWalrusViking: {
+    idle: require("../assets/sprites/boss-walrus-viking-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-walrus-viking-hit-strip.webp"),
+    die: require("../assets/sprites/boss-walrus-viking-die-strip.webp"),
+  },
+  babySeal: {
+    idle: require("../assets/sprites/baby-seal-idle-strip.webp"),
+    hit: require("../assets/sprites/baby-seal-hit-strip.webp"),
+    die: require("../assets/sprites/baby-seal-die-strip.webp"),
+  },
+  bossPolarBear: {
+    idle: require("../assets/sprites/boss-polar-bear-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-polar-bear-hit-strip.webp"),
+    die: require("../assets/sprites/boss-polar-bear-die-strip.webp"),
+  },
+  snowFairy: {
+    idle: require("../assets/sprites/snow-fairy-idle-strip.webp"),
+    hit: require("../assets/sprites/snow-fairy-hit-strip.webp"),
+    die: require("../assets/sprites/snow-fairy-die-strip.webp"),
+  },
+  bossIceQueenCat: {
+    idle: require("../assets/sprites/boss-ice-queen-cat-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-ice-queen-cat-hit-strip.webp"),
+    die: require("../assets/sprites/boss-ice-queen-cat-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -457,6 +487,9 @@ export const images = {
   battleBackgroundCandyForest: require("../assets/sprites/battle-candy-forest.webp"),
   battleBackgroundTeaGarden: require("../assets/sprites/battle-tea-garden.webp"),
   battleBackgroundSausageFest: require("../assets/sprites/battle-sausage-fest.webp"),
+  battleBackgroundFjordVillage: require("../assets/sprites/battle-fjord-village.webp"),
+  battleBackgroundArcticGlacier: require("../assets/sprites/battle-arctic-glacier.webp"),
+  battleBackgroundAuroraPalace: require("../assets/sprites/battle-aurora-palace.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -942,6 +975,18 @@ export const comics = {
   festivalwalk2: require("../assets/comics/festivalwalk-2.webp"),
   festivalwalk3: require("../assets/comics/festivalwalk-3.webp"),
   festivalwalk4: require("../assets/comics/festivalwalk-4.webp"),
+  riverboat1: require("../assets/comics/riverboat-1.webp"),
+  riverboat2: require("../assets/comics/riverboat-2.webp"),
+  riverboat3: require("../assets/comics/riverboat-3.webp"),
+  riverboat4: require("../assets/comics/riverboat-4.webp"),
+  iceberg1: require("../assets/comics/iceberg-1.webp"),
+  iceberg2: require("../assets/comics/iceberg-2.webp"),
+  iceberg3: require("../assets/comics/iceberg-3.webp"),
+  iceberg4: require("../assets/comics/iceberg-4.webp"),
+  aurorapath1: require("../assets/comics/aurorapath-1.webp"),
+  aurorapath2: require("../assets/comics/aurorapath-2.webp"),
+  aurorapath3: require("../assets/comics/aurorapath-3.webp"),
+  aurorapath4: require("../assets/comics/aurorapath-4.webp"),
 };
 
 export const bgm = {

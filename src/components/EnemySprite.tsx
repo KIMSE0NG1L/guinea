@@ -13,7 +13,7 @@ import type { EnemyAnimation, EnemyKind } from "../types";
 // carrot (stage 3's regular mob), chicken (stage 4's regular mob), potato (stage 5's
 // regular mob), bossMushroom, bossCarrotGiant, bossChicken, and bossPotato are 4-frame
 // sheets for every animation.
-const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossOliveTree" | "bossCandyWitch" | "bossTeapotDuchess" | "bossBandBear", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
+const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossOliveTree" | "bossCandyWitch" | "bossTeapotDuchess" | "bossBandBear" | "bossWalrusViking" | "bossPolarBear" | "bossIceQueenCat", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
   slime: {
     idle: { frameCount: 5, durationMs: 650, mode: "loop" },
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
@@ -385,9 +385,39 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
+  puffinFisher: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossWalrusViking: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  babySeal: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossPolarBear: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  snowFairy: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
+  bossIceQueenCat: {
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
+  },
 };
 
-const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossOliveTree" | "bossCandyWitch" | "bossTeapotDuchess" | "bossBandBear"> = {
+const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossOliveTree" | "bossCandyWitch" | "bossTeapotDuchess" | "bossBandBear" | "bossWalrusViking" | "bossPolarBear" | "bossIceQueenCat"> = {
   slime: "bossSlime",
   mushroom: "bossMushroom",
   carrot: "bossCarrotGiant",
@@ -425,6 +455,9 @@ const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarr
   gingerbreadKid: "bossCandyWitch",
   teacupRabbit: "bossTeapotDuchess",
   pretzelKid: "bossBandBear",
+  puffinFisher: "bossWalrusViking",
+  babySeal: "bossPolarBear",
+  snowFairy: "bossIceQueenCat",
 };
 
 export function EnemySprite({

@@ -481,6 +481,42 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "감자", chance: 0.4 },
     ],
   },
+  // 피오르 어촌: 퍼핀 어부가 그물로 건져 올린 정어리와 바닷가 소금 결정; 바다코끼리 바이킹은 배에 실어 둔 생선살과 고등어, 생선알을 떨어뜨린다.
+  puffinFisher: {
+    mob: [
+      { name: "정어리", chance: 0.3 },
+      { name: "소금 결정", chance: 0.15 },
+    ],
+    boss: [
+      { name: "결 고운 생선살", chance: 1, quantity: 2 },
+      { name: "고등어", chance: 0.6 },
+      { name: "반짝 생선알", chance: 0.4 },
+    ],
+  },
+  // 북극 빙하: 아기 물범이 얻어먹고 남긴 정어리와 얼음 녹은 이슬; 북극곰 얼음낚시꾼은 양동이에 담아 둔 생선 토막과 생선살, 소금 결정을 떨어뜨린다.
+  babySeal: {
+    mob: [
+      { name: "정어리", chance: 0.3 },
+      { name: "이슬", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 생선 토막", chance: 1, quantity: 2 },
+      { name: "결 고운 생선살", chance: 0.6 },
+      { name: "소금 결정", chance: 0.4 },
+    ],
+  },
+  // 오로라 얼음 궁전: 눈송이 요정이 녹으며 흘린 이슬과 우유; 얼음 여왕 고양이는 빙수 재료로 아끼던 우유와 유자, 로열 젤리를 떨어뜨린다.
+  snowFairy: {
+    mob: [
+      { name: "이슬", chance: 0.3 },
+      { name: "우유", chance: 0.15 },
+    ],
+    boss: [
+      { name: "우유", chance: 1, quantity: 2 },
+      { name: "유자", chance: 0.6 },
+      { name: "로열 젤리", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

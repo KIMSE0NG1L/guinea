@@ -41,6 +41,9 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   gingerbreadKid: ["날 먹지 마!", "귀는... 원래 이래!"],
   teacupRabbit: ["차 시간이에요~", "후루룩은 금지!"],
   pretzelKid: ["축제다 축제!", "어디가 팔이지?"],
+  puffinFisher: ["오늘은 대어다!", "부리 보지 마!"],
+  babySeal: ["쿨... 쿨...", "생선 냄새?"],
+  snowFairy: ["에취 시켜 줄까?", "녹으면 안 돼~"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -81,4 +84,7 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   gingerbreadKid: ["과자집에 어서 와~", "지붕은 내 거야!"],
   teacupRabbit: ["네 시 정각이에요!", "크림이 먼저랍니다!"],
   pretzelKid: ["뿌우우~!", "소시지 하나만 더!"],
+  puffinFisher: ["노를 저어라!", "생선이랑 바꾸자!"],
+  babySeal: ["쉿, 입질 온다.", "기다리는 게 낚시다."],
+  snowFairy: ["무엄하구나.", "뜨거운 건 사양이다."],
 };

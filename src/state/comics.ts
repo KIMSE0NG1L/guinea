@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "picnicride" | "candypath" | "teaparty" | "festivalwalk";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "picnicride" | "candypath" | "teaparty" | "festivalwalk" | "riverboat" | "iceberg" | "aurorapath";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1418,6 +1418,114 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  riverboat: {
+    title: "강 따라 북쪽 바다로",
+    panels: [
+      {
+        image: comics.riverboat1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "마지막\n소시지까지...", right: 0.03, top: 0.3, maxWidth: 0.26, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.riverboat2,
+        aspect: 499 / 768,
+        bubbles: [
+          { text: "강을 따라가면\n북쪽 바다야!", left: 0.02, top: 0.06, maxWidth: 0.32, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.riverboat3,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "프레첼\n맛있다~", left: 0.55, top: 0.08, maxWidth: 0.26, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.riverboat4,
+        aspect: 500 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "절벽이\n하늘까지 닿아!", left: 0.3, top: 0.08, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+          { text: "...손님?", right: 0.15, top: 0.3, maxWidth: 0.18, tail: "right", tailAt: 0.5 },
+        ],
+      },
+    ],
+  },
+  iceberg: {
+    title: "빙산을 타고",
+    panels: [
+      {
+        image: comics.iceberg1,
+        aspect: 500 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "하하!\n멋진 싸움이었다!", right: 0.25, top: 0.04, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.iceberg2,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "더 북쪽 끝까지\n태워 주마!", left: 0.04, top: 0.03, maxWidth: 0.32, tail: "bottom", tailAt: 0.95 },
+        ],
+      },
+      {
+        image: comics.iceberg3,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "추, 추워...!", left: 0.22, top: 0.05, maxWidth: 0.24, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.iceberg4,
+        aspect: 500 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "얼음 세상이다!", left: 0.02, top: 0.05, maxWidth: 0.26, tail: "bottom", tailAt: 0.3 },
+          { text: "...쿨.", right: 0.3, top: 0.14, maxWidth: 0.16, tail: "left", tailAt: 0.6 },
+        ],
+      },
+    ],
+  },
+  aurorapath: {
+    title: "오로라의 길",
+    panels: [
+      {
+        image: comics.aurorapath1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "허허...\n입질이 안 오는군.", left: 0.42, top: 0.06, maxWidth: 0.28, tail: "bottom", tailAt: 0.15 },
+        ],
+      },
+      {
+        image: comics.aurorapath2,
+        aspect: 499 / 768,
+        bubbles: [
+          { text: "오로라를 따라가면\n얼음 궁전이 있지.", left: 0.2, top: 0.1, maxWidth: 0.32, tail: "right", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.aurorapath3,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "하늘이\n춤춰...!", left: 0.04, top: 0.1, maxWidth: 0.2, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.aurorapath4,
+        aspect: 501 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "에... 에취!", left: 0.27, top: 0.62, maxWidth: 0.2, tail: "left", tailAt: 0.5 },
+          { text: "히히~", right: 0.45, top: 0.3, maxWidth: 0.14, tail: "left", tailAt: 0.6 },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
@@ -1458,6 +1566,9 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   33: "candypath",
   34: "teaparty",
   35: "festivalwalk",
+  36: "riverboat",
+  37: "iceberg",
+  38: "aurorapath",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.

@@ -38,6 +38,9 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   gingerbreadKid: "진저브레드 꼬마",
   teacupRabbit: "찻잔 토끼",
   pretzelKid: "프레첼 꼬마",
+  puffinFisher: "퍼핀 어부",
+  babySeal: "아기 물범",
+  snowFairy: "눈송이 요정",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -78,6 +81,9 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   gingerbreadKid: "과자집 마녀 박쥐",
   teacupRabbit: "티포트 공작부인",
   pretzelKid: "소시지 악단장 곰",
+  puffinFisher: "바다코끼리 바이킹",
+  babySeal: "북극곰 얼음낚시꾼",
+  snowFairy: "얼음 여왕 고양이",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -122,6 +128,9 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "과자 숲", enemyKind: "gingerbreadKid", story: "막대사탕 나무와 초콜릿 시냇물이 흐르는 달콤한 숲, 진저브레드 꼬마들이 과자 부스러기 길을 쫓아다닌다." },
   { area: "홍차 정원", enemyKind: "teacupRabbit", story: "장미 아치와 하얀 정자가 있는 오후의 정원, 찻잔에 쏙 들어간 토끼들이 차 시간을 기다린다." },
   { area: "소시지 축제 마을", enemyKind: "pretzelKid", story: "목골 집들 사이 광장에 축제가 한창인 마을, 소금 알갱이를 뿌린 프레첼 꼬마들이 악단 음악에 맞춰 춤춘다." },
+  { area: "피오르 어촌", enemyKind: "puffinFisher", story: "깎아지른 절벽 사이로 깊은 바다가 들어온 어촌, 비옷 모자를 쓴 퍼핀들이 그물을 들고 부두를 종종걸음친다." },
+  { area: "북극 빙하", enemyKind: "babySeal", story: "푸른 빙벽이 끝없이 이어진 얼음 바다, 털목도리를 두른 아기 물범들이 얼음 구멍 옆에서 꾸벅꾸벅 존다." },
+  { area: "오로라 얼음 궁전", enemyKind: "snowFairy", story: "오로라가 춤추는 밤하늘 아래 얼음 결정으로 지은 궁전, 눈송이 요정들이 반짝이며 복도를 날아다닌다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

@@ -83,6 +83,9 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   gingerbreadKid: 160,
   teacupRabbit: 160,
   pretzelKid: 160,
+  puffinFisher: 160,
+  babySeal: 160,
+  snowFairy: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -132,6 +135,9 @@ const BACKGROUND: Record<EnemyKind, number> = {
   gingerbreadKid: images.battleBackgroundCandyForest,
   teacupRabbit: images.battleBackgroundTeaGarden,
   pretzelKid: images.battleBackgroundSausageFest,
+  puffinFisher: images.battleBackgroundFjordVillage,
+  babySeal: images.battleBackgroundArcticGlacier,
+  snowFairy: images.battleBackgroundAuroraPalace,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
