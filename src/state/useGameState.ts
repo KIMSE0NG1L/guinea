@@ -8,7 +8,7 @@ import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { advanceQuest, migrateQuests } from "./quests";
 import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
-import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS } from "./bag";
+import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
@@ -23,7 +23,6 @@ export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
 const SPEED_BOOST_DURATION_MS = 60 * 60_000; // 1 hour
-const BAG_FULL_DROP_COOLDOWN_MS = 8000;
 const FLYING_COIN_GEM_CHANCE = 1 / 20;
 const FLYING_COIN_GEMS = 2;
 // Gems for beating a stage's boss for the very first time.
@@ -498,17 +497,21 @@ export function useGameState() {
     setState((previous) => ({ ...previous, highestStageNumber: LAST_STAGE_NUMBER }));
   };
 
-  // Says so when an action needed a fresh bag slot and there wasn't one. Drops come every
-  // kill during auto-battle, so those re-raise it at most every BAG_FULL_DROP_COOLDOWN_MS.
+  // Pops the "bag is full" dialog when an action needed a fresh bag slot and there wasn't
+  // one. Drops come every kill during auto-battle, so those raise it only once per time the
+  // bag fills up — not again until it has had room in between.
   const [bagFullAt, setBagFullAt] = useState<number | null>(null);
-  const lastDropNoticeRef = useRef(0);
+  const dropNoticeShownRef = useRef(false);
+  const bagHasRoom = slotsUsed(state.inventory) < getBagCapacity(state.bagExpansions);
+  useEffect(() => {
+    if (bagHasRoom) dropNoticeShownRef.current = false;
+  }, [bagHasRoom]);
   function notifyBagFull(fromDrop = false) {
-    const at = Date.now();
     if (fromDrop) {
-      if (at - lastDropNoticeRef.current < BAG_FULL_DROP_COOLDOWN_MS) return;
-      lastDropNoticeRef.current = at;
+      if (dropNoticeShownRef.current) return;
+      dropNoticeShownRef.current = true;
     }
-    setBagFullAt(at);
+    setBagFullAt(Date.now());
   }
 
   // Spends the recipe's ingredients from the bag and adds one of the dish.

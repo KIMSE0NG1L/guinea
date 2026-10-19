@@ -70,9 +70,6 @@ export function OfflineRewardModal({
           <Text style={styles.timeAway}>{formatTimeAway(summary.timeAwayMs)} 동안 자동 전투</Text>
 
           <Panel slice={kit.panelParchment} style={styles.statRow}>
-            {[0, 1, 2, 3, 4, 5].map((index) => (
-              <FallingCoin key={index} index={index} />
-            ))}
             <View style={styles.statItem}>
               <Image source={uiImages.coin} style={styles.statIcon} />
               <Animated.Text style={[styles.statValue, goldPopStyle, doubling && styles.statValueDouble]}>+{formatGameNumber(goldShown)}</Animated.Text>
@@ -111,22 +108,7 @@ export function OfflineRewardModal({
   );
 }
 
-// A coin dropping into the reward panel and bouncing out of sight, staggered.
-function FallingCoin({ index }: { index: number }) {
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.value = withDelay(200 + index * 110, withTiming(1, { duration: 700, easing: Easing.in(Easing.quad) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const style = useAnimatedStyle(() => ({
-    opacity: t.value === 0 ? 0 : 1 - t.value * 0.8,
-    transform: [{ translateY: -60 + t.value * 80 }, { rotate: `${t.value * 360}deg` }],
-  }));
-  return <Animated.Image source={uiImages.coin} style={[styles.coin, { left: `${10 + ((index * 37) % 80)}%` }, style]} />;
-}
-
 const styles = StyleSheet.create({
-  coin: { position: "absolute", top: 0, width: 16, height: 16, pointerEvents: "none" },
   statValueDouble: { color: colors.red },
   backdrop: {
     flex: 1,

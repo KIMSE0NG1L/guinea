@@ -130,17 +130,27 @@ export function getNumberSuffix(index: number) {
   return suffix;
 }
 
+// Up to six digits a number shows in full (with thousands commas). Past that, the last
+// three digits drop off into a unit letter — repeated until six digits or fewer remain:
+// 1,234,567 → 1,234a · 100,000,000 → 100,000a · 1,234,567,890 → 1,234b …
+const MAX_SHOWN = 1_000_000;
+
 export function formatGameNumber(value: number) {
   if (!Number.isFinite(value)) return "∞";
   const absolute = Math.abs(value);
-  if (absolute < 1000) {
-    return value.toLocaleString("ko-KR", { maximumFractionDigits: 3 });
+  if (absolute < MAX_SHOWN) {
+    return value.toLocaleString("ko-KR", { maximumFractionDigits: absolute < 1000 ? 3 : 0 });
   }
 
-  const group = Math.floor(Math.log(absolute) / Math.log(1000));
-  const scaled = absolute / Math.pow(1000, group);
+  let group = 0;
+  let scaled = absolute;
+  while (scaled >= MAX_SHOWN) {
+    scaled /= 1000;
+    group += 1;
+  }
   const sign = value < 0 ? "-" : "";
-  return `${sign}${scaled.toFixed(3).replace(".", ",")}${getNumberSuffix(group - 1)}`;
+  // Rounded down, so an abbreviated amount never reads as more than there really is.
+  return `${sign}${Math.floor(scaled).toLocaleString("ko-KR")}${getNumberSuffix(group - 1)}`;
 }
 
 // 1.35^1499 ≈ 1e195 — same overflow guard as LEVEL_EXP_SAFE_LEVELS above, same reason:

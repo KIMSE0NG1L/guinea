@@ -57,7 +57,6 @@ export function KitchenScreen({
   now,
   gems,
   rushDiscount,
-  bagFullNotice,
   onCook,
   onCollect,
   onRush,
@@ -77,8 +76,6 @@ export function KitchenScreen({
   now: number;
   gems: number;
   rushDiscount: number;
-  // Shown under the pots after a collect bounced off a full bag.
-  bagFullNotice: boolean;
   onCook: (recipeId: string) => void;
   onCollect: (potIndex: number) => void;
   onRush: (potIndex: number) => void;
@@ -147,7 +144,6 @@ export function KitchenScreen({
         onUnlock={onUnlockPot}
         onShowRecipe={onShowRecipe}
       />
-      {bagFullNotice && <Text style={styles.notice}>가방이 가득 찼어요. 자리를 비우고 다시 받아 주세요.</Text>}
       <Pressable
         onPress={onOpenCookbook}
         accessibilityRole="button"
@@ -321,7 +317,6 @@ const styles = StyleSheet.create({
   cookbookCopy: { flex: 1, gap: 4 },
   cookbookTitle: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   cookbookCount: { color: colors.brown },
-  notice: { marginTop: -6, marginBottom: 10, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.red, textAlign: "center" },
   toolbar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 18, paddingLeft: 4 },
   toolbarText: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   layoutToggle: { flexDirection: "row", gap: 4 },

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { frameKit, kit, uiImages } from "../assets";
+import { buttonKit, frameKit, kit, uiImages } from "../assets";
 import { getQuestIcon } from "../state/quests";
 import { NineSlice, Panel } from "./NineSlice";
 import { ProgressBar } from "./ProgressBar";
@@ -65,7 +65,9 @@ export function QuestModal({
                 <Text style={styles.topTitle}>골목 퀘스트</Text>
               </View>
               <View style={styles.topRight}>
+                {/* Same cream pill as the header's resource chips. */}
                 <Animated.View ref={tutorialRef("quest-gems")} style={[styles.gemCounter, gemBump]}>
+                  <NineSlice slice={buttonKit.pillCream} scale={0.3} />
                   <Image source={uiImages.crystal} style={styles.gemIcon} />
                   <Text style={styles.gemText}>{formatGameNumber(shownGems)}</Text>
                 </Animated.View>
@@ -163,9 +165,9 @@ const styles = StyleSheet.create({
   topTitle: { fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
   closeButton: { paddingHorizontal: 12 },
   topRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  gemCounter: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, backgroundColor: "#4a3418d9" },
-  gemIcon: { width: 16, height: 16 },
-  gemText: { color: colors.gold, fontSize: 11, fontWeight: "900", fontFamily: fonts.bold },
+  gemCounter: { height: 32, minWidth: 74, flexDirection: "row", alignItems: "center", gap: 4, paddingLeft: 8, paddingRight: 14, paddingBottom: 2 },
+  gemIcon: { width: 18, height: 18 },
+  gemText: { color: colors.ink, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
   storyCard: {
     marginVertical: 14,
     paddingHorizontal: 16,

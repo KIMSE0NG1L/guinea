@@ -23,7 +23,7 @@ import { CookbookScreen } from "./screens/CookbookScreen";
 import { getCookbookProgress, isCookbookComplete } from "./state/cookbook";
 import { CookbookEnding } from "./components/CookbookEnding";
 import { TutorialOverlay } from "./components/TutorialOverlay";
-import { BagFullToast } from "./components/BagFullToast";
+import { BagFullModal } from "./components/BagFullModal";
 import { FirstClearCelebration } from "./components/FirstClearCelebration";
 import { RecipeTutorial } from "./components/RecipeTutorial";
 import { CookCompleteBurst } from "./components/CookCompleteBurst";
@@ -70,12 +70,6 @@ export function GameScreen() {
   const [playingComic, setPlayingComic] = useState<ComicId | null>(null);
   const markComicSeen = (id: ComicId) =>
     setState((previous) => ({ ...previous, seenComics: [...new Set([...(previous.seenComics ?? []), id])] }));
-  const [bagFullNotice, setBagFullNotice] = useState(false);
-  useEffect(() => {
-    if (!bagFullNotice) return;
-    const timer = setTimeout(() => setBagFullNotice(false), 2500);
-    return () => clearTimeout(timer);
-  }, [bagFullNotice]);
   const cookingPots = getCookingPots(state.cookingPots);
   const collectCount = useRef(0);
   const onCollect = (potIndex: number, rush = false) => {
@@ -86,7 +80,7 @@ export function GameScreen() {
       collectCount.current += 1;
       setCollected({ key: collectCount.current, recipeId, great: result === "great", isNew });
     }
-    setBagFullNotice(result === "full");
+    if (result === "full") game.notifyBagFull();
   };
   const collectedRecipe = collected && RECIPES.find((recipe) => recipe.id === collected.recipeId);
 
@@ -176,7 +170,6 @@ export function GameScreen() {
             now={game.now}
             gems={state.gems}
             rushDiscount={game.foodBuffs.rushDiscount}
-            bagFullNotice={bagFullNotice}
             onCook={game.cook}
             onCollect={onCollect}
             onRush={(potIndex) => onCollect(potIndex, true)}
@@ -304,7 +297,7 @@ export function GameScreen() {
           />
         )}
         {game.bagFullAt !== null && (
-          <BagFullToast key={game.bagFullAt} onOpenBag={() => onSelectTab("inventory")} onDone={game.dismissBagFull} />
+          <BagFullModal onOpenBag={() => onSelectTab("inventory")} onClose={game.dismissBagFull} />
         )}
         {/* Waits for the save to load (so returning players never see it flash) and for the offline popup. */}
         {/* A brand-new game opens on the story comic, then the tutorial picks up after it. */}
