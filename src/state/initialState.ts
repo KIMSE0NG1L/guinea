@@ -1,5 +1,4 @@
 import type { GameState } from "../types";
-import { buildQuest, QUEST_ORDER } from "./quests";
 import { getStageLabel } from "./stages";
 
 export const DEFAULT_NICKNAME = "꼬질꼬질 기니";
@@ -31,7 +30,8 @@ export const initialState: GameState = {
   buffSlotsUnlocked: 1,
   discoveredItems: [],
   equipment: { weapon: null, hat: null, armor: null, accessory: null },
-  quests: QUEST_ORDER.map((id) => buildQuest(id, 0, 0)),
+  quests: [],
+  questClaimed: [],
   kills: 0,
   totalGoldEarned: 0,
   attackUpgrades: 0,

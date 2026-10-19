@@ -273,7 +273,7 @@ export function GameScreen() {
         </ScrollView>
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
         {questOpen && (
-          <QuestModal quests={state.quests} gems={state.gems} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
+          <QuestModal state={state} gems={state.gems} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
         )}
         {game.offlineSummary && (
           <OfflineRewardModal

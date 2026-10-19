@@ -14,6 +14,7 @@ import { ConfirmModal } from "../components/ConfirmModal";
 import { BUFF_SLOT_PRICES } from "../state/buffs";
 import type { EnemyKind } from "../types";
 import { getCookingPots } from "../state/cooking";
+import { hasClaimableQuest } from "../state/quests";
 import { RECIPES } from "../state/recipes";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
@@ -67,7 +68,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         stageAdvance={game.stageAnnouncement}
         stageLabel={boss ? `${stageLabel} · 보스` : stageLabel}
         stageKills={state.stageKills}
-        questReady={state.quests.some((quest) => quest.current >= quest.target && !quest.claimed)}
+        questReady={hasClaimableQuest(state)}
         onQuest={() => game.setQuestOpen(true)}
         outfit={state.equippedOutfit}
         manualEnabled={!battle.isAutoBattle}

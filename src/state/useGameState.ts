@@ -6,18 +6,17 @@ import { initialState } from "./initialState";
 import { applyUpgradeLevels, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
-import { advanceQuest, migrateQuests } from "./quests";
+import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
 import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
-import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES, STARTER_RECIPES } from "./recipes";
-import { getCookbookProgress } from "./cookbook";
+import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
-import { simulateOfflineProgress, type OfflineSummary } from "./offline";
+import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./offline";
 
 export type DropEvent = { id: number; name: string; delay: number };
 
@@ -130,9 +129,8 @@ export function useGameState() {
         const inventory = save.state.inventory
           .filter((item) => !retiredItems.includes(item.name))
           .map((item) => (renamedItems[item.name] ? { ...item, name: renamedItems[item.name] } : item));
-        // Re-reads titles/targets/gem rewards from the quest ladders (older saves had
-        // one-shot gold quests).
-        const quests = migrateQuests(save.state.quests);
+        // Quest claims now live in questClaimed (older saves kept them on quest rows).
+        const questClaimed = migrateQuestClaims(save.state);
         // 당근 수프 used to be the free starter recipe; there is none now (the first one is
         // bought in the recipe tutorial), so saves from before that drop the freebie — once.
         // Those saves are the ones with no recipeTutorialDone field yet; it's filled in below,
@@ -148,14 +146,15 @@ export function useGameState() {
         // in the bag as a dish was clearly cooked, so that's the starting page count.
         const cookedRecipes =
           save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
-        // The cookbook quest counts pages from the cooked-recipe record (new to older saves).
-        const questsWithBook = quests.map((quest) => (quest.id === "cookbook" ? { ...quest, current: getCookbookProgress(cookedRecipes) } : quest));
-        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, quests: questsWithBook, knownRecipes, recipeTutorialDone, discoveredItems, cookedRecipes };
+        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, questClaimed, knownRecipes, recipeTutorialDone, discoveredItems, cookedRecipes };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
-          const result = simulateOfflineProgress(loadedState, Date.now() - save.lastSeenAt);
+          const awayMs = Date.now() - save.lastSeenAt;
+          const result = simulateOfflineProgress(loadedState, awayMs);
           if (result) {
             loadedState = result.state;
+            // Away the full offline cap or longer: a "slept the whole time" for the hidden quest.
+            if (awayMs >= MAX_OFFLINE_MS) loadedState = { ...loadedState, longNaps: (loadedState.longNaps ?? 0) + 1 };
             setOfflineSummary(result.summary);
           }
         }
@@ -327,13 +326,6 @@ export function useGameState() {
         bossKills,
         level,
         experience,
-        quests: previous.quests.map((quest) => {
-          if (quest.id === "kills") return { ...quest, current: kills };
-          if (quest.id === "gold") return { ...quest, current: totalGoldEarned };
-          if (quest.id === "bossKills") return { ...quest, current: bossKills };
-          if (quest.id === "stage") return { ...quest, current: highestStageNumber };
-          return quest;
-        }),
       };
     });
   }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, state.bossesCleared, state.highestStageNumber, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus]);
@@ -346,7 +338,6 @@ export function useGameState() {
         ...previous,
         gold: previous.gold + amount,
         totalGoldEarned,
-        quests: previous.quests.map((quest) => (quest.id === "gold" ? { ...quest, current: totalGoldEarned } : quest)),
       };
     });
   }, []);
@@ -359,7 +350,7 @@ export function useGameState() {
     const gold = Math.max(1, Math.round(mobGold / 4));
     const gems = Math.random() < FLYING_COIN_GEM_CHANCE ? FLYING_COIN_GEMS : 0;
     addBonusGold(gold);
-    if (gems > 0) setState((previous) => ({ ...previous, gems: previous.gems + gems }));
+    setState((previous) => ({ ...previous, gems: previous.gems + gems, coinsCaught: (previous.coinsCaught ?? 0) + 1 }));
     return { gold, gems };
   };
 
@@ -381,6 +372,8 @@ export function useGameState() {
     speedMultiplier: battleSpeed,
     onDefeat: handleEnemyDefeat,
     onBonusGold: addBonusGold,
+    // Only 테토기니 whiffs; each one counts toward the hidden 헛스윙 quests.
+    onMiss: () => setState((previous) => (previous.equippedOutfit === "tetoGini" ? { ...previous, tetoMisses: (previous.tetoMisses ?? 0) + 1 } : previous)),
     equippedSkill: state.equippedSkill ?? null,
   });
 
@@ -432,26 +425,14 @@ export function useGameState() {
           [key]: previousLevels[key] + quote.levels,
         },
         attackUpgrades,
-        quests: previous.quests.map((quest) =>
-          quest.id === "attack" ? { ...quest, current: attackUpgrades } : quest
-        ),
       };
     });
     setUpgraded(key);
     setTimeout(() => setUpgraded(null), 400);
   };
 
-  const claimQuest = (id: string) => {
-    setState((previous) => {
-      const quest = previous.quests.find((item) => item.id === id);
-      if (!quest || quest.claimed || quest.current < quest.target) return previous;
-      return {
-        ...previous,
-        gems: previous.gems + quest.reward,
-        quests: previous.quests.map((item) => (item.id === id ? advanceQuest(item) : item)),
-      };
-    });
-  };
+  const claimQuest = (id: string) =>
+    setState((previous) => (/^c\d+-/.test(id) ? claimMission(previous, id) : claimHiddenQuest(previous, id)));
 
   const selectStage = (stageNumber: number) => {
     const highestStageNumber = state.highestStageNumber ?? state.stageNumber;
@@ -467,9 +448,6 @@ export function useGameState() {
       stageKills: 0,
       highestStageNumber,
       selectedTab: "battle",
-      quests: previous.quests.map((quest) =>
-        quest.id === "stage" ? { ...quest, current: highestStageNumber } : quest
-      ),
     }));
     battle.resetEnemy(getEnemyMaxHp(stageNumber, false));
   };
@@ -513,6 +491,7 @@ export function useGameState() {
       dropNoticeShownRef.current = true;
     }
     setBagFullAt(Date.now());
+    setState((previous) => ({ ...previous, bagFullCount: (previous.bagFullCount ?? 0) + 1 }));
   }
 
   // Spends the recipe's ingredients from the bag and adds one of the dish.
@@ -579,11 +558,6 @@ export function useGameState() {
         cookingPots: pots.map((item, index) => (index === potIndex ? null : item)),
         cookedRecipes,
         dishesCooked,
-        quests: previous.quests.map((quest) => {
-          if (quest.id === "cook") return { ...quest, current: dishesCooked };
-          if (quest.id === "cookbook") return { ...quest, current: getCookbookProgress(cookedRecipes) };
-          return quest;
-        }),
       };
     });
     return great ? "great" : "ok";
@@ -663,14 +637,10 @@ export function useGameState() {
       const previousKnown = getKnownRecipes(previous.knownRecipes);
       if (previousKnown.includes(recipeId) || previous.gold < recipe.price) return previous;
       const knownRecipes = [...previousKnown, recipeId];
-      const learnedCount = knownRecipes.filter((id) => !STARTER_RECIPES.includes(id)).length;
       return {
         ...previous,
         gold: previous.gold - recipe.price,
         knownRecipes,
-        quests: previous.quests.map((quest) =>
-          quest.id === "recipe" ? { ...quest, current: learnedCount } : quest
-        ),
       };
     });
     return true;
@@ -699,11 +669,6 @@ export function useGameState() {
           .map((item) => (item === dish ? { ...item, quantity: item.quantity - 1 } : item))
           .filter((item) => item.quantity > 0),
         dishesEaten,
-        quests: previous.quests.map((quest) => {
-          if (quest.id === "buff") return { ...quest, current: dishesEaten };
-          if (quest.id === "gold") return { ...quest, current: totalGoldEarned };
-          return quest;
-        }),
       };
     });
     playSfx("levelup");
@@ -742,9 +707,6 @@ export function useGameState() {
           index === slotIndex ? { recipeId, expiresAt: startedAt + durationMs, durationMs } : slot,
         ),
         dishesEaten,
-        quests: previous.quests.map((quest) =>
-          quest.id === "buff" ? { ...quest, current: dishesEaten } : quest
-        ),
       };
     });
     setNow(startedAt);
@@ -811,7 +773,6 @@ export function useGameState() {
           ...previous,
           gold: previous.gold + bonus,
           totalGoldEarned,
-          quests: previous.quests.map((quest) => (quest.id === "gold" ? { ...quest, current: totalGoldEarned } : quest)),
         };
       });
       setOfflineSummary(null);

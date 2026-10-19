@@ -46,6 +46,7 @@ export function useAutoBattle({
   speedMultiplier = 1,
   onDefeat,
   onBonusGold,
+  onMiss,
   equippedSkill,
 }: {
   attack: number;
@@ -75,6 +76,8 @@ export function useAutoBattle({
   onDefeat: (goldReward: number) => void;
   // Gold earned outside a kill (the Steal skill's per-hit scatter).
   onBonusGold: (amount: number) => void;
+  // Called on every whiffed strike (for the hidden "missed N times" quest).
+  onMiss?: () => void;
   equippedSkill: SkillId | null;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
@@ -125,6 +128,7 @@ export function useAutoBattle({
   const speedMultiplierRef = useRef(speedMultiplier);
   const onDefeatRef = useRef(onDefeat);
   const onBonusGoldRef = useRef(onBonusGold);
+  const onMissRef = useRef(onMiss);
   const equippedSkillRef = useRef(equippedSkill);
   const skillTimersRef = useRef(INITIAL_SKILL_TIMERS);
   // Pose timers for manual taps — cut short by a kill or by switching to auto.
@@ -155,6 +159,7 @@ export function useAutoBattle({
   // swing never reaches dealDamage, so nothing else about the hit (hp, steal, execute) runs.
   const pushMissEvent = useCallback(() => {
     const id = ++eventIdRef.current;
+    onMissRef.current?.();
     setDamageEvents((events) => [...events, { id, amount: 0, critical: false, missed: true }]);
     const timer = setTimeout(() => {
       setDamageEvents((events) => events.filter((event) => event.id !== id));
@@ -190,6 +195,7 @@ export function useAutoBattle({
     speedMultiplierRef.current = speedMultiplier;
     onDefeatRef.current = onDefeat;
     onBonusGoldRef.current = onBonusGold;
+    onMissRef.current = onMiss;
     equippedSkillRef.current = equippedSkill;
     phaseRef.current = phase;
   });

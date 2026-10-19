@@ -671,6 +671,19 @@ export const food = {
   omija: require("../assets/food/omija.png"),
   strawberry: require("../assets/food/strawberry.png"),
   chamoe: require("../assets/food/chamoe.png"),
+  // Nuts.
+  almond: require("../assets/food/almond.png"),
+  walnut: require("../assets/food/walnut.png"),
+  cashew: require("../assets/food/cashew.png"),
+  pistachio: require("../assets/food/pistachio.png"),
+  hazelnut: require("../assets/food/hazelnut.png"),
+  macadamia: require("../assets/food/macadamia.png"),
+  pecan: require("../assets/food/pecan.png"),
+  peanut: require("../assets/food/peanut.png"),
+  pineNut: require("../assets/food/pine-nut.png"),
+  chestnut: require("../assets/food/chestnut.png"),
+  ginkgo: require("../assets/food/ginkgo.png"),
+  brazilNut: require("../assets/food/brazil-nut.png"),
   // Grains and beans.
   brownRice: require("../assets/food/brown-rice.png"),
   blackRice: require("../assets/food/black-rice.png"),
@@ -753,6 +766,7 @@ export const shopImages = {
   tabCream: require("../assets/shop/tab-cream.png"),
   tabRed: require("../assets/shop/tab-red.png"),
   arrowBack: require("../assets/shop/arrow-back.png"),
+  arrowBackGray: require("../assets/shop/arrow-back-gray.png"),
 };
 
 export const chef = {

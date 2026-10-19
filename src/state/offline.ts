@@ -22,7 +22,7 @@ const AVG_HIT_INTERVAL_MS = 860;
 const MOB_RESPAWN_MS = 650 + 220;
 
 // Caps how much time away actually counts, and ignores trivial app switches.
-const MAX_OFFLINE_MS = 8 * 60 * 60 * 1000;
+export const MAX_OFFLINE_MS = 8 * 60 * 60 * 1000;
 const MIN_OFFLINE_MS = 30 * 1000;
 
 function expectedDamage(attack: number, criticalChance: number, criticalDamage: number) {
@@ -119,11 +119,6 @@ export function simulateOfflineProgress(
     experience,
     level,
     stageKills,
-    quests: state.quests.map((quest) => {
-      if (quest.id === "kills") return { ...quest, current: kills };
-      if (quest.id === "gold") return { ...quest, current: totalGoldEarned };
-      return quest;
-    }),
   };
 
   return {

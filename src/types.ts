@@ -83,7 +83,19 @@ export interface GameState {
   // state/cookbook.ts). Older saves are seeded from the dishes in their bag on load.
   cookedRecipes?: string[];
   equipment: Record<string, string | null>;
+  // Legacy quest rows (ladder / first chapter system) — only read to migrate claims.
   quests: Quest[];
+  questChapter?: number;
+  // 골목 퀘스트 mission ids already claimed (state/quests.ts); missing on older saves.
+  questClaimed?: string[];
+  // Winged coins caught in battle (a chapter mission); missing on older saves.
+  coinsCaught?: number;
+  // Quirk counters behind the hidden quests; all missing on older saves.
+  tetoMisses?: number;
+  bagFullCount?: number;
+  longNaps?: number;
+  // Hidden quest ids already claimed.
+  hiddenClaimed?: string[];
   kills: number;
   totalGoldEarned: number;
   attackUpgrades: number;

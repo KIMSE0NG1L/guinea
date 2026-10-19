@@ -66,6 +66,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "감자", chance: 0.4 },
       { name: "양파", chance: 0.15 },
+      { name: "땅콩", chance: 0.15 },
     ],
     boss: [
       { name: "감자", chance: 1, quantity: 4 },
@@ -85,6 +86,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "결 고운 생선살", chance: 0.5 },
       { name: "우유", chance: 0.4 },
       { name: "귤", chance: 0.4 },
+      { name: "호두", chance: 0.4 },
     ],
   },
   // 부잣집 주방: pots of pork belly; the fridge is packed with the good cuts.
@@ -149,6 +151,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "망고", chance: 0.5 },
       { name: "코코넛", chance: 0.4 },
       { name: "석류", chance: 0.3 },
+      { name: "캐슈넛", chance: 0.4 },
     ],
   },
   // 오아시스: carp from the pool, palm coconuts; the dragon carp's prized roe.
@@ -161,6 +164,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "반짝 생선알", chance: 1, quantity: 2 },
       { name: "결 고운 생선살", chance: 0.6 },
       { name: "분홍 생선살", chance: 0.4 },
+      { name: "브라질너트", chance: 0.3 },
     ],
   },
   // 사막: salt crusts and green apples from the cactus patches; the camel's pack still
@@ -183,11 +187,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "토마토", chance: 0.3 },
       { name: "불꽃 고추", chance: 0.15 },
       { name: "레몬", chance: 0.15 },
+      { name: "피스타치오", chance: 0.15 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
       { name: "뼈 갈빗살", chance: 0.6 },
       { name: "치즈", chance: 0.4 },
+      { name: "아몬드", chance: 0.5 },
     ],
   },
   // 밤의 실크로드: caravan dairy and cured goods left out under the lanterns; the haunted
@@ -252,6 +258,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "당근", chance: 0.3 },
       { name: "우유", chance: 0.15 },
+      { name: "잣", chance: 0.15 },
     ],
     boss: [
       { name: "뼈 갈빗살", chance: 1, quantity: 2 },
@@ -270,6 +277,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "두툼 살코기", chance: 1, quantity: 2 },
       { name: "뼈 갈빗살", chance: 0.6 },
       { name: "소금 결정", chance: 0.4 },
+      { name: "밤", chance: 0.5 },
     ],
   },
   // 진달래길: 꽃뱀이 꽃가루와 함께 핥고 다니는 봄나물; 구미호는 정자에서 나그네들에게
@@ -336,6 +344,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "우유", chance: 0.3 },
       { name: "유부", chance: 0.2 },
       { name: "매실", chance: 0.15 },
+      { name: "은행", chance: 0.15 },
     ],
     boss: [
       { name: "결 고운 생선살", chance: 1, quantity: 2 },
@@ -440,6 +449,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "계란", chance: 0.3 },
       { name: "우유", chance: 0.15 },
+      { name: "헤이즐넛", chance: 0.15 },
     ],
     boss: [
       { name: "계란", chance: 1, quantity: 2 },
@@ -471,6 +481,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "우유", chance: 1, quantity: 2 },
       { name: "계란", chance: 0.6 },
       { name: "로열 젤리", chance: 0.4 },
+      { name: "피칸", chance: 0.4 },
     ],
   },
   // 홍차 정원: 찻잔 토끼가 홍차에 타 마시는 우유와 풋사과; 티포트 공작부인은 티 테이블의 우유와 레몬, 스콘용 계란을 떨어뜨린다.
@@ -483,6 +494,7 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "우유", chance: 1, quantity: 2 },
       { name: "레몬", chance: 0.6 },
       { name: "계란", chance: 0.4 },
+      { name: "마카다미아", chance: 0.4 },
     ],
   },
   // 소시지 축제 마을: 프레첼 꼬마가 축제 가판대에서 굴려 온 감자와 양배추; 소시지 악단장 곰은 소시지를 만들던 고기와 양파, 감자를 떨어뜨린다.
