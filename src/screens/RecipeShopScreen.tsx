@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
-import { StrokedText } from "../components/StrokedText";
 import { useShake } from "../components/motion";
 import { colors, fonts } from "../theme";
 import { chef, grandma, shopKit } from "../assets";
@@ -34,8 +33,8 @@ export function RecipeShopScreen({
   const { talk, say } = useShopTalk(GREETING);
   const known = getKnownRecipes(knownRecipes);
 
-  // Card order is fixed when the shop opens, so a recipe learned here stays put for its
-  // stamp instead of jumping to the bottom.
+  // Card order is fixed when the shop opens, so a recipe learned here stays put instead
+  // of jumping to the bottom.
   const rank = (recipe: (typeof RECIPES)[number]) => (known.includes(recipe.id) ? 2 : isRecipeForSale(recipe, clearedStages) ? 0 : 1);
   const [order] = useState(() => [...RECIPES].sort((a, b) => rank(a) - rank(b)).map((recipe) => recipe.id));
 
@@ -84,7 +83,7 @@ export function RecipeShopScreen({
   );
 }
 
-// One recipe for sale. Learning it unrolls the scroll and thumps a "배움!" stamp on it; a
+// One recipe for sale. Learning it unrolls the scroll; a
 // sealed hidden recipe glows softly now and then; short gold rattles the button.
 function RecipeCard({
   recipe,
@@ -105,14 +104,12 @@ function RecipeCard({
   const sealed = recipe.tier === "hidden" && !learned;
   const [learnedAtOpen] = useState(learned);
   const unroll = useSharedValue(1);
-  const stamp = useSharedValue(0);
   const glow = useSharedValue(0);
   const { style: shakeStyle, shake } = useShake();
 
   useEffect(() => {
     if (!learned || learnedAtOpen) return;
     unroll.value = withSequence(withTiming(0.15, { duration: 0 }), withTiming(1, { duration: 420, easing: Easing.out(Easing.back(1.6)) }));
-    stamp.value = withDelay(300, withSequence(withTiming(1.6, { duration: 0 }), withTiming(1, { duration: 180, easing: Easing.in(Easing.quad) }), withDelay(1300, withTiming(0, { duration: 300 }))));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [learned]);
   useEffect(() => {
@@ -121,7 +118,6 @@ function RecipeCard({
   }, [sealed]);
 
   const unrollStyle = useAnimatedStyle(() => ({ transform: [{ scaleY: unroll.value }] }));
-  const stampStyle = useAnimatedStyle(() => ({ opacity: stamp.value === 0 ? 0 : 1, transform: [{ scale: stamp.value || 1 }, { rotate: "-14deg" }] }));
   const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value * 0.6, transform: [{ scale: 0.9 + glow.value * 0.2 }] }));
 
   return (
@@ -132,11 +128,6 @@ function RecipeCard({
       <Animated.View style={[learned && styles.artLearned, unrollStyle]}>
         {sealed && <Animated.View style={[styles.sealGlow, glowStyle]} pointerEvents="none" />}
         <RecipeArt recipe={recipe} size={72} sealed={sealed} />
-      </Animated.View>
-      <Animated.View style={[styles.stamp, stampStyle]} pointerEvents="none">
-        <StrokedText style={styles.stampText} strokeColor={colors.line} strokeWidth={1.5}>
-          배움!
-        </StrokedText>
       </Animated.View>
       <Text style={styles.name}>{sealed ? "???" : recipe.name}</Text>
       <View style={styles.ingredients}>
@@ -187,19 +178,6 @@ const styles = StyleSheet.create({
   buttonWrap: { marginTop: 8, alignSelf: "stretch" },
   button: { minHeight: 34 },
   sealGlow: { position: "absolute", top: -6, left: -6, right: -6, bottom: -6, borderRadius: 40, backgroundColor: "#ffe27a" },
-  stamp: {
-    position: "absolute",
-    top: 38,
-    alignSelf: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: colors.line,
-    backgroundColor: colors.red,
-    zIndex: 2,
-  },
-  stampText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   buttonText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   buttonTextLearned: { color: colors.green },
   buttonTextOff: { color: "#4f463c" },
