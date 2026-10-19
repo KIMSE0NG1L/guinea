@@ -9,16 +9,18 @@ import { COMIC_ORDER, COMICS, getComicUnlockLabel, getUnlockedComics, type Comic
 // on tap (a "NEW" tag until watched); the rest stay covered with what opens them.
 export function ComicsScreen({
   clearedStages,
+  allUnlocked,
   seenComics,
   onPlay,
   onBack,
 }: {
   clearedStages: number[];
+  allUnlocked: boolean;
   seenComics: string[] | undefined;
   onPlay: (id: ComicId) => void;
   onBack: () => void;
 }) {
-  const unlocked = getUnlockedComics(clearedStages);
+  const unlocked = getUnlockedComics(clearedStages, allUnlocked);
   const seen = new Set(seenComics ?? []);
 
   return (

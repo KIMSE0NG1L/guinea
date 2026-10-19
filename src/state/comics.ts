@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -311,16 +311,822 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  // Reaching stage 8 (stage 7's 폭식 냉장고 down): the fridge is bare but for a fish
+  // delivery slip, the cookbook opens on its seafood pages, and a pelican's delivery cart
+  // runs the pair down to the harbor beach.
+  harbor: {
+    title: "생선 배달 수레를 타고",
+    panels: [
+      {
+        image: comics.harbor1,
+        aspect: 512 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "냉장고가...\n텅 비었어?", left: 0.02, top: 0.08, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+          { text: "쪽지가 있어!\n생선 그림이네?", left: 0.36, top: 0.04, maxWidth: 0.32, tail: "bottom", tailAt: 0.2 },
+        ],
+      },
+      {
+        image: comics.harbor2,
+        aspect: 512 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "꽃게, 조개, 생선구이...!", left: 0.02, top: 0.04, maxWidth: 0.4, tail: "bottom", tailAt: 0.5 },
+          { text: "요리책에\n바다 요리가 있어!", right: 0.02, top: 0.04, maxWidth: 0.34, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.harbor3,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "항구까지 배달 갑니다~", right: 0.02, top: 0.08, maxWidth: 0.36, tail: "bottom", tailAt: 0.4 },
+          { text: "꽉 잡아!", left: 0.06, top: 0.06, maxWidth: 0.24, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.harbor4,
+        aspect: 512 / 768,
+        sfx: "bossEnter",
+        bubbles: [
+          { text: "바다다!!!", left: 0.24, top: 0.06, maxWidth: 0.28, tail: "bottom", tailAt: 0.4, shout: true },
+          { text: "해산물 잔뜩 모으자!", right: 0.04, top: 0.22, maxWidth: 0.32, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
+  // Reaching stage 9 (stage 8's 킹크랩 down): a grateful sea turtle, 탐험기니's map of a
+  // sunken ship, bubble helmets, and a dive down to the coral reef.
+  dive: {
+    title: "거북 등을 타고 바닷속으로",
+    panels: [
+      {
+        image: comics.dive1,
+        aspect: 512 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "고마워, 꼬마들.\n그 게가 내 해초밭을\n다 뜯어 먹었거든.", right: 0.02, top: 0.04, maxWidth: 0.36, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.dive2,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "지도에 침몰선이 있어!", left: 0.02, top: 0.06, maxWidth: 0.34, tail: "bottom", tailAt: 0.5 },
+          { text: "근데 우리...\n수영 못하잖아?", right: 0.04, top: 0.08, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.dive3,
+        aspect: 512 / 768,
+        sfx: "uiToggle",
+        bubbles: [
+          { text: "등에 꽉 붙어 있으렴!", right: 0.04, top: 0.08, maxWidth: 0.34, tail: "bottom", tailAt: 0.3 },
+          { text: "뽀글뽀글...", left: 0.06, top: 0.06, maxWidth: 0.24, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.dive4,
+        aspect: 512 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "보물선이다...!", right: 0.06, top: 0.06, maxWidth: 0.28, tail: "bottom", tailAt: 0.3 },
+          { text: "생선이 이렇게 많다니!", left: 0.04, top: 0.06, maxWidth: 0.34, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+    ],
+  },
+  // Reaching stage 16 (stage 15's 귀신들린 염소 down): a city on the clouds glimpsed over the
+  // night dunes; a camel kite-maker lends his dragon kite and the desert wind does the rest.
+  kite: {
+    title: "용 연을 타고 구름 위로",
+    panels: [
+      {
+        image: comics.kite1,
+        aspect: 512 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "저기... 구름 위에\n도시가 있어?!", left: 0.02, top: 0.34, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+          { text: "저길 어떻게 가냐.", left: 0.36, top: 0.04, maxWidth: 0.28, tail: "bottom", tailAt: 0.1 },
+        ],
+      },
+      {
+        image: comics.kite2,
+        aspect: 512 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "내 용 연을 빌려주마.\n바람 좋은 밤이야.", right: 0.02, top: 0.04, maxWidth: 0.36, tail: "bottom", tailAt: 0.5 },
+          { text: "우와...!", left: 0.04, top: 0.4, maxWidth: 0.2, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.kite3,
+        aspect: 512 / 768,
+        sfx: "bossEnter",
+        shake: true,
+        bubbles: [
+          { text: "으아아 높아!!!", left: 0.02, top: 0.06, maxWidth: 0.3, tail: "right", tailAt: 0.6, shout: true },
+          { text: "야호~!", left: 0.3, top: 0.62, maxWidth: 0.2, tail: "top", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.kite4,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "여기가 죽운성...!", left: 0.02, top: 0.08, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+          { text: "...구름 위에 성이라니.", right: 0.04, top: 0.36, maxWidth: 0.34, tail: "bottom", tailAt: 0.2 },
+        ],
+      },
+    ],
+  },
+  // Reaching stage 18 (stage 17's 죽순중독 판다 down): down the cloud stairs into a blizzard —
+  // 테토기니's sunglasses frost over — until a badger peddler hands out knitted hats for
+  // the snowy pass.
+  snowpass: {
+    title: "눈보라 고개를 넘어",
+    panels: [
+      {
+        image: comics.snowpass1,
+        aspect: 512 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "이제 내려가자!", left: 0.3, top: 0.04, maxWidth: 0.28, tail: "bottom", tailAt: 0.2 },
+          { text: "계단 끝이\n안 보이는데...", right: 0.04, top: 0.04, maxWidth: 0.28, tail: "bottom", tailAt: 0.1 },
+        ],
+      },
+      {
+        image: comics.snowpass2,
+        aspect: 512 / 768,
+        sfx: "bossEnter",
+        shake: true,
+        bubbles: [
+          { text: "아, 앞이 안 보여...!", left: 0.4, top: 0.06, maxWidth: 0.32, tail: "bottom", tailAt: 0.5, shout: true },
+          { text: "추, 추워...!", left: 0.02, top: 0.34, maxWidth: 0.24, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.snowpass3,
+        aspect: 512 / 768,
+        sfx: "cookDone",
+        bubbles: [
+          { text: "고개 넘으려면\n이거 쓰고 가거라.", left: 0.5, top: 0.02, maxWidth: 0.32, tail: "left", tailAt: 0.6 },
+          { text: "...좀 작은데.", left: 0.44, top: 0.86, maxWidth: 0.24, tail: "top", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.snowpass4,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "저 산문 너머가\n설산이야!", left: 0.04, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+          { text: "가자!", left: 0.56, top: 0.28, maxWidth: 0.18, tail: "bottom", tailAt: 0.4, shout: true },
+        ],
+      },
+    ],
+  },
+  // Reaching stage 11 (stage 10's 용암 슬라임 down): the volcano blows, 테토기니 shoulders a
+  // whole raft's worth of palm logs, a giant wave carries them off, and they wash up on the
+  // jungle beach — straight into the monkeys' banana-peel pranks.
+  jungle: {
+    title: "화산섬 탈출",
+    panels: [
+      {
+        image: comics.jungle1,
+        aspect: 512 / 768,
+        sfx: "bossEnter",
+        shake: true,
+        bubbles: [
+          { text: "화, 화산이 터진다!", left: 0.02, top: 0.3, maxWidth: 0.3, tail: "bottom", tailAt: 0.3, shout: true },
+          { text: "섬을 빠져나가야 해!", left: 0.3, top: 0.04, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.jungle2,
+        aspect: 512 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "뗏목? 금방이지.", left: 0.3, top: 0.03, maxWidth: 0.28, tail: "bottom", tailAt: 0.8 },
+          { text: "통나무를...\n한 손으로?!", left: 0.02, top: 0.3, maxWidth: 0.28, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.jungle3,
+        aspect: 512 / 768,
+        sfx: "crit",
+        shake: true,
+        bubbles: [
+          { text: "요리책만은\n못 놓쳐!", left: 0.02, top: 0.04, maxWidth: 0.28, tail: "bottom", tailAt: 0.4 },
+          { text: "노 저어!!!", left: 0.5, top: 0.06, maxWidth: 0.24, tail: "bottom", tailAt: 0.3, shout: true },
+        ],
+      },
+      {
+        image: comics.jungle4,
+        aspect: 512 / 768,
+        sfx: "uiToggle",
+        bubbles: [
+          { text: "끼끼끽!", left: 0.3, top: 0.05, maxWidth: 0.2, tail: "left", tailAt: 0.6 },
+          { text: "...여긴 또 어디야.", left: 0.34, top: 0.44, maxWidth: 0.3, tail: "left", tailAt: 0.7 },
+        ],
+      },
+    ],
+  },
+  cavevillage: {
+    title: "동굴 밖 마을로",
+    panels: [
+      {
+        image: comics.cavevillage1,
+        aspect: 502 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "출구는 이쪽이야!", left: 0.3, top: 0.1, maxWidth: 0.4, tail: "bottom", tailAt: 0.35 },
+        ],
+      },
+      {
+        image: comics.cavevillage2,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "눈부셔...!", left: 0.05, top: 0.15, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.cavevillage3,
+        aspect: 501 / 768,
+        bubbles: [
+          { text: "밀가루에\n쥐 발자국!", left: 0.02, top: 0.1, maxWidth: 0.34, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.cavevillage4,
+        aspect: 501 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "빵 냄새...", left: 0.3, top: 0.06, maxWidth: 0.28, tail: "bottom", tailAt: 0.4 },
+          { text: "쥐부터 잡자고!", right: 0.02, top: 0.04, maxWidth: 0.32, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+    ],
+  },
+  cloudpalace: {
+    title: "판다와 죽순 만두",
+    panels: [
+      {
+        image: comics.cloudpalace1,
+        aspect: 503 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "죽순...\n내 죽순...", left: 0.4, top: 0.12, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.cloudpalace2,
+        aspect: 504 / 768,
+        bubbles: [
+          { text: "같이 먹자!", left: 0.02, top: 0.1, maxWidth: 0.28, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.cloudpalace3,
+        aspect: 505 / 768,
+        bubbles: [
+          { text: "누각에\n거북신령님이 계시지.", right: 0.03, top: 0.05, maxWidth: 0.4, tail: "left", tailAt: 0.8 },
+        ],
+      },
+      {
+        image: comics.cloudpalace4,
+        aspect: 506 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "계단이...\n끝이 없다.", left: 0.02, top: 0.3, maxWidth: 0.28, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+    ],
+  },
+  farmchicken: {
+    title: "당근 거인의 길 안내",
+    panels: [
+      {
+        image: comics.farmchicken1,
+        aspect: 503 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "미안하다, 꼬마야...", right: 0.03, top: 0.03, maxWidth: 0.4, tail: "bottom", tailAt: 0.4 },
+          { text: "쥐 못 봤어?", left: 0.03, top: 0.3, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.farmchicken2,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "쥐라면\n저 닭장 쪽으로 갔다.", left: 0.02, top: 0.03, maxWidth: 0.4, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.farmchicken3,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "쉿...\n조용히...", left: 0.45, top: 0.25, maxWidth: 0.26, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.farmchicken4,
+        aspect: 500 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "꼬꼬꼬꼬!", left: 0.02, top: 0.03, maxWidth: 0.28, tail: "bottom", tailAt: 0.6 },
+          { text: "으아,\n왜 나만!", right: 0.03, top: 0.03, maxWidth: 0.28, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
+  jungleoasis: {
+    title: "정글 끝의 물웅덩이",
+    panels: [
+      {
+        image: comics.jungleoasis1,
+        aspect: 501 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "...다시는\n안 들어가.", left: 0.3, top: 0.1, maxWidth: 0.32, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.jungleoasis2,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "정글이\n끝나 간다...", left: 0.3, top: 0.1, maxWidth: 0.32, tail: "bottom", tailAt: 0.4 },
+          { text: "더워...", left: 0.02, top: 0.3, maxWidth: 0.2, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.jungleoasis3,
+        aspect: 501 / 768,
+        bubbles: [
+          { text: "물... 물...", left: 0.55, top: 0.2, maxWidth: 0.24, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.jungleoasis4,
+        aspect: 501 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "오아시스다!!!", left: 0.1, top: 0.06, maxWidth: 0.4, tail: "bottom", tailAt: 0.3, shout: true },
+        ],
+      },
+    ],
+  },
+  marketsilk: {
+    title: "방울뱀과 대상 행렬",
+    panels: [
+      {
+        image: comics.marketsilk1,
+        aspect: 504 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "내 방울이...", left: 0.45, top: 0.04, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.marketsilk2,
+        aspect: 505 / 768,
+        bubbles: [
+          { text: "밤길은 위험하니\n같이 가세.", left: 0.25, top: 0.05, maxWidth: 0.36, tail: "right", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.marketsilk3,
+        aspect: 504 / 768,
+        bubbles: [
+          { text: "낙타가...\n작다.", left: 0.45, top: 0.05, maxWidth: 0.26, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.marketsilk4,
+        aspect: 505 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "밤엔 귀신이\n나온대...", left: 0.18, top: 0.05, maxWidth: 0.34, tail: "bottom", tailAt: 0.5 },
+          { text: "히익!", left: 0.01, top: 0.22, maxWidth: 0.16, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+    ],
+  },
+  oasisdesert: {
+    title: "잉어의 선물",
+    panels: [
+      {
+        image: comics.oasisdesert1,
+        aspect: 503 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "용이 되는 건...\n내년에.", right: 0.03, top: 0.1, maxWidth: 0.38, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.oasisdesert2,
+        aspect: 504 / 768,
+        bubbles: [
+          { text: "사막을 건너려면\n가져가거라.", right: 0.03, top: 0.03, maxWidth: 0.4, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.oasisdesert3,
+        aspect: 508 / 768,
+        bubbles: [
+          { text: "물은\n내가 든다.", left: 0.02, top: 0.1, maxWidth: 0.26, tail: "right", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.oasisdesert4,
+        aspect: 509 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "사막 시장까지\n가 보자!", left: 0.03, top: 0.08, maxWidth: 0.4, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+    ],
+  },
+  slimeroad: {
+    title: "쥐를 쫓아 숲속으로",
+    panels: [
+      {
+        image: comics.slimeroad1,
+        aspect: 507 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "왕관은 됐고...\n쥐는 어디 갔지?", left: 0.04, top: 0.12, maxWidth: 0.4, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.slimeroad2,
+        aspect: 507 / 768,
+        bubbles: [
+          { text: "발자국이 이쪽으로...", left: 0.08, top: 0.22, maxWidth: 0.36, tail: "bottom", tailAt: 0.35 },
+        ],
+      },
+      {
+        image: comics.slimeroad3,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "으앗, 미끄러워!", right: 0.03, top: 0.06, maxWidth: 0.3, tail: "left", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.slimeroad4,
+        aspect: 502 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "여긴... 버섯 늪?", left: 0.03, top: 0.05, maxWidth: 0.34, tail: "bottom", tailAt: 0.8 },
+          { text: "누구냐!", right: 0.03, top: 0.08, maxWidth: 0.2, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+    ],
+  },
+  swampfarm: {
+    title: "늪을 빠져나오니",
+    panels: [
+      {
+        image: comics.swampfarm1,
+        aspect: 492 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "에, 에취!", left: 0.02, top: 0.05, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.swampfarm2,
+        aspect: 494 / 768,
+        bubbles: [
+          { text: "저기다!\n황금 당근!", left: 0.03, top: 0.12, maxWidth: 0.34, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.swampfarm3,
+        aspect: 511 / 768,
+        bubbles: [
+          { text: "헉... 헉...\n너무 빨라...", left: 0.03, top: 0.1, maxWidth: 0.34, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.swampfarm4,
+        aspect: 511 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "당근이...\n집채만 해!", left: 0.03, top: 0.05, maxWidth: 0.34, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
+  snowvillage: {
+    title: "얼음골렘과 따끈한 국물",
+    panels: [
+      {
+        image: comics.snowvillage1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "춥다...\n나도 춥다...", left: 0.35, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.snowvillage2,
+        aspect: 501 / 768,
+        bubbles: [
+          { text: "따끈한\n국물이야!", left: 0.02, top: 0.2, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.snowvillage3,
+        aspect: 503 / 768,
+        bubbles: [
+          { text: "저 아래 마을...\n감이 달다.", left: 0.3, top: 0.04, maxWidth: 0.36, tail: "left", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.snowvillage4,
+        aspect: 503 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "야호~!", left: 0.08, top: 0.06, maxWidth: 0.22, tail: "bottom", tailAt: 0.8 },
+          { text: "멈춰!!!", right: 0.05, top: 0.08, maxWidth: 0.22, tail: "left", tailAt: 0.7, shout: true },
+        ],
+      },
+    ],
+  },
+  tigerride: {
+    title: "산군의 밤길",
+    panels: [
+      {
+        image: comics.tigerride1,
+        aspect: 507 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "허허,\n제법이구나.", left: 0.45, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.tigerride2,
+        aspect: 507 / 768,
+        bubbles: [
+          { text: "밤길은\n내가 데려다주마.", left: 0.02, top: 0.1, maxWidth: 0.32, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.tigerride3,
+        aspect: 507 / 768,
+        bubbles: [
+          { text: "모자,\n내 모자!", left: 0.02, top: 0.05, maxWidth: 0.26, tail: "right", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.tigerride4,
+        aspect: 507 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "주막이다!\n국밥 냄새!", left: 0.03, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+    ],
+  },
+  foxpath: {
+    title: "구미호의 지름길",
+    panels: [
+      {
+        image: comics.foxpath1,
+        aspect: 500 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "흥, 들켰네.", right: 0.03, top: 0.04, maxWidth: 0.26, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.foxpath2,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "고마워요,\n여우님.", right: 0.02, top: 0.8, maxWidth: 0.26, tail: "top", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.foxpath3,
+        aspect: 505 / 768,
+        bubbles: [
+          { text: "여우불이\n길을 비춰 줘...", left: 0.02, top: 0.12, maxWidth: 0.32, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.foxpath4,
+        aspect: 505 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "궁궐 앞 장터야!", left: 0.02, top: 0.06, maxWidth: 0.32, tail: "bottom", tailAt: 0.6 },
+          { text: "쌀가마가\n많다.", left: 0.5, top: 0.08, maxWidth: 0.24, tail: "left", tailAt: 0.8 },
+        ],
+      },
+    ],
+  },
+  chiliport: {
+    title: "고춧가루 대감의 재채기",
+    panels: [
+      {
+        image: comics.chiliport1,
+        aspect: 500 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "에취! 에취!", left: 0.02, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.chiliport2,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "...이래서\n복면을 쓴다.", left: 0.5, top: 0.05, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.chiliport3,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "포구까지\n태워 주세요!", left: 0.02, top: 0.04, maxWidth: 0.32, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.chiliport4,
+        aspect: 501 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "수군 포구다!", left: 0.02, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+    ],
+  },
+  shrinesteps: {
+    title: "벚꽃 상어와 달밤",
+    panels: [
+      {
+        image: comics.shrinesteps1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "에취!\n꽃가루...", right: 0.03, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.shrinesteps2,
+        aspect: 499 / 768,
+        bubbles: [
+          { text: "저 위에\n여우 신사가 있소.", right: 0.03, top: 0.06, maxWidth: 0.36, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.shrinesteps3,
+        aspect: 504 / 768,
+        bubbles: [
+          { text: "여우불...\n구미호님이랑 닮았어.", right: 0.03, top: 0.1, maxWidth: 0.32, tail: "left", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.shrinesteps4,
+        aspect: 504 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "흥,\n참배는 저쪽.", right: 0.1, top: 0.06, maxWidth: 0.26, tail: "bottom", tailAt: 0.8 },
+        ],
+      },
+    ],
+  },
+  tanukimap: {
+    title: "너구리 행상의 지도",
+    panels: [
+      {
+        image: comics.tanukimap1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "내 물건!!!", left: 0.45, top: 0.12, maxWidth: 0.26, tail: "bottom", tailAt: 0.5, shout: true },
+        ],
+      },
+      {
+        image: comics.tanukimap2,
+        aspect: 499 / 768,
+        bubbles: [
+          { text: "이건 공짜...\n아니, 반값!", left: 0.3, top: 0.04, maxWidth: 0.32, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.tanukimap3,
+        aspect: 505 / 768,
+        bubbles: [
+          { text: "...천수각이군.", right: 0.03, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.tanukimap4,
+        aspect: 505 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "저기 황금이\n반짝여!", left: 0.02, top: 0.06, maxWidth: 0.32, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
+  castleonsen: {
+    title: "성 다음엔 온천",
+    panels: [
+      {
+        image: comics.castleonsen1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "좋은 덤벨이다.", right: 0.03, top: 0.12, maxWidth: 0.3, tail: "left", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.castleonsen2,
+        aspect: 499 / 768,
+        bubbles: [
+          { text: "다리가\n후들거려...", left: 0.02, top: 0.12, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.castleonsen3,
+        aspect: 506 / 768,
+        bubbles: [
+          { text: "온천 김이다!", left: 0.02, top: 0.12, maxWidth: 0.3, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.castleonsen4,
+        aspect: 507 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "하아~\n천국이다...", left: 0.3, top: 0.08, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+    ],
+  },
+  nightthief: {
+    title: "한밤의 요리책 도둑",
+    panels: [
+      {
+        image: comics.nightthief1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "...물 식기 전에\n들어가세요.", left: 0.4, top: 0.06, maxWidth: 0.4, tail: "bottom", tailAt: 0.55 },
+        ],
+      },
+      {
+        image: comics.nightthief2,
+        aspect: 499 / 768,
+        bubbles: [
+          { text: "쿨... 쿨...", left: 0.1, top: 0.06, maxWidth: 0.24, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.nightthief3,
+        aspect: 504 / 768,
+        bubbles: [
+          { text: "...누구냐.", right: 0.05, top: 0.2, maxWidth: 0.22, tail: "left", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.nightthief4,
+        aspect: 505 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "내 요리책\n돌려줘!!!", left: 0.02, top: 0.06, maxWidth: 0.34, tail: "bottom", tailAt: 0.2, shout: true },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
 export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
+  0: "slimeroad",
+  1: "swampfarm",
+  2: "farmchicken",
   3: "explorer",
+  4: "cavevillage",
   5: "cookbook",
+  6: "harbor",
+  7: "dive",
   8: "teto",
+  9: "jungle",
+  10: "jungleoasis",
+  11: "oasisdesert",
   12: "assassin",
+  13: "marketsilk",
+  14: "kite",
+  15: "cloudpalace",
+  16: "snowpass",
+  17: "snowvillage",
+  18: "tigerride",
   19: "egen",
+  20: "foxpath",
+  21: "chiliport",
   22: "samurai",
+  23: "shrinesteps",
+  24: "tanukimap",
+  25: "castleonsen",
+  26: "nightthief",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.
@@ -340,7 +1146,8 @@ export function getComicUnlockLabel(id: ComicId) {
 
 // Comics the player has reached so far (for the album): the opening always, the rest
 // once their stage's boss has been beaten.
-export function getUnlockedComics(clearedStages: number[]): ComicId[] {
+export function getUnlockedComics(clearedStages: number[], all = false): ComicId[] {
+  if (all) return COMIC_ORDER;
   const reached = Object.entries(COMIC_ON_FIRST_CLEAR)
     .filter(([stage]) => clearedStages.includes(Number(stage)))
     .map(([, id]) => id as ComicId);

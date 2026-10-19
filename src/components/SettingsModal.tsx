@@ -12,6 +12,7 @@ export function SettingsModal({
   onUnlockAllStages,
   onReplayTutorial,
   onOpenComics,
+  onUnlockAllComics,
   onResetRequest,
   onClose,
 }: {
@@ -22,6 +23,8 @@ export function SettingsModal({
   onReplayTutorial: () => void;
   // Opens the comic album (추억 앨범).
   onOpenComics: () => void;
+  // Opens every story comic in the album, then shows the album.
+  onUnlockAllComics: () => void;
   onResetRequest: () => void;
   onClose: () => void;
 }) {
@@ -117,6 +120,16 @@ export function SettingsModal({
               style={styles.button}
             >
               만화 다시 보기 (추억 앨범)
+            </GameButton>
+            <GameButton
+              variant="green"
+              onPress={() => {
+                onUnlockAllComics();
+                onClose();
+              }}
+              style={styles.button}
+            >
+              만화 다 열기
             </GameButton>
             <GameButton variant="red" onPress={onResetRequest} style={styles.button}>
               세이브 초기화

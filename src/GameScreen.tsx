@@ -239,6 +239,7 @@ export function GameScreen() {
         return (
           <ComicsScreen
             clearedStages={game.clearedStages}
+            allUnlocked={state.allComicsUnlocked ?? false}
             seenComics={state.seenComics}
             onPlay={setPlayingComic}
             onBack={() => onSelectTab("milestone")}
@@ -263,6 +264,7 @@ export function GameScreen() {
           onOpenShop={() => onSelectTab("shop")}
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
           onOpenComics={() => onSelectTab("comics")}
+          onUnlockAllComics={() => setState((previous) => ({ ...previous, allComicsUnlocked: true, selectedTab: "comics" }))}
         />
         <ScrollView
           key={state.selectedTab}

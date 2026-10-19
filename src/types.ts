@@ -72,6 +72,8 @@ export interface GameState {
   bagSeen?: string[];
   // Story comics already shown (state/comics.ts); missing on older saves = none.
   seenComics?: string[];
+  // Set from 설정 → "만화 다 열기": the album shows every comic regardless of progress.
+  allComicsUnlocked?: boolean;
   // Companions already shown unlocked — one unlocked since gets its lock broken on the next visit.
   outfitsSeen?: Outfit[];
   // Furthest stage the map has shown — a newer one gets its path drawn in on the next visit.
