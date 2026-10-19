@@ -388,6 +388,18 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "전복", chance: 0.5 },
     ],
   },
+  // 운하의 미식 도시: 곤돌라 오리가 시장에서 싣고 다니는 토마토와 양파; 피자 화덕 골렘은 피자에 올리던 치즈와 토마토, 고기를 떨어뜨린다.
+  gondolaDuck: {
+    mob: [
+      { name: "토마토", chance: 0.3 },
+      { name: "양파", chance: 0.15 },
+    ],
+    boss: [
+      { name: "치즈", chance: 1, quantity: 2 },
+      { name: "토마토", chance: 0.6 },
+      { name: "두툼 살코기", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

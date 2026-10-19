@@ -341,6 +341,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-dragon-king-hit-strip.webp"),
     die: require("../assets/sprites/boss-dragon-king-die-strip.webp"),
   },
+  gondolaDuck: {
+    idle: require("../assets/sprites/gondola-duck-idle-strip.webp"),
+    hit: require("../assets/sprites/gondola-duck-hit-strip.webp"),
+    die: require("../assets/sprites/gondola-duck-die-strip.webp"),
+  },
+  bossOvenGolem: {
+    idle: require("../assets/sprites/boss-oven-golem-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-oven-golem-hit-strip.webp"),
+    die: require("../assets/sprites/boss-oven-golem-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -374,6 +384,7 @@ export const images = {
   battleBackgroundNinjaVillage: require("../assets/sprites/battle-ninja-village.webp"),
   battleBackgroundDragonSeaRoad: require("../assets/sprites/battle-dragon-sea-road.webp"),
   battleBackgroundDragonPalace: require("../assets/sprites/battle-dragon-palace.webp"),
+  battleBackgroundCanalCity: require("../assets/sprites/battle-canal-city.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -821,6 +832,10 @@ export const comics = {
   dragongate2: require("../assets/comics/dragongate-2.webp"),
   dragongate3: require("../assets/comics/dragongate-3.webp"),
   dragongate4: require("../assets/comics/dragongate-4.webp"),
+  whaleride1: require("../assets/comics/whaleride-1.webp"),
+  whaleride2: require("../assets/comics/whaleride-2.webp"),
+  whaleride3: require("../assets/comics/whaleride-3.webp"),
+  whaleride4: require("../assets/comics/whaleride-4.webp"),
 };
 
 export const bgm = {

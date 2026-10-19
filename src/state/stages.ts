@@ -31,6 +31,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   ninjaFrog: "닌자 개구리",
   lanternAngler: "등롱 아귀",
   clamMaid: "조개 시녀",
+  gondolaDuck: "곤돌라 오리",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -64,6 +65,7 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   ninjaFrog: "두루마리 쥐 두목",
   lanternAngler: "해마 장군",
   clamMaid: "용왕",
+  gondolaDuck: "피자 화덕 골렘",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -101,6 +103,7 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "대나무 닌자 마을", enemyKind: "ninjaFrog", story: "안개 낀 대나무 숲 깊숙이 숨은 닌자 마을, 두건을 쓴 개구리들이 수리검을 들고 수련장을 뛰어다닌다." },
   { area: "용궁 가는 바닷길", enemyKind: "lanternAngler", story: "빛나는 산호가 길을 이루는 깊은 바닷속, 등롱을 매단 아귀들이 저 멀리 용궁으로 가는 길을 밝힌다." },
   { area: "용궁", enemyKind: "clamMaid", story: "산호 기둥과 진주 장식이 빛나는 바닷속 궁궐, 쟁반을 든 조개 시녀들이 잔칫상 사이를 바쁘게 오간다." },
+  { area: "운하의 미식 도시", enemyKind: "gondolaDuck", story: "알록달록한 집들 사이로 운하가 흐르는 미식 도시, 줄무늬 셔츠를 입은 오리들이 곤돌라를 저으며 손님을 부른다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

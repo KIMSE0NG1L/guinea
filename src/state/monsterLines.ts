@@ -34,6 +34,7 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   ninjaFrog: ["개굴! 둔갑술!", "연기가 안 나..."],
   lanternAngler: ["이쪽... 아니 저쪽", "불 끄지 마..."],
   clamMaid: ["어서 오세요~", "진주 떨어져요!"],
+  gondolaDuck: ["곤돌라 타실래요~?", "노래 값은 따로!"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -67,4 +68,5 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   ninjaFrog: ["그 당근, 내 거였지", "쥐도 새도 모르게!"],
   lanternAngler: ["허락 없이는 못 지나간다!", "이 콧수염에 맹세코!"],
   clamMaid: ["잔치를 망치다니!", "내 여의주는 못 준다!"],
+  gondolaDuck: ["피자를 남기다니!", "불이... 꺼져 간다..."],
 };

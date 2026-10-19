@@ -76,6 +76,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   ninjaFrog: 160,
   lanternAngler: 160,
   clamMaid: 160,
+  gondolaDuck: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -118,6 +119,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   ninjaFrog: images.battleBackgroundNinjaVillage,
   lanternAngler: images.battleBackgroundDragonSeaRoad,
   clamMaid: images.battleBackgroundDragonPalace,
+  gondolaDuck: images.battleBackgroundCanalCity,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

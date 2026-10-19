@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1168,6 +1168,42 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  whaleride: {
+    title: "고래를 타고 세상 반대편으로",
+    panels: [
+      {
+        image: comics.whaleride1,
+        aspect: 503 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "허허허!\n이런 손님은 처음이구나.", left: 0.02, top: 0.06, maxWidth: 0.36, tail: "right", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.whaleride2,
+        aspect: 501 / 768,
+        bubbles: [
+          { text: "제일 귀한 맛은\n세상 반대편 미식 도시에 있지.", right: 0.02, top: 0.05, maxWidth: 0.44, tail: "left", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.whaleride3,
+        aspect: 506 / 768,
+        bubbles: [
+          { text: "고래야,\n잘 부탁해!", left: 0.5, top: 0.36, maxWidth: 0.3, tail: "top", tailAt: 0.1 },
+        ],
+      },
+      {
+        image: comics.whaleride4,
+        aspect: 505 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "치즈 냄새...!", left: 0.4, top: 0.3, maxWidth: 0.22, tail: "bottom", tailAt: 0.5 },
+          { text: "여기가\n미식 도시?", left: 0.02, top: 0.28, maxWidth: 0.24, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
@@ -1201,6 +1237,7 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   26: "nightthief",
   27: "dragonroad",
   28: "dragongate",
+  29: "whaleride",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.
