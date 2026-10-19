@@ -180,6 +180,7 @@ export const DISH_PARTNERS: Record<string, Outfit> = {
   "lamb-rib": "egenGini",
   "tuna-sashimi": "samuraiGini",
   "squid-ink-risotto": "chefGini",
+  patbingsu: "iceMageGini",
 };
 
 export const OUTFIT_NAMES: Record<Outfit, string> = {
@@ -190,6 +191,7 @@ export const OUTFIT_NAMES: Record<Outfit, string> = {
   egenGini: "에겐기니",
   samuraiGini: "사무라이기니",
   chefGini: "셰프기니",
+  iceMageGini: "얼음마법사기니",
 };
 
 // "세트: 바다 한 상", "궁합: 테토기니" — the set a dish belongs to and its partner companion.
@@ -224,6 +226,8 @@ export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
   // The kitchen companion: halves cook time and lifts great-success odds, at a cost in
   // the fight — the only companion that trades battle power for cooking.
   chefGini: { cookSpeed: 50, greatSuccess: 20, attack: -15 },
+  // Lives for the skill slot: weaker swings, but skills come round fast and hit twice as hard.
+  iceMageGini: { attack: -25 },
 };
 
 // The first strike on each enemy is a sure crit worth this many normal hits (times crit
@@ -259,6 +263,12 @@ export const OUTFIT_FOOD_DURATION_BONUS_SEC: Partial<Record<Outfit, number>> = {
 // Seconds shaved off every active skill's cooldown while this outfit is equipped.
 export const OUTFIT_COOLDOWN_REDUCTION_SEC: Partial<Record<Outfit, number>> = {
   egenGini: 60,
+  iceMageGini: 90,
+};
+
+// Multiplies skill effects while this outfit is equipped (see useAutoBattle's skillPower).
+export const OUTFIT_SKILL_POWER: Partial<Record<Outfit, number>> = {
+  iceMageGini: 2,
 };
 
 const signed = (value: number) => `${value >= 0 ? "+" : ""}${value}`;

@@ -97,6 +97,9 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         stealId={battle.castIds.steal}
         focusId={battle.castIds.focus}
         shoutId={battle.castIds.shout}
+        meteorId={battle.castIds.meteor}
+        freezeId={battle.castIds.freeze}
+        swordsId={battle.castIds.swords}
         dropEvents={game.dropEvents}
         bossEntranceKey={bossEntranceKey}
         levelUpAnnouncement={game.levelUpAnnouncement}

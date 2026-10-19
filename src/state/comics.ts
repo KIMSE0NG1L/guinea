@@ -1492,37 +1492,37 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
     ],
   },
   aurorapath: {
-    title: "오로라의 길",
+    title: "오로라 아래 얼음 마법사",
     panels: [
       {
         image: comics.aurorapath1,
         aspect: 499 / 768,
         sfx: "hit",
         bubbles: [
-          { text: "허허...\n입질이 안 오는군.", left: 0.42, top: 0.06, maxWidth: 0.28, tail: "bottom", tailAt: 0.15 },
+          { text: "허허...\n오로라를 따라가 보게.", right: 0.05, top: 0.05, maxWidth: 0.38, tail: "bottom", tailAt: 0.6 },
         ],
       },
       {
         image: comics.aurorapath2,
         aspect: 499 / 768,
         bubbles: [
-          { text: "오로라를 따라가면\n얼음 궁전이 있지.", left: 0.2, top: 0.1, maxWidth: 0.32, tail: "right", tailAt: 0.6 },
+          { text: "으앗,\n눈보라!", left: 0.05, top: 0.08, maxWidth: 0.22, tail: "bottom", tailAt: 0.4 },
         ],
       },
       {
         image: comics.aurorapath3,
         aspect: 500 / 768,
         bubbles: [
-          { text: "하늘이\n춤춰...!", left: 0.04, top: 0.1, maxWidth: 0.2, tail: "bottom", tailAt: 0.4 },
+          { text: "...시끄러워서\n깼잖아.", left: 0.3, top: 0.06, maxWidth: 0.26, tail: "left", tailAt: 0.5 },
         ],
       },
       {
         image: comics.aurorapath4,
-        aspect: 501 / 768,
+        aspect: 499 / 768,
         sfx: "levelup",
         bubbles: [
-          { text: "에... 에취!", left: 0.27, top: 0.62, maxWidth: 0.2, tail: "left", tailAt: 0.5 },
-          { text: "히히~", right: 0.45, top: 0.3, maxWidth: 0.14, tail: "left", tailAt: 0.6 },
+          { text: "궁전까지 데려다줄게.\n대신 맛있는 거!", right: 0.03, top: 0.05, maxWidth: 0.36, tail: "bottom", tailAt: 0.75 },
+          { text: "좋아!", left: 0.04, top: 0.22, maxWidth: 0.14, tail: "bottom", tailAt: 0.4 },
         ],
       },
     ],

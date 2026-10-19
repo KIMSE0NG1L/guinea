@@ -11,7 +11,7 @@ import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked } from ".
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
@@ -117,7 +117,7 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini"];
+        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini", "iceMageGini"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
@@ -364,6 +364,7 @@ export function useGameState() {
     hitCount: OUTFIT_HIT_COUNT[state.equippedOutfit] ?? 1,
     cooldownReductionMs: ((OUTFIT_COOLDOWN_REDUCTION_SEC[state.equippedOutfit] ?? 0) + foodBuffs.skillCooldown) * 1000,
     bossDamage: foodBuffs.bossDamage,
+    skillPower: OUTFIT_SKILL_POWER[state.equippedOutfit] ?? 1,
     firstStrikeMultiplier: OUTFIT_FIRST_STRIKE[state.equippedOutfit] ?? 0,
     extraHitChance: foodBuffs.extraHit,
     executeBonus: foodBuffs.execute,

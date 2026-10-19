@@ -4,6 +4,14 @@ import { getGoldReward } from "./gameMath";
 import { playSfx } from "../sound";
 import {
   BEAM_BOSS_HP_RATIO,
+  BEAM_BOSS_MAX_RATIO,
+  FREEZE_DAMAGE_BONUS,
+  METEOR_MULTIPLIER,
+  METEOR_TIMING,
+  SWORD_COUNT,
+  SWORD_FLIGHT,
+  SWORD_MULTIPLIER,
+  SWORD_STAGGER,
   BEAM_TIMING,
   EXECUTE_HP_RATIO,
   SHOUT_DAMAGE_BONUS,
@@ -29,6 +37,11 @@ function clearTimers(ref: { current: Timer[] }) {
   ref.current = [];
 }
 
+// 빙결: a frozen enemy takes more from every source (normal hits and skills alike).
+function freezeBonus(timers: SkillTimers, skillPower: number, now: number) {
+  return isSkillActive(timers, "freeze", now) ? 1 + FREEZE_DAMAGE_BONUS * skillPower : 1;
+}
+
 export function useAutoBattle({
   attack,
   criticalDamage,
@@ -37,6 +50,7 @@ export function useAutoBattle({
   missChance = 0,
   hitCount = 1,
   cooldownReductionMs = 0,
+  skillPower = 1,
   bossDamage = 0,
   firstStrikeMultiplier = 0,
   extraHitChance = 0,
@@ -61,6 +75,9 @@ export function useAutoBattle({
   hitCount?: number;
   // Shaved off every active skill's cooldown on cast (e.g. egenGini) — never below 0.
   cooldownReductionMs?: number;
+  // Scales skill effects (얼음마법사기니 x2): steal's gold share, shout's damage bonus and the
+  // beam's bite out of a boss (capped at BEAM_BOSS_MAX_RATIO).
+  skillPower?: number;
   // Food buffs: % more damage to bosses, % chance a swing lands one extra strike, and
   // points added to Execute's HP threshold.
   bossDamage?: number;
@@ -105,6 +122,9 @@ export function useAutoBattle({
     shout: 0,
     diligent: 0,
     glutton: 0,
+    meteor: 0,
+    freeze: 0,
+    swords: 0,
   });
   // Whether the current/last kill was an Execute — the player strikes a crit pose for it.
   const [lastKillExecuted, setLastKillExecuted] = useState(false);
@@ -117,6 +137,7 @@ export function useAutoBattle({
   const missChanceRef = useRef(missChance);
   const hitCountRef = useRef(hitCount);
   const cooldownReductionRef = useRef(cooldownReductionMs);
+  const skillPowerRef = useRef(skillPower);
   const bossDamageRef = useRef(bossDamage);
   const firstStrikeRef = useRef(firstStrikeMultiplier);
   // The enemy (by epoch) that already took its first strike.
@@ -186,6 +207,7 @@ export function useAutoBattle({
     missChanceRef.current = missChance;
     hitCountRef.current = hitCount;
     cooldownReductionRef.current = cooldownReductionMs;
+    skillPowerRef.current = skillPower;
     bossDamageRef.current = bossDamage;
     firstStrikeRef.current = firstStrikeMultiplier;
     extraHitChanceRef.current = extraHitChance;
@@ -239,7 +261,7 @@ export function useAutoBattle({
     playSfx(critical ? "crit" : "hit");
     if (isSkillActive(skillTimersRef.current, "steal", Date.now())) {
       const killGold = getGoldReward(attackRef.current, goldBonusRef.current, maxHpRef.current, bossRef.current);
-      const stolen = Math.round(killGold * STEAL_GOLD_RATIO);
+      const stolen = Math.round(killGold * STEAL_GOLD_RATIO * skillPowerRef.current);
       if (stolen > 0) {
         onBonusGoldRef.current(stolen);
         pushGoldEvent(stolen);
@@ -268,7 +290,7 @@ export function useAutoBattle({
     const now = Date.now();
     const missed = Math.random() * 100 < missChanceRef.current;
     if (missed) return { isCritical: false, damage: 0, missed: true, firstStrike: false };
-    const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS : 1;
+    const shout = (isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS * skillPowerRef.current : 1) * freezeBonus(skillTimersRef.current, skillPowerRef.current, now);
     const bossBonus = bossRef.current ? 1 + bossDamageRef.current / 100 : 1;
     // First strike on a fresh enemy: a sure crit, worth `firstStrikeMultiplier` normal hits.
     if (firstStrikeRef.current > 0 && firstStrikeEpochRef.current !== enemyEpochRef.current) {
@@ -450,11 +472,33 @@ export function useAutoBattle({
       const epoch = enemyEpochRef.current;
       const hitTimer = setTimeout(() => {
         if (epoch !== enemyEpochRef.current) return;
-        const damage = bossRef.current ? Math.ceil(maxHpRef.current * BEAM_BOSS_HP_RATIO) : hpRef.current;
+        const damage = bossRef.current ? Math.ceil(maxHpRef.current * Math.min(BEAM_BOSS_MAX_RATIO, BEAM_BOSS_HP_RATIO * skillPowerRef.current)) : hpRef.current;
         setLastCritical(true);
         dealDamage(damage, true);
       }, BEAM_TIMING.hit);
       eventTimersRef.current.push(hitTimer);
+    }
+
+    // Spell damage: a multiple of a normal hit, with the boss and freeze bonuses, scaled by
+    // the caster's skill power (얼음마법사기니). Lands only on the enemy it was cast at.
+    const spellHit = (multiplier: number, critical: boolean, delay: number) => {
+      const epoch = enemyEpochRef.current;
+      const timer = setTimeout(() => {
+        if (epoch !== enemyEpochRef.current || hpRef.current <= 0) return;
+        const bossBonus = bossRef.current ? 1 + bossDamageRef.current / 100 : 1;
+        const crit = critical ? criticalDamageRef.current / 100 : 1;
+        const damage = Math.round(attackRef.current * multiplier * crit * bossBonus * freezeBonus(skillTimersRef.current, skillPowerRef.current, Date.now()) * skillPowerRef.current);
+        setLastCritical(critical);
+        dealDamage(damage, critical);
+      }, delay);
+      eventTimersRef.current.push(timer);
+    };
+    if (id === "meteor") spellHit(METEOR_MULTIPLIER, true, METEOR_TIMING.hit);
+    if (id === "swords") {
+      for (let index = 0; index < SWORD_COUNT; index += 1) {
+        const critical = Math.random() * 100 < Math.min(100, criticalChanceRef.current);
+        spellHit(SWORD_MULTIPLIER, critical, index * SWORD_STAGGER + SWORD_FLIGHT);
+      }
     }
   }, [dealDamage]);
 

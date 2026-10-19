@@ -46,6 +46,12 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-chef-critical-strip.webp"),
       win: require("../assets/sprites/guinea-chef-win-strip.webp"),
     },
+    iceMageGini: {
+      idle: require("../assets/sprites/guinea-icemage-idle-strip.webp"),
+      attack: require("../assets/sprites/guinea-icemage-attack-strip.webp"),
+      critical: require("../assets/sprites/guinea-icemage-critical-strip.webp"),
+      win: require("../assets/sprites/guinea-icemage-win-strip.webp"),
+    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),
@@ -551,6 +557,9 @@ export const skillImages = {
   shout: require("../assets/skills/shout.png"),
   diligent: require("../assets/skills/diligent.png"),
   glutton: require("../assets/skills/glutton.png"),
+  meteor: require("../assets/skills/meteor.png"),
+  freeze: require("../assets/skills/freeze.png"),
+  swords: require("../assets/skills/swords.png"),
 };
 const WIDE_ICON = 256 / 222;
 const SQUARE_ICON = 256 / 258;
@@ -562,6 +571,16 @@ export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
   shout: SQUARE_ICON,
   diligent: SQUARE_ICON,
   glutton: SQUARE_ICON,
+  meteor: 256 / 260,
+  freeze: 256 / 265,
+  swords: 256 / 261,
+};
+
+// Objects the magic skills throw around (MagicEffects.tsx).
+export const magicEffects = {
+  meteor: require("../assets/effects/magic-meteor.png"), // 398x438, tail up-right
+  freeze: require("../assets/effects/magic-freeze.png"), // 418x445
+  sword: require("../assets/effects/magic-sword.png"), // 409x267, points right
 };
 
 export const food = {

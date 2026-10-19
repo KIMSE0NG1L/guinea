@@ -18,6 +18,7 @@ import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
 import { EXECUTE_TIMING, ExecuteEffect } from "../components/ExecuteEffect";
 import { BeamEffect } from "../components/BeamEffect";
+import { FreezeAura, FreezeCastEffect, MeteorEffect, SwordsEffect } from "../components/MagicEffects";
 import { BEAM_TIMING, getSkill } from "../state/skills";
 import {
   BuffVignette,
@@ -147,6 +148,7 @@ const FIGHTERS_SIDE = 15;
 const STEAL_DURATION = getSkill("steal").durationMs ?? 0;
 const FOCUS_DURATION = getSkill("focus").durationMs ?? 0;
 const SHOUT_DURATION = getSkill("shout").durationMs ?? 0;
+const FREEZE_DURATION = getSkill("freeze").durationMs ?? 0;
 // A boss always gets a speech bubble on entrance (it's the stage's big moment); a regular
 // mob only some of the time, or the fast auto-battle kill-chain would pop a bubble over
 // every single death.
@@ -244,6 +246,9 @@ export function BattleScene({
   stealId: rawStealId,
   focusId: rawFocusId,
   shoutId: rawShoutId,
+  meteorId: rawMeteorId,
+  freezeId: rawFreezeId,
+  swordsId: rawSwordsId,
   dropEvents,
   bossEntranceKey,
   levelUpAnnouncement,
@@ -287,6 +292,9 @@ export function BattleScene({
   stealId: number;
   focusId: number;
   shoutId: number;
+  meteorId: number;
+  freezeId: number;
+  swordsId: number;
   dropEvents: DropEvent[];
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
@@ -298,6 +306,9 @@ export function BattleScene({
   const steal = useSkillEvent(rawStealId, STEAL_DURATION);
   const focus = useSkillEvent(rawFocusId, FOCUS_DURATION);
   const shout = useSkillEvent(rawShoutId, SHOUT_DURATION);
+  const { id: meteorId } = useSkillEvent(rawMeteorId, 0);
+  const { id: swordsId } = useSkillEvent(rawSwordsId, 0);
+  const freeze = useSkillEvent(rawFreezeId, FREEZE_DURATION);
   // Every timed buff skill shares one vignette element; only one skill is ever equipped.
   const buffVignette = steal.active
     ? { key: `steal-${steal.id}`, durationMs: STEAL_DURATION }
@@ -529,6 +540,22 @@ export function BattleScene({
               mouth={{ left: playerCenterLeft + 34, bottom: FIGHTERS_BOTTOM + 48 }}
               enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
             />
+          )}
+          {meteorId > 0 && fightersWidth > 0 && (
+            <MeteorEffect key={`meteor-${meteorId}`} enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }} />
+          )}
+          {swordsId > 0 && fightersWidth > 0 && (
+            <SwordsEffect
+              key={`swords-${swordsId}`}
+              from={{ left: playerCenterLeft + 34, bottom: FIGHTERS_BOTTOM + 48 }}
+              enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+            />
+          )}
+          {freeze.id > 0 && fightersWidth > 0 && (
+            <FreezeCastEffect key={`freeze-cast-${freeze.id}`} enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }} />
+          )}
+          {freeze.active && fightersWidth > 0 && (
+            <FreezeAura key={`freeze-${freeze.id}`} enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }} durationMs={FREEZE_DURATION} />
           )}
           {fightersWidth > 0 &&
             goldEvents.map((event) => (

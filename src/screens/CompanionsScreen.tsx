@@ -16,6 +16,7 @@ import {
   OUTFIT_MISS_CHANCE,
   OUTFIT_FIRST_STRIKE,
   OUTFIT_SURE_DROPS,
+  OUTFIT_SKILL_POWER,
   DISH_PARTNERS,
   PARTNER_MULTIPLIER,
   describeEffect,
@@ -42,6 +43,8 @@ function companionDetail(outfit: Outfit) {
   if (OUTFIT_SURE_DROPS[outfit]) parts.push("재료 드랍 확률 100%");
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
   if (cooldownReduction) parts.push(`스킬 쿨타임 -${cooldownReduction / 60}분`);
+  const skillPower = OUTFIT_SKILL_POWER[outfit];
+  if (skillPower) parts.push(`스킬 효과 ×${skillPower} (기니빔 보스 피해 최대 80%)`);
   return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
 }
 
@@ -82,6 +85,12 @@ const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string 
     name: "셰프기니",
     blurb: "빵집 골목 주방에서 반죽하던 요리사 기니. 국자 하나면 어떤 요리든 뚝딱이다.",
     detail: companionDetail("chefGini"),
+  },
+  {
+    outfit: "iceMageGini",
+    name: "얼음마법사기니",
+    blurb: "오로라 얼음 궁전에서 별을 읽던 마법사 기니. 졸린 눈으로 지팡이를 휘두르면 고드름이 쏟아진다.",
+    detail: companionDetail("iceMageGini"),
   },
 ];
 
