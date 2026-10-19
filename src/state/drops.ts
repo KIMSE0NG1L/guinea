@@ -362,6 +362,32 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "당근", chance: 0.4 },
     ],
   },
+  // 용궁 가는 바닷길: 등롱 아귀가 불빛으로 꾀어 모은 정어리와 반짝 생선알; 해마 장군은 용궁
+  // 진상품으로 챙겨 가던 바닷가재와 홍합, 미역을 떨어뜨린다.
+  lanternAngler: {
+    mob: [
+      { name: "정어리", chance: 0.3 },
+      { name: "반짝 생선알", chance: 0.15 },
+    ],
+    boss: [
+      { name: "바닷가재", chance: 1, quantity: 2 },
+      { name: "홍합", chance: 0.6 },
+      { name: "미역", chance: 0.4 },
+    ],
+  },
+  // 용궁: 조개 시녀의 쟁반에서 떨어진 굴과 홍합; 용왕은 잔칫상에 올리려던 두툼한 생선 토막과
+  // 꽃게, 문어를 남긴다.
+  clamMaid: {
+    mob: [
+      { name: "굴", chance: 0.3 },
+      { name: "홍합", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 생선 토막", chance: 1, quantity: 2 },
+      { name: "꽃게", chance: 0.6 },
+      { name: "문어", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

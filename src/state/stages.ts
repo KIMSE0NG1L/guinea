@@ -29,6 +29,8 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   armorBeetle: "갑옷 장수풍뎅이",
   onsenMonkey: "온천 원숭이",
   ninjaFrog: "닌자 개구리",
+  lanternAngler: "등롱 아귀",
+  clamMaid: "조개 시녀",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -60,6 +62,8 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   armorBeetle: "황금 샤치호코",
   onsenMonkey: "카피바라 여관 주인",
   ninjaFrog: "두루마리 쥐 두목",
+  lanternAngler: "해마 장군",
+  clamMaid: "용왕",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -95,6 +99,8 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "벚꽃 성 천수각", enemyKind: "armorBeetle", story: "노을빛에 물든 흰 성벽과 겹겹 지붕의 천수각, 갑옷을 걸친 장수풍뎅이들이 돌 마당을 순찰한다." },
   { area: "눈 내리는 온천 마을", enemyKind: "onsenMonkey", story: "함박눈이 소복이 쌓인 산속 온천 마을, 머리에 수건을 얹은 원숭이들이 김 오르는 노천탕 자리를 지킨다." },
   { area: "대나무 닌자 마을", enemyKind: "ninjaFrog", story: "안개 낀 대나무 숲 깊숙이 숨은 닌자 마을, 두건을 쓴 개구리들이 수리검을 들고 수련장을 뛰어다닌다." },
+  { area: "용궁 가는 바닷길", enemyKind: "lanternAngler", story: "빛나는 산호가 길을 이루는 깊은 바닷속, 등롱을 매단 아귀들이 저 멀리 용궁으로 가는 길을 밝힌다." },
+  { area: "용궁", enemyKind: "clamMaid", story: "산호 기둥과 진주 장식이 빛나는 바닷속 궁궐, 쟁반을 든 조개 시녀들이 잔칫상 사이를 바쁘게 오간다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

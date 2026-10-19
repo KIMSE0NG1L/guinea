@@ -321,6 +321,26 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-scroll-rat-hit-strip.webp"),
     die: require("../assets/sprites/boss-scroll-rat-die-strip.webp"),
   },
+  lanternAngler: {
+    idle: require("../assets/sprites/lantern-angler-idle-strip.webp"),
+    hit: require("../assets/sprites/lantern-angler-hit-strip.webp"),
+    die: require("../assets/sprites/lantern-angler-die-strip.webp"),
+  },
+  bossSeahorseGeneral: {
+    idle: require("../assets/sprites/boss-seahorse-general-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-seahorse-general-hit-strip.webp"),
+    die: require("../assets/sprites/boss-seahorse-general-die-strip.webp"),
+  },
+  clamMaid: {
+    idle: require("../assets/sprites/clam-maid-idle-strip.webp"),
+    hit: require("../assets/sprites/clam-maid-hit-strip.webp"),
+    die: require("../assets/sprites/clam-maid-die-strip.webp"),
+  },
+  bossDragonKing: {
+    idle: require("../assets/sprites/boss-dragon-king-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-dragon-king-hit-strip.webp"),
+    die: require("../assets/sprites/boss-dragon-king-die-strip.webp"),
+  },
 };
 
 export const images = {
@@ -352,6 +372,8 @@ export const images = {
   battleBackgroundCastleKeep: require("../assets/sprites/battle-castle-keep.webp"),
   battleBackgroundHotSpring: require("../assets/sprites/battle-hot-spring-village.webp"),
   battleBackgroundNinjaVillage: require("../assets/sprites/battle-ninja-village.webp"),
+  battleBackgroundDragonSeaRoad: require("../assets/sprites/battle-dragon-sea-road.webp"),
+  battleBackgroundDragonPalace: require("../assets/sprites/battle-dragon-palace.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -765,6 +787,14 @@ export const comics = {
   nightthief2: require("../assets/comics/nightthief-2.webp"),
   nightthief3: require("../assets/comics/nightthief-3.webp"),
   nightthief4: require("../assets/comics/nightthief-4.webp"),
+  dragonroad1: require("../assets/comics/dragonroad-1.webp"),
+  dragonroad2: require("../assets/comics/dragonroad-2.webp"),
+  dragonroad3: require("../assets/comics/dragonroad-3.webp"),
+  dragonroad4: require("../assets/comics/dragonroad-4.webp"),
+  dragongate1: require("../assets/comics/dragongate-1.webp"),
+  dragongate2: require("../assets/comics/dragongate-2.webp"),
+  dragongate3: require("../assets/comics/dragongate-3.webp"),
+  dragongate4: require("../assets/comics/dragongate-4.webp"),
 };
 
 export const bgm = {

@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1096,6 +1096,78 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  dragonroad: {
+    title: "용궁으로 가는 두루마리",
+    panels: [
+      {
+        image: comics.dragonroad1,
+        aspect: 482 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "졌다...\n책은 돌려주지.", left: 0.02, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.dragonroad2,
+        aspect: 483 / 768,
+        bubbles: [
+          { text: "용궁에...\n세상에서 제일 귀한 맛?!", left: 0.02, top: 0.04, maxWidth: 0.42, tail: "bottom", tailAt: 0.55 },
+        ],
+      },
+      {
+        image: comics.dragonroad3,
+        aspect: 521 / 768,
+        bubbles: [
+          { text: "저 불빛을\n따라가 보자!", left: 0.3, top: 0.12, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.dragonroad4,
+        aspect: 521 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "...바닷속\n길이라니.", left: 0.02, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+          { text: "숨은...\n쉬어지네.", left: 0.38, top: 0.1, maxWidth: 0.26, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+    ],
+  },
+  dragongate: {
+    title: "열려라, 용궁 문",
+    panels: [
+      {
+        image: comics.dragongate1,
+        aspect: 498 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "허락하마...\n지나가거라.", right: 0.03, top: 0.12, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.dragongate2,
+        aspect: 497 / 768,
+        bubbles: [
+          { text: "문이...\n열린다!", left: 0.02, top: 0.1, maxWidth: 0.26, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.dragongate3,
+        aspect: 498 / 768,
+        bubbles: [
+          { text: "어서 오세요,\n손님들~", left: 0.02, top: 0.04, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
+          { text: "조개가... 인사를?", left: 0.4, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.dragongate4,
+        aspect: 497 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "저게 바로...\n세상에서 제일 귀한 맛?!", left: 0.02, top: 0.04, maxWidth: 0.42, tail: "bottom", tailAt: 0.2 },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
@@ -1127,6 +1199,8 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   24: "tanukimap",
   25: "castleonsen",
   26: "nightthief",
+  27: "dragonroad",
+  28: "dragongate",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.
