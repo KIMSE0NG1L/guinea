@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SearchBox } from "../components/SearchBox";
+import { matchesSearch } from "../state/search";
 import { colors, fonts } from "../theme";
 import { chef, grandma, shopImages, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
@@ -80,7 +82,9 @@ export function GroceryScreen({
     return result;
   };
 
-  const items = GROCERY.filter((item) => filter === "all" || item.category === filter);
+  // Typing searches every category at once, so a tab can't hide what you're looking for.
+  const [query, setQuery] = useState("");
+  const items = GROCERY.filter((item) => (query.trim() ? matchesSearch(query, item.name) : filter === "all" || item.category === filter));
 
   return (
     <View style={styles.page}>
@@ -103,6 +107,7 @@ export function GroceryScreen({
         })}
       </ScrollView>
 
+      <SearchBox value={query} onChange={setQuery} placeholder="재료 이름으로 찾기" resultCount={items.length} />
       <View style={styles.grid}>
         {items.map((item) => (
           <GroceryCard

@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import { SearchBox } from "../components/SearchBox";
+import { matchesSearch } from "../state/search";
 import { colors, fonts } from "../theme";
 import { chef, kit, shopKit } from "../assets";
 import { GameButton } from "../components/GameButton";
@@ -41,6 +44,12 @@ export function CookbookScreen({
   const done = getCookbookProgress(cookedRecipes);
   const known = getKnownRecipes(knownRecipes);
   const cooked = new Set(cookedRecipes ?? []);
+  const [query, setQuery] = useState("");
+  const shown = RECIPES.filter((recipe) =>
+    !known.includes(recipe.id) && recipe.tier === "hidden"
+      ? !query.trim()
+      : matchesSearch(query, recipe.name, ...recipe.ingredients.map((ingredient) => ingredient.name)),
+  );
 
   return (
     <View style={styles.page}>
@@ -64,8 +73,9 @@ export function CookbookScreen({
         </GameButton>
       )}
 
+      <SearchBox value={query} onChange={setQuery} placeholder="요리나 재료 이름으로 찾기" resultCount={shown.length} />
       <View style={styles.grid}>
-        {RECIPES.map((recipe) => {
+        {shown.map((recipe) => {
           const tasted = cooked.has(recipe.id);
           const learned = known.includes(recipe.id);
           const sealed = !learned && recipe.tier === "hidden";

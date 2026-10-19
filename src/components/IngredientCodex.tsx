@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
+import { SearchBox } from "./SearchBox";
+import { matchesSearch } from "../state/search";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { Panel } from "./NineSlice";
@@ -40,13 +42,21 @@ function getSourceStages(name: string) {
 // `fresh`: found since the codex was last opened — they light up from silhouette with "발견!".
 export function IngredientCodex({ discovered, fresh = [] }: { discovered: string[]; fresh?: string[] }) {
   const found = GROCERY.filter((item) => discovered.includes(item.name)).length;
+  // Search by ingredient name or a dish that uses it; undiscovered ones only show unfiltered.
+  const [query, setQuery] = useState("");
+  const shown = GROCERY.filter((item) =>
+    discovered.includes(item.name)
+      ? matchesSearch(query, item.name, ...RECIPES.filter((recipe) => recipe.ingredients.some((ingredient) => ingredient.name === item.name)).map((recipe) => recipe.name))
+      : !query.trim(),
+  );
   return (
     <View>
       <Text style={styles.count}>
         모은 식재료 {found} / {GROCERY.length}
       </Text>
+      <SearchBox value={query} onChange={setQuery} placeholder="재료나 요리 이름으로 찾기" resultCount={shown.length} />
       <View style={styles.grid}>
-        {GROCERY.map((item) => {
+        {shown.map((item) => {
           const known = discovered.includes(item.name);
           const sources = getSourceStages(item.name);
           const dishes = RECIPES.filter((recipe) => recipe.ingredients.some((ingredient) => ingredient.name === item.name));

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import { SearchBox } from "../components/SearchBox";
+import { matchesSearch } from "../state/search";
 import { useShake } from "../components/motion";
 import { colors, fonts } from "../theme";
 import { chef, grandma, shopKit } from "../assets";
@@ -37,6 +39,13 @@ export function RecipeShopScreen({
   // of jumping to the bottom.
   const rank = (recipe: (typeof RECIPES)[number]) => (known.includes(recipe.id) ? 2 : isRecipeForSale(recipe, clearedStages) ? 0 : 1);
   const [order] = useState(() => [...RECIPES].sort((a, b) => rank(a) - rank(b)).map((recipe) => recipe.id));
+  // Search by dish or ingredient name; a sealed hidden recipe only shows with no query.
+  const [query, setQuery] = useState("");
+  const shown = order.filter((id) => {
+    const recipe = RECIPES.find((item) => item.id === id)!;
+    const sealed = recipe.tier === "hidden" && !known.includes(id);
+    return sealed ? !query.trim() : matchesSearch(query, recipe.name, ...recipe.ingredients.map((ingredient) => ingredient.name));
+  });
 
   // Reports whether it went through, so the card can rattle on short gold.
   const learn = (recipeId: string, name: string) => {
@@ -63,9 +72,10 @@ export function RecipeShopScreen({
         배운 레시피 {known.length} / {RECIPES.length}
       </Text>
 
+      <SearchBox value={query} onChange={setQuery} placeholder="요리나 재료 이름으로 찾기" resultCount={shown.length} />
       <View style={styles.grid}>
         {/* For sale first, then ones a stage clear away, then already-learned ones. */}
-        {order.map((id) => {
+        {shown.map((id) => {
           const recipe = RECIPES.find((item) => item.id === id)!;
           return (
             <RecipeCard

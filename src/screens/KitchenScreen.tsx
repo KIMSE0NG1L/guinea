@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { SearchBox } from "../components/SearchBox";
+import { matchesSearch } from "../state/search";
 import Svg, { Rect } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { chef, frameKit, grandma, kit } from "../assets";
@@ -109,6 +112,9 @@ export function KitchenScreen({
     .sort((a, b) => Number(b.cookable) - Number(a.cookable))
     .map(({ recipe }) => recipe);
   const unlearned = RECIPES.length - recipes.length;
+  // Search by dish name or any ingredient in it.
+  const [query, setQuery] = useState("");
+  const shown = recipes.filter((recipe) => matchesSearch(query, recipe.name, ...recipe.ingredients.map((ingredient) => ingredient.name)));
 
   return (
     <View style={styles.page}>
@@ -186,8 +192,9 @@ export function KitchenScreen({
         </View>
       </View>
 
+      <SearchBox value={query} onChange={setQuery} placeholder="요리나 재료 이름으로 찾기" resultCount={shown.length} />
       <View style={layout === "grid" ? styles.grid : styles.list}>
-        {recipes.map((recipe) => {
+        {shown.map((recipe) => {
           const ready = canCook(inventory, recipe);
           const owned = getItemQuantity(inventory, recipe.name);
           // Bag room is checked when the dish comes out of the pot, not when it goes in.
