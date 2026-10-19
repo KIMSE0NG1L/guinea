@@ -10,6 +10,7 @@ export const OUTFIT_UNLOCK_STAGE: Record<Outfit, number> = {
   assassinGini: 14, // 공격력 -30%, 2연타 (평균 약 1.4배)
   egenGini: 21, // 스킬 쿨타임 -1분
   samuraiGini: 24, // 적마다 첫 공격 = 일반 공격 ×10 ×치명타 피해, 공격 속도 -25%, 수동 공격 불가
+  chefGini: 33, // 요리 시간 -50%, 요리 대성공 +20%, 재료 드랍 100%, 공격력 -15%
 };
 
 // Skills: utility and short buffs early, the big damage dealers late.

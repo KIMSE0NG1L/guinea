@@ -400,6 +400,78 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "두툼 살코기", chance: 0.4 },
     ],
   },
+  // 알프스 목장 마을: 방울 송아지가 목장에서 나눠 주는 우유와 치즈; 구조견 대장은 산장 비상식량으로 챙겨 둔 고기와 우유, 감자를 떨어뜨린다.
+  bellCalf: {
+    mob: [
+      { name: "우유", chance: 0.3 },
+      { name: "치즈", chance: 0.15 },
+    ],
+    boss: [
+      { name: "두툼 살코기", chance: 1, quantity: 2 },
+      { name: "우유", chance: 0.6 },
+      { name: "감자", chance: 0.4 },
+    ],
+  },
+  // 빵집 골목: 크루아상 꼬마가 반죽에 쓰는 계란과 우유; 바게트 기사는 빵집 창고에서 챙긴 계란과 치즈, 양파를 떨어뜨린다.
+  croissantKid: {
+    mob: [
+      { name: "계란", chance: 0.3 },
+      { name: "우유", chance: 0.15 },
+    ],
+    boss: [
+      { name: "계란", chance: 1, quantity: 2 },
+      { name: "치즈", chance: 0.6 },
+      { name: "양파", chance: 0.4 },
+    ],
+  },
+  // 포도밭 언덕: 포도송이 꼬마가 이웃 과수원에서 굴려 온 풋사과와 레몬; 올리브 나무 할아버지는 발치 텃밭의 토마토와 양파, 딜을 떨어뜨린다.
+  grapeKid: {
+    mob: [
+      { name: "풋사과", chance: 0.3 },
+      { name: "레몬", chance: 0.15 },
+    ],
+    boss: [
+      { name: "토마토", chance: 1, quantity: 2 },
+      { name: "양파", chance: 0.6 },
+      { name: "딜", chance: 0.4 },
+    ],
+  },
+  // 과자 숲: 진저브레드 꼬마가 반죽에서 슬쩍한 계란과 로열 젤리; 과자집 마녀 박쥐는 과자집을 굽던 우유와 계란, 로열 젤리를 떨어뜨린다.
+  gingerbreadKid: {
+    mob: [
+      { name: "계란", chance: 0.3 },
+      { name: "로열 젤리", chance: 0.15 },
+    ],
+    boss: [
+      { name: "우유", chance: 1, quantity: 2 },
+      { name: "계란", chance: 0.6 },
+      { name: "로열 젤리", chance: 0.4 },
+    ],
+  },
+  // 홍차 정원: 찻잔 토끼가 홍차에 타 마시는 우유와 풋사과; 티포트 공작부인은 티 테이블의 우유와 레몬, 스콘용 계란을 떨어뜨린다.
+  teacupRabbit: {
+    mob: [
+      { name: "우유", chance: 0.3 },
+      { name: "풋사과", chance: 0.15 },
+    ],
+    boss: [
+      { name: "우유", chance: 1, quantity: 2 },
+      { name: "레몬", chance: 0.6 },
+      { name: "계란", chance: 0.4 },
+    ],
+  },
+  // 소시지 축제 마을: 프레첼 꼬마가 축제 가판대에서 굴려 온 감자와 양배추; 소시지 악단장 곰은 소시지를 만들던 고기와 양파, 감자를 떨어뜨린다.
+  pretzelKid: {
+    mob: [
+      { name: "감자", chance: 0.3 },
+      { name: "양배추", chance: 0.15 },
+    ],
+    boss: [
+      { name: "겹겹 뱃살", chance: 1, quantity: 2 },
+      { name: "양파", chance: 0.6 },
+      { name: "감자", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.
@@ -423,12 +495,14 @@ export type DropModifiers = {
   doubleChance?: number;
   // Every boss entry drops, whatever its chance.
   bossSure?: boolean;
+  // Every entry drops, mob or boss, whatever its chance (셰프기니).
+  allSure?: boolean;
 };
 
 export function rollDrops(kind: EnemyKind, boss: boolean, modifiers: DropModifiers = {}): { name: string; quantity: number }[] {
   return (boss ? DROPS[kind].boss : DROPS[kind].mob)
     .filter((entry) => {
-      if (boss && modifiers.bossSure) return true;
+      if (modifiers.allSure || (boss && modifiers.bossSure)) return true;
       const chance = entry.chance * (1 + (modifiers.chanceBonus?.(entry.name) ?? 0) / 100);
       return Math.random() < chance;
     })

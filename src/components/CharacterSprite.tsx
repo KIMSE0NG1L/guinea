@@ -17,6 +17,11 @@ const DURATIONS: Record<PlayerAnimation, number> = {
 // room for its slash/burst) — `scale` puts that back at idle size, feet and centre
 // lined up. Later outfits (cropped from a plain 4-frame reference sheet) use the normal
 // FRAME_SIZE for every animation and need no extra scale compensation.
+// 셰프기니's 16 frames were cut at one shared scale (the frying-pan flame frames set it),
+// so one factor brings every animation back to the other companions' size.
+const CHEF_FIT = 1.16;
+const CHEF_SCALE = { idle: CHEF_FIT, attack: CHEF_FIT, critical: CHEF_FIT, win: CHEF_FIT };
+
 const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frameSize: number; scale: number }>> = {
   default: {
     idle: { frameCount: 5, frameSize: FRAME_SIZE, scale: 1 },
@@ -62,6 +67,12 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.58 },
     // The sheet's 4th win frame (turned away, bowing) was dropped.
     win: { frameCount: 3, frameSize: FRAME_SIZE, scale: 1.09 },
+  },
+  chefGini: {
+    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.idle },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.attack },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.critical },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.win },
   },
 };
 

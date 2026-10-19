@@ -11,7 +11,7 @@ import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked } from ".
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES, STARTER_RECIPES } from "./recipes";
 import { getCookbookProgress } from "./cookbook";
@@ -118,7 +118,7 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini"];
+        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
@@ -250,6 +250,7 @@ export function useGameState() {
         (ITEM_CATEGORY.get(name) === "seafood" ? seafoodDrop : 0),
       doubleChance: dropDouble,
       bossSure: bossDropSure > 0,
+      allSure: OUTFIT_SURE_DROPS[state.equippedOutfit] ?? false,
     });
     // The first slime after the intro always leaves a 초록 젤리 ×3 — exactly one 말랑 초록
     // 젤리's worth, which kicks off the recipe tutorial.
@@ -335,7 +336,7 @@ export function useGameState() {
         }),
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, state.bossesCleared, state.highestStageNumber, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, state.bossesCleared, state.highestStageNumber, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {

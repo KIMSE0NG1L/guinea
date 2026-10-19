@@ -15,6 +15,7 @@ import {
   OUTFIT_HIT_COUNT,
   OUTFIT_MISS_CHANCE,
   OUTFIT_FIRST_STRIKE,
+  OUTFIT_SURE_DROPS,
   DISH_PARTNERS,
   PARTNER_MULTIPLIER,
   describeEffect,
@@ -38,6 +39,7 @@ function companionDetail(outfit: Outfit) {
   if (foodDurationBonus) parts.push(`음식 효과시간 +${foodDurationBonus}초`);
   const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
   if (firstStrike) parts.push(`적마다 첫 공격은 일반 공격 ×${firstStrike} 치명타`, "수동 공격 불가");
+  if (OUTFIT_SURE_DROPS[outfit]) parts.push("재료 드랍 확률 100%");
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
   if (cooldownReduction) parts.push(`스킬 쿨타임 -${cooldownReduction / 60}분`);
   return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
@@ -74,6 +76,12 @@ const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string 
     name: "사무라이기니",
     blurb: "벚꽃 해변을 떠도는 과묵한 떠돌이 무사. 칼은 단 한 번 뽑으면 충분하다.",
     detail: companionDetail("samuraiGini"),
+  },
+  {
+    outfit: "chefGini",
+    name: "셰프기니",
+    blurb: "빵집 골목 주방에서 반죽하던 요리사 기니. 국자 하나면 어떤 요리든 뚝딱이다.",
+    detail: companionDetail("chefGini"),
   },
 ];
 

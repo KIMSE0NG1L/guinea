@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "picnicride" | "candypath" | "teaparty" | "festivalwalk";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1204,6 +1204,220 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  alpinetrain: {
+    title: "치즈를 찾아 산악 열차로",
+    panels: [
+      {
+        image: comics.alpinetrain1,
+        aspect: 496 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "내 피자...\n치즈가 부족했어.", left: 0.02, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.alpinetrain2,
+        aspect: 496 / 768,
+        bubbles: [
+          { text: "최고의 피자엔\n알프스 치즈가 필요해!", right: 0.03, top: 0.08, maxWidth: 0.4, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.alpinetrain3,
+        aspect: 506 / 768,
+        bubbles: [
+          { text: "산이다~!", left: 0.3, top: 0.08, maxWidth: 0.22, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.alpinetrain4,
+        aspect: 506 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "치즈가\n산처럼 쌓였어!", left: 0.1, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.7 },
+          { text: "음매~?", left: 0.6, top: 0.25, maxWidth: 0.18, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+    ],
+  },
+  sledbakery: {
+    title: "썰매 타고 빵 냄새 따라",
+    panels: [
+      {
+        image: comics.sledbakery1,
+        aspect: 500 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "으악,\n침범벅이야!", left: 0.02, top: 0.06, maxWidth: 0.32, tail: "bottom", tailAt: 0.8 },
+        ],
+      },
+      {
+        image: comics.sledbakery2,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "꽉 잡아라,\n내려간다!", left: 0.02, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.sledbakery3,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "으아아아!!", left: 0.55, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.3, shout: true },
+        ],
+      },
+      {
+        image: comics.sledbakery4,
+        aspect: 499 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "이 냄새는...\n갓 구운 빵?!", left: 0.3, top: 0.06, maxWidth: 0.36, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+    ],
+  },
+  picnicride: {
+    title: "피크닉 바구니와 라벤더 길",
+    panels: [
+      {
+        image: comics.picnicride1,
+        aspect: 498 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "훌륭한 솜씨,\n인정하오.", left: 0.36, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.picnicride2,
+        aspect: 499 / 768,
+        bubbles: [
+          { text: "빵엔 남쪽 언덕의\n포도와 올리브지!", right: 0.02, top: 0.04, maxWidth: 0.4, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.picnicride3,
+        aspect: 505 / 768,
+        bubbles: [
+          { text: "라벤더 향~!", left: 0.3, top: 0.14, maxWidth: 0.26, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.picnicride4,
+        aspect: 504 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "포도가...\n굴러다녀?!", left: 0.04, top: 0.2, maxWidth: 0.26, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+    ],
+  },
+  candypath: {
+    title: "달콤한 냄새의 숲",
+    panels: [
+      {
+        image: comics.candypath1,
+        aspect: 499 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "허어...\n졌구먼...", left: 0.1, top: 0.12, maxWidth: 0.26, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.candypath2,
+        aspect: 501 / 768,
+        bubbles: [
+          { text: "저 숲에서...\n단 냄새가 나지...", left: 0.02, top: 0.04, maxWidth: 0.36, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.candypath3,
+        aspect: 500 / 768,
+        bubbles: [
+          { text: "과자 부스러기다!", left: 0.56, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.candypath4,
+        aspect: 502 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "숲이 통째로\n과자야!", left: 0.3, top: 0.36, maxWidth: 0.26, tail: "bottom", tailAt: 0.4 },
+          { text: "히익,\n먹지 마!", right: 0.12, top: 0.36, maxWidth: 0.2, tail: "right", tailAt: 0.2 },
+        ],
+      },
+    ],
+  },
+  teaparty: {
+    title: "마녀의 초대장",
+    panels: [
+      {
+        image: comics.teaparty1,
+        aspect: 503 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "과자집 지붕은...\n내 거였는데.", left: 0.5, top: 0.2, maxWidth: 0.32, tail: "left", tailAt: 0.7 },
+        ],
+      },
+      {
+        image: comics.teaparty2,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "티 파티 초대장이야.\n나 대신 가 줘.", left: 0.02, top: 0.06, maxWidth: 0.36, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.teaparty3,
+        aspect: 501 / 768,
+        bubbles: [
+          { text: "오후 네 시까지\n가야 한대!", left: 0.4, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.teaparty4,
+        aspect: 501 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "어서 오세요,\n손님들.", right: 0.03, top: 0.12, maxWidth: 0.26, tail: "bottom", tailAt: 0.4 },
+          { text: "토끼가...\n찻잔에?", left: 0.02, top: 0.12, maxWidth: 0.24, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+    ],
+  },
+  festivalwalk: {
+    title: "튜바 소리를 따라",
+    panels: [
+      {
+        image: comics.festivalwalk1,
+        aspect: 502 / 768,
+        sfx: "hit",
+        bubbles: [
+          { text: "차 시간을\n망치다니!", right: 0.03, top: 0.1, maxWidth: 0.28, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.festivalwalk2,
+        aspect: 503 / 768,
+        bubbles: [
+          { text: "어디서\n음악 소리가?", left: 0.02, top: 0.1, maxWidth: 0.28, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.festivalwalk3,
+        aspect: 502 / 768,
+        bubbles: [
+          { text: "뿌우우~\n튜바 소리다!", left: 0.3, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.festivalwalk4,
+        aspect: 503 / 768,
+        sfx: "levelup",
+        bubbles: [
+          { text: "소시지\n냄새~!", left: 0.02, top: 0.24, maxWidth: 0.22, tail: "bottom", tailAt: 0.4 },
+          { text: "프레첼이\n춤춰!", right: 0.03, top: 0.42, maxWidth: 0.22, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
@@ -1238,6 +1452,12 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   27: "dragonroad",
   28: "dragongate",
   29: "whaleride",
+  30: "alpinetrain",
+  31: "sledbakery",
+  32: "picnicride",
+  33: "candypath",
+  34: "teaparty",
+  35: "festivalwalk",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.
