@@ -98,6 +98,13 @@ const EFFECTS: Record<string, { effect: BuffEffect; tint: string }> = {
   "yuzu-sherbet": { effect: { offlineBuffs: 1, offlineGold: 60 }, tint: "#f6d76a" },
   "abalone-porridge": { effect: { exp: 50, attack: 40 }, tint: "#cfd6b8" },
   "dragon-feast": { effect: { bossDropSure: 1, attack: 80, gold: 60, dropDouble: 25 }, tint: "#f3c36a" },
+  "barley-tea": { effect: { exp: 8, attackSpeed: 5 }, tint: "#e2b98a" },
+  "mango-smoothie": { effect: { attackSpeed: 15, gold: 12 }, tint: "#fcd36a" },
+  "grilled-sardine": { effect: { seafoodDrop: 25, criticalChance: 5 }, tint: "#c9d4dc" },
+  "spicy-oyster": { effect: { criticalChance: 12, attack: 12 }, tint: "#f0a58c" },
+  "five-grain-rice": { effect: { exp: 30, gold: 20 }, tint: "#d9c0b8" },
+  "patbingsu": { effect: { attackSpeed: 20, greatSuccess: 20 }, tint: "#dfe7f2" },
+  "salmon-roe-bowl": { effect: { criticalDamage: 70, seafoodDrop: 30 }, tint: "#f7a27a" },
   "guinea-feast": { effect: { attack: 60, criticalChance: 10, gold: 60, exp: 30 }, tint: "#dab8a2" },
 };
 
@@ -134,7 +141,7 @@ export const DISH_SETS: { id: string; name: string; recipes: string[]; bonus: Bu
   {
     id: "sea",
     name: "바다 한 상",
-    recipes: ["salmon-sashimi", "shrimp-sashimi", "mussel-seaweed-soup", "tuna-sashimi", "octopus", "salmon-steak", "seafood-boil"],
+    recipes: ["salmon-sashimi", "shrimp-sashimi", "mussel-seaweed-soup", "tuna-sashimi", "octopus", "salmon-steak", "seafood-boil", "grilled-sardine", "spicy-oyster", "salmon-roe-bowl"],
     bonus: { gold: 30, seafoodDrop: 30 },
   },
   {
@@ -152,7 +159,7 @@ export const DISH_SETS: { id: string; name: string; recipes: string[]; bonus: Bu
   {
     id: "sweet",
     name: "디저트 타임",
-    recipes: ["green-jelly", "slime-potion", "royal-jelly", "pudding", "banana-milk"],
+    recipes: ["green-jelly", "slime-potion", "royal-jelly", "pudding", "banana-milk", "mango-smoothie", "patbingsu"],
     bonus: { attackSpeed: 15, criticalChance: 5 },
   },
 ];
@@ -165,6 +172,7 @@ export function getDishSet(recipeId: string) {
 export const PARTNER_MULTIPLIER = 1.5;
 export const DISH_PARTNERS: Record<string, Outfit> = {
   "chopped-salad": "default",
+  "mango-smoothie": "explorerHamster",
   "banana-milk": "explorerHamster",
   "salmon-steak": "tetoGini",
   "fire-skewer": "tetoGini",
