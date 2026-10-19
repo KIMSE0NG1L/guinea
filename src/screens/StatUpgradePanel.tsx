@@ -86,10 +86,10 @@ function StatRow({
   const suffix = key === "attack" ? "" : "%";
   const atCap = STAT_CAP[key] !== undefined && getStatValue(state, key) >= STAT_CAP[key]!;
   const affordable = quote.levels > 0 && state.gold >= quote.cost;
+  const short = !atCap && !affordable;
 
   const [gains, setGains] = useState<{ id: number; text: string }[]>([]);
   const gainId = useRef(0);
-  const [broke, setBroke] = useState(false);
   const { style: shakeStyle, shake } = useShake();
   const { value: flash, flash: flashIcon } = useFlash();
   const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value * 0.8, transform: [{ scale: 1 + flash.value * 0.3 }] }));
@@ -99,8 +99,6 @@ function StatRow({
   const buy = () => {
     if (!latest.affordable) {
       shake();
-      setBroke(true);
-      setTimeout(() => setBroke(false), 450);
       return;
     }
     onUpgrade(key);
@@ -132,13 +130,15 @@ function StatRow({
           <Text style={styles.gainSmall}>다음</Text>
           <Text style={styles.gainValue}>{formatGameNumber(nextValue)}{suffix}</Text>
         </View>
+        {/* Short of gold looks just like a maxed-out stat: the same faded button (it stays
+            pressable so a tap still gives the "can't afford" shake). */}
         <GameButton
           variant="brown"
           disabled={atCap || quote.levels === 0}
           onPress={buy}
           onPressIn={hold.onPressIn}
           onPressOut={hold.onPressOut}
-          style={styles.upgradeButton}
+          style={[styles.upgradeButton, short && styles.upgradeButtonShort]}
         >
           <View>
             <Text style={styles.upgradeButtonText}>
@@ -147,7 +147,7 @@ function StatRow({
             {!atCap && (
               <CoinPrice
                 amount={quote.cost}
-                textStyle={[styles.upgradeButtonCost, (broke || !affordable) && styles.upgradeButtonCostShort]}
+                textStyle={styles.upgradeButtonCost}
                 style={styles.upgradeButtonCostRow}
               />
             )}
@@ -196,7 +196,8 @@ const styles = StyleSheet.create({
   upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10, textAlign: "center" },
   upgradeButtonCost: { color: colors.brown, fontSize: 8, textAlign: "center" },
   upgradeButtonCostRow: { marginTop: 1, gap: 2 },
-  upgradeButtonCostShort: { color: colors.red },
+  // Matches GameButton's own disabled fade, which a maxed-out stat gets.
+  upgradeButtonShort: { opacity: 0.55 },
   markFlash: { position: "absolute", top: 4, left: 4, right: 4, bottom: 4, borderRadius: 6, backgroundColor: "#fff3b0" },
   gainFloat: { left: 0, top: 4, fontSize: 13, fontFamily: fonts.bold, color: colors.green },
 });

@@ -23,6 +23,7 @@ const TABS: { id: Filter; label: string }[] = [
   { id: "all", label: "전체" },
   { id: "vegetable", label: "채소" },
   { id: "fruit", label: "과일" },
+  { id: "grain", label: "곡물" },
   { id: "farm", label: "농장" },
   { id: "meat", label: "고기" },
   { id: "seafood", label: "해산물" },
@@ -36,6 +37,7 @@ const TAB_LINES: Record<Filter, string> = {
   farm: "계란이랑 우유는 새벽에 받아왔단다.",
   meat: "고기는 귀한 거라 값이 좀 나간단다.",
   fruit: "남쪽 정글에서 온 과일이란다. 달달하지?",
+  grain: "햅쌀이랑 잡곡이란다. 꼭꼭 씹어 먹으면 든든하지.",
   seafood: "항구에서 막 들어온 해산물이야. 비린내 안 나지?",
   special: "젤리랑 열매는 몬스터한테서나 나오는 귀한 거란다.",
 };

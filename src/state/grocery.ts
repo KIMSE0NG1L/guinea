@@ -3,7 +3,7 @@ import { STAGE_KILL_TARGET, STAGES } from "./stages";
 import { getReferenceMobGold, roundPrice } from "./gameMath";
 
 // Grandma's grocery stock. Prices are in gold, one item per purchase.
-export type GroceryCategory = "vegetable" | "fruit" | "farm" | "meat" | "seafood" | "special";
+export type GroceryCategory = "vegetable" | "fruit" | "grain" | "farm" | "meat" | "seafood" | "special";
 
 // Stock list. Prices aren't hand-set: each comes from where the item drops (see
 // getGroceryPrice). Only items no monster drops carry a fixed `shopPrice`.
@@ -56,7 +56,16 @@ const STOCK: { name: string; category: GroceryCategory; shopPrice?: number }[] =
   { name: "곶감", category: "fruit" },
   { name: "막걸리", category: "special" },
   { name: "진달래꽃", category: "special" },
-  { name: "쌀", category: "farm" },
+  { name: "쌀", category: "grain" },
+  { name: "찹쌀", category: "grain" },
+  { name: "현미", category: "grain" },
+  { name: "흑미", category: "grain" },
+  { name: "보리", category: "grain" },
+  { name: "귀리", category: "grain" },
+  { name: "조", category: "grain" },
+  { name: "수수", category: "grain" },
+  { name: "팥", category: "grain" },
+  { name: "검은콩", category: "grain" },
   { name: "고춧가루", category: "special" },
   { name: "고등어", category: "seafood" },
   { name: "먹물", category: "seafood" },

@@ -36,23 +36,27 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "당근", chance: 0.4 },
       { name: "토마토", chance: 0.15 },
+      { name: "보리", chance: 0.1 },
     ],
     boss: [
       { name: "당근", chance: 1, quantity: 4 },
       { name: "토마토", chance: 0.6 },
       { name: "호박", chance: 0.3 },
+      { name: "귀리", chance: 0.4 },
     ],
   },
-  // 꼬꼬 농장: eggs and drumsticks, plus the corn they're fed.
+  // 꼬꼬 농장: eggs and drumsticks, plus the corn and grain they're fed.
   chicken: {
     mob: [
       { name: "계란", chance: 0.35 },
       { name: "통다리살", chance: 0.1 },
+      { name: "조", chance: 0.15 },
     ],
     boss: [
       { name: "계란", chance: 1, quantity: 3 },
       { name: "통다리살", chance: 1, quantity: 2 },
       { name: "옥수수", chance: 0.5 },
+      { name: "수수", chance: 0.5 },
     ],
   },
   // 감자 동굴: potatoes, onions and cave mushrooms.
@@ -225,11 +229,13 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "풋사과", chance: 0.3 },
       { name: "곶감", chance: 0.2 },
+      { name: "흑미", chance: 0.15 },
     ],
     boss: [
       { name: "두툼 살코기", chance: 1, quantity: 2 },
       { name: "뼈 갈빗살", chance: 0.6 },
       { name: "우유", chance: 0.4 },
+      { name: "검은콩", chance: 0.5 },
     ],
   },
   // 설산: the rabbits carry frozen carrots down from their own stash; the ice golem has
@@ -277,9 +283,12 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
     mob: [
       { name: "감자", chance: 0.3 },
       { name: "쌀", chance: 0.3 },
+      { name: "찹쌀", chance: 0.15 },
+      { name: "현미", chance: 0.15 },
     ],
     boss: [
       { name: "고춧가루", chance: 1, quantity: 2 },
+      { name: "팥", chance: 0.5 },
       { name: "화염 열매", chance: 0.6 },
       { name: "두툼 살코기", chance: 0.4 },
     ],

@@ -15,6 +15,7 @@ import { getStageCode, STAGES } from "../state/stages";
 const CATEGORY_LABEL: Record<GroceryCategory, string> = {
   vegetable: "채소",
   fruit: "과일",
+  grain: "곡물",
   farm: "농장",
   meat: "고기",
   seafood: "해산물",
@@ -24,6 +25,7 @@ const CATEGORY_LABEL: Record<GroceryCategory, string> = {
 const CATEGORY_COLOR: Record<GroceryCategory, string> = {
   vegetable: "#6f9a3c",
   fruit: "#d98a2b",
+  grain: "#b8913a",
   farm: "#b88a4a",
   meat: "#b8553f",
   seafood: "#3f7fb0",
