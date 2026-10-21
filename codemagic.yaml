@@ -22,7 +22,7 @@ workflows:
       - name: Apply App Store signing profiles
         script: xcode-project use-profiles
       - name: Build signed IPA
-        script: xcode-project build-ipa --workspace ios/gini_app.xcworkspace --scheme gini_app
+        script: xcode-project build-ipa --workspace ios/app.xcworkspace --scheme app
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
