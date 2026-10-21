@@ -1046,10 +1046,5 @@ export const comics = {
   aurorapath4: require("../assets/comics/aurorapath-4.webp"),
 };
 
-export const bgm = {
-  field: require("../assets/bgm/main_theme.mp3"),
-  boss: require("../assets/bgm/boss_theme.mp3"),
-};
-
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
 export const FRAME_SIZE = 160;

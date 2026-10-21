@@ -3,7 +3,7 @@ import { colors, fonts } from "../theme";
 import { kit, kitImages } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
-import { playSfx, setBgmMuted, setSfxMuted, useBgmMuted, useSfxMuted } from "../sound";
+import { playSfx, setSfxMuted, useSfxMuted } from "../sound";
 
 export function SettingsModal({
   onSkipToBoss,
@@ -29,7 +29,6 @@ export function SettingsModal({
   onClose: () => void;
 }) {
   const sfxMuted = useSfxMuted();
-  const bgmMuted = useBgmMuted();
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
@@ -49,18 +48,7 @@ export function SettingsModal({
             <Text style={styles.sfxLabel}>효과음</Text>
             <Image source={sfxMuted ? kitImages.toggleOff : kitImages.toggleOn} style={styles.sfxToggle} resizeMode="contain" />
           </Pressable>
-          <Pressable
-            style={[styles.sfxRow, styles.bgmRow]}
-            onPress={() => {
-              setBgmMuted(!bgmMuted);
-              playSfx("uiToggle");
-            }}
-            hitSlop={6}
-          >
-            <Text style={styles.sfxLabel}>배경음</Text>
-            <Image source={bgmMuted ? kitImages.toggleOff : kitImages.toggleOn} style={styles.sfxToggle} resizeMode="contain" />
-          </Pressable>
-          <View style={styles.list}>
+<View style={styles.list}>
             <GameButton
               variant="green"
               onPress={() => {
@@ -164,7 +152,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 4,
   },
-  bgmRow: { marginTop: 10 },
   sfxLabel: { fontSize: 13, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   sfxToggle: { width: 52, height: 30 },
   list: { marginTop: 16, width: "100%", gap: 8 },
