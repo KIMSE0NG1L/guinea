@@ -117,10 +117,14 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini", "iceMageGini"];
+        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
+        // Same guard for a save written before a skill (e.g. the old "freeze"/"swords"/"meteor"
+        // magic trio) was retired — getSkill() would otherwise throw looking it up.
+        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton"];
+        const equippedSkill = save.state.equippedSkill && validSkills.includes(save.state.equippedSkill) ? save.state.equippedSkill : null;
         // Placeholder starter materials that were never used by any recipe — strip them
         // from older saves so they stop cluttering the bag.
         const retiredItems = ["낡은 천", "작은 돌"];
@@ -146,7 +150,7 @@ export function useGameState() {
         // in the bag as a dish was clearly cooked, so that's the starting page count.
         const cookedRecipes =
           save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
-        let loadedState: GameState = { ...save.state, equippedOutfit, inventory, questClaimed, knownRecipes, recipeTutorialDone, discoveredItems, cookedRecipes };
+        let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, discoveredItems, cookedRecipes };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const awayMs = Date.now() - save.lastSeenAt;

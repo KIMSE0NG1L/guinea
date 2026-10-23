@@ -46,12 +46,6 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-chef-critical-strip.webp"),
       win: require("../assets/sprites/guinea-chef-win-strip.webp"),
     },
-    iceMageGini: {
-      idle: require("../assets/sprites/guinea-icemage-idle-strip.webp"),
-      attack: require("../assets/sprites/guinea-icemage-attack-strip.webp"),
-      critical: require("../assets/sprites/guinea-icemage-critical-strip.webp"),
-      win: require("../assets/sprites/guinea-icemage-win-strip.webp"),
-    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),
@@ -383,76 +377,6 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-baguette-knight-hit-strip.webp"),
     die: require("../assets/sprites/boss-baguette-knight-die-strip.webp"),
   },
-  grapeKid: {
-    idle: require("../assets/sprites/grape-kid-idle-strip.webp"),
-    hit: require("../assets/sprites/grape-kid-hit-strip.webp"),
-    die: require("../assets/sprites/grape-kid-die-strip.webp"),
-  },
-  bossOliveTree: {
-    idle: require("../assets/sprites/boss-olive-tree-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-olive-tree-hit-strip.webp"),
-    die: require("../assets/sprites/boss-olive-tree-die-strip.webp"),
-  },
-  gingerbreadKid: {
-    idle: require("../assets/sprites/gingerbread-kid-idle-strip.webp"),
-    hit: require("../assets/sprites/gingerbread-kid-hit-strip.webp"),
-    die: require("../assets/sprites/gingerbread-kid-die-strip.webp"),
-  },
-  bossCandyWitch: {
-    idle: require("../assets/sprites/boss-candy-witch-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-candy-witch-hit-strip.webp"),
-    die: require("../assets/sprites/boss-candy-witch-die-strip.webp"),
-  },
-  teacupRabbit: {
-    idle: require("../assets/sprites/teacup-rabbit-idle-strip.webp"),
-    hit: require("../assets/sprites/teacup-rabbit-hit-strip.webp"),
-    die: require("../assets/sprites/teacup-rabbit-die-strip.webp"),
-  },
-  bossTeapotDuchess: {
-    idle: require("../assets/sprites/boss-teapot-duchess-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-teapot-duchess-hit-strip.webp"),
-    die: require("../assets/sprites/boss-teapot-duchess-die-strip.webp"),
-  },
-  pretzelKid: {
-    idle: require("../assets/sprites/pretzel-kid-idle-strip.webp"),
-    hit: require("../assets/sprites/pretzel-kid-hit-strip.webp"),
-    die: require("../assets/sprites/pretzel-kid-die-strip.webp"),
-  },
-  bossBandBear: {
-    idle: require("../assets/sprites/boss-band-bear-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-band-bear-hit-strip.webp"),
-    die: require("../assets/sprites/boss-band-bear-die-strip.webp"),
-  },
-  puffinFisher: {
-    idle: require("../assets/sprites/puffin-fisher-idle-strip.webp"),
-    hit: require("../assets/sprites/puffin-fisher-hit-strip.webp"),
-    die: require("../assets/sprites/puffin-fisher-die-strip.webp"),
-  },
-  bossWalrusViking: {
-    idle: require("../assets/sprites/boss-walrus-viking-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-walrus-viking-hit-strip.webp"),
-    die: require("../assets/sprites/boss-walrus-viking-die-strip.webp"),
-  },
-  babySeal: {
-    idle: require("../assets/sprites/baby-seal-idle-strip.webp"),
-    hit: require("../assets/sprites/baby-seal-hit-strip.webp"),
-    die: require("../assets/sprites/baby-seal-die-strip.webp"),
-  },
-  bossPolarBear: {
-    idle: require("../assets/sprites/boss-polar-bear-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-polar-bear-hit-strip.webp"),
-    die: require("../assets/sprites/boss-polar-bear-die-strip.webp"),
-  },
-  snowFairy: {
-    idle: require("../assets/sprites/snow-fairy-idle-strip.webp"),
-    hit: require("../assets/sprites/snow-fairy-hit-strip.webp"),
-    die: require("../assets/sprites/snow-fairy-die-strip.webp"),
-  },
-  bossIceQueenCat: {
-    idle: require("../assets/sprites/boss-ice-queen-cat-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-ice-queen-cat-hit-strip.webp"),
-    die: require("../assets/sprites/boss-ice-queen-cat-die-strip.webp"),
-  },
 };
 
 export const images = {
@@ -489,13 +413,6 @@ export const images = {
   battleBackgroundCanalCity: require("../assets/sprites/battle-canal-city.webp"),
   battleBackgroundAlpineVillage: require("../assets/sprites/battle-alpine-village.webp"),
   battleBackgroundBakeryStreet: require("../assets/sprites/battle-bakery-street.webp"),
-  battleBackgroundVineyardHills: require("../assets/sprites/battle-vineyard-hills.webp"),
-  battleBackgroundCandyForest: require("../assets/sprites/battle-candy-forest.webp"),
-  battleBackgroundTeaGarden: require("../assets/sprites/battle-tea-garden.webp"),
-  battleBackgroundSausageFest: require("../assets/sprites/battle-sausage-fest.webp"),
-  battleBackgroundFjordVillage: require("../assets/sprites/battle-fjord-village.webp"),
-  battleBackgroundArcticGlacier: require("../assets/sprites/battle-arctic-glacier.webp"),
-  battleBackgroundAuroraPalace: require("../assets/sprites/battle-aurora-palace.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -557,9 +474,6 @@ export const skillImages = {
   shout: require("../assets/skills/shout.png"),
   diligent: require("../assets/skills/diligent.png"),
   glutton: require("../assets/skills/glutton.png"),
-  meteor: require("../assets/skills/meteor.png"),
-  freeze: require("../assets/skills/freeze.png"),
-  swords: require("../assets/skills/swords.png"),
 };
 const WIDE_ICON = 256 / 222;
 const SQUARE_ICON = 256 / 258;
@@ -571,16 +485,6 @@ export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
   shout: SQUARE_ICON,
   diligent: SQUARE_ICON,
   glutton: SQUARE_ICON,
-  meteor: 256 / 260,
-  freeze: 256 / 265,
-  swords: 256 / 261,
-};
-
-// Objects the magic skills throw around (MagicEffects.tsx).
-export const magicEffects = {
-  meteor: require("../assets/effects/magic-meteor.png"), // 398x438, tail up-right
-  freeze: require("../assets/effects/magic-freeze.png"), // 418x445
-  sword: require("../assets/effects/magic-sword.png"), // 409x267, points right
 };
 
 export const food = {
@@ -1020,30 +924,6 @@ export const comics = {
   picnicride2: require("../assets/comics/picnicride-2.webp"),
   picnicride3: require("../assets/comics/picnicride-3.webp"),
   picnicride4: require("../assets/comics/picnicride-4.webp"),
-  candypath1: require("../assets/comics/candypath-1.webp"),
-  candypath2: require("../assets/comics/candypath-2.webp"),
-  candypath3: require("../assets/comics/candypath-3.webp"),
-  candypath4: require("../assets/comics/candypath-4.webp"),
-  teaparty1: require("../assets/comics/teaparty-1.webp"),
-  teaparty2: require("../assets/comics/teaparty-2.webp"),
-  teaparty3: require("../assets/comics/teaparty-3.webp"),
-  teaparty4: require("../assets/comics/teaparty-4.webp"),
-  festivalwalk1: require("../assets/comics/festivalwalk-1.webp"),
-  festivalwalk2: require("../assets/comics/festivalwalk-2.webp"),
-  festivalwalk3: require("../assets/comics/festivalwalk-3.webp"),
-  festivalwalk4: require("../assets/comics/festivalwalk-4.webp"),
-  riverboat1: require("../assets/comics/riverboat-1.webp"),
-  riverboat2: require("../assets/comics/riverboat-2.webp"),
-  riverboat3: require("../assets/comics/riverboat-3.webp"),
-  riverboat4: require("../assets/comics/riverboat-4.webp"),
-  iceberg1: require("../assets/comics/iceberg-1.webp"),
-  iceberg2: require("../assets/comics/iceberg-2.webp"),
-  iceberg3: require("../assets/comics/iceberg-3.webp"),
-  iceberg4: require("../assets/comics/iceberg-4.webp"),
-  aurorapath1: require("../assets/comics/aurorapath-1.webp"),
-  aurorapath2: require("../assets/comics/aurorapath-2.webp"),
-  aurorapath3: require("../assets/comics/aurorapath-3.webp"),
-  aurorapath4: require("../assets/comics/aurorapath-4.webp"),
 };
 
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).

@@ -11,7 +11,6 @@ export const OUTFIT_UNLOCK_STAGE: Record<Outfit, number> = {
   egenGini: 21, // 스킬 쿨타임 -1분
   samuraiGini: 24, // 적마다 첫 공격 = 일반 공격 ×10 ×치명타 피해, 공격 속도 -25%, 수동 공격 불가
   chefGini: 33, // 요리 시간 -50%, 요리 대성공 +20%, 재료 드랍 100%, 공격력 -15%
-  iceMageGini: 40, // 스킬 쿨타임 -1.5분, 스킬 효과 2배(기니빔 보스 피해는 최대 80%), 공격력 -25%
 };
 
 // Skills: utility and short buffs early, the big damage dealers late.
@@ -23,10 +22,6 @@ export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
   shout: 16,
   beam: 20,
   execute: 25,
-  // Magic, for the late game.
-  freeze: 30,
-  swords: 35,
-  meteor: 40,
 };
 
 // `highestStageNumber`: the furthest stage (0-based) ever reached.

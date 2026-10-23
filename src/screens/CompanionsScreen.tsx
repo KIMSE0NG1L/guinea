@@ -86,12 +86,6 @@ const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string 
     blurb: "빵집 골목 주방에서 반죽하던 요리사 기니. 국자 하나면 어떤 요리든 뚝딱이다.",
     detail: companionDetail("chefGini"),
   },
-  {
-    outfit: "iceMageGini",
-    name: "얼음마법사기니",
-    blurb: "오로라 얼음 궁전에서 별을 읽던 마법사 기니. 졸린 눈으로 지팡이를 휘두르면 고드름이 쏟아진다.",
-    detail: companionDetail("iceMageGini"),
-  },
 ];
 
 // Dishes whose buff this companion boosts (DISH_PARTNERS), with their icons.

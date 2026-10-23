@@ -36,17 +36,6 @@ export const GLUTTON_FOOD_MULTIPLIER = 2;
 // After casting a skill — or putting a passive in the slot — the slot can't change for this
 // long, so you can't chain several skills' cooldowns or flick passives on and off.
 export const SKILL_SWAP_LOCK_MS = 3 * 60 * SECOND;
-// 메테오: one sure-crit strike worth this many normal hits, landing when the rock does.
-export const METEOR_MULTIPLIER = 30;
-export const METEOR_TIMING = { hit: 620, end: 1100 };
-// 빛의 검: this many swords fly in a fan, each a normal hit times SWORD_MULTIPLIER with its
-// own crit roll; they leave SWORD_STAGGER ms apart and take SWORD_FLIGHT ms to land.
-export const SWORD_COUNT = 5;
-export const SWORD_MULTIPLIER = 8;
-export const SWORD_STAGGER = 110;
-export const SWORD_FLIGHT = 360;
-// While 빙결 is active, the frozen enemy takes this much more damage from everything.
-export const FREEZE_DAMAGE_BONUS = 0.5;
 // Every active skill shares the same cooldown.
 const SKILL_COOLDOWN_MS = 3 * 60 * SECOND;
 
@@ -64,9 +53,6 @@ export const SKILLS: Skill[] = [
     cooldownMs: 0,
   },
   { id: "glutton", name: "먹보", description: "장착하면 항상 적용 · 장착 중에 먹은 음식 버프가 2배로 오래가요.", passive: true, cooldownMs: 0 },
-  { id: "meteor", name: "메테오", description: "하늘에서 운석을 떨어뜨려 일반 공격 30배의 치명타 피해를 줘요.", cooldownMs: SKILL_COOLDOWN_MS },
-  { id: "freeze", name: "빙결 마법", description: "10초 동안 적을 얼려서, 얼어 있는 적이 받는 모든 피해가 50% 늘어나요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 10 * SECOND },
-  { id: "swords", name: "빛의 검", description: "빛나는 검 5자루를 날려 하나당 일반 공격 8배 피해를 줘요. 검마다 치명타가 따로 터져요.", cooldownMs: SKILL_COOLDOWN_MS },
 ];
 
 // One-line effect summaries for the battle slot's info bubble.
@@ -78,9 +64,6 @@ export const SKILL_SUMMARY: Record<SkillId, string> = {
   shout: "일반 공격 피해 +30%",
   diligent: "오프라인 골드 +50%",
   glutton: "음식 버프 지속시간 2배",
-  meteor: "일반 공격 ×30 치명타",
-  freeze: "적이 받는 모든 피해 +50%",
-  swords: "검 5자루 × 일반 공격 8배",
 };
 
 export function getSkill(id: SkillId) {
@@ -97,9 +80,6 @@ export const INITIAL_SKILL_TIMERS: SkillTimers = {
   shout: { readyAt: 0, activeUntil: 0 },
   diligent: { readyAt: 0, activeUntil: 0 },
   glutton: { readyAt: 0, activeUntil: 0 },
-  meteor: { readyAt: 0, activeUntil: 0 },
-  freeze: { readyAt: 0, activeUntil: 0 },
-  swords: { readyAt: 0, activeUntil: 0 },
 };
 
 export function isSkillActive(timers: SkillTimers, id: SkillId, now: number) {

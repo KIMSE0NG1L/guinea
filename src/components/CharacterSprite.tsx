@@ -21,8 +21,6 @@ const DURATIONS: Record<PlayerAnimation, number> = {
 // so one factor brings every animation back to the other companions' size.
 const CHEF_FIT = 1.16;
 const CHEF_SCALE = { idle: CHEF_FIT, attack: CHEF_FIT, critical: CHEF_FIT, win: CHEF_FIT };
-// 얼음마법사기니: same shared-scale cut; the icicle burst frames set it.
-const ICE_MAGE_FIT = 1.1;
 
 const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frameSize: number; scale: number }>> = {
   default: {
@@ -75,12 +73,6 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.attack },
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.critical },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.win },
-  },
-  iceMageGini: {
-    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: ICE_MAGE_FIT },
-    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: ICE_MAGE_FIT },
-    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: ICE_MAGE_FIT },
-    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: ICE_MAGE_FIT },
   },
 };
 

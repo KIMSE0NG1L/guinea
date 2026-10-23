@@ -37,13 +37,6 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   gondolaDuck: ["곤돌라 타실래요~?", "노래 값은 따로!"],
   bellCalf: ["음매~ 딸랑!", "낮잠 방해 금지..."],
   croissantKid: ["내 결이 제일 바삭해!", "부스러기는 못 본 척해"],
-  grapeKid: ["데굴데굴~", "한 알 떨어졌다!"],
-  gingerbreadKid: ["날 먹지 마!", "귀는... 원래 이래!"],
-  teacupRabbit: ["차 시간이에요~", "후루룩은 금지!"],
-  pretzelKid: ["축제다 축제!", "어디가 팔이지?"],
-  puffinFisher: ["오늘은 대어다!", "부리 보지 마!"],
-  babySeal: ["쿨... 쿨...", "생선 냄새?"],
-  snowFairy: ["에취 시켜 줄까?", "녹으면 안 돼~"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -80,11 +73,4 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   gondolaDuck: ["피자를 남기다니!", "불이... 꺼져 간다..."],
   bellCalf: ["조난자 발견!", "우유 한 모금 마셔라!"],
   croissantKid: ["빵의 이름으로!", "갓 구운 검을 받아라!"],
-  grapeKid: ["허어... 젊은이들...", "이 언덕은... 내 거라네..."],
-  gingerbreadKid: ["과자집에 어서 와~", "지붕은 내 거야!"],
-  teacupRabbit: ["네 시 정각이에요!", "크림이 먼저랍니다!"],
-  pretzelKid: ["뿌우우~!", "소시지 하나만 더!"],
-  puffinFisher: ["노를 저어라!", "생선이랑 바꾸자!"],
-  babySeal: ["쉿, 입질 온다.", "기다리는 게 낚시다."],
-  snowFairy: ["무엄하구나.", "뜨거운 건 사양이다."],
 };
