@@ -1101,7 +1101,7 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
     panels: [
       {
         image: comics.dragonroad1,
-        aspect: 482 / 768,
+        aspect: 510 / 768,
         sfx: "hit",
         bubbles: [
           { text: "졌다...\n책은 돌려주지.", left: 0.02, top: 0.1, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
@@ -1109,21 +1109,21 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
       {
         image: comics.dragonroad2,
-        aspect: 483 / 768,
+        aspect: 512 / 768,
         bubbles: [
           { text: "용궁에...\n세상에서 제일 귀한 맛?!", left: 0.02, top: 0.04, maxWidth: 0.42, tail: "bottom", tailAt: 0.55 },
         ],
       },
       {
         image: comics.dragonroad3,
-        aspect: 521 / 768,
+        aspect: 508 / 768,
         bubbles: [
           { text: "저 불빛을\n따라가 보자!", left: 0.3, top: 0.12, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
         ],
       },
       {
         image: comics.dragonroad4,
-        aspect: 521 / 768,
+        aspect: 510 / 768,
         sfx: "levelup",
         bubbles: [
           { text: "...바닷속\n길이라니.", left: 0.02, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
@@ -1388,7 +1388,7 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
     panels: [
       {
         image: comics.festivalwalk1,
-        aspect: 502 / 768,
+        aspect: 495 / 768,
         sfx: "hit",
         bubbles: [
           { text: "차 시간을\n망치다니!", right: 0.03, top: 0.1, maxWidth: 0.28, tail: "bottom", tailAt: 0.5 },
@@ -1396,7 +1396,7 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
       {
         image: comics.festivalwalk2,
-        aspect: 503 / 768,
+        aspect: 523 / 768,
         bubbles: [
           { text: "어디서\n음악 소리가?", left: 0.02, top: 0.1, maxWidth: 0.28, tail: "bottom", tailAt: 0.4 },
         ],
@@ -1410,7 +1410,7 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
       {
         image: comics.festivalwalk4,
-        aspect: 503 / 768,
+        aspect: 502 / 768,
         sfx: "levelup",
         bubbles: [
           { text: "소시지\n냄새~!", left: 0.02, top: 0.24, maxWidth: 0.22, tail: "bottom", tailAt: 0.4 },
