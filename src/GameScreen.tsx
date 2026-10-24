@@ -10,7 +10,7 @@ import { OfflineRewardModal } from "./components/OfflineRewardModal";
 import { BattleScreen } from "./screens/BattleScreen";
 import { GrowthScreen } from "./screens/GrowthScreen";
 import { EquipmentScreen } from "./screens/EquipmentScreen";
-import { CompanionsScreen } from "./screens/CompanionsScreen";
+import { CompanionsHub } from "./screens/CompanionsHub";
 import { InventoryScreen } from "./screens/InventoryScreen";
 import { WardrobeScreen } from "./screens/WardrobeScreen";
 import { ShopScreen } from "./screens/ShopScreen";
@@ -122,7 +122,7 @@ export function GameScreen() {
         return <EquipmentScreen equipment={state.equipment} />;
       case "companions":
         return (
-          <CompanionsScreen
+          <CompanionsHub
             equippedOutfit={state.equippedOutfit}
             highestStageNumber={state.highestStageNumber ?? state.stageNumber}
             outfitsSeen={state.outfitsSeen}

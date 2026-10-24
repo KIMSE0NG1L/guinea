@@ -8,7 +8,7 @@ type Inventory = GameState["inventory"];
 export const STACK_SIZE = 64;
 export const BAG_BASE_SLOTS = 40;
 export const BAG_EXPAND_SLOTS = 10;
-export const BAG_MAX_SLOTS = 120;
+export const BAG_MAX_SLOTS = 200;
 
 export function getBagCapacity(expansions = 0) {
   return Math.min(BAG_MAX_SLOTS, BAG_BASE_SLOTS + expansions * BAG_EXPAND_SLOTS);

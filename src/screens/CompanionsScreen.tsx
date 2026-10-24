@@ -48,7 +48,7 @@ function companionDetail(outfit: Outfit) {
   return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
 }
 
-const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string }[] = [
+export const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string }[] = [
   { outfit: "default", name: "모험기니", blurb: "건초에 지쳐 새로운 끼니를 찾아 세상을 모험하는 기니.", detail: companionDetail("default") },
   {
     outfit: "explorerHamster",
