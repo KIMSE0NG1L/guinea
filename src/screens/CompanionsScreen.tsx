@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts } from "../theme";
-import { images, kit, shopKit } from "../assets";
+import { images, kit, shopKit, uiImages } from "../assets";
 import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
@@ -15,6 +15,8 @@ import {
   OUTFIT_HIT_COUNT,
   OUTFIT_MISS_CHANCE,
   OUTFIT_FIRST_STRIKE,
+  OUTFIT_FORCED_MANUAL,
+  OUTFIT_NO_OFFLINE,
   OUTFIT_SURE_DROPS,
   OUTFIT_SKILL_POWER,
   DISH_PARTNERS,
@@ -23,7 +25,7 @@ import {
 } from "../state/buffs";
 import { RECIPES } from "../state/recipes";
 import { LockBadge } from "../components/LockBadge";
-import { isOutfitUnlocked, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
+import { isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
 import type { Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and grants whichever of these
@@ -45,6 +47,8 @@ function companionDetail(outfit: Outfit) {
   if (cooldownReduction) parts.push(`스킬 쿨타임 -${cooldownReduction / 60}분`);
   const skillPower = OUTFIT_SKILL_POWER[outfit];
   if (skillPower) parts.push(`스킬 효과 ×${skillPower} (기니빔 보스 피해 최대 80%)`);
+  if (OUTFIT_FORCED_MANUAL[outfit]) parts.push("항상 수동 전투 (탭해서 공격)");
+  if (OUTFIT_NO_OFFLINE[outfit]) parts.push("휴식(오프라인) 중에는 사냥 안 함");
   return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
 }
 
@@ -85,6 +89,12 @@ export const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: 
     name: "셰프기니",
     blurb: "빵집 골목 주방에서 반죽하던 요리사 기니. 국자 하나면 어떤 요리든 뚝딱이다.",
     detail: companionDetail("chefGini"),
+  },
+  {
+    outfit: "boxerGini",
+    name: "복서기니",
+    blurb: "글러브를 벗는 법이 없는 열혈 복서. 보석으로 데려올 수 있는 특별한 동료다.",
+    detail: companionDetail("boxerGini"),
   },
 ];
 
@@ -174,6 +184,10 @@ export function CompanionsScreen({
   onEquip,
   outfitsSeen,
   onSeen,
+  gems,
+  purchasedOutfits,
+  onPurchase,
+  onOpenShop,
 }: {
   equippedOutfit: Outfit;
   // Furthest stage reached (0-based) — companions join on arriving at their stage.
@@ -182,10 +196,15 @@ export function CompanionsScreen({
   // Companions shown unlocked last visit (undefined = never tracked), and the report on leaving.
   outfitsSeen: Outfit[] | undefined;
   onSeen: (outfits: Outfit[]) => void;
+  // For gem-bought companions (e.g. 복서기니) — see OUTFIT_GEM_PRICE.
+  gems: number;
+  purchasedOutfits: Outfit[] | undefined;
+  onPurchase: (outfit: Outfit) => void;
+  onOpenShop: () => void;
 }) {
   const equippedItem = COMPANIONS.find((item) => item.outfit === equippedOutfit) ?? COMPANIONS[0];
   const [previewWidth, setPreviewWidth] = useState(0);
-  const unlockedNow = COMPANIONS.filter((item) => isOutfitUnlocked(item.outfit, highestStageNumber)).map((item) => item.outfit);
+  const unlockedNow = COMPANIONS.filter((item) => isOutfitUnlocked(item.outfit, highestStageNumber, purchasedOutfits)).map((item) => item.outfit);
   // Unlocked since the last visit: their padlock breaks open this time.
   const [freshlyUnlocked] = useState(() => (outfitsSeen ? unlockedNow.filter((outfit) => !outfitsSeen.includes(outfit)) : []));
   const [outfitOnArrival] = useState(equippedOutfit);
@@ -237,7 +256,9 @@ export function CompanionsScreen({
         {COMPANIONS.map((item) => {
           const equipped = item.outfit === equippedOutfit;
           const unlockStage = OUTFIT_UNLOCK_STAGE[item.outfit];
-          const locked = !equipped && !isOutfitUnlocked(item.outfit, highestStageNumber);
+          const gemPrice = OUTFIT_GEM_PRICE[item.outfit];
+          const locked = !equipped && !isOutfitUnlocked(item.outfit, highestStageNumber, purchasedOutfits);
+          const affordable = gemPrice !== undefined && gems >= gemPrice;
           return (
             <Panel slice={equipped ? kit.panel : kit.inset} style={styles.card} key={item.outfit}>
               <View>
@@ -251,22 +272,42 @@ export function CompanionsScreen({
               </View>
               <View style={styles.cardCopy}>
                 <Text style={[styles.cardSmall, locked && styles.cardSmallLocked]}>
-                  {equipped ? "함께하는 중" : locked ? `${unlockStage}스테이지에 도착하면 합류` : "같이 다닐 수 있음"}
+                  {equipped
+                    ? "함께하는 중"
+                    : !locked
+                      ? "같이 다닐 수 있음"
+                      : gemPrice !== undefined
+                        ? `보석 ${gemPrice}개로 데려올 수 있음`
+                        : `${unlockStage}스테이지에 도착하면 합류`}
                 </Text>
                 <Text style={styles.cardStrong}>{item.name}</Text>
                 <Text style={styles.cardBlurb}>{item.blurb}</Text>
                 <Text style={styles.cardSpan}>{item.detail}</Text>
                 <PartnerDishes outfit={item.outfit} />
               </View>
-              <GameButton
-                variant={equipped ? "green" : locked ? "gray" : "beige"}
-                disabled={locked}
-                onPress={() => onEquip(item.outfit)}
-                style={styles.equipButton}
-                textStyle={styles.equipButtonText}
-              >
-                {equipped ? "함께 중" : locked ? `${unlockStage}스테이지` : "함께하기"}
-              </GameButton>
+              {locked && gemPrice !== undefined ? (
+                <GameButton
+                  variant={affordable ? "beige" : "gray"}
+                  onPress={() => (affordable ? onPurchase(item.outfit) : onOpenShop())}
+                  style={styles.equipButton}
+                  textStyle={styles.equipButtonText}
+                >
+                  <View style={styles.gemCost}>
+                    <Image source={uiImages.crystal} style={styles.gemIcon} />
+                    <Text style={styles.equipButtonText}>{affordable ? gemPrice : `${gemPrice - gems} 모자람`}</Text>
+                  </View>
+                </GameButton>
+              ) : (
+                <GameButton
+                  variant={equipped ? "green" : locked ? "gray" : "beige"}
+                  disabled={locked}
+                  onPress={() => onEquip(item.outfit)}
+                  style={styles.equipButton}
+                  textStyle={styles.equipButtonText}
+                >
+                  {equipped ? "함께 중" : locked ? `${unlockStage}스테이지` : "함께하기"}
+                </GameButton>
+              )}
             </Panel>
           );
         })}
@@ -329,4 +370,6 @@ const styles = StyleSheet.create({
   cardSpan: { color: colors.muted, fontSize: 8 },
   equipButton: { minWidth: 70 },
   equipButtonText: { fontSize: 9 },
+  gemCost: { flexDirection: "row", alignItems: "center", gap: 3 },
+  gemIcon: { width: 12, height: 12 },
 });

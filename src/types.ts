@@ -4,7 +4,7 @@ export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering"
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
 export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander" | "monkey" | "carp" | "cactus" | "fox" | "lizard" | "mantou" | "pig" | "magpie" | "snowRabbit" | "drunkCat" | "flowerSnake" | "riceSack" | "mackerel" | "blossomCrab" | "shrineFox" | "armorBeetle" | "onsenMonkey" | "ninjaFrog" | "lanternAngler" | "clamMaid" | "gondolaDuck" | "bellCalf" | "croissantKid";
-export type Outfit = "default" | "explorerHamster" | "tetoGini" | "assassinGini" | "egenGini" | "samuraiGini" | "chefGini";
+export type Outfit = "default" | "explorerHamster" | "tetoGini" | "assassinGini" | "egenGini" | "samuraiGini" | "chefGini" | "boxerGini";
 export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton" | "barrage" | "teleport";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 
@@ -76,6 +76,8 @@ export interface GameState {
   allComicsUnlocked?: boolean;
   // Companions already shown unlocked — one unlocked since gets its lock broken on the next visit.
   outfitsSeen?: Outfit[];
+  // Companions bought with gems instead of unlocked by stage (e.g. 복서기니); missing on older saves.
+  purchasedOutfits?: Outfit[];
   // Furthest stage the map has shown — a newer one gets its path drawn in on the next visit.
   mapSeenStage?: number;
   codexSeen?: string[];

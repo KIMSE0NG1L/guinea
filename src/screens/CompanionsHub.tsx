@@ -15,6 +15,7 @@ export function CompanionsHub(props: ComponentProps<typeof CompanionsScreen>) {
       <VillageScreen
         companions={COMPANIONS}
         highestStageNumber={props.highestStageNumber}
+        purchasedOutfits={props.purchasedOutfits}
         equippedOutfit={props.equippedOutfit}
         onEquip={props.onEquip}
         onOpenCodex={() => setView("codex")}

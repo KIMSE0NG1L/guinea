@@ -11,6 +11,14 @@ export const OUTFIT_UNLOCK_STAGE: Record<Outfit, number> = {
   egenGini: 21, // 스킬 쿨타임 -1분
   samuraiGini: 24, // 적마다 첫 공격 = 일반 공격 ×10 ×치명타 피해, 공격 속도 -25%, 수동 공격 불가
   chefGini: 33, // 요리 시간 -50%, 요리 대성공 +20%, 재료 드랍 100%, 공격력 -15%
+  // Never reached by stage — bought instead, see OUTFIT_GEM_PRICE below.
+  boxerGini: Infinity,
+};
+
+// Companions bought with gems instead of joining at a stage (checked before
+// OUTFIT_UNLOCK_STAGE in isOutfitUnlocked below).
+export const OUTFIT_GEM_PRICE: Partial<Record<Outfit, number>> = {
+  boxerGini: 2000,
 };
 
 // Skills: utility and short buffs early, the big damage dealers late.
@@ -26,8 +34,10 @@ export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
   execute: 30,
 };
 
-// `highestStageNumber`: the furthest stage (0-based) ever reached.
-export function isOutfitUnlocked(outfit: Outfit, highestStageNumber: number) {
+// `highestStageNumber`: the furthest stage (0-based) ever reached. `purchasedOutfits`:
+// gem-bought companions (see OUTFIT_GEM_PRICE) — only those ever unlock this way.
+export function isOutfitUnlocked(outfit: Outfit, highestStageNumber: number, purchasedOutfits?: Outfit[]) {
+  if (outfit in OUTFIT_GEM_PRICE) return !!purchasedOutfits?.includes(outfit);
   return outfit === "default" || highestStageNumber >= OUTFIT_UNLOCK_STAGE[outfit] - 1;
 }
 

@@ -2,7 +2,7 @@ import type { GameState } from "../types";
 import { getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
 import { getExpReward, getExpToLevel, getGoldReward, getTotalAttack } from "./gameMath";
 import { DILIGENT_OFFLINE_BONUS } from "./skills";
-import { getBuffTotals, OUTFIT_BUFFS, OUTFIT_FIRST_STRIKE } from "./buffs";
+import { getBuffTotals, OUTFIT_BUFFS, OUTFIT_FIRST_STRIKE, OUTFIT_NO_OFFLINE } from "./buffs";
 
 export type OfflineSummary = {
   mobsKilled: number;
@@ -42,6 +42,7 @@ export function simulateOfflineProgress(
   state: GameState,
   elapsedMsRaw: number
 ): { state: GameState; summary: OfflineSummary } | null {
+  if (OUTFIT_NO_OFFLINE[state.equippedOutfit]) return null;
   const elapsedMs = Math.min(elapsedMsRaw, MAX_OFFLINE_MS);
   if (elapsedMs < MIN_OFFLINE_MS) return null;
   const leftAt = Date.now() - elapsedMsRaw;

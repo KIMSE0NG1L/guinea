@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
-import type { GameState, SkillId, StatKey, UpgradeMode } from "../types";
+import type { GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
 import { GLUTTON_FOOD_MULTIPLIER, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
 import { applyUpgradeLevels, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
-import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked } from "./unlocks";
+import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked, OUTFIT_GEM_PRICE } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
-import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
+import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
@@ -117,7 +117,7 @@ export function useGameState() {
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini"];
+        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini", "boxerGini"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
@@ -370,6 +370,7 @@ export function useGameState() {
     bossDamage: foodBuffs.bossDamage,
     skillPower: OUTFIT_SKILL_POWER[state.equippedOutfit] ?? 1,
     firstStrikeMultiplier: OUTFIT_FIRST_STRIKE[state.equippedOutfit] ?? 0,
+    forcedManual: OUTFIT_FORCED_MANUAL[state.equippedOutfit] ?? false,
     extraHitChance: foodBuffs.extraHit,
     executeBonus: foodBuffs.execute,
     enemyMaxHp,
@@ -634,6 +635,17 @@ export function useGameState() {
     return true;
   };
 
+  // Buys a gem-priced companion (e.g. 복서기니) outright; returns whether it went through.
+  const purchaseOutfit = (outfit: Outfit) => {
+    const price = OUTFIT_GEM_PRICE[outfit];
+    if (price === undefined || state.gems < price || (state.purchasedOutfits ?? []).includes(outfit)) return false;
+    setState((previous) => {
+      if (previous.gems < price || (previous.purchasedOutfits ?? []).includes(outfit)) return previous;
+      return { ...previous, gems: previous.gems - price, purchasedOutfits: [...(previous.purchasedOutfits ?? []), outfit] };
+    });
+    return true;
+  };
+
   // Spends gems for more bag slots; returns whether it went through.
   const expandBag = () => {
     const expansions = state.bagExpansions ?? 0;
@@ -772,6 +784,7 @@ export function useGameState() {
     catchFlyingCoin,
     expandBag,
     unlockBuffSlot,
+    purchaseOutfit,
     bagFullAt,
     notifyBagFull: () => notifyBagFull(),
     dismissBagFull: () => setBagFullAt(null),

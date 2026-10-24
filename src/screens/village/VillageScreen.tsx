@@ -6,7 +6,7 @@ import { colors, fonts } from "../../theme";
 import { icons, images, villageUi } from "../../assets";
 import { CharacterSprite } from "../../components/CharacterSprite";
 import { StrokedText } from "../../components/StrokedText";
-import { isOutfitUnlocked, OUTFIT_UNLOCK_STAGE } from "../../state/unlocks";
+import { isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../../state/unlocks";
 import type { Outfit } from "../../types";
 import { BACKDROP, DEPTH, getBackdropSize, getHomes, House, PROPS, Swing } from "./villageWorld";
 
@@ -21,6 +21,7 @@ const LINES: Record<Outfit, string> = {
   egenGini: "차 한 잔 할래? 벚꽃잎 띄워 줄게.",
   samuraiGini: "칼은 뽑지 않는 날이 가장 좋은 날이오.",
   chefGini: "배고프지? 금방 한 그릇 말아 줄게!",
+  boxerGini: "쉬는 시간은 없어! 잽, 잽, 스트레이트!",
 };
 
 // Each house gets the backdrop of the place that 기니 comes from.
@@ -32,6 +33,7 @@ const HOUSE_BACKDROP: Record<Outfit, number> = {
   egenGini: images.battleBackgroundBlossomBeach,
   samuraiGini: images.battleBackgroundCastleKeep,
   chefGini: images.battleBackgroundBakeryStreet,
+  boxerGini: images.battleBackgroundVillage,
 };
 
 const SPRITE = 76;
@@ -57,12 +59,15 @@ function wanderOffset(t: number, index: number) {
 export function VillageScreen({
   companions,
   highestStageNumber,
+  purchasedOutfits,
   equippedOutfit,
   onEquip,
   onOpenCodex,
 }: {
   companions: VillageCompanion[];
   highestStageNumber: number;
+  // Gem-bought companions (e.g. 복서기니) — see OUTFIT_GEM_PRICE.
+  purchasedOutfits: Outfit[] | undefined;
   equippedOutfit: Outfit;
   onEquip: (outfit: Outfit) => void;
   onOpenCodex: () => void;
@@ -72,7 +77,7 @@ export function VillageScreen({
   const HOMES = getHomes(backdrop);
   // Zoomed out no further than the backdrop still covering the screen.
   const minZoom = size.width === 0 ? 1 : Math.max(size.width / backdrop.width, size.height / backdrop.height);
-  const residents = companions.filter((companion) => isOutfitUnlocked(companion.outfit, highestStageNumber));
+  const residents = companions.filter((companion) => isOutfitUnlocked(companion.outfit, highestStageNumber, purchasedOutfits));
 
   // Camera: world point at the centre of the screen, plus zoom. Shared values so panning
   // never re-renders; `view` (React state) only tracks which chunks to draw.
@@ -223,6 +228,7 @@ export function VillageScreen({
       <ProfileStrip
         companions={companions}
         highestStageNumber={highestStageNumber}
+        purchasedOutfits={purchasedOutfits}
         selected={selected}
         equippedOutfit={equippedOutfit}
         onSelect={focus}
@@ -335,12 +341,14 @@ function SpeechBubble({
 function ProfileStrip({
   companions,
   highestStageNumber,
+  purchasedOutfits,
   selected,
   equippedOutfit,
   onSelect,
 }: {
   companions: VillageCompanion[];
   highestStageNumber: number;
+  purchasedOutfits: Outfit[] | undefined;
   selected: Outfit | null;
   equippedOutfit: Outfit;
   onSelect: (outfit: Outfit) => void;
@@ -350,7 +358,8 @@ function ProfileStrip({
       <LinearGradient colors={["#2b1d1200", "#2b1d12cc"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stripContent}>
         {companions.map((companion) => {
-          const open = isOutfitUnlocked(companion.outfit, highestStageNumber);
+          const open = isOutfitUnlocked(companion.outfit, highestStageNumber, purchasedOutfits);
+          const gemPrice = OUTFIT_GEM_PRICE[companion.outfit];
           const active = selected === companion.outfit;
           return (
             <Pressable
@@ -366,7 +375,7 @@ function ProfileStrip({
                 <CharacterSprite outfit={companion.outfit} animation="idle" size={46} />
               </View>
               <Text style={[styles.cardName, active && styles.cardNameActive]} numberOfLines={1}>
-                {open ? companion.name : `${OUTFIT_UNLOCK_STAGE[companion.outfit]}스테이지`}
+                {open ? companion.name : gemPrice !== undefined ? `보석 ${gemPrice}` : `${OUTFIT_UNLOCK_STAGE[companion.outfit]}스테이지`}
               </Text>
               {equippedOutfit === companion.outfit && <View style={styles.cardBadge} />}
             </Pressable>

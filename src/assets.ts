@@ -46,6 +46,12 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-chef-critical-strip.webp"),
       win: require("../assets/sprites/guinea-chef-win-strip.webp"),
     },
+    boxerGini: {
+      idle: require("../assets/sprites/guinea-boxer-idle-strip.png"),
+      attack: require("../assets/sprites/guinea-boxer-attack-strip.png"),
+      critical: require("../assets/sprites/guinea-boxer-critical-strip.png"),
+      win: require("../assets/sprites/guinea-boxer-win-strip.png"),
+    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),

@@ -74,6 +74,15 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.critical },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.win },
   },
+  // Cropped from a single 4x4 reference grid, each frame already centred square on its
+  // cell — no extra scale needed for idle/attack/win. Critical sits a touch smaller in
+  // its own frame (the explosion needs the margin), so it gets a small boost back.
+  boxerGini: {
+    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.1 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
+  },
 };
 
 export function CharacterSprite({

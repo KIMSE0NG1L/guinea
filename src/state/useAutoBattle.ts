@@ -41,6 +41,7 @@ export function useAutoBattle({
   skillPower = 1,
   bossDamage = 0,
   firstStrikeMultiplier = 0,
+  forcedManual = false,
   extraHitChance = 0,
   executeBonus = 0,
   enemyMaxHp,
@@ -73,6 +74,9 @@ export function useAutoBattle({
   // 사무라이기니: the first strike on each enemy is a sure crit worth this many normal hits
   // (0 = off). While it's on, battle is auto only — manual taps would waste the draw.
   firstStrikeMultiplier?: number;
+  // 복서기니: manual tapping is always open, with no need to cast 난타 first (its tradeoff
+  // is OUTFIT_NO_OFFLINE instead — see offline.ts).
+  forcedManual?: boolean;
   extraHitChance?: number;
   executeBonus?: number;
   enemyMaxHp: number;
@@ -95,7 +99,7 @@ export function useAutoBattle({
   // Manual taps are never allowed by default — only while 난타 (barrage) is actively cast
   // does tapping work; every other moment (and always for a first-strike-locked outfit
   // like 사무라이기니) battle runs on auto.
-  const manualWindowOpen = equippedSkill === "barrage" && isSkillActive(skillTimers, "barrage", now);
+  const manualWindowOpen = forcedManual || (equippedSkill === "barrage" && isSkillActive(skillTimers, "barrage", now));
   const isAutoBattle = autoLocked || !manualWindowOpen;
   // Bumped on each first-strike draw, so the scene can play its slash.
   const [firstStrikeId, setFirstStrikeId] = useState(0);

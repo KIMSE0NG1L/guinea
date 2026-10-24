@@ -128,8 +128,14 @@ export function GameScreen() {
             outfitsSeen={state.outfitsSeen}
             onSeen={(outfitsSeen) => setState((previous) => ({ ...previous, outfitsSeen }))}
             onEquip={(equippedOutfit) =>
-              setState((previous) => (isOutfitUnlocked(equippedOutfit, previous.highestStageNumber ?? previous.stageNumber) ? { ...previous, equippedOutfit } : previous))
+              setState((previous) =>
+                isOutfitUnlocked(equippedOutfit, previous.highestStageNumber ?? previous.stageNumber, previous.purchasedOutfits) ? { ...previous, equippedOutfit } : previous,
+              )
             }
+            gems={state.gems}
+            purchasedOutfits={state.purchasedOutfits}
+            onPurchase={game.purchaseOutfit}
+            onOpenShop={() => onSelectTab("shop")}
           />
         );
       case "inventory":

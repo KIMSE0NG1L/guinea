@@ -190,6 +190,7 @@ export const OUTFIT_NAMES: Record<Outfit, string> = {
   egenGini: "에겐기니",
   samuraiGini: "사무라이기니",
   chefGini: "셰프기니",
+  boxerGini: "복서기니",
 };
 
 // "세트: 바다 한 상", "궁합: 테토기니" — the set a dish belongs to and its partner companion.
@@ -263,6 +264,18 @@ export const OUTFIT_COOLDOWN_REDUCTION_SEC: Partial<Record<Outfit, number>> = {
 
 // Multiplies skill effects while this outfit is equipped (see useAutoBattle's skillPower).
 export const OUTFIT_SKILL_POWER: Partial<Record<Outfit, number>> = {};
+
+// 복서기니: always fights by hand (no auto-battle at all, no 난타 needed) — but see
+// OUTFIT_NO_OFFLINE below, the tradeoff for that always-on manual fighting.
+export const OUTFIT_FORCED_MANUAL: Partial<Record<Outfit, boolean>> = {
+  boxerGini: true,
+};
+
+// This outfit never fights while the app is closed — simulateOfflineProgress skips it
+// outright (offline.ts), since a boxer only throws punches with someone actually tapping.
+export const OUTFIT_NO_OFFLINE: Partial<Record<Outfit, boolean>> = {
+  boxerGini: true,
+};
 
 const signed = (value: number) => `${value >= 0 ? "+" : ""}${value}`;
 
