@@ -265,6 +265,7 @@ export function GameScreen() {
           onKillEnemy={game.battle.killEnemy}
           onAddLevels={() => game.cheatAddLevels(50)}
           onUnlockAllStages={game.cheatUnlockAllStages}
+          onAddGems={() => game.cheatAddGems(10000)}
           onOpenShop={() => onSelectTab("shop")}
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
           onOpenComics={() => onSelectTab("comics")}

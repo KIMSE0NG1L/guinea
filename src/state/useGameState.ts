@@ -498,6 +498,11 @@ export function useGameState() {
     setState((previous) => ({ ...previous, highestStageNumber: LAST_STAGE_NUMBER }));
   };
 
+  // Dev-convenience shortcut from the settings menu — adds gems outright.
+  const cheatAddGems = (amount: number) => {
+    setState((previous) => ({ ...previous, gems: previous.gems + amount }));
+  };
+
   // Pops the "bag is full" dialog when an action needed a fresh bag slot and there wasn't
   // one. Drops come every kill during auto-battle, so those raise it only once per time the
   // bag fills up — not again until it has had room in between.
@@ -794,6 +799,7 @@ export function useGameState() {
     canTeleportToBoss,
     cheatAddLevels,
     cheatUnlockAllStages,
+    cheatAddGems,
     equipSkill,
     skillSwapReadyAt,
     resetSave,

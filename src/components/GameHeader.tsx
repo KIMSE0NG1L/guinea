@@ -27,6 +27,7 @@ export function GameHeader({
   onKillEnemy,
   onAddLevels,
   onUnlockAllStages,
+  onAddGems,
   onOpenShop,
   onReplayTutorial,
   onOpenComics,
@@ -38,6 +39,7 @@ export function GameHeader({
   onKillEnemy: () => void;
   onAddLevels: () => void;
   onUnlockAllStages: () => void;
+  onAddGems: () => void;
   onOpenShop: () => void;
   onReplayTutorial: () => void;
   onOpenComics: () => void;
@@ -88,6 +90,7 @@ export function GameHeader({
           onKillEnemy={onKillEnemy}
           onAddLevels={onAddLevels}
           onUnlockAllStages={onUnlockAllStages}
+          onAddGems={onAddGems}
           onReplayTutorial={onReplayTutorial}
           onOpenComics={onOpenComics}
           onUnlockAllComics={onUnlockAllComics}

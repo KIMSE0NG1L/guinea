@@ -11,6 +11,7 @@ export function SettingsModal({
   onKillEnemy,
   onAddLevels,
   onUnlockAllStages,
+  onAddGems,
   onReplayTutorial,
   onOpenComics,
   onUnlockAllComics,
@@ -21,6 +22,7 @@ export function SettingsModal({
   onKillEnemy: () => void;
   onAddLevels: () => void;
   onUnlockAllStages: () => void;
+  onAddGems: () => void;
   onReplayTutorial: () => void;
   // Opens the comic album (추억 앨범).
   onOpenComics: () => void;
@@ -99,6 +101,16 @@ export function SettingsModal({
               style={styles.button}
             >
               맵 다 깨기
+            </GameButton>
+            <GameButton
+              variant="green"
+              onPress={() => {
+                onAddGems();
+                onClose();
+              }}
+              style={styles.button}
+            >
+              보석 +10000
             </GameButton>
             <GameButton
               variant="cream"
