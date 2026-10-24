@@ -950,6 +950,10 @@ export const bgm = {
     field: require("../assets/bgm/field-china.mp3"),
     boss: require("../assets/bgm/boss-china.mp3"),
   },
+  korea: {
+    field: require("../assets/bgm/field-korea.mp3"),
+    boss: require("../assets/bgm/boss-korea.mp3"),
+  },
 };
 
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
