@@ -35,6 +35,7 @@ import { measureTarget } from "./components/tutorialTargets";
 import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
+import { BGM_GROUP, getEnemyKind } from "./state/stages";
 import { setBgmTrack } from "./sound";
 import type { Tab } from "./types";
 
@@ -42,11 +43,15 @@ export function GameScreen() {
   const game = useGameState();
   const { state, setState, questOpen, setQuestOpen, claimQuest } = game;
 
-  // Lives here rather than in BattleScreen so the boss theme keeps playing on other tabs.
-  // Keyed off displayBoss so the switch lands with the boss-entrance sfx, not the 25th kill.
+  // Lives here rather than in BattleScreen so the right track keeps playing on other tabs.
+  // Keyed off displayBoss (not the raw 25th-kill moment) so the switch lands with the
+  // boss-entrance sfx, and off the same "stage during a boss's death clip" stage number
+  // BattleScreen's own display uses, so the region doesn't flip mid-transition.
+  const bgmStageNumber = game.isBossDefeatFlash ? game.defeatedStageNumber : state.stageNumber;
+  const bgmGroup = BGM_GROUP[getEnemyKind(bgmStageNumber)];
   useEffect(() => {
-    setBgmTrack(game.displayBoss ? "boss" : "field");
-  }, [game.displayBoss]);
+    setBgmTrack(bgmGroup, game.displayBoss);
+  }, [bgmGroup, game.displayBoss]);
 
   const onSelectTab = (selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab }));
 

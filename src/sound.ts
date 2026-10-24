@@ -3,6 +3,7 @@ import { AppState, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from "expo-audio";
 import { bgm, sfx } from "./assets";
+import type { BgmGroupId } from "./state/stages";
 
 const VOLUME_KEY = "gini.sfx.volume";
 // Short effects can overlap themselves (a burst of auto-battle hits, several coin pickups
@@ -71,42 +72,63 @@ export function useSfxVolume() {
 const BGM_VOLUME_KEY = "gini.bgm.volume";
 const DEFAULT_BGM_VOLUME = 0.35;
 
-type BgmTrack = keyof typeof bgm;
+// Only the region groups with actual tracks in assets.ts's bgm object — not every
+// BgmGroupId has one yet (see BGM_GROUP in stages.ts for the full region list).
+type LoadedBgmGroup = keyof typeof bgm;
+type BgmKind = "field" | "boss";
 
-const bgmPlayers = (Object.keys(bgm) as BgmTrack[]).reduce((acc, track) => {
-  const player = createAudioPlayer(bgm[track]);
-  player.loop = true;
-  acc[track] = player;
+const FALLBACK_GROUP: LoadedBgmGroup = "countryside";
+
+const bgmPlayers = (Object.keys(bgm) as LoadedBgmGroup[]).reduce((acc, group) => {
+  const field = createAudioPlayer(bgm[group].field);
+  const boss = createAudioPlayer(bgm[group].boss);
+  field.loop = true;
+  boss.loop = true;
+  acc[group] = { field, boss };
   return acc;
-}, {} as Record<BgmTrack, AudioPlayer>);
+}, {} as Record<LoadedBgmGroup, Record<BgmKind, AudioPlayer>>);
 
-let bgmTrack: BgmTrack = "field";
+let bgmGroup: LoadedBgmGroup = FALLBACK_GROUP;
+let bgmKind: BgmKind = "field";
 let bgmVolume = DEFAULT_BGM_VOLUME;
 let bgmStarted = false;
 let appActive = AppState.currentState === "active";
 const bgmListeners = new Set<(volume: number) => void>();
 
+function forEachBgmPlayer(fn: (player: AudioPlayer) => void) {
+  (Object.keys(bgmPlayers) as LoadedBgmGroup[]).forEach((group) => {
+    fn(bgmPlayers[group].field);
+    fn(bgmPlayers[group].boss);
+  });
+}
+
 function applyBgmVolume() {
-  (Object.keys(bgmPlayers) as BgmTrack[]).forEach((track) => {
-    bgmPlayers[track].volume = bgmVolume;
+  forEachBgmPlayer((player) => {
+    player.volume = bgmVolume;
   });
 }
 applyBgmVolume();
 
 function syncBgm() {
   const shouldPlay = bgmStarted && bgmVolume > 0 && appActive;
-  (Object.keys(bgmPlayers) as BgmTrack[]).forEach((track) => {
-    if (shouldPlay && track === bgmTrack) bgmPlayers[track].play();
-    else bgmPlayers[track].pause();
+  (Object.keys(bgmPlayers) as LoadedBgmGroup[]).forEach((group) => {
+    (["field", "boss"] as BgmKind[]).forEach((kind) => {
+      if (shouldPlay && group === bgmGroup && kind === bgmKind) bgmPlayers[group][kind].play();
+      else bgmPlayers[group][kind].pause();
+    });
   });
 }
 
 // The boss theme restarts from the top on every boss; the field theme picks up where it
-// left off once the boss is down.
-export function setBgmTrack(track: BgmTrack) {
-  if (track === bgmTrack) return;
-  bgmTrack = track;
-  if (track === "boss") bgmPlayers.boss.seekTo(0);
+// left off once the boss is down. Falls back to "countryside" for any region that
+// doesn't have its own tracks yet.
+export function setBgmTrack(group: BgmGroupId, boss: boolean) {
+  const resolvedGroup: LoadedBgmGroup = group in bgmPlayers ? (group as LoadedBgmGroup) : FALLBACK_GROUP;
+  const kind: BgmKind = boss ? "boss" : "field";
+  if (resolvedGroup === bgmGroup && kind === bgmKind) return;
+  bgmGroup = resolvedGroup;
+  bgmKind = kind;
+  if (kind === "boss") bgmPlayers[resolvedGroup].boss.seekTo(0);
   syncBgm();
 }
 

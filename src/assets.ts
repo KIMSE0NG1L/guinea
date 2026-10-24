@@ -380,6 +380,7 @@ export const spriteSheets = {
 };
 
 export const images = {
+  titleScreen: require("../assets/sprites/title-screen.png"),
   battleBackground: require("../assets/sprites/battle-forest.webp"),
   battleBackgroundMushroom: require("../assets/sprites/battle-mushroom-swamp.webp"),
   battleBackgroundFarm: require("../assets/sprites/battle-farm.webp"),
@@ -926,12 +927,17 @@ export const comics = {
   picnicride4: require("../assets/comics/picnicride-4.webp"),
 };
 
-// Stage-1 group (뒷산~부잣집 주방) BGM. Add more field/boss pairs here as later region
-// groups get their own tracks — see BACKGROUND in BattleScene.tsx for the per-EnemyKind
-// lookup pattern this will eventually need.
+// Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.
+// Not every group has tracks yet; sound.ts falls back to "countryside" for the rest.
 export const bgm = {
-  field: require("../assets/bgm/field-countryside.mp3"),
-  boss: require("../assets/bgm/boss-countryside.mp3"),
+  countryside: {
+    field: require("../assets/bgm/field-countryside.mp3"),
+    boss: require("../assets/bgm/boss-countryside.mp3"),
+  },
+  tropical: {
+    field: require("../assets/bgm/field-tropical.mp3"),
+    boss: require("../assets/bgm/boss-tropical.mp3"),
+  },
 };
 
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).

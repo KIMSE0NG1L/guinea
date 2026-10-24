@@ -1,5 +1,54 @@
 import type { EnemyKind, GameState } from "../types";
 
+// Groups stages by region/mood for BGM — several stages share one field+boss pair (see
+// sound.ts's bgm lookup). Not every group has tracks yet; sound.ts falls back to
+// "countryside" for any group still missing one.
+export type BgmGroupId = "countryside" | "tropical" | "desert" | "china" | "korea" | "japan" | "dragonPalace" | "europe";
+
+export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
+  // 뒷산~부잣집 주방
+  slime: "countryside",
+  mushroom: "countryside",
+  carrot: "countryside",
+  chicken: "countryside",
+  potato: "countryside",
+  mouse: "countryside",
+  cauldron: "countryside",
+  // 항구 해변~열대 정글
+  mudskipper: "tropical",
+  bluefish: "tropical",
+  salamander: "tropical",
+  monkey: "tropical",
+  // 오아시스~밤의 실크로드
+  carp: "desert",
+  cactus: "desert",
+  fox: "desert",
+  lizard: "desert",
+  // 죽운성~죽운성 누각
+  mantou: "china",
+  pig: "china",
+  // 설산~수군 포구
+  snowRabbit: "korea",
+  magpie: "korea",
+  drunkCat: "korea",
+  flowerSnake: "korea",
+  riceSack: "korea",
+  mackerel: "korea",
+  // 벚꽃 해변~대나무 닌자 마을
+  blossomCrab: "japan",
+  shrineFox: "japan",
+  armorBeetle: "japan",
+  onsenMonkey: "japan",
+  ninjaFrog: "japan",
+  // 용궁 가는 바닷길~용궁
+  lanternAngler: "dragonPalace",
+  clamMaid: "dragonPalace",
+  // 운하의 미식 도시~빵집 골목
+  gondolaDuck: "europe",
+  bellCalf: "europe",
+  croissantKid: "europe",
+};
+
 export const ENEMY_NAME: Record<EnemyKind, string> = {
   slime: "뒷산 슬라임",
   mushroom: "습지 버섯",
