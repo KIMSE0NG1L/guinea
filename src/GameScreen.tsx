@@ -35,11 +35,18 @@ import { measureTarget } from "./components/tutorialTargets";
 import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
+import { setBgmTrack } from "./sound";
 import type { Tab } from "./types";
 
 export function GameScreen() {
   const game = useGameState();
   const { state, setState, questOpen, setQuestOpen, claimQuest } = game;
+
+  // Lives here rather than in BattleScreen so the boss theme keeps playing on other tabs.
+  // Keyed off displayBoss so the switch lands with the boss-entrance sfx, not the 25th kill.
+  useEffect(() => {
+    setBgmTrack(game.displayBoss ? "boss" : "field");
+  }, [game.displayBoss]);
 
   const onSelectTab = (selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab }));
 

@@ -1,9 +1,10 @@
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
-import { kit, kitImages } from "../assets";
+import { kit } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
-import { playSfx, setSfxMuted, useSfxMuted } from "../sound";
+import { VolumeSlider } from "./VolumeSlider";
+import { playSfx, setBgmVolume, setSfxVolume, useBgmVolume, useSfxVolume } from "../sound";
 
 export function SettingsModal({
   onSkipToBoss,
@@ -28,27 +29,37 @@ export function SettingsModal({
   onResetRequest: () => void;
   onClose: () => void;
 }) {
-  const sfxMuted = useSfxMuted();
+  const sfxVolume = useSfxVolume();
+  const bgmVolume = useBgmVolume();
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
           <NineSlice slice={kit.panelLarge} />
           <Text style={styles.title}>설정</Text>
-          <Pressable
-            style={styles.sfxRow}
-            onPress={() => {
-              // Flip the state first, then play — so unmuting gives an audible confirm
-              // click, and muting plays nothing (silence is its own confirmation).
-              setSfxMuted(!sfxMuted);
-              playSfx("uiToggle");
-            }}
-            hitSlop={6}
-          >
+          <View style={styles.sfxRow}>
             <Text style={styles.sfxLabel}>효과음</Text>
-            <Image source={sfxMuted ? kitImages.toggleOff : kitImages.toggleOn} style={styles.sfxToggle} resizeMode="contain" />
-          </Pressable>
-<View style={styles.list}>
+            <View style={styles.sliderWrap}>
+              <VolumeSlider
+                value={sfxVolume}
+                accessibilityLabel="효과음 음량"
+                onChange={(value) => {
+                  const wasZero = sfxVolume <= 0;
+                  setSfxVolume(value);
+                  // A tap that un-mutes plays a confirm click; dragging while already
+                  // audible doesn't spam it on every move event.
+                  if (wasZero && value > 0) playSfx("uiToggle");
+                }}
+              />
+            </View>
+          </View>
+          <View style={[styles.sfxRow, styles.bgmRow]}>
+            <Text style={styles.sfxLabel}>배경음</Text>
+            <View style={styles.sliderWrap}>
+              <VolumeSlider value={bgmVolume} accessibilityLabel="배경음 음량" onChange={setBgmVolume} />
+            </View>
+          </View>
+          <View style={styles.list}>
             <GameButton
               variant="green"
               onPress={() => {
@@ -152,8 +163,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 4,
   },
+  bgmRow: { marginTop: 10 },
   sfxLabel: { fontSize: 13, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
-  sfxToggle: { width: 52, height: 30 },
+  sliderWrap: { width: 140 },
   list: { marginTop: 16, width: "100%", gap: 8 },
   button: { width: "100%" },
 });

@@ -926,5 +926,13 @@ export const comics = {
   picnicride4: require("../assets/comics/picnicride-4.webp"),
 };
 
+// Stage-1 group (뒷산~부잣집 주방) BGM. Add more field/boss pairs here as later region
+// groups get their own tracks — see BACKGROUND in BattleScene.tsx for the per-EnemyKind
+// lookup pattern this will eventually need.
+export const bgm = {
+  field: require("../assets/bgm/field-countryside.mp3"),
+  boss: require("../assets/bgm/boss-countryside.mp3"),
+};
+
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
 export const FRAME_SIZE = 160;
