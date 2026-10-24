@@ -23,13 +23,12 @@ export const DEPTH = 100000;
 // houses around the open dirt clearing.
 const HOME_RING: Record<Outfit, { fx: number; fy: number }> = {
   default: { fx: 0, fy: -0.27 },
-  explorerHamster: { fx: 0.24, fy: -0.19 },
-  tetoGini: { fx: 0.3, fy: 0.02 },
-  assassinGini: { fx: 0.22, fy: 0.24 },
-  egenGini: { fx: 0, fy: 0.3 },
-  samuraiGini: { fx: -0.22, fy: 0.24 },
-  chefGini: { fx: -0.3, fy: 0.02 },
-  iceMageGini: { fx: -0.24, fy: -0.19 },
+  explorerHamster: { fx: 0.24, fy: -0.17 },
+  tetoGini: { fx: 0.3, fy: 0.08 },
+  assassinGini: { fx: 0.14, fy: 0.29 },
+  egenGini: { fx: -0.14, fy: 0.29 },
+  samuraiGini: { fx: -0.3, fy: 0.08 },
+  chefGini: { fx: -0.24, fy: -0.17 },
 };
 
 export function getHomes(backdrop: { width: number; height: number }) {

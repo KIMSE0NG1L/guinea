@@ -21,7 +21,6 @@ const LINES: Record<Outfit, string> = {
   egenGini: "차 한 잔 할래? 벚꽃잎 띄워 줄게.",
   samuraiGini: "칼은 뽑지 않는 날이 가장 좋은 날이오.",
   chefGini: "배고프지? 금방 한 그릇 말아 줄게!",
-  iceMageGini: "으음… 오로라 꿈을 꾸던 중이었는데…",
 };
 
 // Each house gets the backdrop of the place that 기니 comes from.
@@ -33,7 +32,6 @@ const HOUSE_BACKDROP: Record<Outfit, number> = {
   egenGini: images.battleBackgroundBlossomBeach,
   samuraiGini: images.battleBackgroundCastleKeep,
   chefGini: images.battleBackgroundBakeryStreet,
-  iceMageGini: images.battleBackgroundAuroraPalace,
 };
 
 const SPRITE = 76;
