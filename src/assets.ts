@@ -936,3 +936,17 @@ export const bgm = {
 
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
 export const FRAME_SIZE = 160;
+
+// Companion village: its own leafy, wooden UI kit (kept apart from the battle UI) and props.
+export const villageUi = {
+  leafButton: require("../assets/ui/btn-leaf.png"),
+  leafRound: require("../assets/ui/round-leaf.png"),
+  leafTile: require("../assets/ui/tile-leaf.png"),
+  leafTileOff: require("../assets/ui/tile-leaf-off.png"),
+  woodSign: require("../assets/ui/btn-wood-flower.png"),
+  flower: require("../assets/ui/flower.png"),
+  house: require("../assets/ui/item-home.png"),
+  speech: require("../assets/ui/panel-speech.png"),
+  flowerPanel: require("../assets/shop/panel-flower.png"),
+  note: require("../assets/shop/note.png"),
+};
