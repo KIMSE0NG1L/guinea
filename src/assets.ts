@@ -475,6 +475,8 @@ export const skillImages = {
   shout: require("../assets/skills/shout.png"),
   diligent: require("../assets/skills/diligent.png"),
   glutton: require("../assets/skills/glutton.png"),
+  barrage: require("../assets/skills/barrage.png"),
+  teleport: require("../assets/skills/teleport.png"),
 };
 const WIDE_ICON = 256 / 222;
 const SQUARE_ICON = 256 / 258;
@@ -486,6 +488,8 @@ export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
   shout: SQUARE_ICON,
   diligent: SQUARE_ICON,
   glutton: SQUARE_ICON,
+  barrage: SQUARE_ICON,
+  teleport: SQUARE_ICON,
 };
 
 export const food = {
@@ -937,6 +941,14 @@ export const bgm = {
   tropical: {
     field: require("../assets/bgm/field-tropical.mp3"),
     boss: require("../assets/bgm/boss-tropical.mp3"),
+  },
+  desert: {
+    field: require("../assets/bgm/field-desert.mp3"),
+    boss: require("../assets/bgm/boss-desert.mp3"),
+  },
+  china: {
+    field: require("../assets/bgm/field-china.mp3"),
+    boss: require("../assets/bgm/boss-china.mp3"),
   },
 };
 

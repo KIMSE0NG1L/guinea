@@ -19,9 +19,11 @@ export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
   focus: 6,
   glutton: 9,
   diligent: 12,
-  shout: 16,
-  beam: 20,
-  execute: 25,
+  barrage: 15,
+  shout: 18,
+  teleport: 22,
+  beam: 26,
+  execute: 30,
 };
 
 // `highestStageNumber`: the furthest stage (0-based) ever reached.

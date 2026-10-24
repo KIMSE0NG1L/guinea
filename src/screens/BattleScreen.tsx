@@ -84,8 +84,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
             skillId={state.equippedSkill ?? null}
             timers={battle.skillTimers}
             now={game.now}
-            canCast={battle.canCastSkill(game.now)}
-            onCast={battle.castSkill}
+            canCast={state.equippedSkill === "teleport" ? game.canTeleportToBoss(game.now) : battle.canCastSkill(game.now)}
+            onCast={state.equippedSkill === "teleport" ? game.teleportToBoss : battle.castSkill}
             onOpenSkills={() => game.setState((previous) => ({ ...previous, selectedTab: "skills" }))}
           />
         }
@@ -157,7 +157,6 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       )}
       <BattleActionsPanel
         isAutoBattle={battle.isAutoBattle}
-        onToggleAuto={() => battle.setIsAutoBattle((value) => !value)}
         autoLocked={battle.autoLocked}
         speedBoostActive={game.speedMultiplier > 1}
         speedBoostRemainingMs={game.speedBoostRemainingMs}

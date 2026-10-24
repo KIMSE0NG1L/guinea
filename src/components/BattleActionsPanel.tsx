@@ -6,7 +6,6 @@ import { formatDuration } from "../state/buffs";
 
 export function BattleActionsPanel({
   isAutoBattle,
-  onToggleAuto,
   autoLocked = false,
   speedBoostActive,
   speedBoostRemainingMs,
@@ -14,7 +13,6 @@ export function BattleActionsPanel({
   left,
 }: {
   isAutoBattle: boolean;
-  onToggleAuto: () => void;
   // A companion that can't fight by hand (사무라이기니) pins auto-battle on.
   autoLocked?: boolean;
   speedBoostActive: boolean;
@@ -22,21 +20,17 @@ export function BattleActionsPanel({
   onWatchAd: () => void;
   left?: ReactNode; // pinned to the row's left end (the food buff slots)
 }) {
-
+  // Not a toggle any more — manual combat only opens up while 난타 is cast (see
+  // useAutoBattle's isAutoBattle), so this is just a status badge now.
   return (
     <View style={styles.wrap}>
       {left}
       <View style={styles.spacer} />
-      <GameButton
-        onPress={onToggleAuto}
-        disabled={autoLocked}
-        accessibilityLabel={autoLocked ? "자동 전투 고정" : `자동 전투 ${isAutoBattle ? "끄기" : "켜기"}`}
-        variant={isAutoBattle ? "green" : "gray"}
-        style={styles.autoToggle}
-        textStyle={styles.autoToggleText}
-      >
-        {autoLocked ? "자동 전투 고정" : `자동 전투 ${isAutoBattle ? "ON" : "OFF"}`}
-      </GameButton>
+      <View style={[styles.autoToggle, styles.autoBadge, isAutoBattle ? styles.autoBadgeOn : styles.autoBadgeOff]}>
+        <Text style={styles.autoToggleText}>
+          {autoLocked ? "자동 전투 고정" : isAutoBattle ? "자동 전투 중" : "난타 중 · 직접 공격"}
+        </Text>
+      </View>
 
       <GameButton
         variant={speedBoostActive ? "gray" : "beige"}
@@ -57,7 +51,10 @@ const styles = StyleSheet.create({
   wrap: { marginTop: 8, marginBottom: 2, marginHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 6 },
   spacer: { flex: 1 },
   autoToggle: { minHeight: 32, paddingHorizontal: 10, justifyContent: "center" },
-  autoToggleText: { fontSize: 9 },
+  autoBadge: { borderRadius: 10, alignItems: "center" },
+  autoBadgeOn: { backgroundColor: "#8fc45b" },
+  autoBadgeOff: { backgroundColor: "#d9a441" },
+  autoToggleText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: "#2a2316" },
   adButton: { minHeight: 32, paddingHorizontal: 10 },
   adButtonText: { color: "#4f463c", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, textAlign: "center" },
   adButtonSmall: { marginTop: 1, fontSize: 7, textAlign: "center", color: "#4f463c" },

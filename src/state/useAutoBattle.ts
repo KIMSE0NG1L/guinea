@@ -50,6 +50,7 @@ export function useAutoBattle({
   onBonusGold,
   onMiss,
   equippedSkill,
+  now,
 }: {
   attack: number;
   criticalDamage: number;
@@ -84,12 +85,18 @@ export function useAutoBattle({
   // Called on every whiffed strike (for the hidden "missed N times" quest).
   onMiss?: () => void;
   equippedSkill: SkillId | null;
+  // Live clock, ticked by the caller — drives isAutoBattle off the 난타 skill's active window.
+  now: number;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
   const [phase, setPhase] = useState<BattlePhase>("idle");
-  const [autoChosen, setIsAutoBattle] = useState(true);
+  const [skillTimers, setSkillTimers] = useState<SkillTimers>(INITIAL_SKILL_TIMERS);
   const autoLocked = firstStrikeMultiplier > 0;
-  const isAutoBattle = autoChosen || autoLocked;
+  // Manual taps are never allowed by default — only while 난타 (barrage) is actively cast
+  // does tapping work; every other moment (and always for a first-strike-locked outfit
+  // like 사무라이기니) battle runs on auto.
+  const manualWindowOpen = equippedSkill === "barrage" && isSkillActive(skillTimers, "barrage", now);
+  const isAutoBattle = autoLocked || !manualWindowOpen;
   // Bumped on each first-strike draw, so the scene can play its slash.
   const [firstStrikeId, setFirstStrikeId] = useState(0);
   const [enemyId, setEnemyId] = useState(1);
@@ -97,7 +104,6 @@ export function useAutoBattle({
   const [lastCritical, setLastCritical] = useState(false);
   const [damageEvents, setDamageEvents] = useState<{ id: number; amount: number; critical: boolean; missed?: boolean }[]>([]);
   const [goldEvents, setGoldEvents] = useState<{ id: number; amount: number }[]>([]);
-  const [skillTimers, setSkillTimers] = useState<SkillTimers>(INITIAL_SKILL_TIMERS);
   const [lastSkillCastAt, setLastSkillCastAt] = useState(0);
   // Bumped each time Execute finishes an enemy off, so the scene can play its effect.
   const [executeId, setExecuteId] = useState(0);
@@ -110,6 +116,8 @@ export function useAutoBattle({
     shout: 0,
     diligent: 0,
     glutton: 0,
+    barrage: 0,
+    teleport: 0,
   });
   // Whether the current/last kill was an Execute — the player strikes a crit pose for it.
   const [lastKillExecuted, setLastKillExecuted] = useState(false);
@@ -519,7 +527,6 @@ export function useAutoBattle({
     executeId,
     castIds,
     lastKillExecuted,
-    setIsAutoBattle,
     resetEnemy,
     manualAttack,
     killEnemy,

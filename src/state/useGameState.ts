@@ -123,7 +123,7 @@ export function useGameState() {
           : "default";
         // Same guard for a save written before a skill (e.g. the old "freeze"/"swords"/"meteor"
         // magic trio) was retired — getSkill() would otherwise throw looking it up.
-        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton"];
+        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton", "barrage", "teleport"];
         const equippedSkill = save.state.equippedSkill && validSkills.includes(save.state.equippedSkill) ? save.state.equippedSkill : null;
         // Placeholder starter materials that were never used by any recipe — strip them
         // from older saves so they stop cluttering the bag.
@@ -380,6 +380,7 @@ export function useGameState() {
     // Only 테토기니 whiffs; each one counts toward the hidden 헛스윙 quests.
     onMiss: () => setState((previous) => (previous.equippedOutfit === "tetoGini" ? { ...previous, tetoMisses: (previous.tetoMisses ?? 0) + 1 } : previous)),
     equippedSkill: state.equippedSkill ?? null,
+    now,
   });
 
   // Whether the boss sprite is actually on screen — lags `boss` by the death clip on both
@@ -461,6 +462,21 @@ export function useGameState() {
   // stage's boss instead of grinding out the 25 regular-mob kills first.
   const skipToBoss = () => {
     if (boss) return;
+    setStageAnnouncement(null);
+    setDefeatedBoss(false);
+    setBoss(true);
+    setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET }));
+    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
+  };
+
+  // 텔레포트: the player-facing version of the shortcut above — only on a stage whose boss
+  // has already fallen at least once (re-grinding an old stage, not skipping new content),
+  // and gated by the skill's own cooldown like any other cast.
+  const canTeleportToBoss = (now: number) =>
+    state.equippedSkill === "teleport" && !boss && getClearedBosses(state).includes(state.stageNumber) && battle.canCastSkill(now);
+  const teleportToBoss = () => {
+    if (!canTeleportToBoss(Date.now())) return;
+    battle.castSkill();
     setStageAnnouncement(null);
     setDefeatedBoss(false);
     setBoss(true);
@@ -761,6 +777,8 @@ export function useGameState() {
     dismissBagFull: () => setBagFullAt(null),
     selectStage,
     skipToBoss,
+    teleportToBoss,
+    canTeleportToBoss,
     cheatAddLevels,
     cheatUnlockAllStages,
     equipSkill,

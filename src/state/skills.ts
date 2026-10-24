@@ -38,6 +38,8 @@ export const GLUTTON_FOOD_MULTIPLIER = 2;
 export const SKILL_SWAP_LOCK_MS = 3 * 60 * SECOND;
 // Every active skill shares the same cooldown.
 const SKILL_COOLDOWN_MS = 3 * 60 * SECOND;
+// 난타: manual taps only land while this skill is active — see useAutoBattle's isAutoBattle.
+export const MANUAL_COMBAT_DURATION_MS = 15 * SECOND;
 
 export const SKILLS: Skill[] = [
   { id: "beam", name: "기니빔", description: "일반 몹은 즉사, 보스는 최대 체력의 50%를 깎아요.", cooldownMs: SKILL_COOLDOWN_MS },
@@ -53,6 +55,8 @@ export const SKILLS: Skill[] = [
     cooldownMs: 0,
   },
   { id: "glutton", name: "먹보", description: "장착하면 항상 적용 · 장착 중에 먹은 음식 버프가 2배로 오래가요.", passive: true, cooldownMs: 0 },
+  { id: "barrage", name: "난타", description: "15초 동안 직접 화면을 눌러 공격할 수 있어요. 평소에는 자동 전투만 할 수 있어요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: MANUAL_COMBAT_DURATION_MS },
+  { id: "teleport", name: "텔레포트", description: "이미 깬 스테이지에서 쓰면 보스에게 바로 순간이동해요. 아직 못 깬 스테이지에서는 쓸 수 없어요.", cooldownMs: SKILL_COOLDOWN_MS },
 ];
 
 // One-line effect summaries for the battle slot's info bubble.
@@ -64,6 +68,8 @@ export const SKILL_SUMMARY: Record<SkillId, string> = {
   shout: "일반 공격 피해 +30%",
   diligent: "오프라인 골드 +50%",
   glutton: "음식 버프 지속시간 2배",
+  barrage: "15초 동안 직접 공격 가능",
+  teleport: "깬 스테이지에서 보스로 즉시 이동",
 };
 
 export function getSkill(id: SkillId) {
@@ -80,6 +86,8 @@ export const INITIAL_SKILL_TIMERS: SkillTimers = {
   shout: { readyAt: 0, activeUntil: 0 },
   diligent: { readyAt: 0, activeUntil: 0 },
   glutton: { readyAt: 0, activeUntil: 0 },
+  barrage: { readyAt: 0, activeUntil: 0 },
+  teleport: { readyAt: 0, activeUntil: 0 },
 };
 
 export function isSkillActive(timers: SkillTimers, id: SkillId, now: number) {
