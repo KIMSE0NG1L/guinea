@@ -47,15 +47,16 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.04 },
   },
-  // Regenerated twice: first pass thinned the outline but also drifted to a front-facing
-  // pose and went too thin; second pass fixed both (explicit left-facing + a light-medium
-  // ~3px line) against the original reference. offsetY re-measured off this pass's own
-  // foot-row (idle:136, attack:134, critical/win:128 out of 160).
+  // Regenerated three times: thinned too far + drifted front-facing, then fixed both but
+  // still read as a bit thin, then redone once more with a bold ~4-5px outline and
+  // per-cell adaptive cropping (not assumed-centered) — verified clip-free frame by frame.
+  // offsetY re-measured off this pass's own foot-row (idle baseline 136; win's frames
+  // already sit a bit lower than idle's, hence the negative value).
   assassinGini: {
     idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 0 },
-    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 2 },
-    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 8 },
-    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 8 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 5 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 7 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: -7 },
   },
   egenGini: {
     idle: { frameCount: 3, frameSize: FRAME_SIZE, scale: 1.35 },
