@@ -21,12 +21,15 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     die: { frameCount: 5, durationMs: 480, mode: "once" },
   },
   // Regenerated with more cell padding (frames were packed edge-to-edge, bleeding a sliver
-  // of the next frame's mushroom into each cell) — offsetY measured off the foot-row the
-  // same way as the other mob fixes (idle:158 baseline, hit:130, die:98 out of 160).
+  // of the next frame's mushroom into each cell) — offsetY measured off frame 0's foot-row
+  // (idle:158 baseline, hit:130, die:98 out of 160), then capped to the largest shift every
+  // OTHER frame in that same animation can also take without its own lowest pixel passing
+  // y=160 (hit's frame 2/3 already reach 144; die's frame 4 already reaches 114) — a
+  // uniform shift sized only to frame 0 clipped those later frames off the bottom.
   mushroom: {
     idle: { frameCount: 5, durationMs: 650, mode: "loop", offsetY: 0 },
-    hit: { frameCount: 5, durationMs: 310, mode: "once", offsetY: 28 },
-    die: { frameCount: 5, durationMs: 480, mode: "once", offsetY: 60 },
+    hit: { frameCount: 5, durationMs: 310, mode: "once", offsetY: 14 },
+    die: { frameCount: 5, durationMs: 480, mode: "once", offsetY: 44 },
   },
   carrot: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
@@ -48,12 +51,13 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
-  // Regenerated with a thinner outline (offsetY measured off each strip's own foot-row,
-  // same approach as 복서기니/암살기니, idle:158 baseline, hit:154, die:136 out of 160).
+  // Regenerated with a thinner outline (offsetY measured off frame 0's foot-row, idle:158
+  // baseline, hit:154, die:136 out of 160), then capped so later frames (hit's frame 1/2
+  // reach 156; die's frame 3 reaches 138) don't get pushed past y=160 and clipped.
   chicken: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop", offsetY: 0 },
-    hit: { frameCount: 4, durationMs: 310, mode: "once", offsetY: 4 },
-    die: { frameCount: 4, durationMs: 480, mode: "once", offsetY: 22 },
+    hit: { frameCount: 4, durationMs: 310, mode: "once", offsetY: 2 },
+    die: { frameCount: 4, durationMs: 480, mode: "once", offsetY: 18 },
   },
   bossChicken: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },

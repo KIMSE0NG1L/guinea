@@ -83,11 +83,16 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
   // dodge the neighbouring row's bleed, which left each animation's character sitting at
   // a different height in its own frame. `offsetY` (source frame px, FRAME_SIZE=160) is
   // measured straight off each strip's actual foot-row (idle's is the ground line) and
-  // pushes attack/critical/win down to match it.
+  // pushes attack/critical/win down to match it — but capped per animation at the largest
+  // shift its OWN tallest frame can take without its feet/effects falling past y=160 and
+  // getting clipped (a uniform shift sized only to frame 0 pushed other frames, whose pose
+  // already reaches lower in their box, straight off the bottom). attack/critical's tallest
+  // frames (bottomY=158) leave no safe headroom at all, so they stay unaligned rather than
+  // clip; win's tallest frame (bottomY=120) had plenty of room for its full correction.
   boxerGini: {
     idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 0 },
-    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 16 },
-    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 16 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 0 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 0 },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 28 },
   },
 };
