@@ -77,13 +77,14 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
   // Cropped from a single even 4x4 reference grid with zero gap between rows — each row
   // needed a different vertical crop window (see _gen3/compose.ps1's per-row `shift`) to
   // dodge the neighbouring row's bleed, which left each animation's character sitting at
-  // a different height in its own frame. `offsetY` (source frame px, FRAME_SIZE=160) undoes
-  // exactly that crop-induced shift so idle/attack/critical/win all share one ground line.
+  // a different height in its own frame. `offsetY` (source frame px, FRAME_SIZE=160) is
+  // measured straight off each strip's actual foot-row (idle's is the ground line) and
+  // pushes attack/critical/win down to match it.
   boxerGini: {
     idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 0 },
-    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: -6 },
-    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: -18 },
-    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: -16 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 16 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 16 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 28 },
   },
 };
 
