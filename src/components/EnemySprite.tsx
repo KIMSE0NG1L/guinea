@@ -20,16 +20,14 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
     die: { frameCount: 5, durationMs: 480, mode: "once" },
   },
-  // Regenerated with more cell padding (frames were packed edge-to-edge, bleeding a sliver
-  // of the next frame's mushroom into each cell) — offsetY measured off frame 0's foot-row
-  // (idle:158 baseline, hit:130, die:98 out of 160), then capped to the largest shift every
-  // OTHER frame in that same animation can also take without its own lowest pixel passing
-  // y=160 (hit's frame 2/3 already reach 144; die's frame 4 already reaches 114) — a
-  // uniform shift sized only to frame 0 clipped those later frames off the bottom.
+  // Regenerated a third time with per-cell adaptive cropping (bounding box detected per
+  // cell, not assumed centered) and an explicit "draw it small, 25%+ margin on every side,
+  // nothing touches a cell edge" prompt — verified frame-by-frame afterward (every frame's
+  // content sits well clear of both y=0 and y=160), so no offsetY correction is needed.
   mushroom: {
-    idle: { frameCount: 5, durationMs: 650, mode: "loop", offsetY: 0 },
-    hit: { frameCount: 5, durationMs: 310, mode: "once", offsetY: 14 },
-    die: { frameCount: 5, durationMs: 480, mode: "once", offsetY: 44 },
+    idle: { frameCount: 5, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 5, durationMs: 310, mode: "once" },
+    die: { frameCount: 5, durationMs: 480, mode: "once" },
   },
   carrot: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
@@ -51,13 +49,13 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
-  // Regenerated with a thinner outline (offsetY measured off frame 0's foot-row, idle:158
-  // baseline, hit:154, die:136 out of 160), then capped so later frames (hit's frame 1/2
-  // reach 156; die's frame 3 reaches 138) don't get pushed past y=160 and clipped.
+  // Regenerated a third time with per-cell adaptive cropping and an explicit "draw it
+  // small, 25%+ margin on every side" prompt — verified frame-by-frame afterward, every
+  // frame sits well clear of y=0 and y=160, so no offsetY correction is needed.
   chicken: {
-    idle: { frameCount: 4, durationMs: 650, mode: "loop", offsetY: 0 },
-    hit: { frameCount: 4, durationMs: 310, mode: "once", offsetY: 2 },
-    die: { frameCount: 4, durationMs: 480, mode: "once", offsetY: 18 },
+    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
   bossChicken: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
