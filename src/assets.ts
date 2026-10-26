@@ -59,9 +59,9 @@ export const spriteSheets = {
     die: require("../assets/sprites/slime-die-strip.webp"),
   },
   mushroom: {
-    idle: require("../assets/sprites/mushroom-idle-strip.webp"),
-    hit: require("../assets/sprites/mushroom-hit-strip.webp"),
-    die: require("../assets/sprites/mushroom-die-strip.webp"),
+    idle: require("../assets/sprites/mushroom-idle-strip.png"),
+    hit: require("../assets/sprites/mushroom-hit-strip.png"),
+    die: require("../assets/sprites/mushroom-die-strip.png"),
   },
   carrot: {
     idle: require("../assets/sprites/carrot-rabbit-idle-strip.webp"),

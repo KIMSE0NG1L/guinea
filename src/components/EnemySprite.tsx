@@ -20,10 +20,13 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
     die: { frameCount: 5, durationMs: 480, mode: "once" },
   },
+  // Regenerated with more cell padding (frames were packed edge-to-edge, bleeding a sliver
+  // of the next frame's mushroom into each cell) — offsetY measured off the foot-row the
+  // same way as the other mob fixes (idle:158 baseline, hit:130, die:98 out of 160).
   mushroom: {
-    idle: { frameCount: 5, durationMs: 650, mode: "loop" },
-    hit: { frameCount: 5, durationMs: 310, mode: "once" },
-    die: { frameCount: 5, durationMs: 480, mode: "once" },
+    idle: { frameCount: 5, durationMs: 650, mode: "loop", offsetY: 0 },
+    hit: { frameCount: 5, durationMs: 310, mode: "once", offsetY: 28 },
+    die: { frameCount: 5, durationMs: 480, mode: "once", offsetY: 60 },
   },
   carrot: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
