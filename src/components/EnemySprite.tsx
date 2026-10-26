@@ -1,3 +1,4 @@
+import { View } from "react-native";
 import { SpriteStrip } from "./SpriteStrip";
 import { spriteSheets, FRAME_SIZE } from "../assets";
 import type { EnemyAnimation, EnemyKind } from "../types";
@@ -13,7 +14,7 @@ import type { EnemyAnimation, EnemyKind } from "../types";
 // carrot (stage 3's regular mob), chicken (stage 4's regular mob), potato (stage 5's
 // regular mob), bossMushroom, bossCarrotGiant, bossChicken, and bossPotato are 4-frame
 // sheets for every animation.
-const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once" }>> = {
+const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once"; offsetY?: number }>> = {
   slime: {
     idle: { frameCount: 5, durationMs: 650, mode: "loop" },
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
@@ -44,10 +45,12 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
+  // Regenerated with a thinner outline (offsetY measured off each strip's own foot-row,
+  // same approach as 복서기니/암살기니, idle:158 baseline, hit:154, die:136 out of 160).
   chicken: {
-    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
-    hit: { frameCount: 4, durationMs: 310, mode: "once" },
-    die: { frameCount: 4, durationMs: 480, mode: "once" },
+    idle: { frameCount: 4, durationMs: 650, mode: "loop", offsetY: 0 },
+    hit: { frameCount: 4, durationMs: 310, mode: "once", offsetY: 4 },
+    die: { frameCount: 4, durationMs: 480, mode: "once", offsetY: 22 },
   },
   bossChicken: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
@@ -401,17 +404,22 @@ export function EnemySprite({
   const bossKind = BOSS_SHEET_FOR[kind];
   const sheet = boss ? spriteSheets[bossKind] : spriteSheets[kind];
   const config = CONFIG[boss ? bossKind : kind][animation];
+  // Converts a crop-correction offset expressed in source frame px (FRAME_SIZE=160) into
+  // this instance's actual render px — same fix as CharacterSprite's offsetY.
+  const offsetYPx = (config.offsetY ?? 0) * (size / FRAME_SIZE);
 
   return (
-    <SpriteStrip
-      source={sheet[animation]}
-      frameSize={FRAME_SIZE}
-      frameCount={config.frameCount}
-      displaySize={size}
-      durationMs={config.durationMs}
-      mode={config.mode}
-      restartKey={restartKey}
-      tintColor={tintColor}
-    />
+    <View style={offsetYPx ? { width: size, height: size, transform: [{ translateY: offsetYPx }] } : undefined}>
+      <SpriteStrip
+        source={sheet[animation]}
+        frameSize={FRAME_SIZE}
+        frameCount={config.frameCount}
+        displaySize={size}
+        durationMs={config.durationMs}
+        mode={config.mode}
+        restartKey={restartKey}
+        tintColor={tintColor}
+      />
+    </View>
   );
 }

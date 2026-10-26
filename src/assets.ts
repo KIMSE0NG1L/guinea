@@ -84,9 +84,9 @@ export const spriteSheets = {
     die: require("../assets/sprites/boss-carrot-giant-die-strip.webp"),
   },
   chicken: {
-    idle: require("../assets/sprites/chick-egg-idle-strip.webp"),
-    hit: require("../assets/sprites/chick-egg-hit-strip.webp"),
-    die: require("../assets/sprites/chick-egg-die-strip.webp"),
+    idle: require("../assets/sprites/chick-egg-idle-strip.png"),
+    hit: require("../assets/sprites/chick-egg-hit-strip.png"),
+    die: require("../assets/sprites/chick-egg-die-strip.png"),
   },
   bossChicken: {
     idle: require("../assets/sprites/boss-chick-idle-strip.webp"),
