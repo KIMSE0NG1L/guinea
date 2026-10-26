@@ -124,9 +124,9 @@ export const spriteSheets = {
     die: require("../assets/sprites/boss-fridge-die-strip.webp"),
   },
   mudskipper: {
-    idle: require("../assets/sprites/mudskipper-idle-strip.webp"),
-    hit: require("../assets/sprites/mudskipper-hit-strip.webp"),
-    die: require("../assets/sprites/mudskipper-die-strip.webp"),
+    idle: require("../assets/sprites/mudskipper-idle-strip.png"),
+    hit: require("../assets/sprites/mudskipper-hit-strip.png"),
+    die: require("../assets/sprites/mudskipper-die-strip.png"),
   },
   bossKingCrab: {
     idle: require("../assets/sprites/boss-kingcrab-idle-strip.webp"),

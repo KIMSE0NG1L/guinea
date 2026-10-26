@@ -96,10 +96,13 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
+  // Regenerated with more cell padding, same frame-bleed fix as 습지버섯. offsetY checked
+  // against every frame's own bottom pixel before picking a value (idle/hit already sit on
+  // the same line at 152 of 160, no shift needed; die's frames all reach ~140, 12px short).
   mudskipper: {
-    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
-    hit: { frameCount: 4, durationMs: 310, mode: "once" },
-    die: { frameCount: 4, durationMs: 480, mode: "once" },
+    idle: { frameCount: 4, durationMs: 650, mode: "loop", offsetY: 0 },
+    hit: { frameCount: 4, durationMs: 310, mode: "once", offsetY: 0 },
+    die: { frameCount: 4, durationMs: 480, mode: "once", offsetY: 12 },
   },
   bossKingCrab: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
