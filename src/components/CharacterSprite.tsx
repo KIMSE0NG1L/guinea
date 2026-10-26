@@ -47,11 +47,15 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.04 },
   },
+  // Regenerated with a thinner outline (the original reference's line weight was heavier
+  // than every other companion's) from a clean even 4x4 grid — offsetY measured straight
+  // off each strip's foot-row the same way as 복서기니 (idle:140, attack:138, critical:134,
+  // win:128 out of 160), so all four share idle's ground line.
   assassinGini: {
-    idle: { frameCount: 3, frameSize: FRAME_SIZE, scale: 1.24 },
-    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
-    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.56 },
-    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1.21 },
+    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 0 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 2 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 6 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 12 },
   },
   egenGini: {
     idle: { frameCount: 3, frameSize: FRAME_SIZE, scale: 1.35 },

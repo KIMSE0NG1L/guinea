@@ -23,10 +23,10 @@ export const spriteSheets = {
       win: require("../assets/sprites/guinea-teto-win-strip.webp"),
     },
     assassinGini: {
-      idle: require("../assets/sprites/guinea-assassin-idle-strip.webp"),
-      attack: require("../assets/sprites/guinea-assassin-attack-strip.webp"),
-      critical: require("../assets/sprites/guinea-assassin-critical-strip.webp"),
-      win: require("../assets/sprites/guinea-assassin-win-strip.webp"),
+      idle: require("../assets/sprites/guinea-assassin-idle-strip.png"),
+      attack: require("../assets/sprites/guinea-assassin-attack-strip.png"),
+      critical: require("../assets/sprites/guinea-assassin-critical-strip.png"),
+      win: require("../assets/sprites/guinea-assassin-win-strip.png"),
     },
     egenGini: {
       idle: require("../assets/sprites/guinea-egen-idle-strip.webp"),
