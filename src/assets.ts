@@ -94,9 +94,9 @@ export const spriteSheets = {
     die: require("../assets/sprites/boss-chick-die-strip.webp"),
   },
   potato: {
-    idle: require("../assets/sprites/little-potato-idle-strip.webp"),
-    hit: require("../assets/sprites/little-potato-hit-strip.webp"),
-    die: require("../assets/sprites/little-potato-die-strip.webp"),
+    idle: require("../assets/sprites/little-potato-idle-strip.png"),
+    hit: require("../assets/sprites/little-potato-hit-strip.png"),
+    die: require("../assets/sprites/little-potato-die-strip.png"),
   },
   bossPotato: {
     idle: require("../assets/sprites/boss-potato-idle-strip.webp"),

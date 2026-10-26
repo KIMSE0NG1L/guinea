@@ -57,10 +57,12 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
+  // Regenerated with a thinner outline, same offsetY-from-measured-foot-row approach
+  // (idle:158 baseline, hit:148, die:126 out of 160).
   potato: {
-    idle: { frameCount: 4, durationMs: 650, mode: "loop" },
-    hit: { frameCount: 4, durationMs: 310, mode: "once" },
-    die: { frameCount: 4, durationMs: 480, mode: "once" },
+    idle: { frameCount: 4, durationMs: 650, mode: "loop", offsetY: 0 },
+    hit: { frameCount: 4, durationMs: 310, mode: "once", offsetY: 10 },
+    die: { frameCount: 4, durationMs: 480, mode: "once", offsetY: 32 },
   },
   bossPotato: {
     idle: { frameCount: 4, durationMs: 650, mode: "loop" },
