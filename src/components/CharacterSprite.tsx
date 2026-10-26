@@ -22,7 +22,7 @@ const DURATIONS: Record<PlayerAnimation, number> = {
 const CHEF_FIT = 1.16;
 const CHEF_SCALE = { idle: CHEF_FIT, attack: CHEF_FIT, critical: CHEF_FIT, win: CHEF_FIT };
 
-const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frameSize: number; scale: number }>> = {
+const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frameSize: number; scale: number; offsetY?: number }>> = {
   default: {
     idle: { frameCount: 5, frameSize: FRAME_SIZE, scale: 1 },
     attack: { frameCount: 5, frameSize: FRAME_SIZE, scale: 1 },
@@ -74,14 +74,16 @@ const CONFIG: Record<Outfit, Record<PlayerAnimation, { frameCount: number; frame
     critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.critical },
     win: { frameCount: 4, frameSize: FRAME_SIZE, scale: CHEF_SCALE.win },
   },
-  // Cropped from a single even 4x4 reference grid (generated with deliberate per-cell
-  // padding so every animation's effects stay inside their cell) — same crop ratio for
-  // every row, so no per-animation scale correction is needed.
+  // Cropped from a single even 4x4 reference grid with zero gap between rows — each row
+  // needed a different vertical crop window (see _gen3/compose.ps1's per-row `shift`) to
+  // dodge the neighbouring row's bleed, which left each animation's character sitting at
+  // a different height in its own frame. `offsetY` (source frame px, FRAME_SIZE=160) undoes
+  // exactly that crop-induced shift so idle/attack/critical/win all share one ground line.
   boxerGini: {
-    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
-    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
-    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
-    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1 },
+    idle: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: 0 },
+    attack: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: -6 },
+    critical: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: -18 },
+    win: { frameCount: 4, frameSize: FRAME_SIZE, scale: 1, offsetY: -16 },
   },
 };
 
@@ -102,11 +104,21 @@ export function CharacterSprite({
 }) {
   const source = spriteSheets.guinea[outfit][animation];
   const config = CONFIG[outfit][animation];
+  // Converts a crop-correction offset expressed in source frame px (FRAME_SIZE=160) into
+  // this instance's actual render px.
+  const offsetYPx = (config.offsetY ?? 0) * (size / FRAME_SIZE);
 
   // Fixed-size wrapper + transform (not a bigger displaySize) keeps the layout box
   // constant across outfits, so siblings/containers don't reflow when a scaled outfit is equipped.
   return (
-    <View style={{ width: size, height: size, transform: [{ scale: scale * config.scale }], transformOrigin: "50% 100%" }}>
+    <View
+      style={{
+        width: size,
+        height: size,
+        transform: [{ scale: scale * config.scale }, { translateY: offsetYPx }],
+        transformOrigin: "50% 100%",
+      }}
+    >
       <SpriteStrip
         source={source}
         frameSize={config.frameSize}
