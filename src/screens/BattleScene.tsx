@@ -12,6 +12,7 @@ import { DamageNumber } from "../components/DamageNumber";
 import { CoinPopup } from "../components/CoinPopup";
 import { GoldFly } from "../components/GoldFly";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
+import { BossFleeBanner } from "../components/BossFleeBanner";
 import { BossEntranceBanner } from "../components/BossEntranceBanner";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
@@ -234,6 +235,10 @@ export function BattleScene({
   bossEntranceKey,
   levelUpAnnouncement,
   levelUpAttackGain,
+  now,
+  bossTimerStartedAt,
+  bossTimeLimitMs,
+  bossFledKey,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean; missed?: boolean }[];
@@ -277,7 +282,19 @@ export function BattleScene({
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
   levelUpAttackGain: number;
+  // Live clock + the current boss fight's deadline (see useGameState's bossTimerStartedAt)
+  // — only meaningful while `boss` is true; null/0 otherwise.
+  now: number;
+  bossTimerStartedAt: number | null;
+  bossTimeLimitMs: number;
+  // Bumped each time the boss flees (timer ran out) — mount BossFleeBanner fresh off it.
+  bossFledKey: number;
 }) {
+  // Boss fight countdown — 0/100 whenever there's no active timer (not a boss fight, or
+  // the timer hasn't started yet) so the nameplate's bar below just doesn't render it.
+  const bossTimeRemainingMs = boss && bossTimerStartedAt !== null ? Math.max(0, bossTimeLimitMs - (now - bossTimerStartedAt)) : 0;
+  const bossTimeProgress = boss && bossTimeLimitMs > 0 ? (bossTimeRemainingMs / bossTimeLimitMs) * 100 : 0;
+
   const { id: executeId } = useSkillEvent(rawExecuteId, 0);
   // Guinea Beam holds a crit pose from the cast until the beam has faded.
   const { id: beamId, active: beaming } = useSkillEvent(rawBeamId, BEAM_TIMING.end);
@@ -420,6 +437,7 @@ export function BattleScene({
           <FlyingCoin onCatch={onCatchFlyingCoin} />
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
+          {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
           {speechLine && <MonsterSpeechBubble key={enemyId} line={speechLine} anchor={speechAnchor} onClose={() => setSpeechLine(null)} />}
 
@@ -456,6 +474,8 @@ export function BattleScene({
               beamId={beamId}
               shoutDebuffId={shout.active ? shout.id : 0}
               executedKill={executedKill}
+              timeProgress={bossTimeProgress}
+              secondsLeft={Math.ceil(bossTimeRemainingMs / 1000)}
             />
 
             {/* Kept below the enemy nameplate (fixed at bottom: 112) so numbers never cover
@@ -736,6 +756,8 @@ function EnemyFighter({
   beamId,
   shoutDebuffId,
   executedKill,
+  timeProgress,
+  secondsLeft,
 }: {
   animation: EnemyAnimation;
   boss: boolean;
@@ -752,6 +774,9 @@ function EnemyFighter({
   // True while the current "defeated" phase is the result of an Execute kill — swaps the
   // usual shrink-and-fade for the sprite slicing in half along Execute's cut.
   executedKill: boolean;
+  // 0-100, only meaningful while `boss` is true (BattleScene zeroes it out otherwise).
+  timeProgress: number;
+  secondsLeft: number;
 }) {
   const shake = useSharedValue(0);
   const knockback = useSharedValue(0);
@@ -851,6 +876,15 @@ function EnemyFighter({
       <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, boss && styles.enemyNameplateBoss]}>
         <Text style={styles.unitLabelText}>{boss ? BOSS_NAME[enemyKind] : `${ENEMY_NAME[enemyKind]} ${enemyId}`}</Text>
         <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
+        {boss && (
+          <ProgressBar
+            progress={timeProgress}
+            fill={timeProgress <= 25 ? "red" : "blue"}
+            height={9}
+            label={`${secondsLeft}초`}
+            style={styles.bossTimerTrack}
+          />
+        )}
       </View>
       {executedKill && phase === "defeated" ? (
         <View style={{ width: size, height: size }}>
@@ -1011,4 +1045,5 @@ const styles = StyleSheet.create({
   enemyNameplateFixed: { position: "absolute", bottom: 112, zIndex: 5 },
   enemyNameplateBoss: { width: 116 },
   unitHealthTrack: { width: "100%" },
+  bossTimerTrack: { width: "100%", marginTop: 2 },
 });

@@ -101,6 +101,10 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         bossEntranceKey={bossEntranceKey}
         levelUpAnnouncement={game.levelUpAnnouncement}
         levelUpAttackGain={game.levelUpAttackGain}
+        now={game.now}
+        bossTimerStartedAt={game.bossTimerStartedAt}
+        bossTimeLimitMs={game.bossTimeLimitMs}
+        bossFledKey={game.bossFledKey}
       />
       {unlockingSlot !== null && (() => {
         const next = state.buffSlotsUnlocked ?? 1;

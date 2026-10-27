@@ -3,7 +3,7 @@ import { AppState } from "react-native";
 import type { GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
 import { GLUTTON_FOOD_MULTIPLIER, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
-import { applyUpgradeLevels, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
+import { applyUpgradeLevels, getBossTimeLimitMs, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
@@ -53,6 +53,15 @@ export function useGameState() {
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
   const [defeatedBoss, setDefeatedBoss] = useState(false);
+  // When the current boss fight started (wall-clock) and how long it gets before the boss
+  // flees — snapshotted together the moment `boss` turns true (see startBossFight below),
+  // not recomputed live, so casting a skill or eating a buff mid-fight can't retroactively
+  // stretch the very deadline it's meant to help beat.
+  const [bossTimerStartedAt, setBossTimerStartedAt] = useState<number | null>(null);
+  const [bossTimeLimitMs, setBossTimeLimitMs] = useState(0);
+  // Bumped each time the boss flees (timer ran out) so the battle scene can flash a message
+  // even if the player is looking at the same stage/boss as last time.
+  const [bossFledKey, setBossFledKey] = useState(0);
   // The stage theme (and therefore boss sprite) a dying boss should keep showing until
   // its death animation finishes — stageNumber itself advances immediately on defeat,
   // which would otherwise swap the die animation to the *next* stage's boss mid-clip.
@@ -235,13 +244,25 @@ export function useGameState() {
     previousLevelRef.current = state.level;
   }, [state.level, loaded]);
 
+  // Snapshots the boss timer's deadline from the player's current plain attack (no food/
+  // skill buffs) the instant the boss appears — see bossTimerStartedAt's own comment.
+  const startBossFight = useCallback(() => {
+    setBossTimerStartedAt(Date.now());
+    setBossTimeLimitMs(getBossTimeLimitMs(getTotalAttack(state), getEnemyMaxHp(state.stageNumber, true)));
+    setBoss(true);
+  }, [state]);
+  const endBossFight = () => {
+    setBoss(false);
+    setBossTimerStartedAt(null);
+  };
+
   const { dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, exp: expBonus } = foodBuffs;
   const handleEnemyDefeat = useCallback((goldReward: number) => {
     setDefeatedBoss(boss);
-    if (boss) setBoss(false);
+    if (boss) endBossFight();
     // Killing the 25th regular mob spawns the boss directly — no manual "challenge" step.
     const reachesBossThreshold = !boss && state.stageKills + 1 >= STAGE_KILL_TARGET;
-    if (reachesBossThreshold) setBoss(true);
+    if (reachesBossThreshold) startBossFight();
 
     // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
     // A full bag turns away whatever has no room left (no free slot, no space in its
@@ -332,7 +353,7 @@ export function useGameState() {
         experience,
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, state.bossesCleared, state.highestStageNumber, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, state.bossesCleared, state.highestStageNumber, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -383,6 +404,28 @@ export function useGameState() {
     equippedSkill: state.equippedSkill ?? null,
     now,
   });
+
+  // The boss fight's clock: once bossTimeLimitMs elapses without a kill, it flees — back to
+  // square one on this stage's regular mobs, not just a free re-fight. `now` only ticks
+  // once a second (see its own effect above), so this fires within a second of the real
+  // deadline rather than needing its own interval.
+  useEffect(() => {
+    if (!boss || bossTimerStartedAt === null) return;
+    if (now - bossTimerStartedAt < bossTimeLimitMs) return;
+    // Deferred out of the effect body itself (react-hooks/set-state-in-effect) — the
+    // condition above is still evaluated synchronously on every `now` tick, only the
+    // resulting state change is pushed to a fresh macrotask.
+    const timer = setTimeout(() => {
+      endBossFight();
+      setDefeatedBoss(false);
+      setStageAnnouncement(null);
+      setBossFledKey((key) => key + 1);
+      setState((previous) => ({ ...previous, stageKills: 0 }));
+      battle.resetEnemy(getEnemyMaxHp(state.stageNumber, false));
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [now, boss, bossTimerStartedAt, bossTimeLimitMs]);
 
   // Whether the boss sprite is actually on screen — lags `boss` by the death clip on both
   // ends. The 25th regular-mob kill flips `boss` true immediately (so the next spawn is
@@ -446,7 +489,7 @@ export function useGameState() {
     if (stageNumber > highestStageNumber) return;
     if (stageNumber !== state.stageNumber) setSkipStageAnnouncement(true);
     setStageAnnouncement(null);
-    setBoss(false);
+    endBossFight();
     setDefeatedBoss(false);
     setState((previous) => ({
       ...previous,
@@ -465,7 +508,7 @@ export function useGameState() {
     if (boss) return;
     setStageAnnouncement(null);
     setDefeatedBoss(false);
-    setBoss(true);
+    startBossFight();
     setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET }));
     battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
   };
@@ -480,7 +523,7 @@ export function useGameState() {
     battle.castSkill();
     setStageAnnouncement(null);
     setDefeatedBoss(false);
-    setBoss(true);
+    startBossFight();
     setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET }));
     battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
   };
@@ -755,7 +798,7 @@ export function useGameState() {
     await clearSave();
     lastSeenAtRef.current = undefined;
     setOfflineSummary(null);
-    setBoss(false);
+    endBossFight();
     setDefeatedBoss(false);
     setStageAnnouncement(null);
     setState(initialState);
@@ -773,6 +816,9 @@ export function useGameState() {
     defeatedStageNumber,
     displayBoss,
     isBossDefeatFlash,
+    bossTimerStartedAt,
+    bossTimeLimitMs,
+    bossFledKey,
     stageAnnouncement,
     firstClear,
     clearedStages: getClearedBosses(state),

@@ -91,6 +91,29 @@ export function getExpReward(stageNumber: number, boss: boolean) {
   return Math.round(boss ? base * BOSS_EXP_MULTIPLIER : base);
 }
 
+// Mirrors useAutoBattle's steady-state swing cadence (idle delay 600ms + attack windup
+// 260ms) — same constant offline.ts uses for its own kill-rate math, duplicated here since
+// neither module exports it.
+const BOSS_TIMER_HIT_INTERVAL_MS = 860;
+// Trims the "plain auto-battle, no crit/food/skill" clear time so it's not quite enough —
+// the timer is meant to make skills and food buffs matter during a boss fight, not just
+// pad out a fight auto-battle alone would already win. 1.0 would be a near-exact nail-biter
+// in theory, but real auto-battle also lands crits (never modeled in the swings estimate
+// below, and only growing as crit chance/damage get upgraded), so plain auto-battle finishes
+// faster than the nominal estimate — 0.8 keeps real pressure through that scaling instead of
+// quietly becoming free by the time crit stats are strong.
+const BOSS_TIME_MARGIN = 0.8;
+
+// How long a boss fight's timer runs before the boss flees (see useGameState's
+// bossTimerStartedAt) — snapshotted once from the player's plain attack (no food/skill
+// buffs) the moment the boss appears, so it reflects "how long auto-battle alone would take
+// *this specific fight*" rather than a flat per-stage guess that could drift out of sync
+// with ATTACK_UPGRADE_RATE/STAGE_HP_GROWTH if either is retuned later.
+export function getBossTimeLimitMs(attack: number, bossMaxHp: number) {
+  const swings = Math.max(1, Math.ceil(bossMaxHp / Math.max(1, attack)));
+  return Math.round(swings * BOSS_TIMER_HIT_INTERVAL_MS * BOSS_TIME_MARGIN);
+}
+
 // A `base * rate^n`-style exponential, left alone below `safeN` steps but switched to a
 // straight line past it (matching the exponential's own slope right at the switchover, so
 // there's no visible kink) — otherwise, given enough steps, it eventually overflows to
