@@ -195,8 +195,12 @@ export function getUpgradeCost(key: StatKey | "defense", level: number) {
 
 // Stats with a hard ceiling on their purchased value — upgrading can't push past this no
 // matter how much gold is spent. Crit chance caps at 50% so a hit is never a coin flip.
+// Crit damage caps at 400% (2.5x expected damage at max chance) so it stays a strong payoff
+// without breaking the "no crit" assumption ATTACK_UPGRADE_RATE's own curve was tuned
+// against, or compressing a fully-invested boss timer (getBossTimeLimitMs) toward 0.
 export const STAT_CAP: Partial<Record<StatKey, number>> = {
   criticalChance: 50,
+  criticalDamage: 400,
 };
 
 export function getUpgradeQuote(key: StatKey, level: number, gold: number, mode: UpgradeMode, value: number) {
