@@ -16,9 +16,11 @@ export type OfflineSummary = {
 };
 
 // Mirrors useAutoBattle's steady-state cadence: a non-killing hit lands roughly every
-// (idle delay 600ms + attack windup 260ms); killing one also pays its respawn + entering
-// delay before the next hit can land.
-const AVG_HIT_INTERVAL_MS = 860;
+// (idle delay 600ms + attack windup 260ms + 320ms post-hit recovery before the next swing
+// is queued) = 1180ms; killing one also pays its respawn + entering delay before the next
+// hit can land. Was 860 (missing that 320ms recovery leg) until re-traced against
+// useAutoBattle's actual queueAttack chain and corrected.
+const AVG_HIT_INTERVAL_MS = 1180;
 const MOB_RESPAWN_MS = 650 + 220;
 
 // Caps how much time away actually counts, and ignores trivial app switches.

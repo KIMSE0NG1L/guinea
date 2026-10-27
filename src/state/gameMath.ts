@@ -92,9 +92,10 @@ export function getExpReward(stageNumber: number, boss: boolean) {
 }
 
 // Mirrors useAutoBattle's steady-state swing cadence (idle delay 600ms + attack windup
-// 260ms) — same constant offline.ts uses for its own kill-rate math, duplicated here since
+// 260ms + 320ms post-hit recovery before the next swing is queued) — same constant
+// offline.ts uses for its own kill-rate math (AVG_HIT_INTERVAL_MS), duplicated here since
 // neither module exports it.
-const BOSS_TIMER_HIT_INTERVAL_MS = 860;
+const BOSS_TIMER_HIT_INTERVAL_MS = 1180;
 // Trims the no-food/skill clear time so it's not quite enough — the timer is meant to make
 // skills and food buffs matter during a boss fight, not just pad out a fight plain auto-
 // battle would already win on its own stats.
