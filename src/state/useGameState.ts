@@ -248,7 +248,9 @@ export function useGameState() {
   // skill buffs) the instant the boss appears — see bossTimerStartedAt's own comment.
   const startBossFight = useCallback(() => {
     setBossTimerStartedAt(Date.now());
-    setBossTimeLimitMs(getBossTimeLimitMs(getTotalAttack(state), getEnemyMaxHp(state.stageNumber, true)));
+    setBossTimeLimitMs(
+      getBossTimeLimitMs(getTotalAttack(state), state.criticalChance ?? 5, state.criticalDamage, getEnemyMaxHp(state.stageNumber, true)),
+    );
     setBoss(true);
   }, [state]);
   const endBossFight = () => {

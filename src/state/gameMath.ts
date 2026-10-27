@@ -95,22 +95,27 @@ export function getExpReward(stageNumber: number, boss: boolean) {
 // 260ms) — same constant offline.ts uses for its own kill-rate math, duplicated here since
 // neither module exports it.
 const BOSS_TIMER_HIT_INTERVAL_MS = 860;
-// Trims the "plain auto-battle, no crit/food/skill" clear time so it's not quite enough —
-// the timer is meant to make skills and food buffs matter during a boss fight, not just
-// pad out a fight auto-battle alone would already win. 1.0 would be a near-exact nail-biter
-// in theory, but real auto-battle also lands crits (never modeled in the swings estimate
-// below, and only growing as crit chance/damage get upgraded), so plain auto-battle finishes
-// faster than the nominal estimate — 0.8 keeps real pressure through that scaling instead of
-// quietly becoming free by the time crit stats are strong.
+// Trims the no-food/skill clear time so it's not quite enough — the timer is meant to make
+// skills and food buffs matter during a boss fight, not just pad out a fight plain auto-
+// battle would already win on its own stats.
 const BOSS_TIME_MARGIN = 0.8;
 
+// Same expected-damage-per-swing math as offline.ts's own expectedDamage (duplicated for
+// the same reason as BOSS_TIMER_HIT_INTERVAL_MS above) — a crit lands `chance` of the time
+// for `criticalDamage`% instead of 100%, averaged into one per-swing number.
+function getExpectedDamage(attack: number, criticalChance: number, criticalDamage: number) {
+  const chance = Math.min(100, Math.max(0, criticalChance)) / 100;
+  return attack * (1 + chance * (criticalDamage / 100 - 1));
+}
+
 // How long a boss fight's timer runs before the boss flees (see useGameState's
-// bossTimerStartedAt) — snapshotted once from the player's plain attack (no food/skill
-// buffs) the moment the boss appears, so it reflects "how long auto-battle alone would take
-// *this specific fight*" rather than a flat per-stage guess that could drift out of sync
-// with ATTACK_UPGRADE_RATE/STAGE_HP_GROWTH if either is retuned later.
-export function getBossTimeLimitMs(attack: number, bossMaxHp: number) {
-  const swings = Math.max(1, Math.ceil(bossMaxHp / Math.max(1, attack)));
+// bossTimerStartedAt) — snapshotted once from the player's plain attack/crit stats (no
+// food/skill buffs) the moment the boss appears, so it reflects "how long auto-battle alone
+// would take *this specific fight*" rather than a flat per-stage guess that could drift out
+// of sync with ATTACK_UPGRADE_RATE/STAGE_HP_GROWTH if either is retuned later.
+export function getBossTimeLimitMs(attack: number, criticalChance: number, criticalDamage: number, bossMaxHp: number) {
+  const expectedDamage = getExpectedDamage(attack, criticalChance, criticalDamage);
+  const swings = Math.max(1, Math.ceil(bossMaxHp / Math.max(1, expectedDamage)));
   return Math.round(swings * BOSS_TIMER_HIT_INTERVAL_MS * BOSS_TIME_MARGIN);
 }
 
