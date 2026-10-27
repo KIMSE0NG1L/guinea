@@ -2,7 +2,7 @@
   "expo": {
     "name": "기니 키우기",
     "slug": "gini_app",
-    "version": "1.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
