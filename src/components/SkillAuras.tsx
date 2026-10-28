@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Defs, Ellipse, RadialGradient, Rect, Stop } from "react-native-svg";
 import { uiImages } from "../assets";
+import { CARROT_THROW_HIT_MS } from "../state/skills";
 import { Flash, Sparks, type Point } from "./ExecuteEffect";
 import { SkillCallout } from "./SkillCallout";
 
@@ -20,6 +21,8 @@ const STEAL_GOLD = "#ffc93a";
 const STEAL_GOLD_LIGHT = "#fff0a0";
 const FOCUS_GOLD = "#ffd24a";
 const SHOUT_RED = "#ff3b2f";
+const CARROT_ORANGE = "#ff8f2e";
+const CARROT_GREEN = "#8fd14f";
 
 // ---- Cast bursts (scene overlay, once per cast) ----------------------------------------
 
@@ -65,6 +68,47 @@ export function ShoutCastEffect({ mouth, enemy }: { mouth: Point; enemy: Point }
       <Sparks at={enemy} delay={220} color="#ffd0c4" />
       <SkillCallout text="찍찍!!" color="#ff6b5a" strokeColor="#4a0a06" holdMs={420} />
     </View>
+  );
+}
+
+// Carrot throw: the guinea pig hurls a carrot (the same item art used in the bag/shop)
+// across the scene; it lands and bursts into orange/green sparks right as the damage
+// actually lands in useAutoBattle (see CARROT_THROW_HIT_MS, shared by both).
+export function CarrotThrowEffect({ from, to }: { from: Point; to: Point }) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <CastDim />
+      <ThrownCarrot from={from} to={to} />
+      <Flash color={CARROT_ORANGE} peak={0.5} delay={CARROT_THROW_HIT_MS} rise={30} fall={240} />
+      <Sparks at={to} delay={CARROT_THROW_HIT_MS} color={CARROT_ORANGE} />
+      <Sparks at={to} delay={CARROT_THROW_HIT_MS + 40} color={CARROT_GREEN} />
+      <SkillCallout text="당근던지기!!" color="#ffb24a" strokeColor="#5a2a00" holdMs={CARROT_THROW_HIT_MS + 100} />
+    </View>
+  );
+}
+
+function ThrownCarrot({ from, to }: { from: Point; to: Point }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withTiming(1, { duration: CARROT_THROW_HIT_MS, easing: Easing.out(Easing.quad) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const dx = to.left - from.left;
+  const dy = to.bottom - from.bottom;
+  const style = useAnimatedStyle(() => ({
+    opacity: t.value === 0 ? 0 : t.value > 0.85 ? (1 - t.value) / 0.15 : 1,
+    transform: [
+      { translateX: dx * t.value },
+      // Up-and-over arc, same shape as Steal's flying coins.
+      { translateY: -(dy * t.value + 40 * 4 * t.value * (1 - t.value)) },
+      { rotate: `${-20 + t.value * 380}deg` },
+    ],
+  }));
+  return (
+    <Animated.Image
+      source={uiImages.carrot}
+      style={[styles.carrot, { left: from.left - CARROT_SIZE / 2, bottom: from.bottom - CARROT_SIZE / 2 }, style]}
+    />
   );
 }
 
@@ -349,6 +393,7 @@ function FlyingCoin({ from, to, delay, lift }: { from: Point; to: Point; delay: 
 const RING = 70;
 const GLINT = 14;
 const COIN = 16;
+const CARROT_SIZE = 40;
 
 const styles = StyleSheet.create({
   ring: { position: "absolute", width: RING, height: RING, borderRadius: RING / 2, borderWidth: 4 },
@@ -363,6 +408,7 @@ const styles = StyleSheet.create({
   arrow: { position: "absolute", bottom: 20 },
   arrowText: { fontSize: 14, color: FOCUS_GOLD, textShadowColor: "#7a4b00", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
   coin: { position: "absolute", width: COIN, height: COIN },
+  carrot: { position: "absolute", width: CARROT_SIZE, height: CARROT_SIZE, resizeMode: "contain" },
   sinkingArrow: { position: "absolute", bottom: 80 },
   sinkingArrowText: { fontSize: 14, color: SHOUT_RED, textShadowColor: "#4a0a06", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
 });

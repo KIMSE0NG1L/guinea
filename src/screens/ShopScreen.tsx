@@ -13,7 +13,6 @@ import { formatGameNumber } from "../state/gameMath";
 const products = [
   { group: "골드 상품", name: "주머니 골드", detail: `골드 ${formatGameNumber(1000)}`, price: "보석 10", tone: "gold" as const },
   { group: "보석 상품", name: "반짝 보석", detail: "보석 50", price: "준비 중", tone: "gem" as const },
-  { group: "아이템 상품", name: "당근 한 묶음", detail: "당근 10개", price: 500, tone: "carrot" as const },
 ];
 
 export function ShopScreen() {
@@ -45,7 +44,7 @@ function ProductCard({ product, index }: { product: (typeof products)[number]; i
   }, []);
   const floatStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -float.value * 5 }, { rotate: `${(float.value - 0.5) * 6}deg` }] }));
   const shineStyle = useAnimatedStyle(() => ({ left: `${-30 + shine.value * 140}%`, opacity: shine.value === 0 ? 0 : 0.35 }));
-  const icon = product.tone === "gem" ? uiImages.crystal : product.tone === "carrot" ? uiImages.carrot : uiImages.coins;
+  const icon = product.tone === "gem" ? uiImages.crystal : uiImages.coins;
   return (
     <Panel slice={kit.panel} style={styles.card}>
       <View style={styles.shineClip} pointerEvents="none">

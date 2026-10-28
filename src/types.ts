@@ -5,7 +5,7 @@ export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
 export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander" | "monkey" | "carp" | "cactus" | "fox" | "lizard" | "mantou" | "pig" | "magpie" | "snowRabbit" | "drunkCat" | "flowerSnake" | "riceSack" | "mackerel" | "blossomCrab" | "shrineFox" | "armorBeetle" | "onsenMonkey" | "ninjaFrog" | "lanternAngler" | "clamMaid" | "gondolaDuck" | "bellCalf" | "croissantKid";
 export type Outfit = "default" | "explorerHamster" | "tetoGini" | "assassinGini" | "egenGini" | "samuraiGini" | "chefGini" | "boxerGini";
-export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton" | "barrage" | "teleport";
+export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton" | "barrage" | "teleport" | "carrotThrow";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 
 export interface Quest {

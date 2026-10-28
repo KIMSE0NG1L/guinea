@@ -19,9 +19,10 @@ import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
 import { EXECUTE_TIMING, ExecuteEffect } from "../components/ExecuteEffect";
 import { BeamEffect } from "../components/BeamEffect";
-import { BEAM_TIMING, getSkill } from "../state/skills";
+import { BEAM_TIMING, CARROT_THROW_HIT_MS, getSkill } from "../state/skills";
 import {
   BuffVignette,
+  CarrotThrowEffect,
   FocusAura,
   FocusCastEffect,
   ShoutCastEffect,
@@ -231,6 +232,7 @@ export function BattleScene({
   stealId: rawStealId,
   focusId: rawFocusId,
   shoutId: rawShoutId,
+  carrotThrowId: rawCarrotThrowId,
   dropEvents,
   bossEntranceKey,
   levelUpAnnouncement,
@@ -278,6 +280,7 @@ export function BattleScene({
   stealId: number;
   focusId: number;
   shoutId: number;
+  carrotThrowId: number;
   dropEvents: DropEvent[];
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
@@ -302,6 +305,7 @@ export function BattleScene({
   const steal = useSkillEvent(rawStealId, STEAL_DURATION);
   const focus = useSkillEvent(rawFocusId, FOCUS_DURATION);
   const shout = useSkillEvent(rawShoutId, SHOUT_DURATION);
+  const { id: carrotThrowId } = useSkillEvent(rawCarrotThrowId, CARROT_THROW_HIT_MS);
   // Every timed buff skill shares one vignette element; only one skill is ever equipped.
   const buffVignette = steal.active
     ? { key: `steal-${steal.id}`, durationMs: STEAL_DURATION }
@@ -417,7 +421,7 @@ export function BattleScene({
               </StrokedText>
               <ProgressBar
                 progress={boss ? bossTimeProgress : stageProgress}
-                fill={boss ? (bossTimeProgress <= 25 ? "red" : "blue") : "gold"}
+                fill={boss ? "red" : "gold"}
                 height={18}
                 label={boss ? `${bossSecondsLeft}초` : `${Math.min(stageKills, STAGE_KILL_TARGET)} / ${STAGE_KILL_TARGET}`}
                 style={styles.stageBarTrack}
@@ -527,6 +531,13 @@ export function BattleScene({
             />
           )}
 
+          {carrotThrowId > 0 && fightersWidth > 0 && (
+            <CarrotThrowEffect
+              key={`carrot-throw-${carrotThrowId}`}
+              from={{ left: playerCenterLeft + 34, bottom: FIGHTERS_BOTTOM + 48 }}
+              to={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+            />
+          )}
           {steal.id > 0 && <StealCastEffect key={`steal-${steal.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {focus.id > 0 && <FocusCastEffect key={`focus-${focus.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {shout.id > 0 && fightersWidth > 0 && (

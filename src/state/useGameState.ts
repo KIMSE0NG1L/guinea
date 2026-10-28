@@ -132,7 +132,7 @@ export function useGameState() {
           : "default";
         // Same guard for a save written before a skill (e.g. the old "freeze"/"swords"/"meteor"
         // magic trio) was retired — getSkill() would otherwise throw looking it up.
-        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton", "barrage", "teleport"];
+        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton", "barrage", "teleport", "carrotThrow"];
         const equippedSkill = save.state.equippedSkill && validSkills.includes(save.state.equippedSkill) ? save.state.equippedSkill : null;
         // Placeholder starter materials that were never used by any recipe — strip them
         // from older saves so they stop cluttering the bag.

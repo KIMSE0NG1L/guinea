@@ -28,6 +28,7 @@ export const OUTFIT_GEM_PRICE: Partial<Record<Outfit, number>> = {
 // SkillTutorial right as the player has something to use it on.
 export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
   steal: 2,
+  carrotThrow: 15,
   focus: 30,
   glutton: 45,
   diligent: 60,

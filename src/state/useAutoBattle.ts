@@ -6,6 +6,8 @@ import {
   BEAM_BOSS_HP_RATIO,
   BEAM_BOSS_MAX_RATIO,
   BEAM_TIMING,
+  CARROT_THROW_HIT_MS,
+  CARROT_THROW_HP_RATIO,
   EXECUTE_HP_RATIO,
   SHOUT_DAMAGE_BONUS,
   INITIAL_SKILL_TIMERS,
@@ -132,6 +134,7 @@ export function useAutoBattle({
     glutton: 0,
     barrage: 0,
     teleport: 0,
+    carrotThrow: 0,
   });
   // Whether the current/last kill was an Execute — the player strikes a crit pose for it.
   const [lastKillExecuted, setLastKillExecuted] = useState(false);
@@ -483,6 +486,20 @@ export function useAutoBattle({
         setLastCritical(true);
         dealDamage(damage, true);
       }, BEAM_TIMING.hit);
+      eventTimersRef.current.push(hitTimer);
+    }
+
+    // 당근던지기: a flat share of the enemy's current HP, landing once the thrown carrot
+    // actually reaches it (CarrotThrowEffect's own travel animation times to the same
+    // CARROT_THROW_HIT_MS). If that enemy is gone by then, like beam, it just fizzles.
+    if (id === "carrotThrow") {
+      const epoch = enemyEpochRef.current;
+      const hitTimer = setTimeout(() => {
+        if (epoch !== enemyEpochRef.current) return;
+        const damage = Math.ceil(hpRef.current * CARROT_THROW_HP_RATIO);
+        setLastCritical(true);
+        dealDamage(damage, true);
+      }, CARROT_THROW_HIT_MS);
       eventTimersRef.current.push(hitTimer);
     }
   }, [dealDamage]);

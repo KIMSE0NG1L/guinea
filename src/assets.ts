@@ -484,6 +484,7 @@ export const skillImages = {
   glutton: require("../assets/skills/glutton.png"),
   barrage: require("../assets/skills/barrage.png"),
   teleport: require("../assets/skills/teleport.png"),
+  carrotThrow: require("../assets/skills/carrotThrow.png"),
 };
 const WIDE_ICON = 256 / 222;
 const SQUARE_ICON = 256 / 258;
@@ -497,6 +498,7 @@ export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
   glutton: SQUARE_ICON,
   barrage: SQUARE_ICON,
   teleport: SQUARE_ICON,
+  carrotThrow: SQUARE_ICON,
 };
 
 export const food = {

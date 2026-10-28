@@ -33,6 +33,11 @@ export const SHOUT_DAMAGE_BONUS = 0.3;
 export const DILIGENT_OFFLINE_BONUS = 0.5;
 // With Glutton equipped, food buffs eaten last this many times longer.
 export const GLUTTON_FOOD_MULTIPLIER = 2;
+// 당근던지기: removes this share of the enemy's current HP, the moment the thrown carrot
+// lands — CARROT_THROW_HIT_MS is its travel time, shared with CarrotThrowEffect so the
+// damage lands exactly when the carrot visually arrives.
+export const CARROT_THROW_HP_RATIO = 0.25;
+export const CARROT_THROW_HIT_MS = 320;
 // After casting a skill — or putting a passive in the slot — the slot can't change for this
 // long, so you can't chain several skills' cooldowns or flick passives on and off.
 export const SKILL_SWAP_LOCK_MS = 3 * 60 * SECOND;
@@ -57,6 +62,7 @@ export const SKILLS: Skill[] = [
   { id: "glutton", name: "먹보", description: "장착하면 항상 적용 · 장착 중에 먹은 음식 버프가 2배로 오래가요.", passive: true, cooldownMs: 0 },
   { id: "barrage", name: "난타", description: "15초 동안 직접 화면을 눌러 공격할 수 있어요. 평소에는 자동 전투만 할 수 있어요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: MANUAL_COMBAT_DURATION_MS },
   { id: "teleport", name: "텔레포트", description: "이미 깬 스테이지에서 쓰면 보스에게 바로 순간이동해요. 아직 못 깬 스테이지에서는 쓸 수 없어요.", cooldownMs: SKILL_COOLDOWN_MS },
+  { id: "carrotThrow", name: "당근던지기", description: "적 체력의 25%를 즉시 깎아요.", cooldownMs: SKILL_COOLDOWN_MS },
 ];
 
 // One-line effect summaries for the battle slot's info bubble.
@@ -70,6 +76,7 @@ export const SKILL_SUMMARY: Record<SkillId, string> = {
   glutton: "음식 버프 지속시간 2배",
   barrage: "15초 동안 직접 공격 가능",
   teleport: "깬 스테이지에서 보스로 즉시 이동",
+  carrotThrow: "적 체력 25% 즉시 감소",
 };
 
 export function getSkill(id: SkillId) {
@@ -88,6 +95,7 @@ export const INITIAL_SKILL_TIMERS: SkillTimers = {
   glutton: { readyAt: 0, activeUntil: 0 },
   barrage: { readyAt: 0, activeUntil: 0 },
   teleport: { readyAt: 0, activeUntil: 0 },
+  carrotThrow: { readyAt: 0, activeUntil: 0 },
 };
 
 export function isSkillActive(timers: SkillTimers, id: SkillId, now: number) {
