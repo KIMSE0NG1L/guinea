@@ -63,6 +63,7 @@ export function SkillsScreen({
                 onPress={() => onEquip(equipped ? null : skill.id)}
                 style={styles.equipButton}
                 textStyle={styles.equipButtonText}
+                tutorialId={skill.id === "steal" ? "equip-steal" : undefined}
               >
                 {sealed ? `Lv.${unlockLevel}` : locked ? formatDuration(swapLockLeftMs) : equipped ? "해제" : "장착"}
               </GameButton>

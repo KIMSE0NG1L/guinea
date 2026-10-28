@@ -21,17 +21,21 @@ export const OUTFIT_GEM_PRICE: Partial<Record<Outfit, number>> = {
   boxerGini: 2000,
 };
 
-// Skills: utility and short buffs early, the big damage dealers late.
+// Skills: utility and short buffs early, the big damage dealers late. Scaled 5x (was
+// 3..30, all skills unlocked by level 30) so the full set isn't open until level 150.
+// steal is pulled down to 2 on its own — that's about when a fresh player reaches the
+// first boss (see gini_balance_economy memory), so it's the one skill introduced via
+// SkillTutorial right as the player has something to use it on.
 export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
-  steal: 3,
-  focus: 6,
-  glutton: 9,
-  diligent: 12,
-  barrage: 15,
-  shout: 18,
-  teleport: 22,
-  beam: 26,
-  execute: 30,
+  steal: 2,
+  focus: 30,
+  glutton: 45,
+  diligent: 60,
+  barrage: 75,
+  shout: 90,
+  teleport: 110,
+  beam: 130,
+  execute: 150,
 };
 
 // `highestStageNumber`: the furthest stage (0-based) ever reached. `purchasedOutfits`:

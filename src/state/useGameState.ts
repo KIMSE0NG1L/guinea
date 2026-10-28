@@ -22,7 +22,7 @@ export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
 const SPEED_BOOST_DURATION_MS = 60 * 60_000; // 1 hour
-const FLYING_COIN_GEM_CHANCE = 1 / 20;
+const FLYING_COIN_GEM_CHANCE = 1 / 10;
 const FLYING_COIN_GEMS = 2;
 // Gems for beating a stage's boss for the very first time.
 export const FIRST_CLEAR_GEMS = 50;
@@ -153,13 +153,14 @@ export function useGameState() {
           ? (save.state.knownRecipes ?? []).filter((id) => id !== "carrot-soup")
           : save.state.knownRecipes;
         const recipeTutorialDone = save.state.recipeTutorialDone ?? false;
+        const skillTutorialDone = save.state.skillTutorialDone ?? false;
         // Saves from before the ingredient codex start it from whatever's in the bag now.
         const discoveredItems = save.state.discoveredItems ?? inventory.filter((item) => item.type === "food").map((item) => item.name);
         // Saves from before the cookbook have no cooked-recipe record; anything already sitting
         // in the bag as a dish was clearly cooked, so that's the starting page count.
         const cookedRecipes =
           save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
-        let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, discoveredItems, cookedRecipes };
+        let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, skillTutorialDone, discoveredItems, cookedRecipes };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const awayMs = Date.now() - save.lastSeenAt;
@@ -369,17 +370,22 @@ export function useGameState() {
     });
   }, []);
 
-  // The winged coin that flutters across the battle: a quarter of what the current stage's
-  // regular mob pays (buffs included), plus a 1-in-20 shot at 2 gems.
+  // The winged coin that flutters across the battle: 5x what the current stage's regular
+  // mob pays (buffs included), plus a 1-in-10 shot at 2 gems.
   const catchFlyingCoin = () => {
     const attack = Math.round(getTotalAttack(state) * (1 + buffs.attack / 100));
     const mobGold = getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyMaxHp(state.stageNumber, false), false);
-    const gold = Math.max(1, Math.round(mobGold / 4));
+    const gold = Math.max(1, Math.round(mobGold * 5));
     const gems = Math.random() < FLYING_COIN_GEM_CHANCE ? FLYING_COIN_GEMS : 0;
     addBonusGold(gold);
     setState((previous) => ({ ...previous, gems: previous.gems + gems, coinsCaught: (previous.coinsCaught ?? 0) + 1 }));
     return { gold, gems };
   };
+
+  // SkillTutorial is up: reading a dialog shouldn't let swings land (or the stage
+  // progress/exp it explains) change out from under the player. Gated on !boss like
+  // tutorialJelly below, so it never collides with the boss-flee timer.
+  const skillTutorialActive = state.tutorialDone && !state.skillTutorialDone && isSkillUnlocked("steal", state.level) && !boss;
 
   const battle = useAutoBattle({
     // Food buffs and the equipped companion's bonus apply on top of the upgraded stats.
@@ -405,6 +411,7 @@ export function useGameState() {
     onMiss: () => setState((previous) => (previous.equippedOutfit === "tetoGini" ? { ...previous, tetoMisses: (previous.tetoMisses ?? 0) + 1 } : previous)),
     equippedSkill: state.equippedSkill ?? null,
     now,
+    paused: skillTutorialActive,
   });
 
   // The boss fight's clock: once bossTimeLimitMs elapses without a kill, it flees — back to
@@ -832,6 +839,7 @@ export function useGameState() {
     upgraded,
     enemyMaxHp,
     battle,
+    skillTutorialActive,
     upgradeStat,
     claimQuest,
     catchFlyingCoin,

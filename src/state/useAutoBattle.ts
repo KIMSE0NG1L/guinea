@@ -25,6 +25,10 @@ const ENTER_DELAY = 220;
 
 type Timer = ReturnType<typeof setTimeout>;
 
+// Short burst skills that reward landing more hits during their window — see
+// manualWindowOpen below.
+const MANUAL_WINDOW_SKILLS: SkillId[] = ["barrage", "steal", "focus"];
+
 function clearTimers(ref: { current: Timer[] }) {
   ref.current.forEach((timer) => clearTimeout(timer));
   ref.current = [];
@@ -52,6 +56,7 @@ export function useAutoBattle({
   onMiss,
   equippedSkill,
   now,
+  paused = false,
 }: {
   attack: number;
   criticalDamage: number;
@@ -91,16 +96,21 @@ export function useAutoBattle({
   equippedSkill: SkillId | null;
   // Live clock, ticked by the caller — drives isAutoBattle off the 난타 skill's active window.
   now: number;
+  // Freezes the fight entirely (no auto swings, no manual taps) — e.g. while SkillTutorial
+  // has the player reading instead of actually fighting.
+  paused?: boolean;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
   const [phase, setPhase] = useState<BattlePhase>("idle");
   const [skillTimers, setSkillTimers] = useState<SkillTimers>(INITIAL_SKILL_TIMERS);
   const autoLocked = firstStrikeMultiplier > 0;
-  // Manual taps are never allowed by default — only while 난타 (barrage) is actively cast
-  // does tapping work; every other moment (and always for a first-strike-locked outfit
-  // like 사무라이기니) battle runs on auto.
-  const manualWindowOpen = forcedManual || (equippedSkill === "barrage" && isSkillActive(skillTimers, "barrage", now));
-  const isAutoBattle = autoLocked || !manualWindowOpen;
+  // Manual taps are never allowed by default — only while one of these short burst skills
+  // is actively cast does tapping work, since all three reward landing more hits during
+  // their window (난타: the whole point; 훔치기/집중: more taps means more gold scatters /
+  // guaranteed crits). Every other moment (and always for a first-strike-locked outfit like
+  // 사무라이기니) battle runs on auto.
+  const manualWindowOpen = forcedManual || (equippedSkill !== null && MANUAL_WINDOW_SKILLS.includes(equippedSkill) && isSkillActive(skillTimers, equippedSkill, now));
+  const isAutoBattle = !paused && (autoLocked || !manualWindowOpen);
   // Bumped on each first-strike draw, so the scene can play its slash.
   const [firstStrikeId, setFirstStrikeId] = useState(0);
   const [enemyId, setEnemyId] = useState(1);
@@ -385,7 +395,7 @@ export function useAutoBattle({
   }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
 
   const manualAttack = useCallback(() => {
-    if (isAutoBattle) return;
+    if (paused || isAutoBattle) return;
     // Enemy is mid-death/respawn — nothing there to hit yet.
     if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
 
@@ -433,7 +443,7 @@ export function useAutoBattle({
       manualTimersRef.current.push(readyTimer);
     }, 260);
     manualTimersRef.current.push(hitTimer);
-  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
+  }, [paused, isAutoBattle, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
 
   // Whether the equipped skill can be cast right now (an active skill, off cooldown, with
   // an enemy present). `now` is passed in so the UI can re-check on its own clock.

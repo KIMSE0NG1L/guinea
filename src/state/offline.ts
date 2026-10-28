@@ -23,6 +23,11 @@ export type OfflineSummary = {
 const AVG_HIT_INTERVAL_MS = 1180;
 const MOB_RESPAWN_MS = 650 + 220;
 
+// Offline grinding pays less than actually playing — otherwise leaving the app open would
+// be strictly better than fighting in person. User's call: 1/8 of the online rate, applied
+// to both gold and exp equally.
+const OFFLINE_REWARD_RATE = 1 / 8;
+
 // Caps how much time away actually counts, and ignores trivial app switches.
 export const MAX_OFFLINE_MS = 8 * 60 * 60 * 1000;
 const MIN_OFFLINE_MS = 30 * 1000;
@@ -36,10 +41,10 @@ function expectedDamage(attack: number, criticalChance: number, criticalDamage: 
 // the whole elapsed time away. Food buffs running when the app closed: an offlineGold one
 // raises all of it; with an offlineBuffs one, every food buff also keeps working (attack,
 // crits, gold, exp) until it runs out, so the time away is split at each expiry.
-// Deliberately never auto-fights the boss or advances
-// stageNumber — that would skip past a new stage's mob and boss art without the player
-// ever seeing it — so stageKills just keeps climbing past the kill target instead of
-// stopping there; the boss stays queued up for them to fight in person when they return.
+// Deliberately never auto-fights the boss, advances stageNumber, or moves stageKills —
+// those all stay exactly as the player left them, so offline time only pays out gold/exp
+// (at OFFLINE_REWARD_RATE) and never silently finishes a stage's mob quota or queues up
+// the boss while they're away.
 export function simulateOfflineProgress(
   state: GameState,
   elapsedMsRaw: number
@@ -62,7 +67,6 @@ export function simulateOfflineProgress(
   const segments = [0, ...cuts, elapsedMs].slice(1).map((end, index, ends) => ({ start: index === 0 ? 0 : ends[index - 1], end }));
 
   let remainingMs = 0;
-  let stageKills = state.stageKills;
   let kills = state.kills;
   let gold = state.gold;
   let totalGoldEarned = state.totalGoldEarned;
@@ -84,7 +88,7 @@ export function simulateOfflineProgress(
       state.criticalDamage + (food?.criticalDamage ?? 0),
     );
     if (dmg <= 0) continue;
-    const mobExpReward = Math.round(getExpReward(state.stageNumber, false) * (1 + (food?.exp ?? 0) / 100));
+    const mobExpReward = Math.round(getExpReward(state.stageNumber, false) * (1 + (food?.exp ?? 0) / 100) * OFFLINE_REWARD_RATE);
     // 사무라이기니's opening draw (attack × N × crit damage) may finish a mob outright.
     const firstStrike = OUTFIT_FIRST_STRIKE[state.equippedOutfit] ?? 0;
     const opening = firstStrike > 0 ? attack * firstStrike * ((state.criticalDamage + (food?.criticalDamage ?? 0)) / 100) : 0;
@@ -95,7 +99,7 @@ export function simulateOfflineProgress(
     while (remainingMs >= msPerMob) {
       remainingMs -= msPerMob;
 
-      const goldReward = Math.round(getGoldReward(attack, state.goldBonus + (food?.gold ?? 0), enemyMaxHp, false) * goldMultiplier);
+      const goldReward = Math.round(getGoldReward(attack, state.goldBonus + (food?.gold ?? 0), enemyMaxHp, false) * goldMultiplier * OFFLINE_REWARD_RATE);
       gold += goldReward;
       totalGoldEarned += goldReward;
       kills += 1;
@@ -106,7 +110,6 @@ export function simulateOfflineProgress(
         level += 1;
       }
       mobsKilled += 1;
-      stageKills += 1;
     }
   }
 
@@ -121,7 +124,6 @@ export function simulateOfflineProgress(
     kills,
     experience,
     level,
-    stageKills,
   };
 
   return {
@@ -132,7 +134,7 @@ export function simulateOfflineProgress(
       expGained,
       levelsGained,
       timeAwayMs: elapsedMs - remainingMs,
-      bossReady: stageKills >= STAGE_KILL_TARGET,
+      bossReady: state.stageKills >= STAGE_KILL_TARGET,
     },
   };
 }

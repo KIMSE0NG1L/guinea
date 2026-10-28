@@ -43,8 +43,8 @@ export const MANUAL_COMBAT_DURATION_MS = 15 * SECOND;
 
 export const SKILLS: Skill[] = [
   { id: "beam", name: "기니빔", description: "일반 몹은 즉사, 보스는 최대 체력의 50%를 깎아요.", cooldownMs: SKILL_COOLDOWN_MS },
-  { id: "steal", name: "훔치기", description: "5초 동안 때릴 때마다 처치 골드의 10%를 뿌려요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 5 * SECOND },
-  { id: "focus", name: "집중", description: "5초 동안 치명타 확률이 100%가 돼요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 5 * SECOND },
+  { id: "steal", name: "훔치기", description: "5초 동안 직접 화면을 눌러 공격할 수 있어요. 때릴 때마다 처치 골드의 10%를 뿌려요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 5 * SECOND },
+  { id: "focus", name: "집중", description: "5초 동안 직접 화면을 눌러 공격할 수 있어요. 치명타 확률이 100%가 돼요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 5 * SECOND },
   { id: "execute", name: "처형", description: "장착하면 항상 적용 · 체력 25% 이하가 된 적을 즉사시켜요.", passive: true, cooldownMs: 0 },
   { id: "shout", name: "찍찍 함성", description: "30초 동안 적이 받는 일반 공격 피해가 30% 늘어나요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: 30 * SECOND },
   {
@@ -62,8 +62,8 @@ export const SKILLS: Skill[] = [
 // One-line effect summaries for the battle slot's info bubble.
 export const SKILL_SUMMARY: Record<SkillId, string> = {
   beam: "일반 몹 즉사 · 보스 체력 -50%",
-  steal: "타격마다 처치 골드 10% 획득",
-  focus: "치명타 확률 100%",
+  steal: "직접 공격 가능 · 타격마다 처치 골드 10% 획득",
+  focus: "직접 공격 가능 · 치명타 확률 100%",
   execute: "체력 25% 이하 적 즉사",
   shout: "일반 공격 피해 +30%",
   diligent: "오프라인 골드 +50%",

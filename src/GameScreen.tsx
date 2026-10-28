@@ -26,6 +26,7 @@ import { TutorialOverlay } from "./components/TutorialOverlay";
 import { BagFullModal } from "./components/BagFullModal";
 import { FirstClearCelebration } from "./components/FirstClearCelebration";
 import { RecipeTutorial } from "./components/RecipeTutorial";
+import { SkillTutorial } from "./components/SkillTutorial";
 import { CookCompleteBurst } from "./components/CookCompleteBurst";
 import { FlightLayer, launchFlight } from "./components/FlightLayer";
 import { ComicViewer } from "./components/ComicViewer";
@@ -64,6 +65,15 @@ export function GameScreen() {
     const timer = setTimeout(() => setRecipeTutorialArmed(true), 1600);
     return () => clearTimeout(timer);
   }, [hasJelly, recipeTutorialArmed]);
+
+  // The skill tutorial opens once 훔치기 unlocks — after a beat, so it doesn't collide with
+  // the level-up burst and "새 스킬 해금!" toast (held 2800ms, see useGameState).
+  const [skillTutorialArmed, setSkillTutorialArmed] = useState(false);
+  useEffect(() => {
+    if (!game.skillTutorialActive || skillTutorialArmed) return;
+    const timer = setTimeout(() => setSkillTutorialArmed(true), 3000);
+    return () => clearTimeout(timer);
+  }, [game.skillTutorialActive, skillTutorialArmed]);
 
   // The dish whose "완성!" burst is playing (keyed so each collect replays it), and whether
   // the last collect bounced off a full bag.
@@ -340,6 +350,15 @@ export function GameScreen() {
             freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot, index) => index < (state.buffSlotsUnlocked ?? 1) && (!slot || slot.expiresAt <= game.now)))}
             onGoTo={onSelectTab}
             onFinish={() => setState((previous) => ({ ...previous, recipeTutorialDone: true }))}
+          />
+        )}
+        {game.loaded && game.skillTutorialActive && skillTutorialArmed && !game.offlineSummary && (
+          <SkillTutorial
+            tab={state.selectedTab}
+            equippedSkill={state.equippedSkill ?? null}
+            skillTimers={game.battle.skillTimers}
+            onGoTo={onSelectTab}
+            onFinish={() => setState((previous) => ({ ...previous, skillTutorialDone: true }))}
           />
         )}
         {collected && collectedRecipe && (

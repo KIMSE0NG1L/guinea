@@ -7,6 +7,7 @@ export const initialState: GameState = {
   nickname: DEFAULT_NICKNAME,
   tutorialDone: false,
   recipeTutorialDone: false,
+  skillTutorialDone: false,
   gold: 1250,
   gems: 10,
   level: 1,

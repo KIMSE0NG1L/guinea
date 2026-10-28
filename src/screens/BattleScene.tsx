@@ -869,7 +869,7 @@ function EnemyFighter({
       {/* Fixed position regardless of sprite size, so the boss's HP bar lines up with a
           regular mob's — the (much taller) boss sprite grows upward behind it instead. */}
       <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, boss && styles.enemyNameplateBoss]}>
-        <Text style={styles.unitLabelText}>{boss ? BOSS_NAME[enemyKind] : `${ENEMY_NAME[enemyKind]} ${enemyId}`}</Text>
+        <Text style={styles.unitLabelText}>{boss ? BOSS_NAME[enemyKind] : ENEMY_NAME[enemyKind]}</Text>
         <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
       </View>
       {executedKill && phase === "defeated" ? (

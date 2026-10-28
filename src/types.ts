@@ -47,6 +47,8 @@ export interface GameState {
   tutorialDone?: boolean;
   // Set once the follow-up tutorial that has the player buy their first recipe is done.
   recipeTutorialDone?: boolean;
+  // Set once the follow-up tutorial that has the player equip and cast their first skill is done.
+  skillTutorialDone?: boolean;
   // How many food slots are open (1–3); missing on older saves = 1.
   buffSlotsUnlocked?: number;
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];

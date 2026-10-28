@@ -8,6 +8,7 @@ import { InfoBubble } from "./InfoBubble";
 import { formatDuration } from "../state/buffs";
 import { SkillIcon } from "./SkillIcon";
 import { StrokedText } from "./StrokedText";
+import { tutorialRef } from "./tutorialTargets";
 
 export const SKILL_SLOT_HEIGHT = 44;
 
@@ -35,6 +36,7 @@ export function SkillSlot({
   if (!skillId) {
     return (
       <Pressable
+        ref={tutorialRef("skill-slot")}
         onPress={onOpenSkills}
         accessibilityRole="button"
         accessibilityLabel="스킬 장착하러 가기"
@@ -55,6 +57,7 @@ export function SkillSlot({
 
   return (
     <Pressable
+      ref={tutorialRef("skill-slot")}
       onPress={inEffect ? () => setInfo((current) => !current) : onCast}
       disabled={!inEffect && !canCast}
       accessibilityRole="button"
