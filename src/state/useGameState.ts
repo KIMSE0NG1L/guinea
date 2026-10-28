@@ -245,15 +245,13 @@ export function useGameState() {
     previousLevelRef.current = state.level;
   }, [state.level, loaded]);
 
-  // Snapshots the boss timer's deadline from the player's current plain attack (no food/
-  // skill buffs) the instant the boss appears — see bossTimerStartedAt's own comment.
+  // Snapshots the boss timer's deadline — a fixed per-stage value (see getBossTimeLimitMs)
+  // — the instant the boss appears.
   const startBossFight = useCallback(() => {
     setBossTimerStartedAt(Date.now());
-    setBossTimeLimitMs(
-      getBossTimeLimitMs(getTotalAttack(state), state.criticalChance ?? 5, state.criticalDamage, getEnemyMaxHp(state.stageNumber, true)),
-    );
+    setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber));
     setBoss(true);
-  }, [state]);
+  }, [state.stageNumber]);
   const endBossFight = () => {
     setBoss(false);
     setBossTimerStartedAt(null);

@@ -91,33 +91,32 @@ export function getExpReward(stageNumber: number, boss: boolean) {
   return Math.round(boss ? base * BOSS_EXP_MULTIPLIER : base);
 }
 
-// Mirrors useAutoBattle's steady-state swing cadence (idle delay 600ms + attack windup
-// 260ms + 320ms post-hit recovery before the next swing is queued) — same constant
-// offline.ts uses for its own kill-rate math (AVG_HIT_INTERVAL_MS), duplicated here since
-// neither module exports it.
-const BOSS_TIMER_HIT_INTERVAL_MS = 1180;
-// Trims the no-food/skill clear time so it's not quite enough — the timer is meant to make
-// skills and food buffs matter during a boss fight, not just pad out a fight plain auto-
-// battle would already win on its own stats.
-const BOSS_TIME_MARGIN = 0.8;
-
-// Same expected-damage-per-swing math as offline.ts's own expectedDamage (duplicated for
-// the same reason as BOSS_TIMER_HIT_INTERVAL_MS above) — a crit lands `chance` of the time
-// for `criticalDamage`% instead of 100%, averaged into one per-swing number.
-function getExpectedDamage(attack: number, criticalChance: number, criticalDamage: number) {
-  const chance = Math.min(100, Math.max(0, criticalChance)) / 100;
-  return attack * (1 + chance * (criticalDamage / 100 - 1));
-}
+// Fixed per-stage boss countdown (seconds; index 0 = stage 1) — predictable, not
+// recalculated from the player's live attack. Generated once from a reference "every gold
+// coin spent on attack the instant it's earned, auto-battle only" playthrough (same
+// reference player as ATTACK_UPGRADE_RATE's own balance simulation above), with the usual
+// 80% margin already folded in. Locking the number in doesn't erase the "still need skills/
+// food" pressure that margin creates — a player who stays near this reference pace hits the
+// same ~80%-of-auto-battle-only-time squeeze it was always meant to create; it just makes
+// the number the same for everyone instead of a per-fight recalculation.
+// Regenerate this table if ATTACK_UPGRADE_RATE, STAGE_HP_GROWTH or the gold curve change —
+// it was produced by simulating that reference player stage by stage and reading off
+// getBossTimeLimitMs's old live formula (swings-to-kill × 1180ms swing cadence × 0.8) at
+// the moment each boss spawns.
+const BOSS_TIME_LIMIT_SEC = [
+  168, 177, 185, 228, 266, 309, 397, 462, 477, 542,
+  544, 609, 602, 593, 582, 643, 630, 615, 602, 588,
+  575, 562, 548, 536, 524, 512, 500, 488, 478, 466,
+  456, 445, 435,
+];
 
 // How long a boss fight's timer runs before the boss flees (see useGameState's
-// bossTimerStartedAt) — snapshotted once from the player's plain attack/crit stats (no
-// food/skill buffs) the moment the boss appears, so it reflects "how long auto-battle alone
-// would take *this specific fight*" rather than a flat per-stage guess that could drift out
-// of sync with ATTACK_UPGRADE_RATE/STAGE_HP_GROWTH if either is retuned later.
-export function getBossTimeLimitMs(attack: number, criticalChance: number, criticalDamage: number, bossMaxHp: number) {
-  const expectedDamage = getExpectedDamage(attack, criticalChance, criticalDamage);
-  const swings = Math.max(1, Math.ceil(bossMaxHp / Math.max(1, expectedDamage)));
-  return Math.round(swings * BOSS_TIMER_HIT_INTERVAL_MS * BOSS_TIME_MARGIN);
+// bossTimerStartedAt) — a fixed value per stage, not tied to the player's own pace. Clamps
+// to the last table entry if stageNumber ever runs past it (e.g. new stages added before
+// the table is regenerated).
+export function getBossTimeLimitMs(stageNumber: number) {
+  const seconds = BOSS_TIME_LIMIT_SEC[Math.min(Math.max(0, stageNumber), BOSS_TIME_LIMIT_SEC.length - 1)];
+  return seconds * 1000;
 }
 
 // A `base * rate^n`-style exponential, left alone below `safeN` steps but switched to a
