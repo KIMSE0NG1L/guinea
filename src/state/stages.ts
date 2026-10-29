@@ -47,6 +47,8 @@ export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   gondolaDuck: "europe",
   bellCalf: "europe",
   croissantKid: "europe",
+  sleepyGini: "europe",
+  sleepwalkerGini: "europe",
 };
 
 export const ENEMY_NAME: Record<EnemyKind, string> = {
@@ -83,6 +85,8 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   gondolaDuck: "곤돌라 오리",
   bellCalf: "방울 송아지",
   croissantKid: "크루아상 꼬마",
+  sleepyGini: "꿀잠기니",
+  sleepwalkerGini: "몽유병 기니",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -119,6 +123,8 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   gondolaDuck: "피자 화덕 골렘",
   bellCalf: "구조견 대장",
   croissantKid: "바게트 기사",
+  sleepyGini: "장로기니",
+  sleepwalkerGini: "마녀 기니",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -159,6 +165,8 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "운하의 미식 도시", enemyKind: "gondolaDuck", story: "알록달록한 집들 사이로 운하가 흐르는 미식 도시, 줄무늬 셔츠를 입은 오리들이 곤돌라를 저으며 손님을 부른다." },
   { area: "알프스 목장 마을", enemyKind: "bellCalf", story: "눈 덮인 봉우리 아래 초록 목장이 펼쳐진 산골 마을, 방울을 단 송아지들이 딸랑딸랑 풀밭을 누빈다." },
   { area: "빵집 골목", enemyKind: "croissantKid", story: "갓 구운 빵 냄새가 골목을 가득 채운 돌길 거리, 베레모를 쓴 크루아상들이 진열장 앞을 뽐내며 걸어 다닌다." },
+  { area: "기니 대도시", enemyKind: "sleepyGini", story: "기니들만 모여 사는 번화한 대도시, 당근 분수 광장 너머로 낮잠과 안마가 일상인 느긋한 기니들이 거리를 오간다." },
+  { area: "수상한 집", enemyKind: "sleepwalkerGini", story: "달빛 아래 보랏빛 커튼이 드리운 수상한 집, 몽유병에 걸린 기니들이 밤마다 홀린 듯 계단을 오르내린다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

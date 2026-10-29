@@ -37,6 +37,8 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   gondolaDuck: ["곤돌라 타실래요~?", "노래 값은 따로!"],
   bellCalf: ["음매~ 딸랑!", "낮잠 방해 금지..."],
   croissantKid: ["내 결이 제일 바삭해!", "부스러기는 못 본 척해"],
+  sleepyGini: ["드르렁...", "...5분만 더"],
+  sleepwalkerGini: ["...음냐...", "여긴... 어디지?"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -73,4 +75,6 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   gondolaDuck: ["피자를 남기다니!", "불이... 꺼져 간다..."],
   bellCalf: ["조난자 발견!", "우유 한 모금 마셔라!"],
   croissantKid: ["빵의 이름으로!", "갓 구운 검을 받아라!"],
+  sleepyGini: ["어깨 좀 풀어다오", "시원하구먼!"],
+  sleepwalkerGini: ["후훗, 완벽한 실험이지...", "어라... 나도 졸리네..."],
 };

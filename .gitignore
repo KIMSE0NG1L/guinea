@@ -40,6 +40,12 @@ yarn-error.*
 /ios
 /android
 
+# Play Store upload keystore + its password/cert — never commit signing material
+/guinea-keystore/
+
+# Local Gradle cache (dependencies + provisioned JDK) — large, machine-local, regenerable
+/.gradle-cache/
+
 # redundant archive of assets/sprites
 assets/sprites.zip
 

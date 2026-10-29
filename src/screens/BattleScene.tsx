@@ -81,6 +81,8 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   gondolaDuck: 160,
   bellCalf: 160,
   croissantKid: 160,
+  sleepyGini: 160,
+  sleepwalkerGini: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -126,6 +128,8 @@ const BACKGROUND: Record<EnemyKind, number> = {
   gondolaDuck: images.battleBackgroundCanalCity,
   bellCalf: images.battleBackgroundAlpineVillage,
   croissantKid: images.battleBackgroundBakeryStreet,
+  sleepyGini: images.battleBackgroundGiniMetropolis,
+  sleepwalkerGini: images.battleBackgroundSuspiciousHouse,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

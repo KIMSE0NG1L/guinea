@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "picnicride";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1276,37 +1276,71 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
-  picnicride: {
-    title: "피크닉 바구니와 라벤더 길",
+  ginitown: {
+    title: "기니 대도시의 낮잠 소동",
     panels: [
       {
-        image: comics.picnicride1,
-        aspect: 498 / 768,
+        image: comics.ginitown1,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "우와,\n이런 도시가 있었어?!", left: 0.04, top: 0.03, maxWidth: 0.36, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.ginitown2,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "저기요...\n다들 괜찮아요?", left: 0.02, top: 0.03, maxWidth: 0.34, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.ginitown3,
+        aspect: 512 / 768,
         sfx: "hit",
         bubbles: [
-          { text: "훌륭한 솜씨,\n인정하오.", left: 0.36, top: 0.06, maxWidth: 0.3, tail: "bottom", tailAt: 0.5 },
+          { text: "저기, 저기요!", left: 0.02, top: 0.03, maxWidth: 0.26, tail: "bottom", tailAt: 0.4 },
+          { text: "...졸려...", right: 0.08, top: 0.1, maxWidth: 0.2, tail: "bottom", tailAt: 0.5 },
         ],
       },
       {
-        image: comics.picnicride2,
-        aspect: 499 / 768,
+        image: comics.ginitown4,
+        aspect: 512 / 768,
         bubbles: [
-          { text: "빵엔 남쪽 언덕의\n포도와 올리브지!", right: 0.02, top: 0.04, maxWidth: 0.4, tail: "bottom", tailAt: 0.4 },
+          { text: "다들 왜 이렇게\n졸린 거야?!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.3, shout: true },
         ],
       },
+    ],
+  },
+  townasleep: {
+    title: "온 마을을 뒤덮은 수상한 냄새",
+    panels: [
       {
-        image: comics.picnicride3,
-        aspect: 505 / 768,
+        image: comics.townasleep1,
+        aspect: 512 / 768,
         bubbles: [
-          { text: "라벤더 향~!", left: 0.3, top: 0.14, maxWidth: 0.26, tail: "bottom", tailAt: 0.3 },
+          { text: "고마워, 덕분에 깼어!\n근데... 큰일이야.", left: 0.03, top: 0.03, maxWidth: 0.4, tail: "bottom", tailAt: 0.3 },
         ],
       },
       {
-        image: comics.picnicride4,
-        aspect: 504 / 768,
+        image: comics.townasleep2,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "저 수상한 집 냄새 때문에\n마을이 통째로 잠들고 있어...", left: 0.02, top: 0.02, maxWidth: 0.46, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.townasleep3,
+        aspect: 512 / 768,
         sfx: "levelup",
         bubbles: [
-          { text: "포도가...\n굴러다녀?!", left: 0.04, top: 0.2, maxWidth: 0.26, tail: "bottom", tailAt: 0.6 },
+          { text: "제가 가서\n확인해 볼게요!", left: 0.3, top: 0.02, maxWidth: 0.38, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.townasleep4,
+        aspect: 512 / 768,
+        bubbles: [
+          { text: "좋아, 가보자!", left: 0.04, top: 0.04, maxWidth: 0.3, tail: "bottom", tailAt: 0.3 },
         ],
       },
     ],
@@ -1347,7 +1381,8 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   29: "whaleride",
   30: "alpinetrain",
   31: "sledbakery",
-  32: "picnicride",
+  32: "ginitown",
+  33: "townasleep",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.

@@ -374,14 +374,34 @@ export const spriteSheets = {
     die: require("../assets/sprites/boss-rescue-dog-die-strip.webp"),
   },
   croissantKid: {
-    idle: require("../assets/sprites/croissant-kid-idle-strip.webp"),
-    hit: require("../assets/sprites/croissant-kid-hit-strip.webp"),
-    die: require("../assets/sprites/croissant-kid-die-strip.webp"),
+    idle: require("../assets/sprites/croissant-kid-idle-strip.png"),
+    hit: require("../assets/sprites/croissant-kid-hit-strip.png"),
+    die: require("../assets/sprites/croissant-kid-die-strip.png"),
   },
   bossBaguetteKnight: {
     idle: require("../assets/sprites/boss-baguette-knight-idle-strip.webp"),
     hit: require("../assets/sprites/boss-baguette-knight-hit-strip.webp"),
     die: require("../assets/sprites/boss-baguette-knight-die-strip.webp"),
+  },
+  sleepyGini: {
+    idle: require("../assets/sprites/sleepy-gini-idle-strip.png"),
+    hit: require("../assets/sprites/sleepy-gini-hit-strip.png"),
+    die: require("../assets/sprites/sleepy-gini-die-strip.png"),
+  },
+  bossElderGini: {
+    idle: require("../assets/sprites/boss-elder-gini-idle-strip.png"),
+    hit: require("../assets/sprites/boss-elder-gini-hit-strip.png"),
+    die: require("../assets/sprites/boss-elder-gini-die-strip.png"),
+  },
+  sleepwalkerGini: {
+    idle: require("../assets/sprites/sleepwalker-gini-idle-strip.png"),
+    hit: require("../assets/sprites/sleepwalker-gini-hit-strip.png"),
+    die: require("../assets/sprites/sleepwalker-gini-die-strip.png"),
+  },
+  bossWitchGini: {
+    idle: require("../assets/sprites/boss-witch-gini-idle-strip.png"),
+    hit: require("../assets/sprites/boss-witch-gini-hit-strip.png"),
+    die: require("../assets/sprites/boss-witch-gini-die-strip.png"),
   },
 };
 
@@ -420,6 +440,8 @@ export const images = {
   battleBackgroundCanalCity: require("../assets/sprites/battle-canal-city.webp"),
   battleBackgroundAlpineVillage: require("../assets/sprites/battle-alpine-village.webp"),
   battleBackgroundBakeryStreet: require("../assets/sprites/battle-bakery-street.webp"),
+  battleBackgroundGiniMetropolis: require("../assets/sprites/battle-gini-metropolis.png"),
+  battleBackgroundSuspiciousHouse: require("../assets/sprites/battle-suspicious-house.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -934,10 +956,14 @@ export const comics = {
   sledbakery2: require("../assets/comics/sledbakery-2.webp"),
   sledbakery3: require("../assets/comics/sledbakery-3.webp"),
   sledbakery4: require("../assets/comics/sledbakery-4.webp"),
-  picnicride1: require("../assets/comics/picnicride-1.webp"),
-  picnicride2: require("../assets/comics/picnicride-2.webp"),
-  picnicride3: require("../assets/comics/picnicride-3.webp"),
-  picnicride4: require("../assets/comics/picnicride-4.webp"),
+  townasleep1: require("../assets/comics/townasleep-1.png"),
+  townasleep2: require("../assets/comics/townasleep-2.png"),
+  townasleep3: require("../assets/comics/townasleep-3.png"),
+  townasleep4: require("../assets/comics/townasleep-4.png"),
+  ginitown1: require("../assets/comics/ginitown-1.png"),
+  ginitown2: require("../assets/comics/ginitown-2.png"),
+  ginitown3: require("../assets/comics/ginitown-3.png"),
+  ginitown4: require("../assets/comics/ginitown-4.png"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.

@@ -457,6 +457,34 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "양파", chance: 0.4 },
     ],
   },
+  // 기니 대도시: 깨워주면 고마움의 표시로 당근과 귀리, 우유를 내어준다; 장로기니는 시원하게
+  // 안마해 줄수록 가진 식재료를 아낌없이 나눠준다.
+  sleepyGini: {
+    mob: [
+      { name: "당근", chance: 0.3 },
+      { name: "귀리", chance: 0.15 },
+      { name: "우유", chance: 0.1 },
+    ],
+    boss: [
+      { name: "당근", chance: 1, quantity: 3 },
+      { name: "우유", chance: 0.5 },
+      { name: "배", chance: 0.3 },
+    ],
+  },
+  // 수상한 집: 몽유병 기니가 밤이슬과 소금 결정을 흘리고 다닌다; 마녀 기니는 솥단지 재료로
+  // 쓰는 이슬과 소금 결정, 숙면 물약 대신 막걸리를 내놓는다.
+  sleepwalkerGini: {
+    mob: [
+      { name: "이슬", chance: 0.3 },
+      { name: "소금 결정", chance: 0.15 },
+      { name: "호두", chance: 0.1 },
+    ],
+    boss: [
+      { name: "이슬", chance: 1, quantity: 3 },
+      { name: "소금 결정", chance: 0.5 },
+      { name: "막걸리", chance: 0.3 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

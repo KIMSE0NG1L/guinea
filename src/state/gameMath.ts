@@ -107,7 +107,7 @@ const BOSS_TIME_LIMIT_SEC = [
   168, 177, 185, 228, 266, 309, 397, 462, 477, 542,
   544, 609, 602, 593, 582, 643, 630, 615, 602, 588,
   575, 562, 548, 536, 524, 512, 500, 488, 478, 466,
-  456, 445, 435,
+  456, 445, 435, 425, 415,
 ];
 
 // How long a boss fight's timer runs before the boss flees (see useGameState's
