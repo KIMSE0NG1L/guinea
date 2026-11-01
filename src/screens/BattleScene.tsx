@@ -35,6 +35,7 @@ import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { MonsterSpeechBubble } from "../components/MonsterSpeechBubble";
 import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import { BOSS_LINES, MOB_LINES } from "../state/monsterLines";
+import { OUTFIT_NAMES } from "../state/buffs";
 import { ITEM_IMAGES } from "../state/recipes";
 import type { DropEvent } from "../state/useGameState";
 import { tutorialRef } from "../components/tutorialTargets";
@@ -319,16 +320,8 @@ export function BattleScene({
         ? { key: `shout-${shout.id}`, durationMs: SHOUT_DURATION }
         : null;
 
-  // Monster chatter: a boss always speaks on entrance (the stage's big moment); a regular
-  // mob only some of the time, or the fast auto-battle kill-chain would pop a bubble over
-  // every single death. Rendered at the scene's top level (not nested under the enemy's
-  // own clipped sprite column) so it has room to actually show instead of being cut off.
-  const [speechLine, setSpeechLine] = useState<string | null>(null);
-  useEffect(() => {
-    const pool = boss ? BOSS_LINES[enemyKind] : MOB_LINES[enemyKind];
-    setSpeechLine(boss || Math.random() < MOB_SPEECH_CHANCE ? pool[Math.floor(Math.random() * pool.length)] : null);
-  }, [enemyId, boss, enemyKind]);
-
+  // The speech component is keyed to the displayed enemy so its line and animation start
+  // with that sprite, and it lives inside the fighters group so it follows the same motion.
   const executing = phase === "defeated" && executedKill;
   const playerAnimation: PlayerAnimation =
     executing || beaming
@@ -351,7 +344,6 @@ export function BattleScene({
   // size (the sprite is always centred on ENEMY_CENTER_RIGHT regardless of how wide it
   // renders, so half its size is exactly the gap to clear it) — works the same for a
   // compact mob or a sprawling boss without the bubble ever overlapping the sprite.
-  const speechAnchor = { right: ENEMY_CENTER_RIGHT + enemySize / 2 + 10, bottom: FIGHTERS_BOTTOM + enemySize * 0.5 };
   // Drops pop out of the enemy's middle and fly into the bag button's centre.
   const dropFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 };
   const dropTo = { dx: ENEMY_CENTER_RIGHT - BAG_CENTER.right, dy: dropFrom.bottom - BAG_CENTER.bottom };
@@ -449,9 +441,6 @@ export function BattleScene({
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
           {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
-          {speechLine && <MonsterSpeechBubble key={enemyId} line={speechLine} anchor={speechAnchor} onClose={() => setSpeechLine(null)} />}
-
-
           <Animated.View
             style={[styles.fighters, killPunchStyle]}
             onLayout={(event) => setFightersWidth(event.nativeEvent.layout.width)}
@@ -746,7 +735,7 @@ function PlayerFighter({
       {stealAuraId > 0 && <StealAura key={`steal-${stealAuraId}`} durationMs={STEAL_DURATION} />}
       {focusAuraId > 0 && <FocusAura key={`focus-${focusAuraId}`} durationMs={FOCUS_DURATION} />}
       <View style={styles.unitLabel}>
-        <Text style={styles.unitLabelText}>기니</Text>
+        <Text style={styles.unitLabelText}>{OUTFIT_NAMES[outfit]}</Text>
       </View>
       <CharacterSprite
         outfit={outfit}
@@ -914,8 +903,23 @@ function EnemyFighter({
           <SpriteStrip source={effects.critFlash} frameSize={FRAME_SIZE} frameCount={3} displaySize={size * 1.1} durationMs={240} mode="once" />
         </View>
       )}
+      <EnemySpeech
+        key={`${enemyId}-${boss}-${enemyKind}`}
+        boss={boss}
+        enemyKind={enemyKind}
+        anchor={{ right: CHARACTER_WIDTH / 2 + size / 2 + 10, bottom: size / 2 }}
+      />
     </Animated.View>
   );
+}
+
+// Picks and shows dialogue once for the currently displayed enemy.
+function EnemySpeech({ boss, enemyKind, anchor }: { boss: boolean; enemyKind: EnemyKind; anchor: { right: number; bottom: number } }) {
+  const [line, setLine] = useState<string | null>(() => {
+    const pool = boss ? BOSS_LINES[enemyKind] : MOB_LINES[enemyKind];
+    return boss || Math.random() < MOB_SPEECH_CHANCE ? pool[Math.floor(Math.random() * pool.length)] : null;
+  });
+  return line ? <MonsterSpeechBubble line={line} anchor={anchor} onClose={() => setLine(null)} /> : null;
 }
 
 // The quest medal — rocks back and forth now and then while a reward waits to be claimed.
@@ -1006,6 +1010,7 @@ const styles = StyleSheet.create({
   kitchenDot: { position: "absolute", right: -2, top: -2, width: 12, height: 12 },
   fighters: {
     position: "absolute",
+    zIndex: 4,
     top: 42,
     left: 15,
     right: 15,

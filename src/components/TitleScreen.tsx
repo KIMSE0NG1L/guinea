@@ -20,6 +20,20 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
     );
   }, [pulse]);
   const pulseStyle = useAnimatedStyle(() => ({ opacity: 0.55 + pulse.value * 0.45 }));
+  const shine = useSharedValue(0);
+  useEffect(() => {
+    shine.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 750, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 950, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+    );
+  }, [shine]);
+  const sparkleStyle = useAnimatedStyle(() => ({
+    opacity: 0.12 + shine.value * 0.38,
+    transform: [{ scale: 0.8 + shine.value * 0.2 }, { rotate: `${shine.value * 18 - 9}deg` }],
+  }));
 
   return (
     // Same "dark shell + max-430-wide centered card" split GameScreen uses, so a wide
@@ -29,6 +43,8 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
       <Pressable style={styles.frame} onPress={onStart} accessibilityRole="button" accessibilityLabel="터치하여 시작">
         <Image source={images.titleScreen} style={[StyleSheet.absoluteFill, styles.background]} resizeMode="cover" />
         <View style={styles.titleWrap} pointerEvents="none">
+          <Animated.Text style={[styles.sparkle, styles.sparkleLeft, sparkleStyle]}>✦</Animated.Text>
+          <Animated.Text style={[styles.sparkle, styles.sparkleRight, sparkleStyle]}>✧</Animated.Text>
           <StrokedText style={styles.title} strokeColor={colors.line} strokeWidth={3}>
             기니 키우기
           </StrokedText>
@@ -47,8 +63,17 @@ const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: colors.appBackground },
   frame: { flex: 1, maxWidth: 430, width: "100%", alignSelf: "center", overflow: "hidden" },
   background: { width: "100%", height: "100%" },
-  titleWrap: { position: "absolute", top: "7%", width: "100%", alignItems: "center" },
-  title: { fontSize: 40, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream, letterSpacing: 1 },
-  startWrap: { position: "absolute", bottom: "8%", width: "100%", alignItems: "center" },
+  titleWrap: { position: "absolute", top: "13%", width: "100%", alignItems: "center" },
+  title: {
+    fontSize: 40,
+    fontWeight: "900",
+    fontFamily: fonts.bold,
+    color: colors.cream,
+    letterSpacing: 1,
+  },
+  sparkle: { position: "absolute", top: 2, color: "#fff1c9", fontSize: 15, textShadowColor: "#f5dfaa", textShadowRadius: 5 },
+  sparkleLeft: { left: "50%", marginLeft: -132 },
+  sparkleRight: { left: "50%", marginLeft: 112, top: -6, fontSize: 12 },
+  startWrap: { position: "absolute", bottom: "14%", width: "100%", alignItems: "center" },
   start: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
 });

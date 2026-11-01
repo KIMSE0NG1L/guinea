@@ -160,6 +160,13 @@ export function BattleScreen({ game }: { game: UseGameState }) {
           }}
         />
       )}
+      {game.bossRetryAvailable && (
+        <AdUnavailableModal
+          message="광고를 보고 보스에 다시 도전할 수 있어요. 보스의 남은 체력은 유지되고 제한 시간만 새로 시작됩니다."
+          claimLabel="보스 다시 도전하기"
+          onClaim={game.retryBossAfterAd}
+        />
+      )}
       <BattleActionsPanel
         isAutoBattle={battle.isAutoBattle}
         autoLocked={battle.autoLocked}

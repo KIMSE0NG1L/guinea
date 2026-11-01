@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, E
 import { colors, fonts } from "../theme";
 import { shopKit } from "../assets";
 import { NineSlice } from "./NineSlice";
+import { estimateTextWidth } from "./BalancedLines";
 
 const AUTO_HIDE_MS = 2600;
 // Small cut of the same parchment speech-bubble art TutorialOverlay uses for 모험기니's
@@ -40,10 +41,11 @@ export function MonsterSpeechBubble({
     opacity: pop.value,
     transform: [{ scale: 0.7 + pop.value * 0.3 }, { translateY: (1 - pop.value) * 6 }],
   }));
+  const bubbleWidth = Math.min(150, Math.max(72, estimateTextWidth(line, 10) + 29));
 
   return (
     <Animated.View
-      style={[styles.wrap, { right: anchor.right, bottom: anchor.bottom }, style]}
+      style={[styles.wrap, { width: bubbleWidth, right: anchor.right, bottom: anchor.bottom }, style]}
       pointerEvents="none"
     >
       <View style={styles.bubble}>
@@ -68,6 +70,7 @@ const styles = StyleSheet.create({
   // to render after them and sat on top unaffected, floating in plain color while the rest
   // of the scene dimmed. Staying under 8 lets those overlays paint over it like everything
   // else on screen (nameplate included, at zIndex 5).
+  // Explicit per-line width prevents shrink-wrapping to the enemy's 108px container.
   wrap: { position: "absolute", maxWidth: 150, zIndex: 6 },
   bubble: { paddingTop: 10, paddingRight: 19, paddingBottom: 14, paddingLeft: 10 },
   art: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: [{ scaleX: -1 }] },

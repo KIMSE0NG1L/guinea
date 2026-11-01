@@ -16,10 +16,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/app-icon.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#FCEFC7",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.guinea.adventure",
@@ -29,9 +27,26 @@
       "favicon": "./assets/app-icon.png"
     },
     "plugins": [
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Maplestory-Bold.ttf",
+            "./assets/fonts/Maplestory-Light.ttf"
+          ]
+        }
+      ],
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FCEFC7",
+          "image": "./assets/app-icon.png",
+          "resizeMode": "contain",
+          "imageWidth": 220
+        }
+      ]
     ]
   }
 }

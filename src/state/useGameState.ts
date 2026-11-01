@@ -21,7 +21,7 @@ import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./
 export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
-const SPEED_BOOST_DURATION_MS = 60 * 60_000; // 1 hour
+const SPEED_BOOST_DURATION_MS = 5 * 60_000; // 5 minutes
 const FLYING_COIN_GEM_CHANCE = 1 / 10;
 const FLYING_COIN_GEMS = 2;
 // Gems for beating a stage's boss for the very first time.
@@ -62,6 +62,7 @@ export function useGameState() {
   // Bumped each time the boss flees (timer ran out) so the battle scene can flash a message
   // even if the player is looking at the same stage/boss as last time.
   const [bossFledKey, setBossFledKey] = useState(0);
+  const [bossRetryAvailable, setBossRetryAvailable] = useState(false);
   // The stage theme (and therefore boss sprite) a dying boss should keep showing until
   // its death animation finishes — stageNumber itself advances immediately on defeat,
   // which would otherwise swap the die animation to the *next* stage's boss mid-clip.
@@ -409,7 +410,7 @@ export function useGameState() {
     onMiss: () => setState((previous) => (previous.equippedOutfit === "tetoGini" ? { ...previous, tetoMisses: (previous.tetoMisses ?? 0) + 1 } : previous)),
     equippedSkill: state.equippedSkill ?? null,
     now,
-    paused: skillTutorialActive,
+    paused: skillTutorialActive || bossRetryAvailable,
   });
 
   // The boss fight's clock: once bossTimeLimitMs elapses without a kill, it flees — back to
@@ -423,16 +424,22 @@ export function useGameState() {
     // condition above is still evaluated synchronously on every `now` tick, only the
     // resulting state change is pushed to a fresh macrotask.
     const timer = setTimeout(() => {
-      endBossFight();
-      setDefeatedBoss(false);
+      // Keep the boss and its remaining HP in place while the retry prompt is open.
+      // Only its countdown stops; accepting the rewarded retry starts a fresh window.
+      setBossTimerStartedAt(null);
       setStageAnnouncement(null);
       setBossFledKey((key) => key + 1);
-      setState((previous) => ({ ...previous, stageKills: 0 }));
-      battle.resetEnemy(getEnemyMaxHp(state.stageNumber, false));
+      setBossRetryAvailable(true);
     }, 0);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now, boss, bossTimerStartedAt, bossTimeLimitMs]);
+
+  const retryBossAfterAd = useCallback(() => {
+    if (!bossRetryAvailable) return;
+    setBossRetryAvailable(false);
+    startBossFight();
+    setNow(Date.now());
+  }, [bossRetryAvailable, startBossFight]);
 
   // Whether the boss sprite is actually on screen — lags `boss` by the death clip on both
   // ends. The 25th regular-mob kill flips `boss` true immediately (so the next spawn is
@@ -826,6 +833,8 @@ export function useGameState() {
     bossTimerStartedAt,
     bossTimeLimitMs,
     bossFledKey,
+    bossRetryAvailable,
+    retryBossAfterAd,
     stageAnnouncement,
     firstClear,
     clearedStages: getClearedBosses(state),

@@ -7,8 +7,8 @@ import { BOSS_BASE_HP, getEnemyMaxHp, MOB_BASE_HP } from "./stages";
 // attack has no cap.
 export const statInfo: Record<StatKey, { label: string; mark: string; step: number; baseCost: number }> = {
   attack: { label: "공격력", mark: "ATK", step: 1.5, baseCost: 120 },
-  criticalDamage: { label: "치명타 피해", mark: "DMG", step: 2.5, baseCost: 100 },
-  criticalChance: { label: "치명타 확률", mark: "CRIT", step: 1, baseCost: 140 },
+  criticalDamage: { label: "치명타 피해", mark: "DMG", step: 1, baseCost: 100 },
+  criticalChance: { label: "치명타 확률", mark: "CRIT", step: 0.25, baseCost: 140 },
   goldBonus: { label: "골드 획득", mark: "GOLD", step: 2.5, baseCost: 160 },
 };
 
@@ -103,20 +103,10 @@ export function getExpReward(stageNumber: number, boss: boolean) {
 // it was produced by simulating that reference player stage by stage and reading off
 // getBossTimeLimitMs's old live formula (swings-to-kill × 1180ms swing cadence × 0.8) at
 // the moment each boss spawns.
-const BOSS_TIME_LIMIT_SEC = [
-  168, 177, 185, 228, 266, 309, 397, 462, 477, 542,
-  544, 609, 602, 593, 582, 643, 630, 615, 602, 588,
-  575, 562, 548, 536, 524, 512, 500, 488, 478, 466,
-  456, 445, 435, 425, 415,
-];
+export const BOSS_TIME_LIMIT_MS = 160_000;
 
-// How long a boss fight's timer runs before the boss flees (see useGameState's
-// bossTimerStartedAt) — a fixed value per stage, not tied to the player's own pace. Clamps
-// to the last table entry if stageNumber ever runs past it (e.g. new stages added before
-// the table is regenerated).
-export function getBossTimeLimitMs(stageNumber: number) {
-  const seconds = BOSS_TIME_LIMIT_SEC[Math.min(Math.max(0, stageNumber), BOSS_TIME_LIMIT_SEC.length - 1)];
-  return seconds * 1000;
+export function getBossTimeLimitMs(_stageNumber: number) {
+  return BOSS_TIME_LIMIT_MS;
 }
 
 // A `base * rate^n`-style exponential, left alone below `safeN` steps but switched to a
