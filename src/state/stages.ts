@@ -3,7 +3,7 @@ import type { EnemyKind, GameState } from "../types";
 // Groups stages by region/mood for BGM — several stages share one field+boss pair (see
 // sound.ts's bgm lookup). Not every group has tracks yet; sound.ts falls back to
 // "countryside" for any group still missing one.
-export type BgmGroupId = "countryside" | "tropical" | "desert" | "china" | "korea" | "japan" | "dragonPalace" | "europe";
+export type BgmGroupId = "countryside" | "tropical" | "desert" | "china" | "korea" | "japan" | "dragonPalace" | "europe" | "hauntedHouse";
 
 export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   // 뒷산~부잣집 주방
@@ -47,8 +47,9 @@ export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   gondolaDuck: "europe",
   bellCalf: "europe",
   croissantKid: "europe",
-  sleepyGini: "europe",
-  sleepwalkerGini: "europe",
+  // 기니 대도시와 수상한 집은 수상한 집 BGM을 함께 사용한다.
+  sleepyGini: "hauntedHouse",
+  sleepwalkerGini: "hauntedHouse",
 };
 
 export const ENEMY_NAME: Record<EnemyKind, string> = {
