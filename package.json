@@ -32,7 +32,11 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "fx:list": "cd tools/pixelfx && node tools/list.mjs",
+    "fx:render": "cd tools/pixelfx && node tools/render.mjs",
+    "fx:check": "cd tools/pixelfx && node tools/check.mjs",
+    "fx:export": "node tools/pixelfx-export.mjs"
   },
   "private": true
 }

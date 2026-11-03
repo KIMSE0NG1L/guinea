@@ -1,5 +1,5 @@
-import { useEffect, type ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState, type ReactNode } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -10,9 +10,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import Svg, { Defs, Ellipse, RadialGradient, Rect, Stop } from "react-native-svg";
-import { uiImages } from "../assets";
-import { CARROT_THROW_HIT_MS } from "../state/skills";
-import { Flash, Sparks, type Point } from "./ExecuteEffect";
+import { effects, food, uiImages } from "../assets";
+import { CARROT_THROW_HIT_MS, CHILI_THROW_BURN_MS, CHILI_THROW_HIT_MS } from "../state/skills";
+import { Flash, Sparks, SpriteBurst, type Point } from "./ExecuteEffect";
 import { SkillCallout } from "./SkillCallout";
 
 // Steal is green and coin-gold, Focus is gold on deep blue — matching their icons.
@@ -20,9 +20,13 @@ const STEAL_GREEN = "#5fd35a";
 const STEAL_GOLD = "#ffc93a";
 const STEAL_GOLD_LIGHT = "#fff0a0";
 const FOCUS_GOLD = "#ffd24a";
+const BARRAGE_RED = "#ff5a2e";
+const BARRAGE_GOLD = "#ffc93a";
 const SHOUT_RED = "#ff3b2f";
 const CARROT_ORANGE = "#ff8f2e";
 const CARROT_GREEN = "#8fd14f";
+const CHILI_RED = "#e8371f";
+const CHILI_YELLOW = "#ffc93a";
 
 // ---- Cast bursts (scene overlay, once per cast) ----------------------------------------
 
@@ -55,6 +59,95 @@ export function FocusCastEffect({ at }: { at: Point }) {
   );
 }
 
+// Barrage: Steal and Focus are buffs with no motion of their own, so they get a ring +
+// sparks; Barrage already means "rapid hits," so a pixelfx flurry (red-orange, matching its
+// own icon) carries it alone, flashing where the guinea pig stands.
+export function BarrageCastEffect({ at }: { at: Point }) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <CastDim />
+      <SpriteBurst
+        source={effects.barrageFlurry}
+        frameSize={[148, 104]}
+        frameCount={30}
+        fps={30}
+        at={at}
+        displayWidth={130}
+        displayHeight={91}
+        delay={20}
+      />
+      <Sparks at={at} delay={40} color={BARRAGE_RED} />
+      <Sparks at={at} delay={100} color={BARRAGE_GOLD} />
+      <SkillCallout text="난타!!" color="#ffb24a" strokeColor="#4a1200" holdMs={420} />
+    </View>
+  );
+}
+
+// Teleport doesn't move the player sprite at all — teleportToBoss swaps the enemy under them
+// instantly, with no travel. BattleScene holds the player on its existing "win" pose for this
+// window instead of building a teleport-specific animation (see TELEPORT_PAD_MS there); this
+// effect's job is just to sell the instant swap: a white flash, then a purple warp pad at
+// their feet. pixelfx's own default purple already matches the Teleport skill's own icon.
+export const TELEPORT_PAD_MS = 650;
+const TELEPORT_PAD_SIZE = { w: 96, h: 104 };
+const TELEPORT_PAD_FRAMES = 72;
+const TELEPORT_PAD_FPS = 30;
+// The pad's ground line sits near the bottom of its frame (pixelfx origin y=92 of h=104) —
+// this fraction of the display box's height hangs below the character's feet.
+const TELEPORT_PAD_BELOW_GROUND = 0.115;
+
+export function TeleportCastEffect({ at }: { at: Point }) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Flash color="#ffffff" peak={0.6} delay={0} rise={30} fall={140} />
+      <TeleportPad at={at} />
+    </View>
+  );
+}
+
+function TeleportPad({ at }: { at: Point }) {
+  const [frame, setFrame] = useState(0);
+  const opacity = useSharedValue(0);
+  useEffect(() => {
+    opacity.value = withSequence(
+      withTiming(1, { duration: 80, easing: Easing.out(Easing.quad) }),
+      withDelay(TELEPORT_PAD_MS - 80 - 220, withTiming(0, { duration: 220, easing: Easing.in(Easing.quad) })),
+    );
+    const id = setInterval(() => setFrame((f) => (f + 1) % TELEPORT_PAD_FRAMES), 1000 / TELEPORT_PAD_FPS);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const width = 92;
+  const height = (width / TELEPORT_PAD_SIZE.w) * TELEPORT_PAD_SIZE.h;
+  const scaleX = width / TELEPORT_PAD_SIZE.w, scaleY = height / TELEPORT_PAD_SIZE.h;
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          left: at.left - width / 2,
+          bottom: at.bottom - height * TELEPORT_PAD_BELOW_GROUND,
+          width,
+          height,
+          overflow: "hidden",
+        },
+        style,
+      ]}
+    >
+      <Image
+        source={effects.teleportPad}
+        resizeMode="stretch"
+        style={{
+          width: TELEPORT_PAD_SIZE.w * TELEPORT_PAD_FRAMES * scaleX,
+          height: TELEPORT_PAD_SIZE.h * scaleY,
+          transform: [{ translateX: -frame * TELEPORT_PAD_SIZE.w * scaleX }],
+        }}
+      />
+    </Animated.View>
+  );
+}
+
 // Shout: scream waves ripple out of the guinea pig's mouth toward the enemy, which
 // gets a red jolt of sparks as the waves reach it.
 export function ShoutCastEffect({ mouth, enemy }: { mouth: Point; enemy: Point }) {
@@ -80,6 +173,16 @@ export function CarrotThrowEffect({ from, to }: { from: Point; to: Point }) {
       <CastDim />
       <ThrownCarrot from={from} to={to} />
       <Flash color={CARROT_ORANGE} peak={0.5} delay={CARROT_THROW_HIT_MS} rise={30} fall={240} />
+      <SpriteBurst
+        source={effects.carrotImpact}
+        frameSize={[128, 88]}
+        frameCount={28}
+        fps={30}
+        at={to}
+        displayWidth={96}
+        displayHeight={66}
+        delay={CARROT_THROW_HIT_MS}
+      />
       <Sparks at={to} delay={CARROT_THROW_HIT_MS} color={CARROT_ORANGE} />
       <Sparks at={to} delay={CARROT_THROW_HIT_MS + 40} color={CARROT_GREEN} />
       <SkillCallout text="당근던지기!!" color="#ffb24a" strokeColor="#5a2a00" holdMs={CARROT_THROW_HIT_MS + 100} />
@@ -109,6 +212,95 @@ function ThrownCarrot({ from, to }: { from: Point; to: Point }) {
       source={uiImages.carrot}
       style={[styles.carrot, { left: from.left - CARROT_SIZE / 2, bottom: from.bottom - CARROT_SIZE / 2 }, style]}
     />
+  );
+}
+
+// Chili throw: carrotThrow's sibling — same hurl, but the hit is a burn mark that ticks
+// damage over CHILI_THROW_BURN_MS instead of landing all at once (see useAutoBattle's
+// castSkill for the actual tick timing, shared via CHILI_THROW_HIT_MS/CHILI_THROW_BURN_MS).
+export function ChiliThrowEffect({ from, to }: { from: Point; to: Point }) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <CastDim />
+      <ThrownChili from={from} to={to} />
+      <Flash color={CHILI_RED} peak={0.5} delay={CHILI_THROW_HIT_MS} rise={30} fall={240} />
+      <Sparks at={to} delay={CHILI_THROW_HIT_MS} color={CHILI_RED} />
+      <Sparks at={to} delay={CHILI_THROW_HIT_MS + 40} color={CHILI_YELLOW} />
+      <ChiliBurnOverlay at={to} />
+      <SkillCallout text="고추던지기!!" color="#ff8a5c" strokeColor="#4a0f00" holdMs={CHILI_THROW_HIT_MS + 100} />
+    </View>
+  );
+}
+
+function ThrownChili({ from, to }: { from: Point; to: Point }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withTiming(1, { duration: CHILI_THROW_HIT_MS, easing: Easing.out(Easing.quad) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const dx = to.left - from.left;
+  const dy = to.bottom - from.bottom;
+  const style = useAnimatedStyle(() => ({
+    opacity: t.value === 0 ? 0 : t.value > 0.85 ? (1 - t.value) / 0.15 : 1,
+    transform: [
+      { translateX: dx * t.value },
+      // Up-and-over arc, same shape as the thrown carrot.
+      { translateY: -(dy * t.value + 40 * 4 * t.value * (1 - t.value)) },
+      { rotate: `${-20 + t.value * 380}deg` },
+    ],
+  }));
+  return (
+    <Animated.Image
+      source={food.chili}
+      style={[styles.carrot, { left: from.left - CARROT_SIZE / 2, bottom: from.bottom - CARROT_SIZE / 2 }, style]}
+    />
+  );
+}
+
+const CHILI_BURN_SIZE = { w: 80, h: 124 };
+const CHILI_BURN_FRAMES = 90;
+const CHILI_BURN_FPS = 30;
+const CHILI_BURN_DISPLAY_WIDTH = 44;
+
+// A small flame hovering over the enemy for exactly as long as the DoT keeps ticking —
+// same continuous-loop-that-fades-itself-out pattern as BossSkillEffect's StunOverlay.
+function ChiliBurnOverlay({ at }: { at: Point }) {
+  const [frame, setFrame] = useState(0);
+  const opacity = useSharedValue(0);
+  useEffect(() => {
+    opacity.value = withDelay(
+      CHILI_THROW_HIT_MS,
+      withSequence(
+        withTiming(1, { duration: 120, easing: Easing.out(Easing.quad) }),
+        withDelay(CHILI_THROW_BURN_MS - 120 - 260, withTiming(0, { duration: 260, easing: Easing.in(Easing.quad) })),
+      ),
+    );
+    const id = setInterval(() => setFrame((f) => (f + 1) % CHILI_BURN_FRAMES), 1000 / CHILI_BURN_FPS);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const width = CHILI_BURN_DISPLAY_WIDTH;
+  const height = (width / CHILI_BURN_SIZE.w) * CHILI_BURN_SIZE.h;
+  const scaleX = width / CHILI_BURN_SIZE.w, scaleY = height / CHILI_BURN_SIZE.h;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        { position: "absolute", left: at.left - width / 2, bottom: at.bottom + 20, width, height, overflow: "hidden" },
+        style,
+      ]}
+    >
+      <Image
+        source={effects.chiliBurn}
+        resizeMode="stretch"
+        style={{
+          width: CHILI_BURN_SIZE.w * CHILI_BURN_FRAMES * scaleX,
+          height: CHILI_BURN_SIZE.h * scaleY,
+          transform: [{ translateX: -frame * CHILI_BURN_SIZE.w * scaleX }],
+        }}
+      />
+    </Animated.View>
   );
 }
 

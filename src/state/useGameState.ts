@@ -17,6 +17,15 @@ import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES 
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
 import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./offline";
+import {
+  BOSS_SKILL_CHECKPOINTS,
+  BOSS_SKILL_HEAL_RATIO,
+  BOSS_SKILL_STUN_MS,
+  getBossSkill,
+  GHOST_GOAT_REVIVE_HP_RATIO,
+  GHOST_GOAT_REVIVE_KIND,
+  type BossSkill,
+} from "./bossSkills";
 
 export type DropEvent = { id: number; name: string; delay: number };
 
@@ -63,6 +72,12 @@ export function useGameState() {
   // even if the player is looking at the same stage/boss as last time.
   const [bossFledKey, setBossFledKey] = useState(0);
   const [bossRetryAvailable, setBossRetryAvailable] = useState(false);
+  // A boss skill mid-fight (src/state/bossSkills.ts) — at most once per fight, see the
+  // scheduling effect below. Stun pauses auto-battle only (manual tapping stays open);
+  // bossSkillCastId/bossSkillConfig just drive BattleScene's VFX.
+  const [bossStunnedUntil, setBossStunnedUntil] = useState(0);
+  const [bossSkillCastId, setBossSkillCastId] = useState(0);
+  const [bossSkillConfig, setBossSkillConfig] = useState<BossSkill | null>(null);
   // The stage theme (and therefore boss sprite) a dying boss should keep showing until
   // its death animation finishes — stageNumber itself advances immediately on defeat,
   // which would otherwise swap the die animation to the *next* stage's boss mid-clip.
@@ -133,7 +148,7 @@ export function useGameState() {
           : "default";
         // Same guard for a save written before a skill (e.g. the old "freeze"/"swords"/"meteor"
         // magic trio) was retired — getSkill() would otherwise throw looking it up.
-        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton", "barrage", "teleport", "carrotThrow"];
+        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton", "barrage", "teleport", "carrotThrow", "chiliThrow"];
         const equippedSkill = save.state.equippedSkill && validSkills.includes(save.state.equippedSkill) ? save.state.equippedSkill : null;
         // Placeholder starter materials that were never used by any recipe — strip them
         // from older saves so they stop cluttering the bag.
@@ -411,6 +426,8 @@ export function useGameState() {
     equippedSkill: state.equippedSkill ?? null,
     now,
     paused: skillTutorialActive || bossRetryAvailable,
+    autoStunned: now < bossStunnedUntil,
+    reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
   });
 
   // The boss fight's clock: once bossTimeLimitMs elapses without a kill, it flees — back to
@@ -433,6 +450,91 @@ export function useGameState() {
     }, 0);
     return () => clearTimeout(timer);
   }, [now, boss, bossTimerStartedAt, bossTimeLimitMs]);
+
+  // Boss skill (src/state/bossSkills.ts): up to 3 casts per fight, one per BOSS_SKILL_CHECKPOINTS
+  // entry (75%/50%/30% of the boss's own hp), each resolved — rolled and spent, hit or miss —
+  // the moment hp first drops to that checkpoint's threshold, as a last-stand move rather
+  // than a random mid-fight event. bossSkillPlanRef (not state) holds which checkpoints are
+  // already resolved so re-renders can't re-roll them; reset fresh on every new
+  // bossTimerStartedAt. If one giant hit crosses more than one threshold at once, every
+  // newly-crossed checkpoint is still resolved (so none of them lingers to fire later off a
+  // smaller hit), but only the first one that actually rolls a hit casts — never two at once.
+  //
+  // `synced`: right as a *fresh* boss spawns, enemyMaxHp (derived from `boss`) jumps to the
+  // boss's own max hp a render before battle.enemyHp actually catches up to it — the old
+  // regular mob's leftover (much smaller) hp is still sitting there until useAutoBattle's
+  // respawn timer lands the boss at full hp a beat later. Comparing ratios during that gap
+  // reads as the boss already critically low, which burned through all 3 checkpoints the
+  // instant the boss appeared and left none for its real hp drops. Wait for
+  // battle.enemyHp >= enemyMaxHp (truly at full hp) before trusting any ratio against it —
+  // but only for a fresh spawn (battle.enemyId just changed): retryBossAfterAd starts a new
+  // bossTimerStartedAt on the *same* enemy, at whatever hp the timeout left it at (never
+  // reset to max), so demanding a sync there would wait forever and disable the boss's
+  // skill for the rest of that attempt.
+  //
+  // `maxHp` is *snapshotted* once (when synced), and checkpoint evaluation below keeps
+  // running off `plan.enemyId === battle.enemyId` rather than the live `boss` flag — a
+  // killing blow sets battle.enemyHp to 0 and flips `boss` back to false in the very same
+  // state batch (dealDamage -> defeatEnemy -> onDefeat -> endBossFight all run
+  // synchronously), so a one-hit kill (Execute, Beam, or just enough raw damage) would
+  // otherwise never land on a render where `boss` is still true to catch hp hitting 0 — the
+  // 30% checkpoint (meant to be the one guaranteed shot) would silently never fire. Reading
+  // the live enemyMaxHp at that point wouldn't work either: by then it's already reverted to
+  // the regular-mob formula. battle.enemyId itself doesn't bump until the *later* respawn
+  // timer, so it's still safe to trust for this one render.
+  const bossSkillPlanRef = useRef<{ startedAt: number | null; enemyId: number; maxHp: number; resolved: boolean[]; synced: boolean }>({
+    startedAt: null,
+    enemyId: -1,
+    maxHp: 0,
+    resolved: [],
+    synced: false,
+  });
+  useEffect(() => {
+    const plan = bossSkillPlanRef.current;
+    if (boss && bossTimerStartedAt !== null && plan.startedAt !== bossTimerStartedAt) {
+      const freshSpawn = plan.enemyId !== battle.enemyId;
+      plan.startedAt = bossTimerStartedAt;
+      plan.enemyId = battle.enemyId;
+      plan.maxHp = enemyMaxHp;
+      // A retry-after-ad (same enemy, new bossTimerStartedAt — see freshSpawn's own comment
+      // above) picks the same fight back up: checkpoints it already used stay used, or every
+      // failed attempt would hand back up to 3 fresh skill rolls for free.
+      if (freshSpawn) plan.resolved = BOSS_SKILL_CHECKPOINTS.map(() => false);
+      plan.synced = !freshSpawn;
+    }
+    if (plan.startedAt === null || plan.enemyId !== battle.enemyId) return;
+    if (!plan.synced) {
+      if (battle.enemyHp < plan.maxHp) return;
+      plan.synced = true;
+    }
+    let castIndex = -1;
+    BOSS_SKILL_CHECKPOINTS.forEach((checkpoint, index) => {
+      if (plan.resolved[index] || battle.enemyHp > plan.maxHp * checkpoint.hpRatio) return;
+      plan.resolved[index] = true;
+      if (castIndex === -1 && Math.random() < checkpoint.chance) castIndex = index;
+    });
+    if (castIndex === -1) return;
+    // Deferred out of the effect body itself (react-hooks/set-state-in-effect), same as the
+    // boss timer effect above — the condition is still evaluated synchronously on every hp
+    // change, only the resulting state changes are pushed to a fresh macrotask.
+    const timer = setTimeout(() => {
+      const skill = getBossSkill(getEnemyKind(state.stageNumber));
+      setBossSkillConfig(skill);
+      setBossSkillCastId((id) => id + 1);
+      if (skill.kind === "stun") {
+        setBossStunnedUntil(Date.now() + BOSS_SKILL_STUN_MS);
+        // `now` (read by autoStunned below) only ticks once a second, so just comparing
+        // against bossStunnedUntil could leave auto-battle paused up to ~1s after the
+        // stun's own visual (StunOverlay, timed precisely via Reanimated) has already
+        // faded out. This clears it exactly on time regardless of that tick's timing.
+        setTimeout(() => setBossStunnedUntil(0), BOSS_SKILL_STUN_MS);
+      } else {
+        battle.healEnemy(Math.round(battle.enemyHp * BOSS_SKILL_HEAL_RATIO));
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boss, bossTimerStartedAt, state.stageNumber, battle.enemyHp, battle.enemyId, enemyMaxHp]);
 
   const retryBossAfterAd = useCallback(() => {
     if (!bossRetryAvailable) return;
@@ -835,6 +937,10 @@ export function useGameState() {
     bossFledKey,
     bossRetryAvailable,
     retryBossAfterAd,
+    bossSkillCastId,
+    bossSkillConfig,
+    bossStunned: now < bossStunnedUntil,
+    bossReviveId: battle.reviveId,
     stageAnnouncement,
     firstClear,
     clearedStages: getClearedBosses(state),

@@ -1,7 +1,8 @@
-import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, View, type ImageSourcePropType } from "react-native";
 import Svg, { Defs, LinearGradient as SvgGradient, Path, Stop } from "react-native-svg";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
+import { effects } from "../assets";
 
 // Timeline (ms) shared with PlayerFighter's teleport so the two stay in step:
 // vanish → reappear at the enemy → slash → hold → vanish → back home.
@@ -28,6 +29,87 @@ export function ExecuteEffect({ home, arrival, enemy, dash = true }: { home: Poi
       <Slash at={enemy} angle={180 + 44} length={150} offset={{ x: 6, y: -4 }} delay={EXECUTE_TIMING.arrive + 70} />
       <Sparks at={enemy} delay={EXECUTE_TIMING.arrive + 40} />
       <Flash color="#d3121c" peak={0.55} delay={EXECUTE_TIMING.arrive + 20} rise={40} fall={280} />
+      <SpriteBurst
+        source={effects.executeBurst}
+        frameSize={[216, 136]}
+        frameCount={28}
+        fps={30}
+        at={enemy}
+        displayWidth={140}
+        displayHeight={88}
+        delay={EXECUTE_TIMING.arrive + 20}
+      />
+    </View>
+  );
+}
+
+// A one-shot pixelfx sprite strip: plays every frame once at `fps` starting after `delay`,
+// centered on `at`, then holds its last frame (same "once" contract as SpriteStrip, but for
+// effects whose native frames aren't square — SpriteStrip can't size those).
+export function SpriteBurst({
+  source,
+  frameSize: [fw, fh],
+  frameCount,
+  fps,
+  at,
+  displayWidth,
+  displayHeight,
+  delay = 0,
+}: {
+  source: ImageSourcePropType;
+  frameSize: [number, number];
+  frameCount: number;
+  fps: number;
+  at: Point;
+  displayWidth: number;
+  displayHeight: number;
+  delay?: number;
+}) {
+  const [frame, setFrame] = useState(0);
+  const [started, setStarted] = useState(delay <= 0);
+  useEffect(() => {
+    let tick: ReturnType<typeof setInterval> | undefined;
+    const start = setTimeout(() => {
+      setStarted(true);
+      let current = 0;
+      tick = setInterval(() => {
+        current += 1;
+        if (current >= frameCount) {
+          if (tick) clearInterval(tick);
+          return;
+        }
+        setFrame(current);
+      }, 1000 / fps);
+    }, delay);
+    return () => {
+      clearTimeout(start);
+      if (tick) clearInterval(tick);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  if (!started) return null;
+  const scaleX = displayWidth / fw, scaleY = displayHeight / fh;
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: "absolute",
+        left: at.left - displayWidth / 2,
+        bottom: at.bottom - displayHeight / 2,
+        width: displayWidth,
+        height: displayHeight,
+        overflow: "hidden",
+      }}
+    >
+      <Image
+        source={source}
+        resizeMode="stretch"
+        style={{
+          width: fw * frameCount * scaleX,
+          height: fh * scaleY,
+          transform: [{ translateX: -frame * fw * scaleX }],
+        }}
+      />
     </View>
   );
 }

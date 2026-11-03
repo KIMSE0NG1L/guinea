@@ -8,6 +8,10 @@ import {
   BEAM_TIMING,
   CARROT_THROW_HIT_MS,
   CARROT_THROW_HP_RATIO,
+  CHILI_THROW_DOT_HP_RATIO,
+  CHILI_THROW_DOT_TICKS,
+  CHILI_THROW_DOT_TICK_MS,
+  CHILI_THROW_HIT_MS,
   EXECUTE_HP_RATIO,
   SHOUT_DAMAGE_BONUS,
   INITIAL_SKILL_TIMERS,
@@ -59,6 +63,8 @@ export function useAutoBattle({
   equippedSkill,
   now,
   paused = false,
+  autoStunned = false,
+  reviveHpRatio,
 }: {
   attack: number;
   criticalDamage: number;
@@ -101,6 +107,14 @@ export function useAutoBattle({
   // Freezes the fight entirely (no auto swings, no manual taps) — e.g. while SkillTutorial
   // has the player reading instead of actually fighting.
   paused?: boolean;
+  // A boss skill stopped the player's auto-battle — unlike `paused`, manual taps still work
+  // (same fallback path as the 난타/훔치기/집중 window: isAutoBattle false opens tapping).
+  autoStunned?: boolean;
+  // This enemy comes back from the dead once, guaranteed — set per-boss (see useGameState's
+  // getEnemyKind check). The first hit that would kill it instead revives it to this share
+  // of its max hp; every hit after that kills it normally. Resets with each fresh enemy
+  // (resetEnemy), so a re-fight gets its own revive again.
+  reviveHpRatio?: number;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
   const [phase, setPhase] = useState<BattlePhase>("idle");
@@ -112,7 +126,7 @@ export function useAutoBattle({
   // guaranteed crits). Every other moment (and always for a first-strike-locked outfit like
   // 사무라이기니) battle runs on auto.
   const manualWindowOpen = forcedManual || (equippedSkill !== null && MANUAL_WINDOW_SKILLS.includes(equippedSkill) && isSkillActive(skillTimers, equippedSkill, now));
-  const isAutoBattle = !paused && (autoLocked || !manualWindowOpen);
+  const isAutoBattle = !paused && !autoStunned && (autoLocked || !manualWindowOpen);
   // Bumped on each first-strike draw, so the scene can play its slash.
   const [firstStrikeId, setFirstStrikeId] = useState(0);
   const [enemyId, setEnemyId] = useState(1);
@@ -135,9 +149,12 @@ export function useAutoBattle({
     barrage: 0,
     teleport: 0,
     carrotThrow: 0,
+    chiliThrow: 0,
   });
   // Whether the current/last kill was an Execute — the player strikes a crit pose for it.
   const [lastKillExecuted, setLastKillExecuted] = useState(false);
+  // Bumped each time this enemy comes back from the dead (reviveHpRatio) instead of dying.
+  const [reviveId, setReviveId] = useState(0);
   const hpRef = useRef(enemyMaxHp);
   const phaseRef = useRef<BattlePhase>("idle");
   const attackRef = useRef(attack);
@@ -156,6 +173,11 @@ export function useAutoBattle({
   const executeBonusRef = useRef(executeBonus);
   const maxHpRef = useRef(enemyMaxHp);
   const bossRef = useRef(boss);
+  const reviveHpRatioRef = useRef(reviveHpRatio);
+  // The enemy (by epoch, same pattern as firstStrikeEpochRef) that already used its one
+  // revive — covers a fresh enemy however it arrives (resetEnemy, or the natural
+  // kill-then-respawn chain into the next one).
+  const revivedEpochRef = useRef(-1);
   const speedMultiplierRef = useRef(speedMultiplier);
   const onDefeatRef = useRef(onDefeat);
   const onBonusGoldRef = useRef(onBonusGold);
@@ -224,6 +246,7 @@ export function useAutoBattle({
     executeBonusRef.current = executeBonus;
     maxHpRef.current = enemyMaxHp;
     bossRef.current = boss;
+    reviveHpRatioRef.current = reviveHpRatio;
     speedMultiplierRef.current = speedMultiplier;
     onDefeatRef.current = onDefeat;
     onBonusGoldRef.current = onBonusGold;
@@ -284,6 +307,16 @@ export function useAutoBattle({
     if (executed) {
       nextHp = 0;
       setExecuteId((value) => value + 1);
+    }
+    // The one guaranteed revive (reviveHpRatio) pre-empts even an Execute finisher — coming
+    // back from the dead is the whole point of it.
+    if (nextHp <= 0 && reviveHpRatioRef.current && revivedEpochRef.current !== enemyEpochRef.current) {
+      revivedEpochRef.current = enemyEpochRef.current;
+      const revivedHp = Math.max(1, Math.round(maxHpRef.current * reviveHpRatioRef.current));
+      hpRef.current = revivedHp;
+      setEnemyHp(revivedHp);
+      setReviveId((value) => value + 1);
+      return false;
     }
     hpRef.current = nextHp;
     setEnemyHp(nextHp);
@@ -502,6 +535,30 @@ export function useAutoBattle({
       }, CARROT_THROW_HIT_MS);
       eventTimersRef.current.push(hitTimer);
     }
+
+    // 고추던지기: same throw/travel time as carrotThrow (CHILI_THROW_HIT_MS), but the
+    // damage lands in CHILI_THROW_DOT_TICKS separate ticks instead of all at once — the
+    // total is a share of the enemy's hp the moment the chili actually lands (not re-read
+    // per tick, so later ticks don't shrink as hp drops). Each tick re-checks the epoch and
+    // phase, same guard the auto loop's own queued hits use — a kill or stage jump mid-burn
+    // just stops the remaining ticks instead of landing on whatever enemy is there next.
+    if (id === "chiliThrow") {
+      const epoch = enemyEpochRef.current;
+      const landTimer = setTimeout(() => {
+        if (epoch !== enemyEpochRef.current) return;
+        const totalDamage = Math.ceil(hpRef.current * CHILI_THROW_DOT_HP_RATIO);
+        const tickDamage = Math.max(1, Math.round(totalDamage / CHILI_THROW_DOT_TICKS));
+        for (let tick = 0; tick < CHILI_THROW_DOT_TICKS; tick++) {
+          const tickTimer = setTimeout(() => {
+            if (epoch !== enemyEpochRef.current) return;
+            if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
+            dealDamage(tickDamage, false);
+          }, tick * CHILI_THROW_DOT_TICK_MS);
+          eventTimersRef.current.push(tickTimer);
+        }
+      }, CHILI_THROW_HIT_MS);
+      eventTimersRef.current.push(landTimer);
+    }
   }, [dealDamage]);
 
   // A food buff (skillReset) makes the equipped skill ready to cast right now.
@@ -532,6 +589,15 @@ export function useAutoBattle({
     dealDamage(hpRef.current, false);
   }, [dealDamage]);
 
+  // A boss skill topping itself back up — clamped to its own max, never revives a dead one
+  // (defeatEnemy has already fired by the time hp would reach 0, so this only ever sees a
+  // live enemy with hp > 0).
+  const healEnemy = useCallback((amount: number) => {
+    const nextHp = Math.min(maxHpRef.current, hpRef.current + amount);
+    hpRef.current = nextHp;
+    setEnemyHp(nextHp);
+  }, []);
+
   const resetEnemy = useCallback((nextMaxHp: number) => {
     // The old enemy is gone: cancel its in-flight swing and any pending respawn, then
     // bring the new one in (which also restarts the auto loop).
@@ -556,9 +622,11 @@ export function useAutoBattle({
     skillTimers,
     lastSkillCastAt,
     executeId,
+    reviveId,
     castIds,
     lastKillExecuted,
     resetEnemy,
+    healEnemy,
     manualAttack,
     killEnemy,
     castSkill,

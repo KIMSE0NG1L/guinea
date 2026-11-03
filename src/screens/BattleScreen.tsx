@@ -18,7 +18,22 @@ import { hasClaimableQuest } from "../state/quests";
 import { RECIPES } from "../state/recipes";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
-  const { state, battle, upgradeMode, setUpgradeMode, upgradeStat, upgraded, enemyMaxHp, boss, displayBoss, isBossDefeatFlash, defeatedStageNumber } = game;
+  const {
+    state,
+    battle,
+    upgradeMode,
+    setUpgradeMode,
+    upgradeStat,
+    upgraded,
+    enemyMaxHp,
+    boss,
+    displayBoss,
+    isBossDefeatFlash,
+    defeatedStageNumber,
+    bossSkillCastId,
+    bossSkillConfig,
+    bossReviveId,
+  } = game;
   // stageNumber advances the instant a boss dies, before its ~650ms death clip finishes —
   // keep showing the stage it died in (not the next one) for the rest of that clip, same
   // as `displayBoss` already does, or the die animation flashes the next boss.
@@ -96,8 +111,11 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         beamId={battle.castIds.beam}
         stealId={battle.castIds.steal}
         focusId={battle.castIds.focus}
+        barrageId={battle.castIds.barrage}
+        teleportId={battle.castIds.teleport}
         shoutId={battle.castIds.shout}
         carrotThrowId={battle.castIds.carrotThrow}
+        chiliThrowId={battle.castIds.chiliThrow}
         dropEvents={game.dropEvents}
         bossEntranceKey={bossEntranceKey}
         levelUpAnnouncement={game.levelUpAnnouncement}
@@ -106,6 +124,9 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         bossTimerStartedAt={game.bossTimerStartedAt}
         bossTimeLimitMs={game.bossTimeLimitMs}
         bossFledKey={game.bossFledKey}
+        bossSkillCastId={bossSkillCastId}
+        bossSkillConfig={bossSkillConfig}
+        bossReviveId={bossReviveId}
       />
       {unlockingSlot !== null && (() => {
         const next = state.buffSlotsUnlocked ?? 1;

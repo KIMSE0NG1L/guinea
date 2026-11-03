@@ -19,10 +19,14 @@ import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
 import { EXECUTE_TIMING, ExecuteEffect } from "../components/ExecuteEffect";
 import { BeamEffect } from "../components/BeamEffect";
-import { BEAM_TIMING, CARROT_THROW_HIT_MS, getSkill } from "../state/skills";
+import { BossReviveEffect, BossSkillCastEffect } from "../components/BossSkillEffect";
+import type { BossSkill } from "../state/bossSkills";
+import { BEAM_TIMING, CARROT_THROW_HIT_MS, CHILI_THROW_HIT_MS, getSkill } from "../state/skills";
 import {
+  BarrageCastEffect,
   BuffVignette,
   CarrotThrowEffect,
+  ChiliThrowEffect,
   FocusAura,
   FocusCastEffect,
   ShoutCastEffect,
@@ -30,6 +34,8 @@ import {
   StealAura,
   StealCastEffect,
   StealCoins,
+  TELEPORT_PAD_MS,
+  TeleportCastEffect,
 } from "../components/SkillAuras";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { MonsterSpeechBubble } from "../components/MonsterSpeechBubble";
@@ -139,6 +145,7 @@ const FIGHTERS_BOTTOM = 55;
 const FIGHTERS_SIDE = 15;
 const STEAL_DURATION = getSkill("steal").durationMs ?? 0;
 const FOCUS_DURATION = getSkill("focus").durationMs ?? 0;
+const BARRAGE_DURATION = getSkill("barrage").durationMs ?? 0;
 const SHOUT_DURATION = getSkill("shout").durationMs ?? 0;
 // A boss always gets a speech bubble on entrance (it's the stage's big moment); a regular
 // mob only some of the time, or the fast auto-battle kill-chain would pop a bubble over
@@ -231,13 +238,16 @@ export function BattleScene({
   skillBar,
   goldEvents,
   executeId: rawExecuteId,
-  firstStrikeId,
+  firstStrikeId: rawFirstStrikeId,
   executedKill,
   beamId: rawBeamId,
   stealId: rawStealId,
   focusId: rawFocusId,
+  barrageId: rawBarrageId,
+  teleportId: rawTeleportId,
   shoutId: rawShoutId,
   carrotThrowId: rawCarrotThrowId,
+  chiliThrowId: rawChiliThrowId,
   dropEvents,
   bossEntranceKey,
   levelUpAnnouncement,
@@ -245,7 +255,10 @@ export function BattleScene({
   now,
   bossTimerStartedAt,
   bossTimeLimitMs,
-  bossFledKey,
+  bossFledKey: rawBossFledKey,
+  bossSkillCastId: rawBossSkillCastId,
+  bossSkillConfig,
+  bossReviveId: rawBossReviveId,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean; missed?: boolean }[];
@@ -284,8 +297,11 @@ export function BattleScene({
   beamId: number;
   stealId: number;
   focusId: number;
+  barrageId: number;
+  teleportId: number;
   shoutId: number;
   carrotThrowId: number;
+  chiliThrowId: number;
   dropEvents: DropEvent[];
   bossEntranceKey: string | null;
   levelUpAnnouncement: number | null;
@@ -297,6 +313,13 @@ export function BattleScene({
   bossTimeLimitMs: number;
   // Bumped each time the boss flees (timer ran out) — mount BossFleeBanner fresh off it.
   bossFledKey: number;
+  // A boss using its own skill (src/state/bossSkills.ts) — bossSkillConfig is only
+  // meaningful the instant bossSkillCastId bumps, same pattern as the player's own skills.
+  bossSkillCastId: number;
+  bossSkillConfig: BossSkill | null;
+  // Bumped each time the boss (the lizard only — see bossSkills.ts) comes back from the
+  // dead instead of dying.
+  bossReviveId: number;
 }) {
   // Boss fight countdown — 0/100 whenever there's no active timer (not a boss fight, or
   // the timer hasn't started yet) so the nameplate's bar below just doesn't render it.
@@ -305,37 +328,62 @@ export function BattleScene({
   const bossSecondsLeft = Math.ceil(bossTimeRemainingMs / 1000);
 
   const { id: executeId } = useSkillEvent(rawExecuteId, 0);
+  const { id: firstStrikeId } = useSkillEvent(rawFirstStrikeId, 0);
+  // Every cast/event id below is run through useSkillEvent so a tab switch (BattleScreen's
+  // ScrollView is keyed by selectedTab — see GameScreen — so this whole component unmounts
+  // and remounts on every visit) can't replay something that already happened before this
+  // mount: without it, an id/key that's just a raw "> 0" check (no baseline-at-mount to
+  // ignore) looks identical on a fresh mount to one that just fired for real.
+  const { id: bossFledKey } = useSkillEvent(rawBossFledKey, 0);
+  const { id: bossSkillCastId } = useSkillEvent(rawBossSkillCastId, 0);
+  const { id: bossReviveId } = useSkillEvent(rawBossReviveId, 0);
   // Guinea Beam holds a crit pose from the cast until the beam has faded.
   const { id: beamId, active: beaming } = useSkillEvent(rawBeamId, BEAM_TIMING.end);
   const steal = useSkillEvent(rawStealId, STEAL_DURATION);
   const focus = useSkillEvent(rawFocusId, FOCUS_DURATION);
+  const barrage = useSkillEvent(rawBarrageId, BARRAGE_DURATION);
   const shout = useSkillEvent(rawShoutId, SHOUT_DURATION);
   const { id: carrotThrowId } = useSkillEvent(rawCarrotThrowId, CARROT_THROW_HIT_MS);
+  const { id: chiliThrowId } = useSkillEvent(rawChiliThrowId, CHILI_THROW_HIT_MS);
+  // Teleport doesn't move the player or swing anything — it just holds them on their
+  // existing "win" pose (see playerAnimation below) while TeleportCastEffect sells the
+  // instant enemy swap underneath them.
+  const { id: teleportId, active: teleporting } = useSkillEvent(rawTeleportId, TELEPORT_PAD_MS);
   // Every timed buff skill shares one vignette element; only one skill is ever equipped.
   const buffVignette = steal.active
     ? { key: `steal-${steal.id}`, durationMs: STEAL_DURATION }
     : focus.active
       ? { key: `focus-${focus.id}`, durationMs: FOCUS_DURATION }
-      : shout.active
-        ? { key: `shout-${shout.id}`, durationMs: SHOUT_DURATION }
-        : null;
+      : barrage.active
+        ? { key: `barrage-${barrage.id}`, durationMs: BARRAGE_DURATION }
+        : shout.active
+          ? { key: `shout-${shout.id}`, durationMs: SHOUT_DURATION }
+          : null;
 
   // The speech component is keyed to the displayed enemy so its line and animation start
   // with that sprite, and it lives inside the fighters group so it follows the same motion.
   const executing = phase === "defeated" && executedKill;
   const playerAnimation: PlayerAnimation =
-    executing || beaming
-      ? "critical"
-      : phase === "attacking"
-        ? critical ? "critical" : "attack"
-        : phase === "hit" && critical
-          ? "critical"
-          : phase === "defeated"
-            ? "win"
-            : "idle";
+    teleporting
+      ? "win"
+      : executing || beaming
+        ? "critical"
+        : phase === "attacking"
+          ? critical ? "critical" : "attack"
+          : phase === "hit" && critical
+            ? "critical"
+            : phase === "defeated"
+              ? "win"
+              : "idle";
   // A skill pose pins the guinea pig in place and always restarts its strip, even if the
   // swing before it was already a crit.
-  const skillPoseKey = executing ? `execute-${executeId}` : beaming ? `beam-${beamId}` : null;
+  const skillPoseKey = executing
+    ? `execute-${executeId}`
+    : beaming
+      ? `beam-${beamId}`
+      : teleporting
+        ? `teleport-${teleportId}`
+        : null;
 
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
@@ -515,6 +563,15 @@ export function BattleScene({
 
           <View style={styles.skillBar}>{skillBar}</View>
 
+          {/* Every combat VFX below renders as a sibling of `fighters` (zIndex: 4) further
+          down the tree, so without its own zIndex it would stack *behind* the character/
+          enemy sprites by CSS zIndex rules (explicit zIndex beats source order) — small,
+          precisely-positioned effects (e.g. the teleport pad, sized and placed right at the
+          player's feet) end up fully hidden behind the sprite, not just occluded at the
+          edges like a big flash would be. Same zIndex as `fighters` itself (so it still
+          stays below enemyNameplateFixed's zIndex: 5 — see critFlash's own comment on why
+          that matters), but later in the tree, so it paints on top of it. */}
+          <View style={[StyleSheet.absoluteFill, { zIndex: 4 }]} pointerEvents="none">
           {beamId > 0 && fightersWidth > 0 && (
             <BeamEffect
               key={`beam-${beamId}`}
@@ -531,8 +588,28 @@ export function BattleScene({
               to={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
             />
           )}
+          {chiliThrowId > 0 && fightersWidth > 0 && (
+            <ChiliThrowEffect
+              key={`chili-throw-${chiliThrowId}`}
+              from={{ left: playerCenterLeft + 34, bottom: FIGHTERS_BOTTOM + 48 }}
+              to={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+            />
+          )}
           {steal.id > 0 && <StealCastEffect key={`steal-${steal.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {focus.id > 0 && <FocusCastEffect key={`focus-${focus.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
+          {barrage.id > 0 && <BarrageCastEffect key={`barrage-${barrage.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
+          {teleportId > 0 && <TeleportCastEffect key={`teleport-${teleportId}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
+          {bossSkillCastId > 0 && bossSkillConfig && (
+            <BossSkillCastEffect
+              key={`boss-skill-${bossSkillCastId}`}
+              skill={bossSkillConfig}
+              bossAt={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM }}
+              playerAt={{ left: playerCenterLeft, bottom: bodyBottom }}
+            />
+          )}
+          {bossReviveId > 0 && (
+            <BossReviveEffect key={`boss-revive-${bossReviveId}`} bossAt={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM }} />
+          )}
           {shout.id > 0 && fightersWidth > 0 && (
             <ShoutCastEffect
               key={`shout-${shout.id}`}
@@ -581,6 +658,7 @@ export function BattleScene({
             {phase === "defeated" && [0, 1, 2].map((index) => (
               <GoldFly key={`gold-${enemyId}-${index}`} delay={index * 70} from={goldFlyFrom} />
             ))}
+          </View>
           </View>
         </ImageBackground>
       </Pressable>

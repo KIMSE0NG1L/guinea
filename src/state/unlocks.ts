@@ -29,6 +29,7 @@ export const OUTFIT_GEM_PRICE: Partial<Record<Outfit, number>> = {
 export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
   steal: 2,
   carrotThrow: 15,
+  chiliThrow: 20,
   focus: 30,
   glutton: 45,
   diligent: 60,

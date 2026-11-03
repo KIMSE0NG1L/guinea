@@ -38,6 +38,15 @@ export const GLUTTON_FOOD_MULTIPLIER = 2;
 // damage lands exactly when the carrot visually arrives.
 export const CARROT_THROW_HP_RATIO = 0.25;
 export const CARROT_THROW_HIT_MS = 320;
+// 고추던지기: same throw, but the damage lands over time instead of all at once — 5 ticks,
+// 900ms apart, adding up to this share of the enemy's hp *at the moment the chili lands*
+// (not re-read per tick, so later ticks don't shrink as hp drops). A burn mark (see
+// CHILI_THROW_BURN_MS) sits on the enemy for exactly as long as the ticks take to land.
+export const CHILI_THROW_HIT_MS = 320;
+export const CHILI_THROW_DOT_TICKS = 5;
+export const CHILI_THROW_DOT_TICK_MS = 900;
+export const CHILI_THROW_DOT_HP_RATIO = 0.3;
+export const CHILI_THROW_BURN_MS = (CHILI_THROW_DOT_TICKS - 1) * CHILI_THROW_DOT_TICK_MS;
 // After casting a skill — or putting a passive in the slot — the slot can't change for this
 // long, so you can't chain several skills' cooldowns or flick passives on and off.
 export const SKILL_SWAP_LOCK_MS = 3 * 60 * SECOND;
@@ -63,6 +72,12 @@ export const SKILLS: Skill[] = [
   { id: "barrage", name: "난타", description: "15초 동안 직접 화면을 눌러 공격할 수 있어요. 평소에는 자동 전투만 할 수 있어요.", cooldownMs: SKILL_COOLDOWN_MS, durationMs: MANUAL_COMBAT_DURATION_MS },
   { id: "teleport", name: "텔레포트", description: "이미 깬 스테이지에서 쓰면 보스에게 바로 순간이동해요. 아직 못 깬 스테이지에서는 쓸 수 없어요.", cooldownMs: SKILL_COOLDOWN_MS },
   { id: "carrotThrow", name: "당근던지기", description: "적 체력의 25%를 즉시 깎아요.", cooldownMs: SKILL_COOLDOWN_MS },
+  {
+    id: "chiliThrow",
+    name: "고추던지기",
+    description: "적에게 매운 고추를 던져 체력의 30%를 화상 피해로 깎아요. 한 번에 깎이지 않고 잠시에 걸쳐 타들어가요.",
+    cooldownMs: SKILL_COOLDOWN_MS,
+  },
 ];
 
 // One-line effect summaries for the battle slot's info bubble.
@@ -77,6 +92,7 @@ export const SKILL_SUMMARY: Record<SkillId, string> = {
   barrage: "15초 동안 직접 공격 가능",
   teleport: "깬 스테이지에서 보스로 즉시 이동",
   carrotThrow: "적 체력 25% 즉시 감소",
+  chiliThrow: "적 체력 30%를 화상 피해로 감소 (지속)",
 };
 
 export function getSkill(id: SkillId) {
@@ -96,6 +112,7 @@ export const INITIAL_SKILL_TIMERS: SkillTimers = {
   barrage: { readyAt: 0, activeUntil: 0 },
   teleport: { readyAt: 0, activeUntil: 0 },
   carrotThrow: { readyAt: 0, activeUntil: 0 },
+  chiliThrow: { readyAt: 0, activeUntil: 0 },
 };
 
 export function isSkillActive(timers: SkillTimers, id: SkillId, now: number) {

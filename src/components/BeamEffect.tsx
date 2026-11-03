@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { effects } from "../assets";
 import { BEAM_TIMING } from "../state/skills";
@@ -171,8 +171,41 @@ function BeamArt({ mouth, targetLeft }: { mouth: Point; targetLeft: number }) {
   return (
     <View style={[styles.box, box]}>
       <Animated.Image source={effects.beam[0]} style={[StyleSheet.absoluteFill, styles.frame, chargeStyle]} />
-      <Animated.Image source={effects.beam[1]} style={[StyleSheet.absoluteFill, styles.frame, fireStyle]} />
+      <Animated.View style={[StyleSheet.absoluteFill, fireStyle]}>
+        <BeamFireStrip width={box.width} height={box.height} />
+      </Animated.View>
       <Animated.Image source={effects.beam[2]} style={[StyleSheet.absoluteFill, styles.frame, fadeStyle]} />
+    </View>
+  );
+}
+
+// The sustained "fire" stage, now a pixelfx sprite strip (264x100, 36 frames, 30fps, looping)
+// instead of a single stretched image — see effects.beamFire in src/assets.ts. Stretched to
+// the beam's own box like the art it replaces; plays continuously, only `fireStyle` (on its
+// Animated.View parent, above) controls when it's actually visible.
+const BEAM_FIRE_SIZE = { w: 264, h: 100 };
+const BEAM_FIRE_FRAMES = 36;
+const BEAM_FIRE_FPS = 30;
+
+function BeamFireStrip({ width, height }: { width: number; height: number }) {
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setFrame((f) => (f + 1) % BEAM_FIRE_FRAMES), 1000 / BEAM_FIRE_FPS);
+    return () => clearInterval(id);
+  }, []);
+  const scaleX = width / BEAM_FIRE_SIZE.w;
+  const scaleY = height / BEAM_FIRE_SIZE.h;
+  return (
+    <View style={{ width, height, overflow: "hidden" }}>
+      <Image
+        source={effects.beamFire}
+        resizeMode="stretch"
+        style={{
+          width: BEAM_FIRE_SIZE.w * BEAM_FIRE_FRAMES * scaleX,
+          height: BEAM_FIRE_SIZE.h * scaleY,
+          transform: [{ translateX: -frame * BEAM_FIRE_SIZE.w * scaleX }],
+        }}
+      />
     </View>
   );
 }

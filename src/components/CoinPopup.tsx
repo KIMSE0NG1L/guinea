@@ -1,9 +1,10 @@
 import { useEffect } from "react";
-import { Image, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { formatGameNumber } from "../state/gameMath";
 import { fonts } from "../theme";
-import { uiImages } from "../assets";
+import { effects } from "../assets";
+import { SpriteStrip } from "./SpriteStrip";
 
 // Mount a fresh instance per kill via `key={`coin-${enemyId}`}` on the call site — mirrors the
 // web's remount trick that restarted the CSS `coinUp` animation (.8s, with a .15s delay).
@@ -29,7 +30,7 @@ export function CoinPopup({ amount }: { amount: number }) {
 
   return (
     <Animated.View style={[styles.wrap, style]}>
-      <Image source={uiImages.coin} style={styles.coin} />
+      <SpriteStrip source={effects.coinSpin} frameSize={56} frameCount={48} displaySize={14} durationMs={1567} mode="loop" />
       <Text style={styles.text}>+{formatGameNumber(amount)}</Text>
     </Animated.View>
   );
@@ -37,6 +38,5 @@ export function CoinPopup({ amount }: { amount: number }) {
 
 const styles = StyleSheet.create({
   wrap: { position: "absolute", top: 26, flexDirection: "row", alignItems: "center", gap: 3 },
-  coin: { width: 14, height: 14 },
   text: { color: "#7a5317", fontSize: 11, fontWeight: "900", fontFamily: fonts.bold },
 });

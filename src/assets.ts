@@ -453,6 +453,43 @@ export const effects = {
     require("../assets/effects/beam-2.png"),
     require("../assets/effects/beam-3.png"),
   ],
+  // A spinning gold coin, 56x56, 48 frames — exported from the pixelfx effect library via
+  // `node tools/pixelfx-export.mjs pickups/coin-spin` (see tools/pixelfx/VENDORED.md).
+  coinSpin: require("../assets/effects/coin-spin-strip.png"),
+  // The sustained fire stage of the beam, animated: 264x100, 36 frames, gold-recolored —
+  // `node tools/pixelfx-export.mjs arcane/arcane-beam --out beam-fire --opts '{"palette":[...]}'`.
+  // Stands in for beam[1] inside BeamArt's fire stage; not part of the `beam` array above.
+  beamFire: require("../assets/effects/beam-fire-strip.png"),
+  // One-shot burst layered behind Execute's slash, blood-red recolored: 216x136, 28 frames —
+  // `node tools/pixelfx-export.mjs impacts/crit-hit --out execute-burst --opts '{"palette":[...]}'`.
+  executeBurst: require("../assets/effects/execute-burst-strip.png"),
+  // One-shot thud where a thrown carrot lands, warm-gold recolored: 128x88, 28 frames —
+  // `node tools/pixelfx-export.mjs impacts/blunt-hit --out carrot-impact --opts '{"palette":[...]}'`.
+  carrotImpact: require("../assets/effects/carrot-impact-strip.png"),
+  // One-shot flurry of quick cuts on Barrage's cast, red-orange recolored to match its own
+  // icon: 148x104, 30 frames — `node tools/pixelfx-export.mjs melee/dagger-flurry --out
+  // barrage-flurry --opts '{"palette":[...]}'`.
+  barrageFlurry: require("../assets/effects/barrage-flurry-strip.png"),
+  // Looping teleport pad under the player on Teleport's cast — pixelfx's own default purple
+  // already matches the skill's own icon, no recolor needed: 96x104, 72 frames —
+  // `node tools/pixelfx-export.mjs scifi/teleporter-pad --out teleport-pad`.
+  teleportPad: require("../assets/effects/teleport-pad-strip.png"),
+  // Boss skills (src/state/bossSkills.ts): stun variants play over the player (status-effect
+  // style, loop), heal variants play over the boss (one-shot, cropped early with --max-frames
+  // — both are several seconds of pixelfx's own art, only the opening beat is used here).
+  bossStunStunned: require("../assets/effects/stun-stunned-strip.png"),
+  bossStunSleep: require("../assets/effects/stun-sleep-strip.png"),
+  bossStunConfused: require("../assets/effects/stun-confused-strip.png"),
+  bossHealHoly: require("../assets/effects/heal-holy-strip.png"),
+  bossHealBloom: require("../assets/effects/heal-bloom-strip.png"),
+  // 밤의 실크로드's lizard (flavor-texted as a ghost-possessed goat — see stages.ts) comes
+  // back from the dead once a fight, guaranteed: a spectral light pillar, 128x150, 50 frames
+  // — `node tools/pixelfx-export.mjs spawn/respawn-beam --out boss-revive --max-frames 50`.
+  bossRevive: require("../assets/effects/boss-revive-strip.png"),
+  // The burn mark Chili Throw's DoT leaves on the enemy for its duration, fire-recolored:
+  // 80x124, 90 frames — `node tools/pixelfx-export.mjs fire/spirit-flame --out chili-burn
+  // --opts '{"palette":[...]}'`.
+  chiliBurn: require("../assets/effects/chili-burn-strip.png"),
 };
 
 export const icons = {
@@ -507,6 +544,7 @@ export const skillImages = {
   barrage: require("../assets/skills/barrage.png"),
   teleport: require("../assets/skills/teleport.png"),
   carrotThrow: require("../assets/skills/carrotThrow.png"),
+  chiliThrow: require("../assets/skills/chiliThrow.png"),
 };
 const WIDE_ICON = 256 / 222;
 const SQUARE_ICON = 256 / 258;
@@ -521,6 +559,7 @@ export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
   barrage: SQUARE_ICON,
   teleport: SQUARE_ICON,
   carrotThrow: SQUARE_ICON,
+  chiliThrow: SQUARE_ICON,
 };
 
 export const food = {
