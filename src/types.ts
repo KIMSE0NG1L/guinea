@@ -41,6 +41,9 @@ export interface GameState {
   // Food buff slots on the battle screen (null = empty); missing on older saves.
   // When the ad-for-2x-speed boost runs out (epoch ms); saved so it survives a restart.
   speedBoostUntil?: number;
+  // When the shop's ad-for-25-gems button is ready again (epoch ms); same shape as
+  // speedBoostUntil, saved so the cooldown survives a restart.
+  adGemsReadyAt?: number;
   // Shown on the header profile; missing on older saves (falls back to DEFAULT_NICKNAME).
   nickname?: string;
   // Set once the first-run tutorial is finished or skipped; missing on older saves.

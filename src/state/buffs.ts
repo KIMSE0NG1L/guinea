@@ -37,7 +37,7 @@ export const BUFF_SLOT_COUNT = 3;
 
 // Only the first food slot is open from the start; the others are bought with gems.
 // Index = slot index (slot 0 is free).
-export const BUFF_SLOT_PRICES = [0, 500, 3000];
+export const BUFF_SLOT_PRICES = [0, 500, 750];
 
 const MINUTE = 60_000;
 

@@ -41,7 +41,16 @@ import { setBgmTrack } from "./sound";
 import type { Tab } from "./types";
 
 export function GameScreen() {
-  const game = useGameState();
+  // Declared ahead of useGameState so it can tell that hook to pause battle while a comic
+  // (a real cutscene — full-screen, has to be read/dismissed) is up; this is
+  // presentation/navigation state GameScreen already owns, not something useGameState itself
+  // needs to track. comicPaused is synced a beat later (see the effect below it needs
+  // game.loaded/game.state to compute "is the opening comic showing", which don't exist
+  // until after this first useGameState call), rather than read directly here — passing
+  // playingComic alone would miss the opening comic.
+  const [playingComic, setPlayingComic] = useState<ComicId | null>(null);
+  const [comicPaused, setComicPaused] = useState(false);
+  const game = useGameState({ externallyPaused: comicPaused });
   const { state, setState, questOpen, setQuestOpen, claimQuest } = game;
 
   // Lives here rather than in BattleScreen so the right track keeps playing on other tabs.
@@ -82,7 +91,18 @@ export function GameScreen() {
   // The opening comic plays once on a new game; story comics follow a boss's first clear
   // (COMIC_ON_FIRST_CLEAR); any reached one can be replayed from settings.
   const openingSeen = (state.seenComics ?? []).includes("opening");
-  const [playingComic, setPlayingComic] = useState<ComicId | null>(null);
+  // Mirrors the opening ComicViewer's own render condition below — kept in sync via effect
+  // (see comicPaused's declaration) rather than computed inline, so useGameState can be told
+  // about it without a circular dependency on the game state it itself owns. Deferred via
+  // setTimeout (react-hooks/set-state-in-effect), same as useGameState's own boss-timer and
+  // boss-skill effects — the condition is still evaluated synchronously every render, only
+  // the resulting state change is pushed to a fresh macrotask.
+  const openingComicShowing = game.loaded && !state.tutorialDone && !openingSeen && !game.offlineSummary && !playingComic;
+  useEffect(() => {
+    const next = openingComicShowing || playingComic !== null;
+    const timer = setTimeout(() => setComicPaused(next), 0);
+    return () => clearTimeout(timer);
+  }, [openingComicShowing, playingComic]);
   const markComicSeen = (id: ComicId) =>
     setState((previous) => ({ ...previous, seenComics: [...new Set([...(previous.seenComics ?? []), id])] }));
   const cookingPots = getCookingPots(state.cookingPots);
@@ -180,7 +200,7 @@ export function GameScreen() {
           />
         );
       case "shop":
-        return <ShopScreen />;
+        return <ShopScreen game={game} />;
       case "kitchen":
         return (
           <KitchenScreen
@@ -323,7 +343,7 @@ export function GameScreen() {
         )}
         {/* Waits for the save to load (so returning players never see it flash) and for the offline popup. */}
         {/* A brand-new game opens on the story comic, then the tutorial picks up after it. */}
-        {game.loaded && !state.tutorialDone && !openingSeen && !game.offlineSummary && !playingComic && (
+        {openingComicShowing && (
           <ComicViewer id="opening" onClose={() => markComicSeen("opening")} />
         )}
         {playingComic && (

@@ -31,6 +31,9 @@ export type DropEvent = { id: number; name: string; delay: number };
 
 // No ad SDK wired up yet — watching one grants this instantly, same as a completed view would.
 const SPEED_BOOST_DURATION_MS = 5 * 60_000; // 5 minutes
+// The shop's "광고 보고 보석 받기" button.
+export const AD_GEMS_REWARD = 25;
+const AD_GEMS_COOLDOWN_MS = 15 * 60_000; // 15 minutes
 const FLYING_COIN_GEM_CHANCE = 1 / 10;
 const FLYING_COIN_GEMS = 2;
 // Gems for beating a stage's boss for the very first time.
@@ -57,7 +60,7 @@ function addItems(inventory: GameState["inventory"], items: { name: string; quan
   }, inventory);
 }
 
-export function useGameState() {
+export function useGameState({ externallyPaused = false }: { externallyPaused?: boolean } = {}) {
   const [state, setState] = useState(initialState);
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
@@ -121,6 +124,16 @@ export function useGameState() {
     if (speedBoostRemainingMs > 0) return;
     const startedAt = Date.now();
     setState((previous) => ({ ...previous, speedBoostUntil: startedAt + SPEED_BOOST_DURATION_MS }));
+    setNow(startedAt);
+  };
+
+  // The shop's "광고 보고 보석 받기" button — same shape as the speed boost above (wall-clock
+  // cooldown, saved with the game), just a flat gem payout instead of a timed buff.
+  const adGemsRemainingMs = state.adGemsReadyAt ? Math.max(0, state.adGemsReadyAt - now) : 0;
+  const watchAdForGems = () => {
+    if (adGemsRemainingMs > 0) return;
+    const startedAt = Date.now();
+    setState((previous) => ({ ...previous, gems: previous.gems + AD_GEMS_REWARD, adGemsReadyAt: startedAt + AD_GEMS_COOLDOWN_MS }));
     setNow(startedAt);
   };
 
@@ -425,7 +438,13 @@ export function useGameState() {
     onMiss: () => setState((previous) => (previous.equippedOutfit === "tetoGini" ? { ...previous, tetoMisses: (previous.tetoMisses ?? 0) + 1 } : previous)),
     equippedSkill: state.equippedSkill ?? null,
     now,
-    paused: skillTutorialActive || bossRetryAvailable,
+    // FirstClearCelebration is one actual cutscene (full-screen, blocks input, has to be
+    // dismissed) — without pausing for it, auto-battle kept fighting invisibly behind it the
+    // whole ~4.2s it's up, so closing it could land you mid-swing against an enemy (or
+    // several kills) you never saw happen. externallyPaused covers the other one
+    // (ComicViewer) — GameScreen owns that state (it's presentation/navigation, not game
+    // state), so it passes it in rather than this hook reaching out to know about it.
+    paused: skillTutorialActive || bossRetryAvailable || firstClear !== null || externallyPaused,
     autoStunned: now < bossStunnedUntil,
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
   });
@@ -1002,6 +1021,8 @@ export function useGameState() {
     speedMultiplier,
     speedBoostRemainingMs,
     watchAdForSpeedBoost,
+    adGemsRemainingMs,
+    watchAdForGems,
   };
 }
 
