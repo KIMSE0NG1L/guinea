@@ -107,6 +107,8 @@ export function GameScreen() {
 
   // The skill tutorial opens once 훔치기 unlocks — after a beat, so it doesn't collide with
   // the level-up burst and "새 스킬 해금!" toast (held 2800ms, see useGameState).
+  // Every tutorial below also waits out the first-clear celebration: it stays up until the
+  // player picks "watch an ad" or "skip", and a tutorial's dim on top would block both.
   const [skillTutorialArmed, setSkillTutorialArmed] = useState(false);
   useEffect(() => {
     if (!game.skillTutorialActive || skillTutorialArmed) return;
@@ -401,6 +403,9 @@ export function GameScreen() {
         {game.heldLoot && (game.heldLoot.stage === "gold" || game.heldLoot.stage === "items") && state.selectedTab === "battle" && (
           <MiniGuide
             key={game.heldLoot.stage}
+            // The loot itself sits on the stage under this guide — tapping it (or anywhere)
+            // picks it up, not just the speech bubble.
+            tapAnywhere
             line={
               game.heldLoot.stage === "gold"
                 ? "쓰러뜨렸다! 몬스터가 **골드**를 떨어뜨렸어.\n눌러서 **골드 칸**에 담아 보자!"
@@ -423,14 +428,14 @@ export function GameScreen() {
             }}
           />
         )}
-        {game.loaded && state.tutorialDone && !state.upgradeTutorialDone && upgradeTutorialArmed && !game.offlineSummary && state.selectedTab === "battle" && (
+        {game.loaded && state.tutorialDone && !state.upgradeTutorialDone && upgradeTutorialArmed && !game.offlineSummary && !game.firstClear && state.selectedTab === "battle" && (
           <UpgradeTutorial
             attackUpgrades={state.attackUpgrades}
             canAfford={state.gold >= getUpgradeCost("attack", getStatLevel(state, "attack"))}
             onFinish={() => setState((previous) => ({ ...previous, upgradeTutorialDone: true }))}
           />
         )}
-        {game.loaded && state.tutorialDone && state.upgradeTutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && (
+        {game.loaded && state.tutorialDone && state.upgradeTutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && !game.firstClear && (
           <RecipeTutorial
             tab={state.selectedTab}
             knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
@@ -444,7 +449,7 @@ export function GameScreen() {
             onFinish={() => setState((previous) => ({ ...previous, recipeTutorialDone: true }))}
           />
         )}
-        {game.loaded && game.skillTutorialActive && skillTutorialArmed && !game.offlineSummary && (
+        {game.loaded && game.skillTutorialActive && skillTutorialArmed && !game.offlineSummary && !game.firstClear && (
           <SkillTutorial
             tab={state.selectedTab}
             equippedSkill={state.equippedSkill ?? null}

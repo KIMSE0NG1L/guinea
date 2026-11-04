@@ -471,6 +471,9 @@ export function BattleScene({
   const arrivalCenterLeft = Math.max(playerCenterLeft, enemyCenterLeft - enemySize * 0.5 - 22);
   const teleportX = arrivalCenterLeft - playerCenterLeft;
   const bodyBottom = FIGHTERS_BOTTOM + 45;
+  // The guinea pig's feet: the sprite's box sits on FIGHTERS_BOTTOM, with its feet drawn a
+  // little above the frame's bottom edge — ground-level effects (the teleport pad) go here.
+  const feetBottom = FIGHTERS_BOTTOM + 14;
 
   return (
     <View style={styles.scene}>
@@ -655,7 +658,7 @@ export function BattleScene({
           {steal.id > 0 && <StealCastEffect key={`steal-${steal.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {focus.id > 0 && <FocusCastEffect key={`focus-${focus.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {barrage.id > 0 && <BarrageCastEffect key={`barrage-${barrage.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
-          {teleportId > 0 && <TeleportCastEffect key={`teleport-${teleportId}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
+          {teleportId > 0 && <TeleportCastEffect key={`teleport-${teleportId}`} at={{ left: playerCenterLeft, bottom: feetBottom }} />}
           {bossSkillCastId > 0 && bossSkillConfig && (
             <BossSkillCastEffect
               key={`boss-skill-${bossSkillCastId}`}
@@ -696,8 +699,11 @@ export function BattleScene({
             <ExecuteEffect
               key={`execute-${executeId}`}
               home={{ left: playerCenterLeft, bottom: bodyBottom }}
-              arrival={{ left: arrivalCenterLeft, bottom: bodyBottom }}
+              // 마녀기니 doesn't blink over to the enemy — no dash, an arcane blast lands from range.
+              arrival={{ left: isWitch ? playerCenterLeft : arrivalCenterLeft, bottom: bodyBottom }}
               enemy={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+              dash={!isWitch}
+              magic={isWitch}
             />
           )}
 
@@ -869,9 +875,9 @@ function PlayerFighter({
   }, [beamId]);
 
   // Execute's ninja blink: fade out, jump to the enemy, pop back in for the cut, then the
-  // same in reverse.
+  // same in reverse. A caster stays put and lands it from where she stands.
   useEffect(() => {
-    if (executeId === 0) return;
+    if (executeId === 0 || caster) return;
     const { vanish, arrive, leave, home } = EXECUTE_TIMING;
     teleport.value = withSequence(
       withDelay(vanish, withTiming(teleportX, { duration: 0 })),

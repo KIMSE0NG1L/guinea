@@ -19,7 +19,23 @@ export type Point = { left: number; bottom: number };
 // stay mounted until the next one replaces it.
 // `home` / `arrival` are where the guinea pig vanishes and reappears; `enemy` is the cut.
 // `dash: false` keeps just the cut (사무라이기니's first strike is drawn from where it stands).
-export function ExecuteEffect({ home, arrival, enemy, dash = true }: { home: Point; arrival: Point; enemy: Point; dash?: boolean }) {
+// `magic`: 마녀기니's version — no blade at all; the finisher is an arcane blast on the enemy
+// (her own crit-star burst plus a big arcane spark), in violet instead of blood red. Only
+// one-shot strips that end empty, since this stays mounted until the next execute.
+export function ExecuteEffect({ home, arrival, enemy, dash = true, magic = false }: { home: Point; arrival: Point; enemy: Point; dash?: boolean; magic?: boolean }) {
+  if (magic) {
+    const { arrive } = EXECUTE_TIMING;
+    return (
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Flash color="#000000" peak={0.35} delay={0} rise={40} fall={300} />
+        <Flash color="#8a3cff" peak={0.5} delay={arrive + 20} rise={40} fall={320} />
+        <SpriteBurst source={effects.witchCritStar} frameSize={[216, 216]} frameCount={28} fps={30} at={enemy} displayWidth={260} displayHeight={260} delay={arrive} />
+        <SpriteBurst source={effects.witchHitArcane} frameSize={[136, 136]} frameCount={16} fps={30} at={enemy} displayWidth={240} displayHeight={240} delay={arrive + 40} />
+        <Sparks at={enemy} delay={arrive + 40} color="#c684ff" />
+        <Sparks at={enemy} delay={arrive + 110} color="#ecc8ff" />
+      </View>
+    );
+  }
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Flash color="#000000" peak={0.35} delay={0} rise={40} fall={300} />

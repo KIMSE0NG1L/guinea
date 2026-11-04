@@ -8,7 +8,7 @@ import { GuideScene } from "./TutorialOverlay";
 // since this appeared); the closing lines are a little local step counter.
 const AFTER = [
   { line: "훨씬 세졌어! 골드를 모을 때마다\n**능력치**를 강화하면\n더 멀리 모험할 수 있어.", icon: statIcons.attack },
-  { line: "위의 **스테이지 바**가 가득 차면\n**보스**가 나타나. 보스를 이기면\n다음 지역으로 갈 수 있어!", icon: icons.trophy },
+  { line: "위의 **스테이지 바**가 가득 차면\n**보스**가 나타나. 화면을 눌러 도전하고,\n이기면 다음 지역으로 갈 수 있어!", icon: icons.trophy },
   { line: "**퀘스트 메달**에 빨간 점이 뜨면\n보상을 받을 수 있어.\n자, 계속 모험하자!", icon: icons.questMedal },
 ];
 const STEPS = 1 + AFTER.length;

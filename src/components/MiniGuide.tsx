@@ -9,11 +9,21 @@ import { measureTarget, type TargetRect } from "./tutorialTargets";
 
 // A light-touch guide: no dimming, so the game stays in full view. 모험기니's face pops up
 // with a small speech bubble at the top, and arrows point at the things being talked
-// about (e.g. the gold counter and the bag). Tap the bubble to move on.
-export function MiniGuide({ line, targetIds = [], onTap }: { line: string; targetIds?: string[]; onTap: () => void }) {
+// about (e.g. the gold counter and the bag). Tap the bubble to move on — or, with
+// `tapAnywhere`, anywhere on screen (for steps that point at something on the stage the
+// player will naturally tap instead, like the held loot).
+export function MiniGuide({ line, targetIds = [], onTap, tapAnywhere = false }: { line: string; targetIds?: string[]; onTap: () => void; tapAnywhere?: boolean }) {
   const overlayRef = useRef<View>(null);
   const [holes, setHoles] = useState<TargetRect[]>([]);
   const pop = useSharedValue(0);
+  // One tap per step: a quick double tap would otherwise run onTap twice before the parent
+  // re-renders (and swaps this guide out), e.g. crediting the held gold twice.
+  const tapped = useRef(false);
+  const tap = () => {
+    if (tapped.current) return;
+    tapped.current = true;
+    onTap();
+  };
 
   useEffect(() => {
     pop.value = withTiming(1, { duration: 280, easing: Easing.out(Easing.back(1.8)) });
@@ -43,6 +53,7 @@ export function MiniGuide({ line, targetIds = [], onTap }: { line: string; targe
 
   return (
     <View ref={overlayRef} style={styles.overlay} pointerEvents="box-none">
+      {tapAnywhere && <Pressable style={StyleSheet.absoluteFill} onPress={tap} accessibilityRole="button" accessibilityLabel="눌러서 줍기" />}
       {holes.map((hole, index) => {
         const below = hole.y < ARROW_H + 12;
         return (
@@ -54,7 +65,7 @@ export function MiniGuide({ line, targetIds = [], onTap }: { line: string; targe
         );
       })}
       <Animated.View style={[styles.wrap, popStyle]}>
-        <Pressable onPress={onTap} accessibilityRole="button" accessibilityLabel="다음 설명" style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+        <Pressable onPress={tap} accessibilityRole="button" accessibilityLabel="다음 설명" style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
           <View style={styles.face}>
             <View style={styles.faceCrop}>
               <CharacterSprite outfit="default" animation="idle" size={72} />
