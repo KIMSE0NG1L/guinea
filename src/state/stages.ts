@@ -52,6 +52,7 @@ export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   sleepwalkerGini: "hauntedHouse",
   candyBasketSlime: "hauntedHouse",
   bee: "countryside",
+  angryCandyBasketSlime: "hauntedHouse",
 };
 
 export const ENEMY_NAME: Record<EnemyKind, string> = {
@@ -92,6 +93,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   sleepwalkerGini: "몽유병 기니",
   candyBasketSlime: "사탕바구니 슬라임",
   bee: "꿀벌",
+  angryCandyBasketSlime: "분노한 사탕바구니 슬라임",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -132,6 +134,7 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   sleepwalkerGini: "마녀 기니",
   candyBasketSlime: "호박 골렘",
   bee: "여왕벌",
+  angryCandyBasketSlime: "그리핀",
 };
 
 // The one-liner under the boss's name on its entrance banner (BossEntranceBanner) — the
@@ -174,6 +177,7 @@ export const BOSS_TAGLINE: Record<EnemyKind, string> = {
   sleepwalkerGini: "수면 물약의 범인이다! 졸지 마!",
   candyBasketSlime: "호박 속까지 단단해... 각오해!",
   bee: "호박 냄새를 맡았구나! 한 방울도 못 가져가!",
+  angryCandyBasketSlime: "날개 바람에 날아가기 전에 끝내자!",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -218,6 +222,7 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "수상한 집", enemyKind: "sleepwalkerGini", story: "달빛 아래 보랏빛 커튼이 드리운 수상한 집, 몽유병에 걸린 기니들이 밤마다 홀린 듯 계단을 오르내린다." },
   { area: "호박등 숲", enemyKind: "candyBasketSlime", story: "달빛과 호박등이 길을 밝히는 숲, 사탕바구니 슬라임들이 가을 식재료를 지키며 숲속 깊은 골렘의 잠을 깨운다." },
   { area: "꿀향기 귀갓길", enemyKind: "bee", story: "호박등 숲에서 챙긴 호박을 들고 돌아가던 기니들. 달콤한 호박 냄새를 맡은 꿀벌 떼가 벌집을 나와 바짝 뒤쫓고, 길목에는 여왕벌이 날아든다." },
+  { area: "기니 대도시 귀환길", enemyKind: "angryCandyBasketSlime", story: "기니 대도시로 돌아온 일행 앞에 호박죽 냄새를 따라온 분노한 사탕바구니 슬라임이 나타난다. 죽 냄비를 노리고 광장에 내려앉은 그리핀까지 막아야 한다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

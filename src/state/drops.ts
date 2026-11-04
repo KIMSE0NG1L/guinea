@@ -510,6 +510,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "밤", chance: 0.35 },
     ],
   },
+  // 기니 도시 귀환길: 호박죽에 이끌린 슬라임은 밤과 호박을, 그리핀은 우유와 호박을 흘린다.
+  angryCandyBasketSlime: {
+    mob: [
+      { name: "밤", chance: 0.25 },
+      { name: "호박", chance: 0.2 },
+      { name: "초록 젤리", chance: 0.1 },
+    ],
+    boss: [
+      { name: "호박", chance: 1, quantity: 3 },
+      { name: "밤", chance: 0.55, quantity: 2 },
+      { name: "우유", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

@@ -80,6 +80,7 @@ export const BOSS_SKILLS: Record<EnemyKind, BossSkill> = {
   sleepwalkerGini: { kind: "stun", variant: "confused", name: "몽유병" },
   candyBasketSlime: { kind: "heal", variant: "bloom", name: "호박등의 온기" },
   bee: { kind: "stun", variant: "confused", name: "벌떼 돌진" },
+  angryCandyBasketSlime: { kind: "stun", variant: "stunned", name: "그리핀의 날개바람" },
 };
 
 export function getBossSkill(kind: EnemyKind): BossSkill {

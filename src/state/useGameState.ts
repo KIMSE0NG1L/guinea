@@ -34,8 +34,15 @@ const SPEED_BOOST_DURATION_MS = 5 * 60_000; // 5 minutes
 // The shop's "광고 보고 보석 받기" button.
 export const AD_GEMS_REWARD = 25;
 const AD_GEMS_COOLDOWN_MS = 15 * 60_000; // 15 minutes
-const FLYING_COIN_GEM_CHANCE = 1 / 10;
-const FLYING_COIN_GEMS = 2;
+// The winged gem's "watch an ad" offer: gems per ad, and ads a day before only coins fly.
+export const FLYING_GEM_AD_REWARD = 5;
+export const FLYING_GEM_ADS_PER_DAY = 8;
+// Local calendar day, for the per-day ad cap.
+const todayKey = () => {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
+const flyingGemAdsToday = (state: GameState) => (state.flyingGemAds?.day === todayKey() ? state.flyingGemAds.count : 0);
 // Gold each of the three post-intro gift kills pays at the least (the first attack
 // upgrade costs 120).
 const GIFT_KILL_GOLD = 50;
@@ -261,11 +268,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     }
   }
 
-  useEffect(() => {
-    if (!stageAnnouncement) return;
-    const timer = setTimeout(() => setStageAnnouncement(null), 1500);
-    return () => clearTimeout(timer);
-  }, [stageAnnouncement]);
+  // The stage-clear banner stays up (battle paused) until the player taps on to the next
+  // stage — see continueStage.
 
   // Fires the level-up burst whenever level actually goes up during live play. Gated on
   // `loaded` and previousLevelRef is synced inside the load effect above, so loading a
@@ -435,16 +439,24 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     });
   }, []);
 
-  // The winged coin that flutters across the battle: 5x what the current stage's regular
-  // mob pays (buffs included), plus a 1-in-10 shot at 2 gems.
-  const catchFlyingCoin = () => {
+  // Flying coins grant stage-scaled gold (5x the stage's regular mob); a winged gem pays
+  // nothing on the catch itself — its gems come from the ad it offers (FLYING_GEM_AD_REWARD).
+  const catchFlyingCoin = (kind: "coin" | "gem", watchAd = false) => {
+    if (kind === "gem") {
+      if (!watchAd || flyingGemAdsToday(state) >= FLYING_GEM_ADS_PER_DAY) return { gold: 0, gems: 0 };
+      setState((previous) => {
+        const count = flyingGemAdsToday(previous);
+        if (count >= FLYING_GEM_ADS_PER_DAY) return previous;
+        return { ...previous, gems: previous.gems + FLYING_GEM_AD_REWARD, flyingGemAds: { day: todayKey(), count: count + 1 } };
+      });
+      return { gold: 0, gems: FLYING_GEM_AD_REWARD };
+    }
     const attack = Math.round(getTotalAttack(state) * (1 + buffs.attack / 100));
     const mobGold = getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyMaxHp(state.stageNumber, false), false);
     const gold = Math.max(1, Math.round(mobGold * 5));
-    const gems = Math.random() < FLYING_COIN_GEM_CHANCE ? FLYING_COIN_GEMS : 0;
     addBonusGold(gold);
-    setState((previous) => ({ ...previous, gems: previous.gems + gems, coinsCaught: (previous.coinsCaught ?? 0) + 1 }));
-    return { gold, gems };
+    setState((previous) => ({ ...previous, coinsCaught: (previous.coinsCaught ?? 0) + 1 }));
+    return { gold, gems: 0 };
   };
 
   // SkillTutorial is up: reading a dialog shouldn't let swings land (or the stage
@@ -485,7 +497,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // state), so it passes it in rather than this hook reaching out to know about it.
     // The very first fight starts from the tutorial: nothing happens during the story and
     // intro, and none while the first gift kill's loot is being explained.
-    paused: skillTutorialActive || bossRetryAvailable || bossIntroPending || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null,
+    paused: skillTutorialActive || bossRetryAvailable || bossIntroPending || stageAnnouncement !== null || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null,
     autoStunned: now < bossStunnedUntil,
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
     instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
@@ -1021,6 +1033,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     bossStunned: now < bossStunnedUntil,
     bossReviveId: battle.reviveId,
     stageAnnouncement,
+    continueStage: () => setStageAnnouncement(null),
     firstClear,
     clearedStages: getClearedBosses(state),
     dismissFirstClear: () => setFirstClear(null),
@@ -1036,6 +1049,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     upgradeStat,
     claimQuest,
     catchFlyingCoin,
+    // Winged-gem ads still left today; at 0 only coins fly.
+    flyingGemAdsLeft: Math.max(0, FLYING_GEM_ADS_PER_DAY - flyingGemAdsToday(state)),
     heldLoot,
     // Sends the held gold slowly up to the counter (credited as it lands), then — on the next
     // call — the ingredients into the bag, after which the intro carries on.

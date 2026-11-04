@@ -20,7 +20,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase" | "giniReturn";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1412,6 +1412,37 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  giniReturn: {
+    title: "호박죽 냄새를 맡은 손님들",
+    panels: [
+      {
+        image: comics.giniReturn1,
+        aspect: 486 / 759,
+        bubbles: [{ text: "호박죽이 보글보글…\n기니들도 곧 깨어나겠네!", left: 0.03, top: 0.03, maxWidth: 0.42, tail: "bottom", tailAt: 0.7 }],
+      },
+      {
+        image: comics.giniReturn2,
+        aspect: 486 / 759,
+        bubbles: [{ text: "으음… 맛있는 냄새!", right: 0.03, top: 0.04, maxWidth: 0.35, tail: "bottom", tailAt: 0.3 }],
+      },
+      {
+        image: comics.giniReturn3,
+        aspect: 520 / 759,
+        sfx: "hit",
+        shake: true,
+        bubbles: [{ text: "호박죽 냄새다!\n먼저 온 건 나야!", right: 0.03, top: 0.04, maxWidth: 0.38, tail: "bottom", tailAt: 0.65, shout: true }],
+      },
+      {
+        image: comics.giniReturn4,
+        aspect: 520 / 759,
+        sfx: "bossEnter",
+        bubbles: [
+          { text: "이 향기는… 호박죽!", right: 0.02, top: 0.03, maxWidth: 0.36, tail: "bottom", tailAt: 0.7, shout: true },
+          { text: "그리핀까지 왔잖아?!", left: 0.03, top: 0.26, maxWidth: 0.32, tail: "right", tailAt: 0.65 },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
@@ -1452,6 +1483,7 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   33: "townasleep",
   34: "pumpkinforest",
   35: "beeChase",
+  36: "giniReturn",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.

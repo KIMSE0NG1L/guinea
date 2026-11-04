@@ -429,6 +429,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/queen-bee-hit-strip.png"),
     die: require("../assets/sprites/queen-bee-die-strip.png"),
   },
+  bossGriffin: {
+    idle: require("../assets/sprites/boss-griffin-idle-strip.png"),
+    hit: require("../assets/sprites/boss-griffin-hit-strip.png"),
+    die: require("../assets/sprites/boss-griffin-die-strip.png"),
+  },
+  angryCandyBasketSlime: {
+    idle: require("../assets/sprites/angry-candy-basket-slime-idle-strip.png"),
+    hit: require("../assets/sprites/angry-candy-basket-slime-hit-strip.png"),
+    die: require("../assets/sprites/angry-candy-basket-slime-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -579,6 +589,8 @@ export const uiImages = {
   coin: require("../assets/ui/coin.png"),
   // Winged coin that flutters across the battle scene to be tapped.
   coinWinged: require("../assets/ui/coin-winged.png"),
+  // Winged gem that occasionally replaces the flying coin in battle.
+  gemWinged: require("../assets/ui/gem-winged.png"),
   coins: require("../assets/ui/item-coins.png"),
   crystal: require("../assets/ui/item-crystal.png"),
   gear: require("../assets/ui/item-gear.png"),
@@ -1066,6 +1078,10 @@ export const comics = {
   beeChase2: require("../assets/comics/bee-chase-2.png"),
   beeChase3: require("../assets/comics/bee-chase-3.png"),
   beeChase4: require("../assets/comics/bee-chase-4.png"),
+  giniReturn1: require("../assets/comics/gini-return-1.png"),
+  giniReturn2: require("../assets/comics/gini-return-2.png"),
+  giniReturn3: require("../assets/comics/gini-return-3.png"),
+  giniReturn4: require("../assets/comics/gini-return-4.png"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.

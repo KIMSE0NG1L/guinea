@@ -190,6 +190,10 @@ export const MOB_LORE: Record<EnemyKind, Lore> = {
     story:
       "호박등 숲에서 돌아오는 기니들이 풍기는 달콤한 냄새를 맡고 뒤쫓아온 꿀벌. 배에 맺힌 꿀방울과 꽃가루를 모아 벌집으로 가져간다.",
   },
+  angryCandyBasketSlime: {
+    traits: ["사탕바구니 분노", "호박죽 향에 민감", "도시까지 따라옴"],
+    story: "호박등 숲에서 기니들에게 사탕과 호박을 빼앗겼다고 오해한 슬라임. 호박죽 냄새를 맡고 기니 대도시까지 뒤쫓아와 광장 앞을 막아선다.",
+  },
 };
 
 export const BOSS_LORE: Record<EnemyKind, Lore> = {
@@ -377,5 +381,9 @@ export const BOSS_LORE: Record<EnemyKind, Lore> = {
     traits: ["벌집의 여왕", "로열 젤리 수호", "호박 향에 민감"],
     story:
       "벌집의 여왕벌. 기니들이 호박을 들고 지나가자 달콤한 향을 자기 벌집의 꿀이라 착각하고 무리를 이끌어 쫓아왔다. 패배하면 호박과 로열 젤리를 조금 나눠 준다.",
+  },
+  angryCandyBasketSlime: {
+    traits: ["도시 광장에 내려온 그리핀", "호박죽 냄새 추적", "날개바람"],
+    story: "산등성이에 살던 그리핀은 호박죽 냄새를 맡고 기니 대도시 광장으로 날아왔다. 냄비를 차지하려고 슬라임까지 몰아내지만, 패배하면 호박과 밤, 우유를 남기고 하늘로 돌아간다.",
   },
 };

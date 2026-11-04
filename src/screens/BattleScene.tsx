@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
@@ -93,6 +93,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   sleepwalkerGini: 160,
   candyBasketSlime: 180,
   bee: 152,
+  angryCandyBasketSlime: 170,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -104,6 +105,7 @@ const MOB_SIZE: Partial<Record<EnemyKind, number>> = {
   shrineFox: 140,
   candyBasketSlime: 125,
   bee: 110,
+  angryCandyBasketSlime: 125,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -144,12 +146,17 @@ const BACKGROUND: Record<EnemyKind, number> = {
   sleepwalkerGini: images.battleBackgroundSuspiciousHouse,
   candyBasketSlime: images.battleBackgroundPumpkinForest,
   bee: images.battleBackgroundHoneyTrail,
+  angryCandyBasketSlime: images.battleBackgroundGiniMetropolis,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
 // Keep in sync with styles.fighters (right/bottom) and the bottom-right button row.
 const FIGHTERS_BOTTOM = 55;
 const FIGHTERS_SIDE = 15;
+const SKY_HEIGHT = 260;
+// How far the boss entrance close-up pushes in (first meeting / a boss beaten before).
+const CLOSE_UP_ZOOM = 1.6;
+const CLOSE_UP_ZOOM_REPEAT = 1.25;
 const STEAL_DURATION = getSkill("steal").durationMs ?? 0;
 const FOCUS_DURATION = getSkill("focus").durationMs ?? 0;
 const BARRAGE_DURATION = getSkill("barrage").durationMs ?? 0;
@@ -229,6 +236,7 @@ export function BattleScene({
   enemyId,
   lastGoldReward,
   stageAdvance,
+  onContinueStage,
   stageLabel,
   stageKills,
   questReady,
@@ -242,6 +250,7 @@ export function BattleScene({
   onOpenBag,
   bagFull,
   onCatchFlyingCoin,
+  flyingGemsLeft = 0,
   giftKills = 0,
   heldLoot = null,
   skillBar,
@@ -259,6 +268,7 @@ export function BattleScene({
   chiliThrowId: rawChiliThrowId,
   dropEvents,
   bossEntranceKey,
+  bossFirstMeet = false,
   onBeginBoss,
   levelUpAnnouncement,
   levelUpAttackGain,
@@ -281,6 +291,8 @@ export function BattleScene({
   enemyId: number;
   lastGoldReward: number;
   stageAdvance: string | null;
+  // Tapping the stage-clear banner moves on (battle waits until then).
+  onContinueStage?: () => void;
   stageLabel: string;
   stageKills: number;
   questReady: boolean;
@@ -294,7 +306,9 @@ export function BattleScene({
   kitchenReadyDish: number | null;
   onOpenBag: () => void;
   bagFull: boolean;
-  onCatchFlyingCoin: () => { gold: number; gems: number };
+  onCatchFlyingCoin: (kind: "coin" | "gem", watchAd?: boolean) => { gold: number; gems: number };
+  // Winged-gem ads left today — none left, and only coins fly.
+  flyingGemsLeft?: number;
   // One-hit kills left on the post-intro gift (shown as a banner while any remain).
   giftKills?: number;
   // The first gift kill's loot, frozen on the ground for the tutorial to explain.
@@ -320,6 +334,8 @@ export function BattleScene({
   dropEvents: DropEvent[];
   // Set while a freshly spawned boss waits to be tapped (useGameState's bossIntroPending).
   bossEntranceKey: string | null;
+  // A boss never beaten before: the entrance close-up pushes in further, with a thump.
+  bossFirstMeet?: boolean;
   onBeginBoss: () => void;
   levelUpAnnouncement: number | null;
   levelUpAttackGain: number;
@@ -474,6 +490,45 @@ export function BattleScene({
   const arrivalCenterLeft = Math.max(playerCenterLeft, enemyCenterLeft - enemySize * 0.5 - 22);
   const teleportX = arrivalCenterLeft - playerCenterLeft;
   const bodyBottom = FIGHTERS_BOTTOM + 45;
+
+  // Boss entrance close-up: while the entrance banner waits for its tap, the camera (the
+  // backdrop and the fighters — not the HUD or banners) pushes in on the boss's face, which
+  // lands right of centre beside the banner's copy; the tap pulls it back out. A boss met
+  // for the first time gets the full push and a thump, a repeat one just a quick nudge.
+  const closeUp = bossEntranceKey !== null;
+  const cam = useSharedValue(0);
+  const camZoom = useSharedValue(CLOSE_UP_ZOOM);
+  const camShake = useSharedValue(0);
+  useEffect(() => {
+    if (closeUp) {
+      camZoom.value = bossFirstMeet ? CLOSE_UP_ZOOM : CLOSE_UP_ZOOM_REPEAT;
+      cam.value = withTiming(1, { duration: bossFirstMeet ? 450 : 260, easing: Easing.out(Easing.cubic) });
+      if (bossFirstMeet) {
+        camShake.value = withDelay(
+          380,
+          withSequence(withTiming(1, { duration: 40 }), withTiming(-0.8, { duration: 50 }), withTiming(0.5, { duration: 50 }), withTiming(0, { duration: 60 })),
+        );
+      }
+    } else {
+      cam.value = withTiming(0, { duration: 300, easing: Easing.inOut(Easing.quad) });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [closeUp]);
+  const skyWidth = fightersWidth + FIGHTERS_SIDE * 2;
+  // The boss's face (a bit above the middle of its sprite) and where it should end up.
+  const faceX = enemyCenterLeft;
+  const faceY = SKY_HEIGHT - (FIGHTERS_BOTTOM + enemySize * 0.62);
+  const camStyle = useAnimatedStyle(() => {
+    const c = cam.value;
+    const s = 1 + c * (camZoom.value - 1);
+    if (skyWidth <= 0 || c === 0) return { transform: [{ translateX: 0 }, { translateY: 0 }, { scale: 1 }] };
+    // Scaled from the top-left corner, so a point p lands at p * s + t. Slide the face
+    // toward its target as the zoom grows, never letting the backdrop's edges show.
+    const targetX = skyWidth * 0.75, targetY = SKY_HEIGHT * 0.46;
+    const tx = Math.min(0, Math.max(skyWidth - skyWidth * s, faceX + c * (targetX - faceX) - faceX * s));
+    const ty = Math.min(0, Math.max(SKY_HEIGHT - SKY_HEIGHT * s, faceY + c * (targetY - faceY) - faceY * s));
+    return { transform: [{ translateX: tx + camShake.value * 6 }, { translateY: ty + camShake.value * -3 }, { scale: s }] };
+  });
   // The guinea pig's feet: the sprite's box sits on FIGHTERS_BOTTOM, with its feet drawn a
   // little above the frame's bottom edge — ground-level effects (the teleport pad) go here.
   const feetBottom = FIGHTERS_BOTTOM + 14;
@@ -481,7 +536,11 @@ export function BattleScene({
   return (
     <View style={styles.scene}>
       <Pressable onPress={manualEnabled ? onManualAttack : undefined} disabled={!manualEnabled}>
-        <ImageBackground source={BACKGROUND[enemyKind]} resizeMode="cover" style={styles.sky} imageStyle={styles.skyImage}>
+        <View style={styles.sky}>
+          {/* The backdrop sits in the camera layer (see camStyle) so the boss close-up can zoom it. */}
+          <Animated.View style={[StyleSheet.absoluteFill, styles.camLayer, camStyle]} pointerEvents="none">
+            <Image source={BACKGROUND[enemyKind]} resizeMode="cover" style={styles.skyImage} />
+          </Animated.View>
           <LinearGradient
             colors={["#17321b1f", "#17291400", "#17291424"]}
             locations={[0, 0.42, 1]}
@@ -526,7 +585,7 @@ export function BattleScene({
           </LinearGradient>
           )}
 
-          {!preview && <FlyingCoin onCatch={onCatchFlyingCoin} />}
+          {!preview && <FlyingCoin onCatch={onCatchFlyingCoin} gemFlights={flyingGemsLeft > 0} />}
           {!preview && giftKills > 0 && (
             <View style={styles.giftBanner} pointerEvents="none">
               <StrokedText style={styles.giftText} strokeColor={colors.line} strokeWidth={2}>
@@ -534,10 +593,12 @@ export function BattleScene({
               </StrokedText>
             </View>
           )}
-          {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
+          {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} onContinue={onContinueStage} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} tagline={BOSS_TAGLINE[enemyKind]} onStart={onBeginBoss} />}
           {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
+          {/* Same camera layer as the backdrop, so the two zoom as one picture. */}
+          <Animated.View style={[StyleSheet.absoluteFill, styles.camLayer, styles.camFighters, camStyle]} pointerEvents="box-none">
           <Animated.View
             style={[styles.fighters, killPunchStyle]}
             onLayout={(event) => setFightersWidth(event.nativeEvent.layout.width)}
@@ -583,6 +644,7 @@ export function BattleScene({
                 <CoinPopup key={`steal-${event.id}`} amount={event.amount} />
               ))}
             </View>
+          </Animated.View>
           </Animated.View>
 
           {!preview && (
@@ -735,7 +797,7 @@ export function BattleScene({
             ))}
           </View>
           </View>
-        </ImageBackground>
+        </View>
       </Pressable>
     </View>
   );
@@ -1158,7 +1220,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: "hidden",
   },
-  sky: { width: "100%", height: 260, overflow: "hidden" },
+  sky: { width: "100%", height: SKY_HEIGHT, overflow: "hidden" },
+  camLayer: { transformOrigin: "0% 0%" },
+  // Where the fighters always sat in the stacking order (styles.fighters' own zIndex).
+  camFighters: { zIndex: 4 },
   skyImage: { width: "100%", height: "100%" },
   stageBar: {
     position: "absolute",

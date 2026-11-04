@@ -439,6 +439,10 @@ export function useAutoBattle({
 
   const manualAttack = useCallback(() => {
     if (paused || isAutoBattle) return;
+    // A boss stun only stops auto-battle, leaving taps as the way to fight through it — but
+    // a companion who only ever fights by tap (복서기니) would shrug it off entirely, so for
+    // them the stun stops the taps too.
+    if (autoStunned && forcedManual) return;
     // Enemy is mid-death/respawn — nothing there to hit yet.
     if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
 
@@ -486,7 +490,7 @@ export function useAutoBattle({
       manualTimersRef.current.push(readyTimer);
     }, 260);
     manualTimersRef.current.push(hitTimer);
-  }, [paused, isAutoBattle, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
+  }, [paused, isAutoBattle, autoStunned, forcedManual, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
 
   // Whether the equipped skill can be cast right now (an active skill, off cooldown, with
   // an enemy present). `now` is passed in so the UI can re-check on its own clock.

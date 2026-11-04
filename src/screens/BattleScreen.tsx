@@ -73,6 +73,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         enemyId={battle.enemyId}
         lastGoldReward={battle.lastGoldReward}
         stageAdvance={game.stageAnnouncement}
+        onContinueStage={game.continueStage}
         stageLabel={boss ? `${stageLabel} · 보스` : stageLabel}
         stageKills={state.stageKills}
         questReady={hasClaimableQuest(state)}
@@ -86,6 +87,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
         bagFull={slotsUsed(state.inventory) >= getBagCapacity(state.bagExpansions)}
         onCatchFlyingCoin={game.catchFlyingCoin}
+        flyingGemsLeft={game.flyingGemAdsLeft}
         giftKills={state.giftKills ?? 0}
         heldLoot={game.heldLoot}
         skillBar={
@@ -112,6 +114,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         chiliThrowId={battle.castIds.chiliThrow}
         dropEvents={game.dropEvents}
         bossEntranceKey={bossEntranceKey}
+        bossFirstMeet={!game.clearedStages.includes(state.stageNumber)}
         onBeginBoss={game.beginBossFight}
         levelUpAnnouncement={game.levelUpAnnouncement}
         levelUpAttackGain={game.levelUpAttackGain}
