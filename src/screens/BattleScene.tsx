@@ -92,6 +92,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   sleepyGini: 160,
   sleepwalkerGini: 160,
   candyBasketSlime: 180,
+  bee: 152,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -102,6 +103,7 @@ const MOB_SIZE: Partial<Record<EnemyKind, number>> = {
   // Its frames also hold its fox-fires and fanned tails, so the fox itself reads small.
   shrineFox: 140,
   candyBasketSlime: 125,
+  bee: 110,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -141,6 +143,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   sleepyGini: images.battleBackgroundGiniMetropolis,
   sleepwalkerGini: images.battleBackgroundSuspiciousHouse,
   candyBasketSlime: images.battleBackgroundPumpkinForest,
+  bee: images.battleBackgroundHoneyTrail,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

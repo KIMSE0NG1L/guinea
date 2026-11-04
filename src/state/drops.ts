@@ -497,6 +497,19 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "이슬", chance: 0.5 },
     ],
   },
+  // 꿀향기 귀갓길: 호박 냄새에 쫓아온 벌들은 꿀과 꽃가루를, 여왕벌은 로열 젤리와 호박을 남긴다.
+  bee: {
+    mob: [
+      { name: "로열 젤리", chance: 0.25 },
+      { name: "호박", chance: 0.18 },
+      { name: "진달래꽃", chance: 0.12 },
+    ],
+    boss: [
+      { name: "로열 젤리", chance: 1, quantity: 2 },
+      { name: "호박", chance: 0.65 },
+      { name: "밤", chance: 0.35 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

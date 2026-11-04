@@ -40,6 +40,7 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   sleepyGini: ["드르렁...", "...5분만 더"],
   sleepwalkerGini: ["...음냐...", "여긴... 어디지?"],
   candyBasketSlime: ["사탕은 못 줘!", "호박등을 지켜!"],
+  bee: ["킁킁, 달콤한 냄새!", "호박 어디서 났어?"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -79,4 +80,5 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   sleepyGini: ["어깨 좀 풀어다오", "시원하구먼!"],
   sleepwalkerGini: ["후훗, 완벽한 실험이지...", "어라... 나도 졸리네..."],
   candyBasketSlime: ["이 숲의 호박은 내 것이다!", "호박등의 불꽃을 받아라!"],
+  bee: ["그 호박을 내려놔!", "여왕벌의 꿀을 받아라!"],
 };

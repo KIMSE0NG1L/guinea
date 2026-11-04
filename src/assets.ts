@@ -419,6 +419,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/pumpkin-golem-boss-hit-strip.png"),
     die: require("../assets/sprites/pumpkin-golem-boss-die-strip.png"),
   },
+  bee: {
+    idle: require("../assets/sprites/bee-idle-strip.png"),
+    hit: require("../assets/sprites/bee-hit-strip.png"),
+    die: require("../assets/sprites/bee-die-strip.png"),
+  },
+  bossQueenBee: {
+    idle: require("../assets/sprites/queen-bee-idle-strip.png"),
+    hit: require("../assets/sprites/queen-bee-hit-strip.png"),
+    die: require("../assets/sprites/queen-bee-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -459,6 +469,7 @@ export const images = {
   battleBackgroundGiniMetropolis: require("../assets/sprites/battle-gini-metropolis.png"),
   battleBackgroundSuspiciousHouse: require("../assets/sprites/battle-suspicious-house.png"),
   battleBackgroundPumpkinForest: require("../assets/sprites/battle-pumpkin-forest.png"),
+  battleBackgroundHoneyTrail: require("../assets/sprites/battle-honey-trail.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -1051,6 +1062,10 @@ export const comics = {
   pumpkinforest2: require("../assets/comics/pumpkinforest-2.png"),
   pumpkinforest3: require("../assets/comics/pumpkinforest-3.png"),
   pumpkinforest4: require("../assets/comics/pumpkinforest-4.png"),
+  beeChase1: require("../assets/comics/bee-chase-1.png"),
+  beeChase2: require("../assets/comics/bee-chase-2.png"),
+  beeChase3: require("../assets/comics/bee-chase-3.png"),
+  beeChase4: require("../assets/comics/bee-chase-4.png"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.
