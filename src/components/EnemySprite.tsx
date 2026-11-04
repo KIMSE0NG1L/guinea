@@ -14,7 +14,7 @@ import type { EnemyAnimation, EnemyKind } from "../types";
 // carrot (stage 3's regular mob), chicken (stage 4's regular mob), potato (stage 5's
 // regular mob), bossMushroom, bossCarrotGiant, bossChicken, and bossPotato are 4-frame
 // sheets for every animation.
-const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossElderGini" | "bossWitchGini", Record<EnemyAnimation, { frameCount: number; durationMs: number; mode: "loop" | "once"; offsetY?: number }>> = {
+const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossElderGini" | "bossWitchGini" | "bossPumpkinGolem", Record<EnemyAnimation, { frameCount: number; frameSize?: number; durationMs: number; mode: "loop" | "once"; offsetY?: number }>> = {
   slime: {
     idle: { frameCount: 5, durationMs: 650, mode: "loop" },
     hit: { frameCount: 5, durationMs: 310, mode: "once" },
@@ -378,9 +378,19 @@ const CONFIG: Record<EnemyKind | "bossSlime" | "bossMushroom" | "bossCarrotGiant
     hit: { frameCount: 4, durationMs: 310, mode: "once" },
     die: { frameCount: 4, durationMs: 480, mode: "once" },
   },
+  candyBasketSlime: {
+    idle: { frameCount: 4, frameSize: 362, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, frameSize: 362, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, frameSize: 362, durationMs: 480, mode: "once" },
+  },
+  bossPumpkinGolem: {
+    idle: { frameCount: 4, frameSize: 362, durationMs: 650, mode: "loop" },
+    hit: { frameCount: 4, frameSize: 362, durationMs: 310, mode: "once" },
+    die: { frameCount: 4, frameSize: 362, durationMs: 480, mode: "once" },
+  },
 };
 
-const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossElderGini" | "bossWitchGini"> = {
+const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarrotGiant" | "bossChicken" | "bossPotato" | "bossFatCat" | "bossFridge" | "bossKingCrab" | "bossShark" | "bossLavaSlime" | "bossCarnivorousPlant" | "bossStreamDragon" | "bossDehydratedCamel" | "bossRattlesnake" | "bossHauntedGoat" | "bossBambooPanda" | "bossTurtleSpirit" | "bossTigerSpirit" | "bossIceGolem" | "bossTavernKeeper" | "bossNineTailedFox" | "bossChiliSack" | "bossPirateOctopus" | "bossBlossomShark" | "bossTanukiMerchant" | "bossGoldenShachi" | "bossCapybaraInnkeeper" | "bossScrollRat" | "bossSeahorseGeneral" | "bossDragonKing" | "bossOvenGolem" | "bossRescueDog" | "bossBaguetteKnight" | "bossElderGini" | "bossWitchGini" | "bossPumpkinGolem"> = {
   slime: "bossSlime",
   mushroom: "bossMushroom",
   carrot: "bossCarrotGiant",
@@ -416,6 +426,7 @@ const BOSS_SHEET_FOR: Record<EnemyKind, "bossSlime" | "bossMushroom" | "bossCarr
   croissantKid: "bossBaguetteKnight",
   sleepyGini: "bossElderGini",
   sleepwalkerGini: "bossWitchGini",
+  candyBasketSlime: "bossPumpkinGolem",
 };
 
 export function EnemySprite({
@@ -438,13 +449,14 @@ export function EnemySprite({
   const config = CONFIG[boss ? bossKind : kind][animation];
   // Converts a crop-correction offset expressed in source frame px (FRAME_SIZE=160) into
   // this instance's actual render px — same fix as CharacterSprite's offsetY.
-  const offsetYPx = (config.offsetY ?? 0) * (size / FRAME_SIZE);
+  const frameSize = config.frameSize ?? FRAME_SIZE;
+  const offsetYPx = (config.offsetY ?? 0) * (size / frameSize);
 
   return (
     <View style={offsetYPx ? { width: size, height: size, transform: [{ translateY: offsetYPx }] } : undefined}>
       <SpriteStrip
         source={sheet[animation]}
-        frameSize={FRAME_SIZE}
+        frameSize={frameSize}
         frameCount={config.frameCount}
         displaySize={size}
         durationMs={config.durationMs}

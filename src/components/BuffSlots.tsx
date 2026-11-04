@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  priceGem: { width: 18, height: 18 },
+  priceGem: { width: 18, height: 18, resizeMode: "contain" },
   priceText: { marginTop: -1, fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   active: {
     width: "100%",

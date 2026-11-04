@@ -51,21 +51,13 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   const [unlockingSlot, setUnlockingSlot] = useState<number | null>(null);
   const [adModalOpen, setAdModalOpen] = useState(false);
 
-  // Fires once right as the boss sprite actually appears (displayBoss flips false→true),
-  // not at the 25th-kill moment — that's still mid mob-death-clip, see displayBoss.
-  const [bossEntranceKey, setBossEntranceKey] = useState<string | null>(null);
+  // The entrance banner shows once the boss sprite is actually up (displayBoss — not at the
+  // 25th-kill moment, that's still mid mob-death-clip) and stays until tapped.
+  const bossEntranceKey = displayBoss && game.bossIntroPending ? `${regularEnemyKind}-${battle.enemyId}` : null;
   const wasDisplayBoss = useRef(displayBoss);
   useEffect(() => {
-    if (displayBoss && !wasDisplayBoss.current) {
-      const key = `${regularEnemyKind}-${battle.enemyId}`;
-      setBossEntranceKey(key);
-      playSfx("bossEnter");
-      const timer = setTimeout(() => setBossEntranceKey(null), 1300);
-      wasDisplayBoss.current = displayBoss;
-      return () => clearTimeout(timer);
-    }
+    if (displayBoss && !wasDisplayBoss.current) playSfx("bossEnter");
     wasDisplayBoss.current = displayBoss;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayBoss]);
 
   return (
@@ -101,7 +93,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
             skillId={state.equippedSkill ?? null}
             timers={battle.skillTimers}
             now={game.now}
-            canCast={state.equippedSkill === "teleport" ? game.canTeleportToBoss(game.now) : battle.canCastSkill(game.now)}
+            canCast={!game.bossIntroPending && (state.equippedSkill === "teleport" ? game.canTeleportToBoss(game.now) : battle.canCastSkill(game.now))}
             onCast={state.equippedSkill === "teleport" ? game.teleportToBoss : battle.castSkill}
             onOpenSkills={() => game.setState((previous) => ({ ...previous, selectedTab: "skills" }))}
           />
@@ -120,6 +112,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         chiliThrowId={battle.castIds.chiliThrow}
         dropEvents={game.dropEvents}
         bossEntranceKey={bossEntranceKey}
+        onBeginBoss={game.beginBossFight}
         levelUpAnnouncement={game.levelUpAnnouncement}
         levelUpAttackGain={game.levelUpAttackGain}
         now={game.now}

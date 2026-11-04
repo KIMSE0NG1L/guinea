@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   hop: { position: "absolute", left: 38, top: 20, width: 16, height: 16 },
   dishBadge: { position: "absolute", right: -12, bottom: -2, width: 26, height: 26 },
   dishReady: { right: -6, top: -8, bottom: undefined, width: 32, height: 32 },
-  rushGem: { position: "absolute", left: 40, top: 18, width: 18, height: 18 },
+  rushGem: { position: "absolute", left: 40, top: 18, width: 18, height: 18, resizeMode: "contain" },
   steam: { position: "absolute", top: 8, width: 10, height: 10, borderRadius: 5 },
   bubble: { position: "absolute", top: 34, width: 6, height: 6, borderRadius: 3, borderWidth: 1, borderColor: "#ffffffcc", backgroundColor: "#ffffff55" },
   progressWrap: { marginTop: 6, alignSelf: "stretch", overflow: "hidden", borderRadius: 6 },
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   smallButton: { marginTop: 6, minHeight: 30, paddingHorizontal: 10 },
   rushButton: { marginTop: 4, minHeight: 26, paddingHorizontal: 8 },
   costContent: { flexDirection: "row", alignItems: "center", gap: 3 },
-  gem: { width: 14, height: 14 },
+  gem: { width: 14, height: 14, resizeMode: "contain" },
   costText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   costTextDim: { color: "#4f463c" },
 });

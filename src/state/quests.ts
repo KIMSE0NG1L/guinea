@@ -61,7 +61,7 @@ const METRICS: Record<Metric, { icon: number; title: (target: number) => string;
     title: (n) => `동료 ${n}명 만나기`,
     read: (s) =>
       (Object.keys(OUTFIT_UNLOCK_STAGE) as Outfit[]).filter(
-        (outfit) => outfit !== "default" && isOutfitUnlocked(outfit, s.highestStageNumber ?? s.stageNumber),
+        (outfit) => outfit !== "default" && isOutfitUnlocked(outfit, s.highestStageNumber ?? s.stageNumber, s.purchasedOutfits),
       ).length,
   },
 };

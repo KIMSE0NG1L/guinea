@@ -14,8 +14,9 @@ import Svg, { Path } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { uiImages } from "../assets";
 import { StrokedText } from "./StrokedText";
+import { GameButton } from "./GameButton";
+import { AdUnavailableModal } from "./AdUnavailableModal";
 
-const SHOW_MS = 4200;
 const CONFETTI_COLORS = ["#ffd34d", "#ff7a59", "#7ed957", "#5bc0ff", "#ff9ad5", "#fff3b8"];
 const RAY_COUNT = 14;
 
@@ -102,20 +103,25 @@ function RibbonTail({ flip = false }: { flip?: boolean }) {
 }
 
 // The first time a stage's boss falls: dim the game, spin a sunburst, rain confetti, unroll
-// a red ribbon that reveals "최초 토벌!", then burst the gem reward out underneath.
+// a red ribbon that reveals "최초 토벌!", then burst the gem reward out underneath. The gems
+// only land by watching an ad (onClaimAd); skipping (onDone) gives them up. Stays up until
+// one of the two is picked, so a stray tap can't throw the reward away.
 // `companions`: names of companions joining on this clear, shown under the reward.
 export function FirstClearCelebration({
   bossName,
   gems,
   companions = [],
+  onClaimAd,
   onDone,
 }: {
   bossName: string;
   gems: number;
   companions?: string[];
+  onClaimAd: () => void;
   onDone: () => void;
 }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [adOpen, setAdOpen] = useState(false);
   const backdrop = useSharedValue(0);
   const spin = useSharedValue(0);
   const title = useSharedValue(0);
@@ -133,8 +139,6 @@ export function FirstClearCelebration({
     words.value = withDelay(560, withTiming(1, { duration: 280, easing: Easing.out(Easing.quad) }));
     reward.value = withDelay(520, withSpring(1, { damping: 7, stiffness: 140 }));
     glow.value = withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0, { duration: 500 })), -1);
-    const timer = setTimeout(onDone, SHOW_MS);
-    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -156,11 +160,9 @@ export function FirstClearCelebration({
   const raySize = Math.max(size.width, size.height) * 1.2;
 
   return (
-    <Pressable
+    <View
       style={styles.overlay}
-      onPress={onDone}
-      accessibilityRole="button"
-      accessibilityLabel={`${bossName} 최초 토벌! 보석 ${gems}개 획득. 눌러서 닫기`}
+      accessibilityLabel={`${bossName} 최초 토벌! 광고를 보면 보석 ${gems}개를 받을 수 있어요`}
       onLayout={(event) => setSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })}
     >
       <Animated.View style={[styles.backdrop, backdropStyle]} />
@@ -202,7 +204,7 @@ export function FirstClearCelebration({
             +{gems}
           </StrokedText>
         </Animated.View>
-        <Text style={styles.rewardLabel}>보석 보너스!</Text>
+        <Text style={styles.rewardLabel}>광고 보고 보석 보너스 받기!</Text>
         {companions.map((name) => (
           <Animated.View key={name} style={[styles.companion, rewardStyle]}>
             <StrokedText style={styles.companionText} strokeColor={colors.line} strokeWidth={2}>
@@ -210,9 +212,33 @@ export function FirstClearCelebration({
             </StrokedText>
           </Animated.View>
         ))}
-        <Text style={styles.hint}>터치해서 닫기</Text>
       </View>
-    </Pressable>
+      <Animated.View style={[styles.actions, rewardStyle]}>
+        <GameButton variant="green" onPress={() => setAdOpen(true)} accessibilityLabel={`광고 보고 보석 ${gems}개 받기`} style={styles.adButton}>
+          <View style={styles.adButtonFace}>
+            <Text style={styles.adSmall}>광고 보고</Text>
+            <View style={styles.adPrice}>
+              <Image source={uiImages.crystal} style={styles.adGem} />
+              <Text style={styles.adText}>{`${gems} 받기`}</Text>
+            </View>
+          </View>
+        </GameButton>
+        <Pressable onPress={onDone} hitSlop={10} accessibilityRole="button" accessibilityLabel="보석 받지 않고 닫기">
+          <Text style={styles.hint}>받지 않고 닫기</Text>
+        </Pressable>
+      </Animated.View>
+      {adOpen && (
+        <AdUnavailableModal
+          message={`대신 섭섭하지 않게 보석 ${gems}개는 그대로 챙겨드릴게요.`}
+          claimLabel="보석 받기"
+          onClaim={() => {
+            setAdOpen(false);
+            onClaimAd();
+            onDone();
+          }}
+        />
+      )}
+    </View>
   );
 }
 
@@ -230,12 +256,22 @@ const styles = StyleSheet.create({
   tailRight: { position: "absolute", right: 0, top: 18 },
   ribbonWords: { position: "absolute", top: 8, left: 0, right: 0, height: RIBBON_H - 26, alignItems: "center", justifyContent: "center" },
   boss: { marginTop: 6, fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  reward: { marginTop: 22, flexDirection: "row", alignItems: "center", gap: 8 },
-  gemGlow: { position: "absolute", left: -18, width: 96, height: 96, borderRadius: 48, backgroundColor: "#7fd6ff" },
-  gem: { width: 60, height: 60 },
+  // Padded out to the glow's full 96px so it sits inside the row's own bounds — Android clips
+  // children that overflow an animated (opacity/scale) parent, which cut the glow off.
+  reward: { marginTop: 4, paddingVertical: 18, paddingLeft: 26, paddingRight: 4, flexDirection: "row", alignItems: "center", gap: 8 },
+  gemGlow: { position: "absolute", left: 0, top: 0, width: 96, height: 96, borderRadius: 48, backgroundColor: "#7fd6ff" },
+  // item-crystal.png is 109x149 — sized to that ratio so it isn't cropped square.
+  gem: { width: 44, height: 60, resizeMode: "contain" },
   rewardText: { fontSize: 40, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   companion: { marginTop: 14, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 12, backgroundColor: "#c8553de6" },
   companionText: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  rewardLabel: { marginTop: 4, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
-  hint: { marginTop: 26, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: "#d8cdb8" },
+  rewardLabel: { marginTop: -14, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
+  actions: { marginTop: 18, alignItems: "center", gap: 12 },
+  adButton: { minWidth: 170 },
+  adButtonFace: { alignItems: "center" },
+  adSmall: { fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  adPrice: { flexDirection: "row", alignItems: "center", gap: 4 },
+  adGem: { width: 13, height: 18, resizeMode: "contain" },
+  adText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  hint: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: "#d8cdb8", textDecorationLine: "underline" },
 });

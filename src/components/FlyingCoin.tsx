@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   coinImage: { width: COIN_W, height: COIN_H },
   popup: { position: "absolute", width: 120, alignItems: "center", zIndex: 7 },
   popupRow: { flexDirection: "row", alignItems: "center", gap: 3 },
-  popupIcon: { width: 18, height: 18 },
+  popupIcon: { width: 18, height: 18, resizeMode: "contain" },
   popupGold: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe066" },
   popupGem: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   popupLabel: { fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },

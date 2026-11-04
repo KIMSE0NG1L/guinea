@@ -485,6 +485,18 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "막걸리", chance: 0.3 },
     ],
   },
+  candyBasketSlime: {
+    mob: [
+      { name: "호박", chance: 0.3 },
+      { name: "밤", chance: 0.2 },
+      { name: "초록 젤리", chance: 0.1 },
+    ],
+    boss: [
+      { name: "호박", chance: 1, quantity: 3 },
+      { name: "밤", chance: 0.6, quantity: 2 },
+      { name: "이슬", chance: 0.5 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

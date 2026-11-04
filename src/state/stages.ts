@@ -50,6 +50,7 @@ export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   // 기니 대도시와 수상한 집은 수상한 집 BGM을 함께 사용한다.
   sleepyGini: "hauntedHouse",
   sleepwalkerGini: "hauntedHouse",
+  candyBasketSlime: "hauntedHouse",
 };
 
 export const ENEMY_NAME: Record<EnemyKind, string> = {
@@ -88,6 +89,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   croissantKid: "크루아상 꼬마",
   sleepyGini: "꿀잠기니",
   sleepwalkerGini: "몽유병 기니",
+  candyBasketSlime: "사탕바구니 슬라임",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -126,6 +128,48 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   croissantKid: "바게트 기사",
   sleepyGini: "장로기니",
   sleepwalkerGini: "마녀 기니",
+  candyBasketSlime: "호박 골렘",
+};
+
+// The one-liner under the boss's name on its entrance banner (BossEntranceBanner) — the
+// guinea pig sizing this particular boss up.
+export const BOSS_TAGLINE: Record<EnemyKind, string> = {
+  slime: "말랑해 보여도 왕은 왕이야!",
+  mushroom: "포자 들이마시지 않게 숨 참아!",
+  carrot: "밭을 통째로 짊어진 거인이다!",
+  chicken: "작다고 얕보면 쪼인다!",
+  potato: "싹 난 감자는 먹으면 안 돼, 때려야 돼!",
+  mouse: "생선 도둑, 오늘 잡는다!",
+  cauldron: "냉장고 문이 열린다... 다 먹히기 전에!",
+  mudskipper: "집게에 걸리면 끝장이야!",
+  bluefish: "이빨 조심, 물리면 아프다!",
+  salamander: "뜨거워! 녹기 전에 끝내자!",
+  monkey: "먹히기 전에 뿌리째 뽑아버려!",
+  carp: "개천에서 난 용이라니, 상대해 주지!",
+  cactus: "목마른 낙타는 성질이 고약하대!",
+  fox: "방울 소리가 들리면 이미 늦은 거야!",
+  lizard: "등골이 오싹... 귀신이 씌었어!",
+  mantou: "죽순 앞에서 저 판다를 막아야 해!",
+  pig: "천 년 묵은 등껍질, 쉽게 안 뚫릴 거야!",
+  magpie: "산의 주인이 내려왔다... 무릎 꿇지 마!",
+  snowRabbit: "얼어붙기 전에 부숴버리자!",
+  drunkCat: "주모가 취했다! 술병 날아온다!",
+  flowerSnake: "꼬리가 아홉 개... 홀리지 마!",
+  riceSack: "고춧가루 폭탄이다, 눈 감지 마!",
+  mackerel: "해적선장이 나타났다! 먹물 조심!",
+  blossomCrab: "벚꽃잎 속에 이빨이 숨어 있어!",
+  shrineFox: "흥정은 없다, 싸워서 깎는다!",
+  armorBeetle: "온몸이 금이야... 눈부셔!",
+  onsenMonkey: "여관 주인이 화났다! 숙박비 떼먹은 사람?",
+  ninjaFrog: "두루마리를 펼치기 전에 쳐야 해!",
+  lanternAngler: "바닷속 장군님 납신다, 진형 갖춰!",
+  clamMaid: "용왕님이 직접... 전력으로 간다!",
+  gondolaDuck: "화덕이 달아올랐다, 구워지기 싫으면 빨리!",
+  bellCalf: "구조견 대장한테 구조당하기 전에 이겨!",
+  croissantKid: "바삭한 바게트 검, 부러뜨려 주마!",
+  sleepyGini: "장로님이라도 봐주지 않아!",
+  sleepwalkerGini: "수면 물약의 범인이다! 졸지 마!",
+  candyBasketSlime: "호박 속까지 단단해... 각오해!",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -168,6 +212,7 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "빵집 골목", enemyKind: "croissantKid", story: "갓 구운 빵 냄새가 골목을 가득 채운 돌길 거리, 베레모를 쓴 크루아상들이 진열장 앞을 뽐내며 걸어 다닌다." },
   { area: "기니 대도시", enemyKind: "sleepyGini", story: "기니들만 모여 사는 번화한 대도시, 당근 분수 광장 너머로 낮잠과 안마가 일상인 느긋한 기니들이 거리를 오간다." },
   { area: "수상한 집", enemyKind: "sleepwalkerGini", story: "달빛 아래 보랏빛 커튼이 드리운 수상한 집, 몽유병에 걸린 기니들이 밤마다 홀린 듯 계단을 오르내린다." },
+  { area: "호박등 숲", enemyKind: "candyBasketSlime", story: "달빛과 호박등이 길을 밝히는 숲, 사탕바구니 슬라임들이 가을 식재료를 지키며 숲속 깊은 골렘의 잠을 깨운다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

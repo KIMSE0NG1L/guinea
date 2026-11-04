@@ -7,7 +7,7 @@ import { applyUpgradeLevels, getBossTimeLimitMs, getExpReward, getGoldReward, ge
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
-import { getOutfitsUnlockedByStage, getUnlocksAtLevel, isSkillUnlocked, OUTFIT_GEM_PRICE } from "./unlocks";
+import { getOutfitGemPrice, getOutfitsUnlockedByStage, getUnlocksAtLevel, isOutfitUnlocked, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops } from "./drops";
@@ -83,6 +83,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // even if the player is looking at the same stage/boss as last time.
   const [bossFledKey, setBossFledKey] = useState(0);
   const [bossRetryAvailable, setBossRetryAvailable] = useState(false);
+  // A freshly spawned boss waits behind BossEntranceBanner until the player taps it —
+  // battle is paused and the timer hasn't started until then (see beginBossFight).
+  const [bossIntroPending, setBossIntroPending] = useState(false);
   // A boss skill mid-fight (src/state/bossSkills.ts) — at most once per fight, see the
   // scheduling effect below. Stun pauses auto-battle only (manual tapping stays open);
   // bossSkillCastId/bossSkillConfig just drive BattleScene's VFX.
@@ -170,7 +173,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       if (save) {
         // Guards against a save written before an outfit was retired (e.g. "forest") —
         // falls back to default rather than crashing when looking up its sprite sheet.
-        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini", "boxerGini"];
+        const validOutfits = ["default", "explorerHamster", "tetoGini", "assassinGini", "egenGini", "samuraiGini", "chefGini", "boxerGini", "witchGini"];
         const equippedOutfit = validOutfits.includes(save.state.equippedOutfit)
           ? save.state.equippedOutfit
           : "default";
@@ -291,15 +294,24 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     previousLevelRef.current = state.level;
   }, [state.level, loaded]);
 
-  // Snapshots the boss timer's deadline — a fixed per-stage value (see getBossTimeLimitMs)
-  // — the instant the boss appears.
+  // Spawns the boss and snapshots its deadline — a fixed per-stage value (see
+  // getBossTimeLimitMs) — but the clock itself waits for the player to tap the entrance
+  // banner (beginBossFight), so the boss can be sized up first.
   const startBossFight = useCallback(() => {
-    setBossTimerStartedAt(Date.now());
+    setBossTimerStartedAt(null);
     setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber));
+    setBossIntroPending(true);
     setBoss(true);
   }, [state.stageNumber]);
+  const beginBossFight = useCallback(() => {
+    if (!bossIntroPending) return;
+    setBossIntroPending(false);
+    setBossTimerStartedAt(Date.now());
+    setNow(Date.now());
+  }, [bossIntroPending]);
   const endBossFight = () => {
     setBoss(false);
+    setBossIntroPending(false);
     setBossTimerStartedAt(null);
   };
 
@@ -345,7 +357,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       setTimeout(() => setDropEvents((current) => current.filter((event) => !ids.includes(event.id))), 2000 + events.length * 110);
     }
 
-    // First time this stage's boss goes down: a gem bonus and a big celebration.
+    // First time this stage's boss goes down: a big celebration, whose gem bonus is only
+    // paid out by watching an ad there (claimFirstClearGems).
     const firstClear = boss && !getClearedBosses({
       bossesCleared: state.bossesCleared,
       highestStageNumber: state.highestStageNumber,
@@ -362,7 +375,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         companions:
           (state.highestStageNumber ?? state.stageNumber) > state.stageNumber
             ? []
-            : getOutfitsUnlockedByStage(state.stageNumber + 1).map((outfit) => OUTFIT_NAMES[outfit]),
+            : getOutfitsUnlockedByStage(state.stageNumber + 1)
+                // Already brought along early with gems — nothing new to announce.
+                .filter((outfit) => !(state.purchasedOutfits ?? []).includes(outfit))
+                .map((outfit) => OUTFIT_NAMES[outfit]),
       });
     }
 
@@ -382,8 +398,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       const creditedGold = holdLoot ? 0 : goldReward;
       const totalGoldEarned = previous.totalGoldEarned + creditedGold;
       const bossKills = (previous.bossKills ?? 0) + (boss ? 1 : 0);
-      // Stage 3 (stageNumber 2) is the last one with content — clearing its boss loops
-      // back to stage 1 instead of advancing into an unthemed stage 4.
+      // Clearing the last implemented boss loops back to stage 1; keep this dynamic as
+      // each new region is added.
       const stageNumber = boss ? (previous.stageNumber >= LAST_STAGE_NUMBER ? 0 : previous.stageNumber + 1) : previous.stageNumber;
       // Saves from before the milestone map have no record — what they're on is the floor.
       const highestStageNumber = Math.max(previous.highestStageNumber ?? previous.stageNumber, stageNumber);
@@ -391,7 +407,6 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         ...previous,
         gold: previous.gold + creditedGold,
         giftKills: gift ? Math.max(0, (previous.giftKills ?? 0) - 1) : previous.giftKills,
-        gems: previous.gems + (paysFirstClear ? FIRST_CLEAR_GEMS : 0),
         bossesCleared: paysFirstClear ? [...cleared, previous.stageNumber] : previous.bossesCleared,
         inventory: holdLoot ? previous.inventory : addItems(previous.inventory, drops),
         discoveredItems: holdLoot ? previous.discoveredItems : discover(previous.discoveredItems, drops.map((drop) => drop.name)),
@@ -406,7 +421,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -470,7 +485,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // state), so it passes it in rather than this hook reaching out to know about it.
     // The very first fight starts from the tutorial: nothing happens during the story and
     // intro, and none while the first gift kill's loot is being explained.
-    paused: skillTutorialActive || bossRetryAvailable || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null,
+    paused: skillTutorialActive || bossRetryAvailable || bossIntroPending || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null,
     autoStunned: now < bossStunnedUntil,
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
     instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
@@ -523,8 +538,11 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // killing blow sets battle.enemyHp to 0 and flips `boss` back to false in the very same
   // state batch (dealDamage -> defeatEnemy -> onDefeat -> endBossFight all run
   // synchronously), so a one-hit kill (Execute, Beam, or just enough raw damage) would
-  // otherwise never land on a render where `boss` is still true to catch hp hitting 0 — the
-  // 30% checkpoint (meant to be the one guaranteed shot) would silently never fire. Reading
+  // otherwise never land on a render where `boss` is still true to catch hp hitting 0.
+  // That render is now used only to skip: a killing blow casts nothing — a boss knocked out
+  // in one hit (or finished off past a checkpoint) doesn't get a parting shot. The
+  // checkpoints are left unresolved rather than spent, so a boss that comes back from 0
+  // (the lizard's revive) still has them for the rest of the fight. Reading
   // the live enemyMaxHp at that point wouldn't work either: by then it's already reverted to
   // the regular-mob formula. battle.enemyId itself doesn't bump until the *later* respawn
   // timer, so it's still safe to trust for this one render.
@@ -553,6 +571,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       if (battle.enemyHp < plan.maxHp) return;
       plan.synced = true;
     }
+    if (battle.enemyHp <= 0) return;
     let castIndex = -1;
     BOSS_SKILL_CHECKPOINTS.forEach((checkpoint, index) => {
       if (plan.resolved[index] || battle.enemyHp > plan.maxHp * checkpoint.hpRatio) return;
@@ -582,12 +601,23 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boss, bossTimerStartedAt, state.stageNumber, battle.enemyHp, battle.enemyId, enemyMaxHp]);
 
+  // The first-clear celebration's "watch an ad" reward. Clears `firstClear` in the same
+  // update so a second tap can't pay twice.
+  const claimFirstClearGems = () => {
+    if (!firstClear) return;
+    const { gems } = firstClear;
+    setFirstClear(null);
+    setState((previous) => ({ ...previous, gems: previous.gems + gems }));
+  };
+
   const retryBossAfterAd = useCallback(() => {
     if (!bossRetryAvailable) return;
     setBossRetryAvailable(false);
-    startBossFight();
+    // Same enemy, fresh window — no entrance banner for a retry.
+    setBossTimerStartedAt(Date.now());
+    setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber));
     setNow(Date.now());
-  }, [bossRetryAvailable, startBossFight]);
+  }, [bossRetryAvailable, state.stageNumber]);
 
   // Whether the boss sprite is actually on screen — lags `boss` by the death clip on both
   // ends. The 25th regular-mob kill flips `boss` true immediately (so the next spawn is
@@ -847,10 +877,11 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
 
   // Buys a gem-priced companion (e.g. 복서기니) outright; returns whether it went through.
   const purchaseOutfit = (outfit: Outfit) => {
-    const price = OUTFIT_GEM_PRICE[outfit];
-    if (price === undefined || state.gems < price || (state.purchasedOutfits ?? []).includes(outfit)) return false;
+    const price = getOutfitGemPrice(outfit);
+    const unlocked = (previous: GameState) => isOutfitUnlocked(outfit, previous.highestStageNumber ?? previous.stageNumber, previous.purchasedOutfits);
+    if (price === undefined || state.gems < price || unlocked(state)) return false;
     setState((previous) => {
-      if (previous.gems < price || (previous.purchasedOutfits ?? []).includes(outfit)) return previous;
+      if (previous.gems < price || unlocked(previous)) return previous;
       return { ...previous, gems: previous.gems - price, purchasedOutfits: [...(previous.purchasedOutfits ?? []), outfit] };
     });
     return true;
@@ -983,6 +1014,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     bossFledKey,
     bossRetryAvailable,
     retryBossAfterAd,
+    bossIntroPending,
+    beginBossFight,
     bossSkillCastId,
     bossSkillConfig,
     bossStunned: now < bossStunnedUntil,
@@ -991,6 +1024,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     firstClear,
     clearedStages: getClearedBosses(state),
     dismissFirstClear: () => setFirstClear(null),
+    claimFirstClearGems,
     levelUpAnnouncement,
     levelUpAttackGain,
     upgradeMode,

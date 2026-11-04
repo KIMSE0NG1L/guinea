@@ -227,6 +227,8 @@ export function GameScreen() {
             onEquip={game.equipSkill}
             swapReadyAt={game.skillSwapReadyAt}
             now={game.now}
+            enemyKind={getEnemyKind(state.stageNumber)}
+            outfit={state.equippedOutfit}
           />
         );
       case "shop":
@@ -363,6 +365,7 @@ export function GameScreen() {
             bossName={game.firstClear.bossName}
             gems={game.firstClear.gems}
             companions={game.firstClear.companions}
+            onClaimAd={game.claimFirstClearGems}
             onDone={() => {
               // A story comic waiting on this boss plays once the celebration closes.
               const comic = COMIC_ON_FIRST_CLEAR[game.firstClear!.stageNumber];

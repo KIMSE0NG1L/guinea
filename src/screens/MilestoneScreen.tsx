@@ -77,6 +77,7 @@ export function MilestoneScreen({
             style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
           >
             <Image source={icons.scroll} style={styles.toggleIcon} />
+            <IconCaption>만화보기</IconCaption>
           </Pressable>
         </View>
       </View>

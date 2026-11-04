@@ -25,7 +25,8 @@ import {
 } from "../state/buffs";
 import { RECIPES } from "../state/recipes";
 import { LockBadge } from "../components/LockBadge";
-import { isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
+import { getOutfitGemPrice, isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
+import { ConfirmModal } from "../components/ConfirmModal";
 import type { Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and grants whichever of these
@@ -95,6 +96,12 @@ export const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: 
     name: "복서기니",
     blurb: "글러브를 벗는 법이 없는 열혈 복서. 보석으로 데려올 수 있는 특별한 동료다.",
     detail: companionDetail("boxerGini"),
+  },
+  {
+    outfit: "witchGini",
+    name: "마녀기니",
+    blurb: "수상한 집의 마법을 연구하던 기니. 모든 공격이 마법이라, 제자리에서 불꽃·얼음·독·번개·빛·유령불 등 여러 마법을 쏘아 싸운다.",
+    detail: `${companionDetail("witchGini")} · 모든 공격이 마법`,
   },
 ];
 
@@ -196,7 +203,7 @@ export function CompanionsScreen({
   // Companions shown unlocked last visit (undefined = never tracked), and the report on leaving.
   outfitsSeen: Outfit[] | undefined;
   onSeen: (outfits: Outfit[]) => void;
-  // For gem-bought companions (e.g. 복서기니) — see OUTFIT_GEM_PRICE.
+  // For gem-bought companions — 복서기니 (OUTFIT_GEM_PRICE), or any stage one unlocked early.
   gems: number;
   purchasedOutfits: Outfit[] | undefined;
   onPurchase: (outfit: Outfit) => void;
@@ -204,6 +211,8 @@ export function CompanionsScreen({
 }) {
   const equippedItem = COMPANIONS.find((item) => item.outfit === equippedOutfit) ?? COMPANIONS[0];
   const [previewWidth, setPreviewWidth] = useState(0);
+  // A locked companion whose gem button was tapped: confirm before spending.
+  const [buying, setBuying] = useState<Outfit | null>(null);
   const unlockedNow = COMPANIONS.filter((item) => isOutfitUnlocked(item.outfit, highestStageNumber, purchasedOutfits)).map((item) => item.outfit);
   // Unlocked since the last visit: their padlock breaks open this time.
   const [freshlyUnlocked] = useState(() => (outfitsSeen ? unlockedNow.filter((outfit) => !outfitsSeen.includes(outfit)) : []));
@@ -256,7 +265,8 @@ export function CompanionsScreen({
         {COMPANIONS.map((item) => {
           const equipped = item.outfit === equippedOutfit;
           const unlockStage = OUTFIT_UNLOCK_STAGE[item.outfit];
-          const gemPrice = OUTFIT_GEM_PRICE[item.outfit];
+          const gemPrice = getOutfitGemPrice(item.outfit);
+          const gemOnly = item.outfit in OUTFIT_GEM_PRICE;
           const locked = !equipped && !isOutfitUnlocked(item.outfit, highestStageNumber, purchasedOutfits);
           const affordable = gemPrice !== undefined && gems >= gemPrice;
           return (
@@ -276,9 +286,9 @@ export function CompanionsScreen({
                     ? "함께하는 중"
                     : !locked
                       ? "같이 다닐 수 있음"
-                      : gemPrice !== undefined
+                      : gemOnly
                         ? `보석 ${gemPrice}개로 데려올 수 있음`
-                        : `${unlockStage}스테이지에 도착하면 합류`}
+                        : `${unlockStage}스테이지 도착 또는 보석 ${gemPrice}개로 합류`}
                 </Text>
                 <Text style={styles.cardStrong}>{item.name}</Text>
                 <Text style={styles.cardBlurb}>{item.blurb}</Text>
@@ -288,7 +298,7 @@ export function CompanionsScreen({
               {locked && gemPrice !== undefined ? (
                 <GameButton
                   variant={affordable ? "beige" : "gray"}
-                  onPress={() => (affordable ? onPurchase(item.outfit) : onOpenShop())}
+                  onPress={() => (affordable ? setBuying(item.outfit) : onOpenShop())}
                   style={styles.equipButton}
                   textStyle={styles.equipButtonText}
                 >
@@ -312,6 +322,27 @@ export function CompanionsScreen({
           );
         })}
       </View>
+      {buying && (() => {
+        const item = COMPANIONS.find((companion) => companion.outfit === buying)!;
+        const price = getOutfitGemPrice(buying) ?? 0;
+        const gemOnly = buying in OUTFIT_GEM_PRICE;
+        return (
+          <ConfirmModal
+            title={`${item.name} 데려오기`}
+            message={
+              gemOnly
+                ? `보석 ${price}개로 ${item.name}을(를) 데려올까요?`
+                : `보석 ${price}개로 ${item.name}을(를) 지금 바로 데려올까요? (${OUTFIT_UNLOCK_STAGE[buying]}스테이지에 도착하면 무료로 합류해요)`
+            }
+            confirmLabel={`보석 ${price}개 쓰기`}
+            onConfirm={() => {
+              onPurchase(buying);
+              setBuying(null);
+            }}
+            onCancel={() => setBuying(null)}
+          />
+        );
+      })()}
     </View>
   );
 }
@@ -371,5 +402,5 @@ const styles = StyleSheet.create({
   equipButton: { minWidth: 70 },
   equipButtonText: { fontSize: 9 },
   gemCost: { flexDirection: "row", alignItems: "center", gap: 3 },
-  gemIcon: { width: 12, height: 12 },
+  gemIcon: { width: 12, height: 12, resizeMode: "contain" },
 });

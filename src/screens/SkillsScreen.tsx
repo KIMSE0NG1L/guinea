@@ -11,6 +11,8 @@ import { SKILLS, type SkillId } from "../state/skills";
 import { formatDuration } from "../state/buffs";
 import { isSkillUnlocked, SKILL_UNLOCK_LEVEL } from "../state/unlocks";
 import { LockBadge } from "../components/LockBadge";
+import { PREVIEWABLE_SKILLS, SkillPreviewModal } from "../components/SkillPreviewModal";
+import type { EnemyKind, Outfit } from "../types";
 
 // Every skill, with one equip slot between them — equipping a skill swaps out the last one.
 export function SkillsScreen({
@@ -19,14 +21,20 @@ export function SkillsScreen({
   onEquip,
   swapReadyAt,
   now,
+  enemyKind,
+  outfit,
 }: {
   equippedSkill: SkillId | null;
   level: number;
   onEquip: (id: SkillId | null) => void;
   swapReadyAt: number;
   now: number;
+  // What the preview fight shows: the current stage's mob and the equipped companion.
+  enemyKind: EnemyKind;
+  outfit: Outfit;
 }) {
   const swapLockLeftMs = Math.max(0, swapReadyAt - now);
+  const [previewing, setPreviewing] = useState<SkillId | null>(null);
   return (
     <View style={styles.page}>
       <PageHeading
@@ -57,6 +65,7 @@ export function SkillsScreen({
                 <Text style={styles.cardStrong}>{skill.name}</Text>
                 <Text style={styles.cardSpan}>{skill.description}</Text>
               </View>
+              <View style={styles.buttons}>
               <GameButton
                 variant={sealed || locked ? "gray" : equipped ? "green" : "beige"}
                 disabled={sealed || locked}
@@ -67,10 +76,23 @@ export function SkillsScreen({
               >
                 {sealed ? `Lv.${unlockLevel}` : locked ? formatDuration(swapLockLeftMs) : equipped ? "해제" : "장착"}
               </GameButton>
+              {PREVIEWABLE_SKILLS.includes(skill.id) && (
+                <GameButton
+                  variant="pillCream"
+                  onPress={() => setPreviewing(skill.id)}
+                  style={styles.equipButton}
+                  textStyle={styles.equipButtonText}
+                  accessibilityLabel={`${skill.name} 미리보기`}
+                >
+                  미리보기
+                </GameButton>
+              )}
+              </View>
             </Panel>
           );
         })}
       </View>
+      {previewing && <SkillPreviewModal skillId={previewing} enemyKind={enemyKind} outfit={outfit} onClose={() => setPreviewing(null)} />}
     </View>
   );
 }
@@ -107,6 +129,7 @@ const styles = StyleSheet.create({
   cardSmall: { color: colors.green, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
   cardStrong: { marginVertical: 2, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   cardSpan: { color: colors.muted, fontSize: 9 },
+  buttons: { gap: 4 },
   equipButton: { minWidth: 56 },
   equipButtonText: { fontSize: 9 },
 });

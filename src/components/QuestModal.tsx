@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   closeButton: { paddingHorizontal: 12 },
   topRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   gemCounter: { height: 32, minWidth: 74, flexDirection: "row", alignItems: "center", gap: 4, paddingLeft: 8, paddingRight: 14, paddingBottom: 2 },
-  gemIcon: { width: 18, height: 18 },
+  gemIcon: { width: 18, height: 18, resizeMode: "contain" },
   gemText: { color: colors.ink, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
   storyCard: {
     marginVertical: 14,
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   claimAllContent: { flexDirection: "row", alignItems: "center", gap: 10 },
   claimAllText: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   rewardLabel: { flexDirection: "row", alignItems: "center", gap: 3 },
-  rewardGem: { width: 15, height: 15 },
+  rewardGem: { width: 15, height: 15, resizeMode: "contain" },
   rewardText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   infoSub: { color: colors.muted, fontSize: 8, fontWeight: "700", fontFamily: fonts.bold },
   track: { marginVertical: 4 },

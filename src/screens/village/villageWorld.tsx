@@ -33,6 +33,7 @@ const HOME_RING: Record<Outfit, { fx: number; fy: number }> = {
   chefGini: { fx: -0.15, fy: -0.1 },
   // Tucked into the gap between 모험기니 and 탐험기니 — the ring's one gem-bought resident.
   boxerGini: { fx: 0.08, fy: -0.15 },
+  witchGini: { fx: -0.13, fy: -0.25 },
 };
 
 export function getHomes(backdrop: { width: number; height: number }) {

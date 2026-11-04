@@ -52,6 +52,12 @@ export const spriteSheets = {
       critical: require("../assets/sprites/guinea-boxer-critical-strip.png"),
       win: require("../assets/sprites/guinea-boxer-win-strip.png"),
     },
+    witchGini: {
+      idle: require("../assets/sprites/witch-gini-idle-strip.png"),
+      attack: require("../assets/sprites/witch-gini-attack-strip.png"),
+      critical: require("../assets/sprites/witch-gini-critical-strip.png"),
+      win: require("../assets/sprites/witch-gini-win-strip.png"),
+    },
   },
   slime: {
     idle: require("../assets/sprites/slime-idle-strip.webp"),
@@ -89,9 +95,9 @@ export const spriteSheets = {
     die: require("../assets/sprites/chick-egg-die-strip.png"),
   },
   bossChicken: {
-    idle: require("../assets/sprites/boss-chick-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-chick-hit-strip.webp"),
-    die: require("../assets/sprites/boss-chick-die-strip.webp"),
+    idle: require("../assets/sprites/boss-chick-idle-strip.png"),
+    hit: require("../assets/sprites/boss-chick-hit-strip.png"),
+    die: require("../assets/sprites/boss-chick-die-strip.png"),
   },
   potato: {
     idle: require("../assets/sprites/little-potato-idle-strip.png"),
@@ -129,9 +135,9 @@ export const spriteSheets = {
     die: require("../assets/sprites/mudskipper-die-strip.png"),
   },
   bossKingCrab: {
-    idle: require("../assets/sprites/boss-kingcrab-idle-strip.webp"),
-    hit: require("../assets/sprites/boss-kingcrab-hit-strip.webp"),
-    die: require("../assets/sprites/boss-kingcrab-die-strip.webp"),
+    idle: require("../assets/sprites/boss-kingcrab-idle-strip.png"),
+    hit: require("../assets/sprites/boss-kingcrab-hit-strip.png"),
+    die: require("../assets/sprites/boss-kingcrab-die-strip.png"),
   },
   bluefish: {
     idle: require("../assets/sprites/bluefish-idle-strip.webp"),
@@ -403,6 +409,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-witch-gini-hit-strip.png"),
     die: require("../assets/sprites/boss-witch-gini-die-strip.png"),
   },
+  candyBasketSlime: {
+    idle: require("../assets/sprites/candy-basket-slime-idle-strip.png"),
+    hit: require("../assets/sprites/candy-basket-slime-hit-strip.png"),
+    die: require("../assets/sprites/candy-basket-slime-die-strip.png"),
+  },
+  bossPumpkinGolem: {
+    idle: require("../assets/sprites/pumpkin-golem-boss-idle-strip.png"),
+    hit: require("../assets/sprites/pumpkin-golem-boss-hit-strip.png"),
+    die: require("../assets/sprites/pumpkin-golem-boss-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -442,6 +458,7 @@ export const images = {
   battleBackgroundBakeryStreet: require("../assets/sprites/battle-bakery-street.webp"),
   battleBackgroundGiniMetropolis: require("../assets/sprites/battle-gini-metropolis.png"),
   battleBackgroundSuspiciousHouse: require("../assets/sprites/battle-suspicious-house.png"),
+  battleBackgroundPumpkinForest: require("../assets/sprites/battle-pumpkin-forest.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -474,6 +491,33 @@ export const effects = {
   // already matches the skill's own icon, no recolor needed: 96x104, 72 frames —
   // `node tools/pixelfx-export.mjs scifi/teleporter-pad --out teleport-pad`.
   teleportPad: require("../assets/effects/teleport-pad-strip.png"),
+  // 마녀기니's spells (src/components/WitchSpell.tsx), all `--square` padded: five element
+  // bolts (looping, flying right) each with its matching hit-spark, plus three big crit
+  // bursts. Bolts: projectiles/plasma-shot (arcane / poison palettes), fire/fireball,
+  // ice/ice-lance, projectiles/energy-disc. Hits: impacts/hit-spark recolored per element.
+  // Crits: impacts/crit-hit (arcane), explosions/plasma-explosion (--max-frames 30),
+  // arcane/mana-burst (--max-frames 36).
+  witchOrbArcane: require("../assets/effects/witch-orb-arcane-strip.png"),
+  witchOrbFire: require("../assets/effects/witch-orb-fire-strip.png"),
+  witchOrbIce: require("../assets/effects/witch-orb-ice-strip.png"),
+  witchOrbPoison: require("../assets/effects/witch-orb-poison-strip.png"),
+  witchOrbVolt: require("../assets/effects/witch-orb-volt-strip.png"),
+  // Added later: holy (plasma-shot, gold), pink star-disc (energy-disc, pink), ghost fire
+  // (fireball, teal) — each with a hit-spark in the same palette.
+  witchOrbHoly: require("../assets/effects/witch-orb-holy-strip.png"),
+  witchOrbPink: require("../assets/effects/witch-orb-pink-strip.png"),
+  witchOrbGhost: require("../assets/effects/witch-orb-ghost-strip.png"),
+  witchHitHoly: require("../assets/effects/witch-hit-holy-strip.png"),
+  witchHitPink: require("../assets/effects/witch-hit-pink-strip.png"),
+  witchHitGhost: require("../assets/effects/witch-hit-ghost-strip.png"),
+  witchHitArcane: require("../assets/effects/witch-hit-arcane-strip.png"),
+  witchHitFire: require("../assets/effects/witch-hit-fire-strip.png"),
+  witchHitIce: require("../assets/effects/witch-hit-ice-strip.png"),
+  witchHitPoison: require("../assets/effects/witch-hit-poison-strip.png"),
+  witchHitVolt: require("../assets/effects/witch-hit-volt-strip.png"),
+  witchCritStar: require("../assets/effects/witch-crit-star-strip.png"),
+  witchCritPlasma: require("../assets/effects/witch-crit-plasma-strip.png"),
+  witchCritMana: require("../assets/effects/witch-crit-mana-strip.png"),
   // Boss skills (src/state/bossSkills.ts): stun variants play over the player (status-effect
   // style, loop), heal variants play over the boss (one-shot, cropped early with --max-frames
   // — both are several seconds of pixelfx's own art, only the opening beat is used here).
@@ -1003,6 +1047,10 @@ export const comics = {
   ginitown2: require("../assets/comics/ginitown-2.png"),
   ginitown3: require("../assets/comics/ginitown-3.png"),
   ginitown4: require("../assets/comics/ginitown-4.png"),
+  pumpkinforest1: require("../assets/comics/pumpkinforest-1.png"),
+  pumpkinforest2: require("../assets/comics/pumpkinforest-2.png"),
+  pumpkinforest3: require("../assets/comics/pumpkinforest-3.png"),
+  pumpkinforest4: require("../assets/comics/pumpkinforest-4.png"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.

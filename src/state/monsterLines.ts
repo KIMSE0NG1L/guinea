@@ -39,6 +39,7 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   croissantKid: ["내 결이 제일 바삭해!", "부스러기는 못 본 척해"],
   sleepyGini: ["드르렁...", "...5분만 더"],
   sleepwalkerGini: ["...음냐...", "여긴... 어디지?"],
+  candyBasketSlime: ["사탕은 못 줘!", "호박등을 지켜!"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -77,4 +78,5 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   croissantKid: ["빵의 이름으로!", "갓 구운 검을 받아라!"],
   sleepyGini: ["어깨 좀 풀어다오", "시원하구먼!"],
   sleepwalkerGini: ["후훗, 완벽한 실험이지...", "어라... 나도 졸리네..."],
+  candyBasketSlime: ["이 숲의 호박은 내 것이다!", "호박등의 불꽃을 받아라!"],
 };

@@ -14,6 +14,7 @@ import { GoldFly } from "../components/GoldFly";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
 import { BossFleeBanner } from "../components/BossFleeBanner";
 import { BossEntranceBanner } from "../components/BossEntranceBanner";
+import { WITCH_SPELL_LIFE_MS, WitchSpell } from "../components/WitchSpell";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
@@ -39,7 +40,7 @@ import {
 } from "../components/SkillAuras";
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { MonsterSpeechBubble } from "../components/MonsterSpeechBubble";
-import { BOSS_NAME, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
+import { BOSS_NAME, BOSS_TAGLINE, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
 import { BOSS_LINES, MOB_LINES } from "../state/monsterLines";
 import { OUTFIT_NAMES } from "../state/buffs";
 import { ITEM_IMAGES } from "../state/recipes";
@@ -90,6 +91,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   croissantKid: 160,
   sleepyGini: 160,
   sleepwalkerGini: 160,
+  candyBasketSlime: 180,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -99,6 +101,7 @@ const MOB_SIZE: Partial<Record<EnemyKind, number>> = {
   pig: 140,
   // Its frames also hold its fox-fires and fanned tails, so the fox itself reads small.
   shrineFox: 140,
+  candyBasketSlime: 125,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -137,6 +140,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   croissantKid: images.battleBackgroundBakeryStreet,
   sleepyGini: images.battleBackgroundGiniMetropolis,
   sleepwalkerGini: images.battleBackgroundSuspiciousHouse,
+  candyBasketSlime: images.battleBackgroundPumpkinForest,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
@@ -252,6 +256,7 @@ export function BattleScene({
   chiliThrowId: rawChiliThrowId,
   dropEvents,
   bossEntranceKey,
+  onBeginBoss,
   levelUpAnnouncement,
   levelUpAttackGain,
   now,
@@ -261,6 +266,7 @@ export function BattleScene({
   bossSkillCastId: rawBossSkillCastId,
   bossSkillConfig,
   bossReviveId: rawBossReviveId,
+  preview = false,
 }: {
   critical: boolean;
   damageEvents: { id: number; amount: number; critical: boolean; missed?: boolean }[];
@@ -309,7 +315,9 @@ export function BattleScene({
   carrotThrowId: number;
   chiliThrowId: number;
   dropEvents: DropEvent[];
+  // Set while a freshly spawned boss waits to be tapped (useGameState's bossIntroPending).
   bossEntranceKey: string | null;
+  onBeginBoss: () => void;
   levelUpAnnouncement: number | null;
   levelUpAttackGain: number;
   // Live clock + the current boss fight's deadline (see useGameState's bossTimerStartedAt)
@@ -326,10 +334,14 @@ export function BattleScene({
   // Bumped each time the boss (the lizard only — see bossSkills.ts) comes back from the
   // dead instead of dying.
   bossReviveId: number;
+  // SkillPreviewModal's stand-in fight: just the backdrop, fighters and VFX — no stage bar,
+  // quest/bag/kitchen/map buttons, skill slot or flying coin.
+  preview?: boolean;
 }) {
   // Boss fight countdown — 0/100 whenever there's no active timer (not a boss fight, or
   // the timer hasn't started yet) so the nameplate's bar below just doesn't render it.
-  const bossTimeRemainingMs = boss && bossTimerStartedAt !== null ? Math.max(0, bossTimeLimitMs - (now - bossTimerStartedAt)) : 0;
+  // Before the tap that starts the fight, show the full window it's about to get.
+  const bossTimeRemainingMs = !boss ? 0 : bossTimerStartedAt === null ? (bossEntranceKey ? bossTimeLimitMs : 0) : Math.max(0, bossTimeLimitMs - (now - bossTimerStartedAt));
   const bossTimeProgress = boss && bossTimeLimitMs > 0 ? (bossTimeRemainingMs / bossTimeLimitMs) * 100 : 0;
   const bossSecondsLeft = Math.ceil(bossTimeRemainingMs / 1000);
 
@@ -390,6 +402,22 @@ export function BattleScene({
       : teleporting
         ? `teleport-${teleportId}`
         : null;
+
+  // 마녀기니 casts instead of swinging: one WitchSpell per attack, dropped once it's played out.
+  const isWitch = outfit === "witchGini";
+  const [witchSpells, setWitchSpells] = useState<{ id: number; critical: boolean }[]>([]);
+  const witchSpellId = useRef(0);
+  useEffect(() => {
+    if (!isWitch || phase !== "attacking" || skillPoseKey) return;
+    const id = ++witchSpellId.current;
+    // Deferred out of the effect body (react-hooks/set-state-in-effect).
+    const add = setTimeout(() => setWitchSpells((spells) => [...spells, { id, critical }]), 0);
+    // Not cleared on cleanup: `phase` moving on to "hit" runs it, and the spell must keep
+    // playing (and still be dropped) after that.
+    setTimeout(() => setWitchSpells((spells) => spells.filter((spell) => spell.id !== id)), WITCH_SPELL_LIFE_MS);
+    return () => clearTimeout(add);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, isWitch]);
 
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
@@ -459,6 +487,7 @@ export function BattleScene({
               It sits right on the backdrop, under the stage bar, fighters and buttons. */}
           {buffVignette && <BuffVignette key={buffVignette.key} durationMs={buffVignette.durationMs} />}
 
+          {!preview && (
           <LinearGradient
             colors={["#171d19e8", "#263125a8", "#26312500"]}
             locations={[0, 0.62, 1]}
@@ -489,9 +518,10 @@ export function BattleScene({
               {questReady && <Image source={kitImages.dotRed} style={styles.questDot} accessibilityLabel="받을 보상 있음" />}
             </Pressable>
           </LinearGradient>
+          )}
 
-          <FlyingCoin onCatch={onCatchFlyingCoin} />
-          {giftKills > 0 && (
+          {!preview && <FlyingCoin onCatch={onCatchFlyingCoin} />}
+          {!preview && giftKills > 0 && (
             <View style={styles.giftBanner} pointerEvents="none">
               <StrokedText style={styles.giftText} strokeColor={colors.line} strokeWidth={2}>
                 {`🎁 선물 버프! 한 방에 쓰러뜨리기 × ${giftKills}`}
@@ -499,7 +529,7 @@ export function BattleScene({
             </View>
           )}
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
-          {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
+          {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} tagline={BOSS_TAGLINE[enemyKind]} onStart={onBeginBoss} />}
           {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
           <Animated.View
@@ -549,6 +579,8 @@ export function BattleScene({
             </View>
           </Animated.View>
 
+          {!preview && (
+          <>
           <BagButton onPress={onOpenBag} dropEvents={dropEvents} full={bagFull} />
 
           <Pressable
@@ -575,6 +607,8 @@ export function BattleScene({
           </Pressable>
 
           <View style={styles.skillBar}>{skillBar}</View>
+          </>
+          )}
 
           {/* Every combat VFX below renders as a sibling of `fighters` (zIndex: 4) further
           down the tree, so without its own zIndex it would stack *behind* the character/
@@ -608,6 +642,16 @@ export function BattleScene({
               to={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
             />
           )}
+          {fightersWidth > 0 &&
+            witchSpells.map((spell) => (
+              <WitchSpell
+                key={`witch-${spell.id}`}
+                critical={spell.critical}
+                // Just in front of her, at wand height — not out of her mouth like the beam.
+                from={{ left: playerCenterLeft + 66, bottom: FIGHTERS_BOTTOM + 42 }}
+                to={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
+              />
+            ))}
           {steal.id > 0 && <StealCastEffect key={`steal-${steal.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {focus.id > 0 && <FocusCastEffect key={`focus-${focus.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
           {barrage.id > 0 && <BarrageCastEffect key={`barrage-${barrage.id}`} at={{ left: playerCenterLeft, bottom: bodyBottom }} />}
@@ -803,6 +847,8 @@ function PlayerFighter({
   focusAuraId: number;
 }) {
   const isAttacking = animation === "attack" || animation === "critical";
+  // Spellcasters fire from where they stand: a small kick back per cast, never a lunge.
+  const caster = outfit === "witchGini";
   const shake = useSharedValue(0);
   const lunge = useSharedValue(0);
   const teleport = useSharedValue(0);
@@ -851,7 +897,7 @@ function PlayerFighter({
     if (isAttacking) {
       shake.value = withSequence(withTiming(1, { duration: 130, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 130, easing: Easing.inOut(Easing.quad) }));
     }
-    if (animation === "critical") {
+    if (animation === "critical" && !caster) {
       lunge.value = withSequence(withTiming(1, { duration: 260, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 260, easing: Easing.inOut(Easing.quad) }));
     } else {
       lunge.value = 0;
@@ -862,8 +908,8 @@ function PlayerFighter({
   const style = useAnimatedStyle(() => ({
     opacity: visible.value,
     transform: [
-      { translateX: shake.value * 24 + lunge.value * 112 + teleport.value - recoil.value * 12 },
-      { rotate: `${shake.value * 4}deg` },
+      { translateX: shake.value * (caster ? -6 : 24) + lunge.value * 112 + teleport.value - recoil.value * 12 },
+      { rotate: `${shake.value * (caster ? -2 : 4)}deg` },
       { scale: 1 + lunge.value * 0.05 },
     ],
   }));

@@ -101,5 +101,5 @@ function FlyingIcon({ flight, origin, onDone }: { flight: ActiveFlight; origin: 
 }
 
 const styles = StyleSheet.create({
-  icon: { position: "absolute", left: 0, top: 0 },
+  icon: { position: "absolute", left: 0, top: 0, resizeMode: "contain" },
 });

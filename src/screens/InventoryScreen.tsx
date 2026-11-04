@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   expandTitleDim: { color: "#4f463c" },
   expandCost: { flexDirection: "row", alignItems: "center", gap: 2, marginTop: 1 },
   expandCostText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  gem: { width: 13, height: 13 },
+  gem: { width: 13, height: 13, resizeMode: "contain" },
   maxed: { paddingHorizontal: 10, justifyContent: "center" },
   maxedText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
   moreSlots: { marginTop: 10, textAlign: "center", fontSize: 10, fontFamily: fonts.bold, color: colors.muted },

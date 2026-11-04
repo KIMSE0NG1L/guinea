@@ -13,6 +13,7 @@ export const OUTFIT_UNLOCK_STAGE: Record<Outfit, number> = {
   chefGini: 33, // 요리 시간 -50%, 요리 대성공 +20%, 재료 드랍 100%, 공격력 -15%
   // Never reached by stage — bought instead, see OUTFIT_GEM_PRICE below.
   boxerGini: Infinity,
+  witchGini: 36, // 기니 대도시(35스테이지) 보스 첫 처치 보상
 };
 
 // Companions bought with gems instead of joining at a stage (checked before
@@ -20,6 +21,16 @@ export const OUTFIT_UNLOCK_STAGE: Record<Outfit, number> = {
 export const OUTFIT_GEM_PRICE: Partial<Record<Outfit, number>> = {
   boxerGini: 2000,
 };
+
+// Any stage companion can also be brought along early, before reaching its stage, for this.
+export const OUTFIT_EARLY_UNLOCK_GEMS = 1000;
+
+// What it costs in gems to unlock this companion right now: its own price for gem-only ones
+// (OUTFIT_GEM_PRICE), the early-unlock price for stage ones, nothing for the starter.
+export function getOutfitGemPrice(outfit: Outfit): number | undefined {
+  if (outfit === "default") return undefined;
+  return OUTFIT_GEM_PRICE[outfit] ?? OUTFIT_EARLY_UNLOCK_GEMS;
+}
 
 // Skills: utility and short buffs early, the big damage dealers late. Scaled 5x (was
 // 3..30, all skills unlocked by level 30) so the full set isn't open until level 150.
@@ -41,9 +52,10 @@ export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
 };
 
 // `highestStageNumber`: the furthest stage (0-based) ever reached. `purchasedOutfits`:
-// gem-bought companions (see OUTFIT_GEM_PRICE) — only those ever unlock this way.
+// companions bought with gems — gem-only ones (OUTFIT_GEM_PRICE) or stage ones unlocked early.
 export function isOutfitUnlocked(outfit: Outfit, highestStageNumber: number, purchasedOutfits?: Outfit[]) {
-  if (outfit in OUTFIT_GEM_PRICE) return !!purchasedOutfits?.includes(outfit);
+  if (purchasedOutfits?.includes(outfit)) return true;
+  if (outfit in OUTFIT_GEM_PRICE) return false;
   return outfit === "default" || highestStageNumber >= OUTFIT_UNLOCK_STAGE[outfit] - 1;
 }
 

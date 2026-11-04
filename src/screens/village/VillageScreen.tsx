@@ -22,6 +22,7 @@ const LINES: Record<Outfit, string> = {
   samuraiGini: "칼은 뽑지 않는 날이 가장 좋은 날이오.",
   chefGini: "배고프지? 금방 한 그릇 말아 줄게!",
   boxerGini: "쉬는 시간은 없어! 잽, 잽, 스트레이트!",
+  witchGini: "별빛 마법으로 네 모험을 도와줄게!",
 };
 
 // Each house gets the backdrop of the place that 기니 comes from.
@@ -34,6 +35,7 @@ const HOUSE_BACKDROP: Record<Outfit, number> = {
   samuraiGini: images.battleBackgroundCastleKeep,
   chefGini: images.battleBackgroundBakeryStreet,
   boxerGini: images.battleBackgroundVillage,
+  witchGini: images.battleBackgroundSuspiciousHouse,
 };
 
 const SPRITE = 76;

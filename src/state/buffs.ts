@@ -191,6 +191,7 @@ export const OUTFIT_NAMES: Record<Outfit, string> = {
   samuraiGini: "사무라이기니",
   chefGini: "셰프기니",
   boxerGini: "복서기니",
+  witchGini: "마녀기니",
 };
 
 // "세트: 바다 한 상", "궁합: 테토기니" — the set a dish belongs to and its partner companion.
@@ -225,6 +226,7 @@ export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
   // The kitchen companion: halves cook time and lifts great-success odds, at a cost in
   // the fight — the only companion that trades battle power for cooking.
   chefGini: { cookSpeed: 50, greatSuccess: 20, attack: -15 },
+  witchGini: { criticalDamage: 20 },
 };
 
 // The first strike on each enemy is a sure crit worth this many normal hits (times crit
