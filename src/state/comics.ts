@@ -1451,7 +1451,7 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   32: "ginitown",
   33: "townasleep",
   34: "pumpkinforest",
-  37: "beeChase",
+  35: "beeChase",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.
