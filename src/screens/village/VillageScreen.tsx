@@ -8,7 +8,7 @@ import { CharacterSprite } from "../../components/CharacterSprite";
 import { StrokedText } from "../../components/StrokedText";
 import { isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../../state/unlocks";
 import type { Outfit } from "../../types";
-import { BACKDROP, DEPTH, getBackdropSize, getHomes, House, PROPS, Swing } from "./villageWorld";
+import { BACKDROP, DEPTH, getBackdropSize, getHomes, PROPS, Swing } from "./villageWorld";
 
 export type VillageCompanion = { outfit: Outfit; name: string; blurb: string };
 
@@ -169,9 +169,6 @@ export function VillageScreen({
             style={{ position: "absolute", left: -backdrop.width / 2, top: -backdrop.height / 2, width: backdrop.width, height: backdrop.height }}
           />
           <Swing x={PROPS.swing.fx * backdrop.width} y={PROPS.swing.fy * backdrop.height} />
-          {residents.map((companion) => (
-            <House key={companion.outfit} x={HOMES[companion.outfit].x} y={HOMES[companion.outfit].y} />
-          ))}
           {residents.map((companion) => (
             <Resident
               key={companion.outfit}
@@ -495,7 +492,8 @@ const styles = StyleSheet.create({
   woodButton: { flex: 1, height: 38, alignItems: "center", justifyContent: "center", paddingRight: 10 },
   woodText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: "#fff4d6" },
   muted: { opacity: 0.6 },
-  strip: { position: "absolute", left: 0, right: 0, bottom: 0, paddingTop: 18, paddingBottom: 8 },
+  // Lifted clear of the nav bar, which overlaps the bottom of the map.
+  strip: { position: "absolute", left: 0, right: 0, bottom: 18, paddingTop: 18, paddingBottom: 8 },
   stripContent: { paddingHorizontal: 10, gap: 8 },
   card: { width: 70, height: 84, alignItems: "center", justifyContent: "flex-end", paddingBottom: 8 },
   cardActive: { transform: [{ translateY: -6 }] },

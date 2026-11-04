@@ -14,8 +14,9 @@ export const COOK_TIME_MS: Record<RecipeTier, number> = {
   hidden: 120 * MINUTE,
 };
 
-// The recipe tutorial's first dish — a full minute would stall the guided steps.
-export const TUTORIAL_COOK_MS = 5000;
+// The recipe tutorial's first dish: shorter than a full minute, but long enough that the
+// guide's "finish it with a gem" step has something to finish (still a 1-gem rush).
+export const TUTORIAL_COOK_MS = 30000;
 
 // One pot to start; more are bought with gems.
 export const MAX_POTS = 3;

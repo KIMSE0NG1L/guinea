@@ -36,6 +36,14 @@ export const AD_GEMS_REWARD = 25;
 const AD_GEMS_COOLDOWN_MS = 15 * 60_000; // 15 minutes
 const FLYING_COIN_GEM_CHANCE = 1 / 10;
 const FLYING_COIN_GEMS = 2;
+// Gold each of the three post-intro gift kills pays at the least (the first attack
+// upgrade costs 120).
+const GIFT_KILL_GOLD = 50;
+// How long the explained demo loot takes to drift up to the gold counter / bag.
+export const LOOT_FLIGHT_MS = 1200;
+// The held gold goes up as this many coins, one every LOOT_COIN_GAP_MS.
+export const LOOT_COINS = 5;
+export const LOOT_COIN_GAP_MS = 280;
 // Gems for beating a stage's boss for the very first time.
 export const FIRST_CLEAR_GEMS = 50;
 
@@ -86,6 +94,13 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // which would otherwise swap the die animation to the *next* stage's boss mid-clip.
   const [defeatedStageNumber, setDefeatedStageNumber] = useState(0);
   const [stageAnnouncement, setStageAnnouncement] = useState<string | null>(null);
+  // The first gift kill's loot, held on the ground while the tutorial explains it.
+  // Stages: "gold" (coins on the ground, explained) → "goldFlying" → "items" → "itemsFlying".
+  const [heldLoot, setHeldLoot] = useState<{
+    gold: number;
+    items: { name: string; quantity: number }[];
+    stage: "gold" | "goldFlying" | "items" | "itemsFlying";
+  } | null>(null);
   const [firstClear, setFirstClear] = useState<{ key: number; stageNumber: number; bossName: string; gems: number; companions: string[] } | null>(null);
   const [upgradeMode, setUpgradeMode] = useState<UpgradeMode>(1);
   const [upgraded, setUpgraded] = useState<StatKey | null>(null);
@@ -183,13 +198,15 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           : save.state.knownRecipes;
         const recipeTutorialDone = save.state.recipeTutorialDone ?? false;
         const skillTutorialDone = save.state.skillTutorialDone ?? false;
+        // Saves already past the intro predate the upgrade tutorial — they skip it.
+        const upgradeTutorialDone = save.state.upgradeTutorialDone ?? Boolean(save.state.tutorialDone);
         // Saves from before the ingredient codex start it from whatever's in the bag now.
         const discoveredItems = save.state.discoveredItems ?? inventory.filter((item) => item.type === "food").map((item) => item.name);
         // Saves from before the cookbook have no cooked-recipe record; anything already sitting
         // in the bag as a dish was clearly cooked, so that's the starting page count.
         const cookedRecipes =
           save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
-        let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, skillTutorialDone, discoveredItems, cookedRecipes };
+        let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, skillTutorialDone, upgradeTutorialDone, discoveredItems, cookedRecipes };
         lastSeenAtRef.current = save.lastSeenAt;
         if (save.lastSeenAt) {
           const awayMs = Date.now() - save.lastSeenAt;
@@ -287,7 +304,11 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   };
 
   const { dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, exp: expBonus } = foodBuffs;
-  const handleEnemyDefeat = useCallback((goldReward: number) => {
+  const handleEnemyDefeat = useCallback((rawGold: number) => {
+    // A gift kill (right after the intro) pays at least enough for the first upgrade over
+    // the three of them, and always drops one 초록 젤리 for the recipe tutorial.
+    const gift = (state.giftKills ?? 0) > 0 && !boss;
+    const goldReward = gift ? Math.max(rawGold, GIFT_KILL_GOLD) : rawGold;
     setDefeatedBoss(boss);
     if (boss) endBossFight();
     // Killing the 25th regular mob spawns the boss directly — no manual "challenge" step.
@@ -297,7 +318,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
     // A full bag turns away whatever has no room left (no free slot, no space in its
     // last stack of 64) — those just don't drop.
-    let rolled = rollDrops(getEnemyKind(state.stageNumber), boss, {
+    const rolled = rollDrops(getEnemyKind(state.stageNumber), boss, {
       chanceBonus: (name) =>
         dropRate +
         (ITEM_CATEGORY.get(name) === "vegetable" ? vegetableDrop : 0) +
@@ -306,15 +327,15 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       bossSure: bossDropSure > 0,
       allSure: OUTFIT_SURE_DROPS[state.equippedOutfit] ?? false,
     });
-    // The first slime after the intro always leaves a 초록 젤리 ×3 — exactly one 말랑 초록
-    // 젤리's worth, which kicks off the recipe tutorial.
-    const tutorialJelly = state.tutorialDone && !state.recipeTutorialDone && !boss
-      && getEnemyKind(state.stageNumber) === "slime" && !state.inventory.some((item) => item.name === "초록 젤리");
-    if (tutorialJelly) rolled = [...rolled.filter((drop) => drop.name !== "초록 젤리"), { name: "초록 젤리", quantity: 3 }];
-    const fitted = fitItems(state.inventory, rolled, getBagCapacity(state.bagExpansions));
+    const withGift = gift ? [...rolled.filter((drop) => drop.name !== "초록 젤리"), { name: "초록 젤리", quantity: 1 }] : rolled;
+    const fitted = fitItems(state.inventory, withGift, getBagCapacity(state.bagExpansions));
     const drops = fitted.kept;
     if (fitted.overflow.length > 0) notifyBagFull(true);
-    if (drops.length > 0) {
+    // The very first gift kill's loot stays put on the ground — the battle pauses and the
+    // tutorial explains the gold, then the ingredients, sending each in as it's explained.
+    const holdLoot = gift && !state.giftLootExplained;
+    if (holdLoot) setHeldLoot({ gold: goldReward, items: drops, stage: "gold" });
+    if (drops.length > 0 && !holdLoot) {
       // One flying icon per item, staggered so a boss's pile spills out one by one.
       const events = drops
         .flatMap((drop) => Array.from({ length: drop.quantity }, () => drop.name))
@@ -358,7 +379,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience -= getExpToLevel(level);
         level += 1;
       }
-      const totalGoldEarned = previous.totalGoldEarned + goldReward;
+      const creditedGold = holdLoot ? 0 : goldReward;
+      const totalGoldEarned = previous.totalGoldEarned + creditedGold;
       const bossKills = (previous.bossKills ?? 0) + (boss ? 1 : 0);
       // Stage 3 (stageNumber 2) is the last one with content — clearing its boss loops
       // back to stage 1 instead of advancing into an unthemed stage 4.
@@ -367,11 +389,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       const highestStageNumber = Math.max(previous.highestStageNumber ?? previous.stageNumber, stageNumber);
       return {
         ...previous,
-        gold: previous.gold + goldReward,
+        gold: previous.gold + creditedGold,
+        giftKills: gift ? Math.max(0, (previous.giftKills ?? 0) - 1) : previous.giftKills,
         gems: previous.gems + (paysFirstClear ? FIRST_CLEAR_GEMS : 0),
         bossesCleared: paysFirstClear ? [...cleared, previous.stageNumber] : previous.bossesCleared,
-        inventory: addItems(previous.inventory, drops),
-        discoveredItems: discover(previous.discoveredItems, drops.map((drop) => drop.name)),
+        inventory: holdLoot ? previous.inventory : addItems(previous.inventory, drops),
+        discoveredItems: holdLoot ? previous.discoveredItems : discover(previous.discoveredItems, drops.map((drop) => drop.name)),
         kills,
         currentStage: boss ? getStageLabel(stageNumber) : previous.currentStage,
         stageNumber,
@@ -383,7 +406,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.tutorialDone, state.recipeTutorialDone, state.bossesCleared, state.highestStageNumber, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight]);
+  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -412,7 +435,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // SkillTutorial is up: reading a dialog shouldn't let swings land (or the stage
   // progress/exp it explains) change out from under the player. Gated on !boss like
   // tutorialJelly below, so it never collides with the boss-flee timer.
-  const skillTutorialActive = state.tutorialDone && !state.skillTutorialDone && isSkillUnlocked("steal", state.level) && !boss;
+  // Waits its turn behind the first-run tutorials (upgrade, recipe) so they never overlap.
+  const skillTutorialActive = state.tutorialDone && Boolean(state.recipeTutorialDone) && !state.skillTutorialDone && isSkillUnlocked("steal", state.level) && !boss;
 
   const battle = useAutoBattle({
     // Food buffs and the equipped companion's bonus apply on top of the upgraded stats.
@@ -444,9 +468,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // several kills) you never saw happen. externallyPaused covers the other one
     // (ComicViewer) — GameScreen owns that state (it's presentation/navigation, not game
     // state), so it passes it in rather than this hook reaching out to know about it.
-    paused: skillTutorialActive || bossRetryAvailable || firstClear !== null || externallyPaused,
+    // The very first fight starts from the tutorial: nothing happens during the story and
+    // intro, and none while the first gift kill's loot is being explained.
+    paused: skillTutorialActive || bossRetryAvailable || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null,
     autoStunned: now < bossStunnedUntil,
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
+    instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
   });
 
   // The boss fight's clock: once bossTimeLimitMs elapses without a kill, it flees — back to
@@ -975,6 +1002,39 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     upgradeStat,
     claimQuest,
     catchFlyingCoin,
+    heldLoot,
+    // Sends the held gold slowly up to the counter (credited as it lands), then — on the next
+    // call — the ingredients into the bag, after which the intro carries on.
+    collectHeldGold: () => {
+      if (!heldLoot || heldLoot.stage !== "gold") return;
+      setHeldLoot({ ...heldLoot, stage: "goldFlying" });
+      // Credited coin by coin as each one lands, so the counter visibly stacks up.
+      const shares = Array.from({ length: LOOT_COINS }, (_, index) =>
+        Math.floor((heldLoot.gold * (index + 1)) / LOOT_COINS) - Math.floor((heldLoot.gold * index) / LOOT_COINS),
+      );
+      shares.forEach((share, index) => {
+        setTimeout(() => {
+          setState((previous) => ({ ...previous, gold: previous.gold + share, totalGoldEarned: previous.totalGoldEarned + share }));
+        }, index * LOOT_COIN_GAP_MS + LOOT_FLIGHT_MS);
+      });
+      setTimeout(() => {
+        setHeldLoot((current) => (current ? { ...current, stage: "items" } : current));
+      }, (LOOT_COINS - 1) * LOOT_COIN_GAP_MS + LOOT_FLIGHT_MS + 400);
+    },
+    collectHeldItems: () => {
+      if (!heldLoot || heldLoot.stage !== "items") return;
+      const items = heldLoot.items;
+      setHeldLoot({ ...heldLoot, stage: "itemsFlying" });
+      setTimeout(() => {
+        setHeldLoot(null);
+        setState((previous) => ({
+          ...previous,
+          inventory: addItems(previous.inventory, items),
+          discoveredItems: discover(previous.discoveredItems, items.map((item) => item.name)),
+          giftLootExplained: true,
+        }));
+      }, LOOT_FLIGHT_MS + 300);
+    },
     expandBag,
     unlockBuffSlot,
     purchaseOutfit,

@@ -8,7 +8,9 @@ export const initialState: GameState = {
   tutorialDone: false,
   recipeTutorialDone: false,
   skillTutorialDone: false,
-  gold: 1250,
+  upgradeTutorialDone: false,
+  // Nothing to start with — the post-intro gift pays for the first upgrade.
+  gold: 0,
   gems: 10,
   level: 1,
   experience: 32,

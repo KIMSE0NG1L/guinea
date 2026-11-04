@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "./theme";
-import { useGameState } from "./state/useGameState";
+import { LOOT_COIN_GAP_MS, LOOT_COINS, LOOT_FLIGHT_MS, useGameState } from "./state/useGameState";
 import { GameHeader } from "./components/GameHeader";
 import { BottomNavigation } from "./components/BottomNavigation";
 import { QuestModal } from "./components/QuestModal";
@@ -34,11 +34,21 @@ import { COMIC_ON_FIRST_CLEAR, type ComicId } from "./state/comics";
 import { ComicsScreen } from "./screens/ComicsScreen";
 import { measureTarget } from "./components/tutorialTargets";
 import { getCookingPots, getPotsUnlocked } from "./state/cooking";
-import { canCook, getKnownRecipes, RECIPES } from "./state/recipes";
+import { canCook, getKnownRecipes, RECIPES, ITEM_IMAGES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
 import { BGM_GROUP, getEnemyKind } from "./state/stages";
 import { setBgmTrack } from "./sound";
+import { UpgradeTutorial } from "./components/UpgradeTutorial";
+import { getStatLevel, getUpgradeCost } from "./state/gameMath";
+import { MiniGuide } from "./components/MiniGuide";
+import { uiImages } from "./assets";
 import type { Tab } from "./types";
+
+// Kills on the post-intro gift: one-hit kills that pay for the first upgrade and the
+// recipe tutorial's 초록 젤리.
+const GIFT_KILLS = 3;
+// A beat to look at the stage between closing the intro and the gift kicking in.
+const GIFT_PAUSE_MS = 2000;
 
 export function GameScreen() {
   // Declared ahead of useGameState so it can tell that hook to pause battle while a comic
@@ -65,15 +75,35 @@ export function GameScreen() {
 
   const onSelectTab = (selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab }));
 
-  // The recipe tutorial opens once the first 초록 젤리 is in the bag — after a beat, so the
-  // drop gets to finish flying into the bag button first.
-  const hasJelly = state.inventory.some((item) => item.name === "초록 젤리");
+  // The recipe tutorial opens after a beat (so the last drop finishes flying into the bag)
+  // once the player has gathered 3 초록 젤리 from slimes — exactly one 말랑 초록 젤리's
+  // worth, so the tutorial ends in a dish they can actually cook.
+  const hasJelly = (state.inventory.find((item) => item.name === "초록 젤리")?.quantity ?? 0) >= 3;
   const [recipeTutorialArmed, setRecipeTutorialArmed] = useState(false);
+  const recipeTutorialDue = hasJelly && Boolean(state.upgradeTutorialDone) && !state.recipeTutorialDone;
   useEffect(() => {
-    if (!hasJelly || recipeTutorialArmed) return;
-    const timer = setTimeout(() => setRecipeTutorialArmed(true), 1600);
+    if (!recipeTutorialDue || recipeTutorialArmed) return;
+    const timer = setTimeout(() => {
+      setRecipeTutorialArmed(true);
+      // On the house: the first recipe's price in gold (there's no starting gold) and one
+      // gem to finish the dish on the spot.
+      setState((previous) => {
+        if (previous.recipeGiftGiven) return previous;
+        const price = RECIPES.find((recipe) => recipe.id === "green-jelly")?.price ?? 0;
+        return { ...previous, gold: previous.gold + price, gems: previous.gems + 1, recipeGiftGiven: true };
+      });
+    }, 1600);
     return () => clearTimeout(timer);
-  }, [hasJelly, recipeTutorialArmed]);
+  }, [recipeTutorialDue, recipeTutorialArmed, setState]);
+
+  // The upgrade tutorial follows the gift kills, after a beat for the last gold to land.
+  const giftDone = Boolean(state.tutorialDone) && (state.giftKills ?? 0) === 0;
+  const [upgradeTutorialArmed, setUpgradeTutorialArmed] = useState(false);
+  useEffect(() => {
+    if (!giftDone || upgradeTutorialArmed) return;
+    const timer = setTimeout(() => setUpgradeTutorialArmed(true), 1500);
+    return () => clearTimeout(timer);
+  }, [giftDone, upgradeTutorialArmed]);
 
   // The skill tutorial opens once 훔치기 unlocks — after a beat, so it doesn't collide with
   // the level-up burst and "새 스킬 해금!" toast (held 2800ms, see useGameState).
@@ -309,11 +339,14 @@ export function GameScreen() {
           }}
           scrollEventThrottle={32}
           style={styles.content}
-          contentContainerStyle={styles.contentContainer}
+          // The village runs edge to edge, down under the nav bar's rim (no padding gap).
+          contentContainerStyle={[styles.contentContainer, state.selectedTab === "companions" && styles.contentFlush]}
         >
           {renderContent()}
         </ScrollView>
-        <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
+        <View style={state.selectedTab === "companions" && styles.navOverlap}>
+          <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
+        </View>
         {questOpen && (
           <QuestModal state={state} gems={state.gems} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
         )}
@@ -357,15 +390,51 @@ export function GameScreen() {
           />
         )}
         {game.loaded && !state.tutorialDone && openingSeen && !game.offlineSummary && (
-          <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true }))} />
+          <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true, giftKills: GIFT_KILLS, giftStartsAt: Date.now() + GIFT_PAUSE_MS }))} />
         )}
-        {game.loaded && state.tutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && (
+        {/* First gift kill (after the intro): the loot sits frozen on the stage while 모험기니
+            explains it — gold first, then ingredients — and each tap sends that part flying
+            where it belongs. No arrows; the flight itself shows where it goes. */}
+        {game.heldLoot && (game.heldLoot.stage === "gold" || game.heldLoot.stage === "items") && state.selectedTab === "battle" && (
+          <MiniGuide
+            key={game.heldLoot.stage}
+            line={
+              game.heldLoot.stage === "gold"
+                ? "쓰러뜨렸다! 몬스터가 **골드**를 떨어뜨렸어.\n눌러서 **골드 칸**에 담아 보자!"
+                : "**초록 젤리**도 떨어졌어! 이런 **재료**는\n**가방**에 모아 뒀다가 요리에 써."
+            }
+            onTap={() => {
+              const loot = game.heldLoot;
+              if (!loot) return;
+              const gold = loot.stage === "gold";
+              // Slow, deliberate flights so the player can follow where it goes.
+              Promise.all([measureTarget(gold ? "loot-gold" : "loot-items"), measureTarget(gold ? "header-gold" : "bag")]).then(([from, to]) => {
+                if (from && to) {
+                  // Coins go up one at a time (each credited as it lands); ingredients follow suit.
+                  const images = gold ? Array.from({ length: LOOT_COINS }, () => uiImages.coin) : loot.items.map((item) => ITEM_IMAGES[item.name]);
+                  images.forEach((image, index) => launchFlight({ image, from, to, delay: index * LOOT_COIN_GAP_MS, size: gold ? 26 : 34, duration: LOOT_FLIGHT_MS, arc: 70 }));
+                }
+              });
+              if (gold) game.collectHeldGold();
+              else game.collectHeldItems();
+            }}
+          />
+        )}
+        {game.loaded && state.tutorialDone && !state.upgradeTutorialDone && upgradeTutorialArmed && !game.offlineSummary && state.selectedTab === "battle" && (
+          <UpgradeTutorial
+            attackUpgrades={state.attackUpgrades}
+            canAfford={state.gold >= getUpgradeCost("attack", getStatLevel(state, "attack"))}
+            onFinish={() => setState((previous) => ({ ...previous, upgradeTutorialDone: true }))}
+          />
+        )}
+        {game.loaded && state.tutorialDone && state.upgradeTutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && (
           <RecipeTutorial
             tab={state.selectedTab}
             knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
             canCookFirst={canCook(state.inventory, RECIPES.find((recipe) => recipe.id === "green-jelly")!)}
             dishesCooked={state.dishesCooked ?? 0}
             firstDishPot={cookingPots.findIndex((pot) => pot?.recipeId === "green-jelly")}
+            firstDishReady={cookingPots.some((pot) => pot?.recipeId === "green-jelly" && pot.readyAt <= game.now)}
             dishesEaten={state.dishesEaten ?? 0}
             freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot, index) => index < (state.buffSlotsUnlocked ?? 1) && (!slot || slot.expiresAt <= game.now)))}
             onGoTo={onSelectTab}
@@ -405,4 +474,7 @@ const styles = StyleSheet.create({
   frame: { flex: 1, maxWidth: 430, width: "100%", alignSelf: "center", backgroundColor: colors.paper },
   content: { flex: 1 },
   contentContainer: { flexGrow: 1, paddingBottom: 12 },
+  contentFlush: { paddingBottom: 0 },
+  // Pulled up over the bottom of the page so the map shows behind the nav's rounded rim.
+  navOverlap: { marginTop: -18 },
 });

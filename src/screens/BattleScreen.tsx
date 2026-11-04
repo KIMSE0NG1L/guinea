@@ -94,6 +94,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
         bagFull={slotsUsed(state.inventory) >= getBagCapacity(state.bagExpansions)}
         onCatchFlyingCoin={game.catchFlyingCoin}
+        giftKills={state.giftKills ?? 0}
+        heldLoot={game.heldLoot}
         skillBar={
           <SkillSlot
             skillId={state.equippedSkill ?? null}

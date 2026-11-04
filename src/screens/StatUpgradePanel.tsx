@@ -135,6 +135,7 @@ function StatRow({
         <GameButton
           variant="brown"
           disabled={atCap || quote.levels === 0}
+          tutorialId={`upgrade-${key}`}
           onPress={buy}
           onPressIn={hold.onPressIn}
           onPressOut={hold.onPressOut}

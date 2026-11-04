@@ -4,29 +4,29 @@ import { ARROW_H, ARROW_W, GuideArrow } from "./GuideArrow";
 import { measureTarget, type TargetRect } from "./tutorialTargets";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { food, frameKit, icons, navIcons, shopKit, statIcons } from "../assets";
+import { frameKit, icons, navIcons, shopKit } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { CharacterSprite } from "./CharacterSprite";
 import { GameButton } from "./GameButton";
 
 // `**word**` in a line is drawn in red to point out the thing being explained.
+// The intro only sets the scene — everything else is taught in context, as it happens:
+// loot right after the first kill, upgrades once there's gold, the stage bar / boss /
+// quests once the stage is under way, cooking once there are ingredients.
 const STEPS: { line: string; icon?: number }[] = [
   { line: "안녕! 나는 **모험기니**야.\n건초만 먹기 지겨워서\n맛있는 끼니를 찾아 모험 중이야!" },
-  { line: "몬스터는 내가 **자동으로** 공격해.\n쓰러뜨리면 **골드**랑 **재료**를\n떨어뜨려!", icon: navIcons.battle },
-  { line: "스테이지 바가 가득 차면\n**보스**가 나타나. 보스를 이기면\n다음 지역으로 갈 수 있어!", icon: icons.trophy },
-  { line: "모은 골드로 아래 **능력치**를\n강화해 줘. 강해질수록\n더 멀리 모험할 수 있어.", icon: statIcons.attack },
-  { line: "재료가 모이면 **냄비**를 눌러\n요리해! 요리를 **음식 슬롯**에\n넣으면 버프가 생겨.", icon: food.cookPotTrim },
-  { line: "**퀘스트 메달**에 빨간 점이 뜨면\n보상을 받을 수 있어.\n자, 이제 출발하자!", icon: icons.questMedal },
+  { line: "몬스터는 내가 **자동으로** 공격해.\n어떻게 싸우는지는 직접 보면서\n하나씩 알려 줄게!", icon: navIcons.battle },
+  { line: "자, 첫 **전투**야! 이건 내가 널 위해\n준비한 **선물**이야.\n잠깐 엄청 강해질 거야!", icon: icons.chest },
 ];
 
 const SPRITE_SIZE = 132;
 
-function RichLine({ text }: { text: string }) {
+export function RichLine({ text, style }: { text: string; style?: object }) {
   const parts = text.split(/\*\*(.+?)\*\*/);
   return (
-    <Text style={styles.line}>
+    <Text style={[styles.line, style]}>
       {parts.map((part, index) =>
         index % 2 === 1 ? (
           <Text key={index} style={styles.emphasis}>{part}</Text>
@@ -54,7 +54,7 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
       dots={{ count: STEPS.length, index: step }}
       onTap={last ? undefined : next}
       onSkip={last ? undefined : onFinish}
-      action={last ? { label: "출발!", onPress: onFinish } : undefined}
+      action={last ? { label: "선물 받기!", onPress: onFinish } : undefined}
     />
   );
 }
@@ -72,6 +72,7 @@ export function GuideScene({
   onSkip,
   action,
   targetId,
+  showcase = false,
 }: {
   stepKey: number | string;
   line: string;
@@ -81,6 +82,9 @@ export function GuideScene({
   onSkip?: () => void;
   action?: { label: string; onPress: () => void; accessibilityLabel?: string };
   targetId?: string;
+  // With targetId: just show the target off — no arrow, it sparkles in its hole in the
+  // dim, and a tap anywhere continues (onTap) instead of pressing it.
+  showcase?: boolean;
 }) {
   const pop = useSharedValue(0);
   const blink = useSharedValue(1);
@@ -144,7 +148,7 @@ export function GuideScene({
     >
       {targetId ? (
         hole ? (
-          <Spotlight hole={hole} size={overlaySize} />
+          <Spotlight hole={hole} size={overlaySize} showcase={showcase} onTap={showcase ? onTap : undefined} />
         ) : (
           <View style={styles.scrim} />
         )
@@ -192,7 +196,7 @@ export function GuideScene({
                 <GameButton variant="green" onPress={action.onPress} style={styles.start} textStyle={styles.startText} accessibilityLabel={action.accessibilityLabel}>
                   {action.label}
                 </GameButton>
-              ) : targetId ? (
+              ) : targetId && !showcase ? (
                 <Animated.Text style={[styles.hint, hintStyle]}>화살표를 눌러 봐!</Animated.Text>
               ) : (
                 onTap && <Animated.Text style={[styles.hint, hintStyle]}>터치해서 계속 ▸</Animated.Text>
@@ -226,7 +230,17 @@ const DIM_COLOR = "rgba(20, 16, 12, 0.6)";
 
 // Four dim panels around the target leave it uncovered (and pressable), with a pulsing
 // gold ring around it and a bouncing arrow pointing in from above (or below, near the top).
-function Spotlight({ hole, size }: { hole: TargetRect; size: { width: number; height: number } }) {
+function Spotlight({
+  hole,
+  size,
+  showcase = false,
+  onTap,
+}: {
+  hole: TargetRect;
+  size: { width: number; height: number };
+  showcase?: boolean;
+  onTap?: () => void;
+}) {
   const bounce = useSharedValue(0);
   useEffect(() => {
     bounce.value = withRepeat(withSequence(withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 380, easing: Easing.in(Easing.quad) })), -1);
@@ -253,16 +267,62 @@ function Spotlight({ hole, size }: { hole: TargetRect; size: { width: number; he
       <Svg width={size.width} height={size.height} style={styles.dimShape} pointerEvents="none">
         <Path d={dimPath} fill={DIM_COLOR} fillRule="evenodd" />
       </Svg>
-      <View style={[styles.blocker, { left: 0, top: 0, width: size.width, height: Math.max(0, top) }]} />
-      <View style={[styles.blocker, { left: 0, top: bottom, width: size.width, height: Math.max(0, size.height - bottom) }]} />
-      <View style={[styles.blocker, { left: 0, top, width: Math.max(0, left), height: bottom - top }]} />
-      <View style={[styles.blocker, { left: right, top, width: Math.max(0, size.width - right), height: bottom - top }]} />
+      {showcase ? (
+        // Showing off, not asking for a press: the whole screen (target included) continues.
+        <Pressable style={[styles.blocker, { left: 0, top: 0, width: size.width, height: size.height }]} onPress={onTap} accessibilityRole="button" accessibilityLabel="다음 설명" />
+      ) : (
+        <>
+          <View style={[styles.blocker, { left: 0, top: 0, width: size.width, height: Math.max(0, top) }]} />
+          <View style={[styles.blocker, { left: 0, top: bottom, width: size.width, height: Math.max(0, size.height - bottom) }]} />
+          <View style={[styles.blocker, { left: 0, top, width: Math.max(0, left), height: bottom - top }]} />
+          <View style={[styles.blocker, { left: right, top, width: Math.max(0, size.width - right), height: bottom - top }]} />
+        </>
+      )}
       <Animated.View
         pointerEvents="none"
         style={[styles.ring, { left: ring.left, top: ring.top, width: ring.right - ring.left, height: ring.bottom - ring.top, borderRadius: r }, ringStyle]}
       />
-      <GuideArrow direction={below ? "up" : "down"} style={{ left: hole.x + hole.width / 2 - ARROW_W / 2, top: below ? bottom + 4 : top - ARROW_H - 4 }} />
+      {showcase ? (
+        <Sparkles box={{ left: ring.left, top: ring.top, width: ring.right - ring.left, height: ring.bottom - ring.top }} />
+      ) : (
+        <GuideArrow direction={below ? "up" : "down"} style={{ left: hole.x + hole.width / 2 - ARROW_W / 2, top: below ? bottom + 4 : top - ARROW_H - 4 }} />
+      )}
     </>
+  );
+}
+
+// Little four-point stars twinkling around a showcased target, each on its own beat.
+const SPARKLE_SPOTS = [
+  { x: -0.08, y: 0.1, size: 18, delay: 0 },
+  { x: 0.92, y: -0.06, size: 22, delay: 250 },
+  { x: 1.02, y: 0.78, size: 16, delay: 500 },
+  { x: 0.1, y: 0.95, size: 20, delay: 750 },
+  { x: 0.55, y: -0.12, size: 14, delay: 380 },
+];
+
+function Sparkles({ box }: { box: { left: number; top: number; width: number; height: number } }) {
+  return (
+    <>
+      {SPARKLE_SPOTS.map((spot, index) => (
+        <Sparkle key={index} delay={spot.delay} size={spot.size} left={box.left + box.width * spot.x - spot.size / 2} top={box.top + box.height * spot.y - spot.size / 2} />
+      ))}
+    </>
+  );
+}
+
+function Sparkle({ delay, size, left, top }: { delay: number; size: number; left: number; top: number }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withDelay(delay, withRepeat(withSequence(withTiming(1, { duration: 420 }), withTiming(0, { duration: 520 })), -1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: t.value, transform: [{ scale: 0.4 + t.value * 0.8 }, { rotate: `${t.value * 45}deg` }] }));
+  return (
+    <Animated.View pointerEvents="none" style={[{ position: "absolute", left, top, width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 20 20">
+        <Path d="M10 0 L12.2 7.8 L20 10 L12.2 12.2 L10 20 L7.8 12.2 L0 10 L7.8 7.8 Z" fill="#fff6b0" stroke="#e8b830" strokeWidth={1} />
+      </Svg>
+    </Animated.View>
   );
 }
 

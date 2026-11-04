@@ -11,6 +11,7 @@ import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
 import { ProgressBar } from "../components/ProgressBar";
 import { IconCaption } from "../components/IconCaption";
+import { tutorialRef } from "../components/tutorialTargets";
 import type { GameState } from "../types";
 
 type InventoryItem = GameState["inventory"][number];
@@ -143,6 +144,8 @@ export function InventoryScreen({
             <Panel slice={item ? frameKit.squareGold : frameKit.squareWood} scale={0.5} style={styles.cell}>
               {item && (
                 <>
+                  {/* The first stack of each item can be pointed at by the tutorial. */}
+                  {item.key.endsWith("-0") && <View ref={tutorialRef(`bag-item-${item.name}`)} style={styles.tutorialAnchor} pointerEvents="none" />}
                   <ItemShape name={item.name} />
                   <Text style={styles.cellName} numberOfLines={1}>{item.name}</Text>
                   <View style={styles.cellQty}>
@@ -202,6 +205,7 @@ function ItemShape({ name }: { name: string }) {
 }
 
 const styles = StyleSheet.create({
+  tutorialAnchor: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   newBadge: { position: "absolute", top: 3, left: 3, paddingHorizontal: 4, borderRadius: 5, backgroundColor: colors.red },
   newText: { fontSize: 7, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   newStar: { position: "absolute", top: 2, right: 4, width: 12, height: 12 },

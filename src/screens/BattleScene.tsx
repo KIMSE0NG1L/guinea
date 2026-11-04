@@ -3,7 +3,7 @@ import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from "react
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { effects, food, icons, images, kitImages, FRAME_SIZE } from "../assets";
+import { effects, food, icons, images, kitImages, FRAME_SIZE, uiImages } from "../assets";
 import { StrokedText } from "../components/StrokedText";
 import { CharacterSprite } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
@@ -235,6 +235,8 @@ export function BattleScene({
   onOpenBag,
   bagFull,
   onCatchFlyingCoin,
+  giftKills = 0,
+  heldLoot = null,
   skillBar,
   goldEvents,
   executeId: rawExecuteId,
@@ -284,6 +286,10 @@ export function BattleScene({
   onOpenBag: () => void;
   bagFull: boolean;
   onCatchFlyingCoin: () => { gold: number; gems: number };
+  // One-hit kills left on the post-intro gift (shown as a banner while any remain).
+  giftKills?: number;
+  // The first gift kill's loot, frozen on the ground for the tutorial to explain.
+  heldLoot?: { gold: number; items: { name: string; quantity: number }[]; stage: "gold" | "goldFlying" | "items" | "itemsFlying" } | null;
   skillBar: ReactNode;
   // Gold scattered by the Steal skill, one popup per hit.
   goldEvents: { id: number; amount: number }[];
@@ -485,6 +491,13 @@ export function BattleScene({
           </LinearGradient>
 
           <FlyingCoin onCatch={onCatchFlyingCoin} />
+          {giftKills > 0 && (
+            <View style={styles.giftBanner} pointerEvents="none">
+              <StrokedText style={styles.giftText} strokeColor={colors.line} strokeWidth={2}>
+                {`🎁 선물 버프! 한 방에 쓰러뜨리기 × ${giftKills}`}
+              </StrokedText>
+            </View>
+          )}
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} />}
           {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
@@ -529,7 +542,7 @@ export function BattleScene({
               {damageEvents.map((event) => (
                 <DamageNumber key={event.id} amount={event.amount} critical={event.critical} missed={event.missed} />
               ))}
-              {phase === "defeated" && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
+              {phase === "defeated" && !heldLoot && <CoinPopup key={`coin-${enemyId}`} amount={lastGoldReward} />}
               {goldEvents.map((event) => (
                 <CoinPopup key={`steal-${event.id}`} amount={event.amount} />
               ))}
@@ -655,7 +668,16 @@ export function BattleScene({
                 to={dropTo}
               />
             ))}
-            {phase === "defeated" && [0, 1, 2].map((index) => (
+            {heldLoot && fightersWidth > 0 && (
+              <HeldLoot
+                left={(playerCenterLeft + enemyCenterLeft) / 2}
+                bottom={GROUND_BOTTOM}
+                showGold={heldLoot.stage === "gold"}
+                showItems={heldLoot.stage === "items"}
+                items={heldLoot.items.map((item) => item.name)}
+              />
+            )}
+            {phase === "defeated" && !heldLoot && [0, 1, 2].map((index) => (
               <GoldFly key={`gold-${enemyId}-${index}`} delay={index * 70} from={goldFlyFrom} />
             ))}
           </View>
@@ -679,6 +701,44 @@ function UnlockToast({ level }: { level: number }) {
           {line}
         </StrokedText>
       ))}
+    </View>
+  );
+}
+
+// The frozen first-kill loot: a little coin pile and the dropped ingredients sitting on the
+// ground, bobbing and sparkling so they read as "look here". Tagged for the tutorial's
+// arrows and fly-in starting points.
+function HeldLoot({ left, bottom, showGold, showItems, items }: { left: number; bottom: number; showGold: boolean; showItems: boolean; items: string[] }) {
+  const bob = useSharedValue(0);
+  useEffect(() => {
+    bob.value = withRepeat(withSequence(withTiming(1, { duration: 520 }), withTiming(0, { duration: 520 })), -1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.value * 5 }] }));
+  const glowStyle = useAnimatedStyle(() => ({ opacity: 0.35 + bob.value * 0.45, transform: [{ scale: 0.9 + bob.value * 0.2 }] }));
+  return (
+    <View style={[styles.heldLoot, { left: left - 70, bottom }]} pointerEvents="none">
+      {showGold && (
+        <View ref={tutorialRef("loot-gold")} style={styles.heldSpot}>
+          <Animated.View style={[styles.heldGlow, glowStyle]} />
+          <Animated.View style={bobStyle}>
+            <Image source={uiImages.coin} style={[styles.heldCoin, { left: 0, top: 10 }]} />
+            <Image source={uiImages.coin} style={[styles.heldCoin, { left: 16, top: 10 }]} />
+            <Image source={uiImages.coin} style={[styles.heldCoin, { left: 8, top: 0 }]} />
+          </Animated.View>
+        </View>
+      )}
+      {/* Ingredients only come out once the gold has been explained and sent off. */}
+      {showItems && (
+        <View ref={tutorialRef("loot-items")} style={styles.heldSpot}>
+          <Animated.View style={[styles.heldGlow, glowStyle]} />
+          <Animated.View style={[styles.heldItems, bobStyle]}>
+            {items.map((name, index) => (
+              <Image key={`${name}-${index}`} source={ITEM_IMAGES[name]} style={styles.heldItem} />
+            ))}
+          </Animated.View>
+        </View>
+      )}
     </View>
   );
 }
@@ -1064,6 +1124,26 @@ const styles = StyleSheet.create({
   questPressed: { transform: [{ scale: 0.92 }] },
   questIcon: { width: 38, height: 38 },
   // Just a dot — whether there's something to claim, not how many.
+  heldLoot: { position: "absolute", width: 140, flexDirection: "row", justifyContent: "center", alignItems: "flex-end", gap: 18, zIndex: 13 },
+  heldSpot: { width: 46, height: 46, alignItems: "center", justifyContent: "center" },
+  heldGlow: { position: "absolute", width: 52, height: 52, borderRadius: 26, backgroundColor: "#fff3a0" },
+  heldCoin: { position: "absolute", width: 22, height: 22 },
+  heldItems: { flexDirection: "row", gap: 2 },
+  heldItem: { width: 32, height: 32 },
+  giftBanner: {
+    position: "absolute",
+    top: 62,
+    left: 24,
+    right: 24,
+    alignItems: "center",
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: "#14100cb3",
+    borderWidth: 2,
+    borderColor: "#ffd34d",
+    zIndex: 12,
+  },
+  giftText: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
   unlockToast: {
     position: "absolute",
     top: 62,

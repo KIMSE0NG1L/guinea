@@ -65,6 +65,7 @@ export function useAutoBattle({
   paused = false,
   autoStunned = false,
   reviveHpRatio,
+  instantKill = false,
 }: {
   attack: number;
   criticalDamage: number;
@@ -104,8 +105,8 @@ export function useAutoBattle({
   equippedSkill: SkillId | null;
   // Live clock, ticked by the caller — drives isAutoBattle off the 난타 skill's active window.
   now: number;
-  // Freezes the fight entirely (no auto swings, no manual taps) — e.g. while SkillTutorial
-  // has the player reading instead of actually fighting.
+  // Freezes the fight entirely (no auto swings, no manual taps) — e.g. while a tutorial has
+  // the player reading instead of fighting, or during the opening story.
   paused?: boolean;
   // A boss skill stopped the player's auto-battle — unlike `paused`, manual taps still work
   // (same fallback path as the 난타/훔치기/집중 window: isAutoBattle false opens tapping).
@@ -115,6 +116,8 @@ export function useAutoBattle({
   // of its max hp; every hit after that kills it normally. Resets with each fresh enemy
   // (resetEnemy), so a re-fight gets its own revive again.
   reviveHpRatio?: number;
+  // The post-intro gift: every strike is a one-hit kill while this is on.
+  instantKill?: boolean;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
   const [phase, setPhase] = useState<BattlePhase>("idle");
@@ -183,6 +186,7 @@ export function useAutoBattle({
   const onBonusGoldRef = useRef(onBonusGold);
   const onMissRef = useRef(onMiss);
   const equippedSkillRef = useRef(equippedSkill);
+  const instantKillRef = useRef(instantKill);
   const skillTimersRef = useRef(INITIAL_SKILL_TIMERS);
   // Pose timers for manual taps — cut short by a kill or by switching to auto.
   const manualTimersRef = useRef<Timer[]>([]);
@@ -252,6 +256,7 @@ export function useAutoBattle({
     onBonusGoldRef.current = onBonusGold;
     onMissRef.current = onMiss;
     equippedSkillRef.current = equippedSkill;
+    instantKillRef.current = instantKill;
     phaseRef.current = phase;
   });
 
@@ -331,6 +336,8 @@ export function useAutoBattle({
   // entirely and deals no damage.
   const rollAttack = useCallback(() => {
     const now = Date.now();
+    // Gift strikes always land, as a crit big enough to fell anything in one go.
+    if (instantKillRef.current) return { isCritical: true, damage: maxHpRef.current * 10, missed: false, firstStrike: false };
     const missed = Math.random() * 100 < missChanceRef.current;
     if (missed) return { isCritical: false, damage: 0, missed: true, firstStrike: false };
     const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS * skillPowerRef.current : 1;
@@ -355,7 +362,7 @@ export function useAutoBattle({
   );
 
   useEffect(() => {
-    if (!isAutoBattle) return;
+    if (!isAutoBattle || paused) return;
 
     let active = true;
     const timers: Timer[] = [];
@@ -428,7 +435,7 @@ export function useAutoBattle({
         setPhase("idle");
       }
     };
-  }, [isAutoBattle, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
+  }, [isAutoBattle, paused, dealDamage, pushMissEvent, rollAttack, rollStrikes]);
 
   const manualAttack = useCallback(() => {
     if (paused || isAutoBattle) return;

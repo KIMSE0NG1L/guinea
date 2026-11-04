@@ -7,7 +7,7 @@ import type { Tab } from "../types";
 const FIRST_RECIPE = "green-jelly";
 const STEPS = 9;
 
-// Starts the moment the first 초록 젤리 lands in the bag. 모험기니 walks the player from the
+// Starts once 3 초록 젤리 have been gathered from slimes. 모험기니 walks the player from the
 // bag to the chef, has them buy 말랑 초록 젤리, cook it and eat it into a food slot.
 // Wherever a button has to be pressed, the guide points an arrow at the real one and waits;
 // pure explanations move the game to the page they describe.
@@ -21,6 +21,7 @@ export function RecipeTutorial({
   canCookFirst,
   dishesCooked,
   firstDishPot,
+  firstDishReady,
   dishesEaten,
   freeSlotIndex,
   onGoTo,
@@ -32,6 +33,8 @@ export function RecipeTutorial({
   dishesCooked: number;
   // Which kitchen pot the first dish is simmering in (-1 = none).
   firstDishPot: number;
+  // Whether that dish is done and waiting to be taken out.
+  firstDishReady: boolean;
   dishesEaten: number;
   freeSlotIndex: number;
   onGoTo: (tab: Tab) => void;
@@ -71,8 +74,15 @@ export function RecipeTutorial({
   // Checked before canCookFirst below — starting the dish used the jelly up, which would
   // otherwise read as "not enough jelly".
   if (firstDishPot >= 0) {
+    if (!firstDishReady) {
+      return scene(5, {
+        line: "보글보글 익는 중!\n선물로 준 **보석 1개**로\n바로 완성해 보자!",
+        icon: food.cookPotTrim,
+        targetId: `rush-pot-${firstDishPot}`,
+      });
+    }
     return scene(5, {
-      line: "보글보글 익는 중!\n다 되면 **냄비**를 눌러서\n완성된 요리를 받아.",
+      line: "다 됐다! **냄비**를 눌러서\n완성된 요리를 받아.",
       icon: food.cookPotTrim,
       targetId: `cook-pot-${firstDishPot}`,
     });
@@ -100,7 +110,7 @@ export function RecipeTutorial({
   }
   if (tab === "recipes") {
     return scene(3, {
-      line: `**${recipe.name}** 레시피를\n배워 보자! 초록 젤리 3개면\n만들 수 있어.`,
+      line: `**${recipe.name}** 레시피를\n배워 보자! 레시피 값은\n내가 **골드**로 챙겨 줬어.`,
       icon: recipe.image,
       targetId: `learn-${FIRST_RECIPE}`,
     });
@@ -114,13 +124,15 @@ export function RecipeTutorial({
   }
   if (tab === "inventory") {
     return scene(1, {
-      line: "슬라임이 떨어뜨린 **초록 젤리**야.\n이걸로 요리를 할 수 있는데,\n먼저 **레시피**가 필요해.",
+      line: "슬라임한테 모은 **초록 젤리**야.\n이걸로 요리를 할 수 있는데,\n먼저 **레시피**가 필요해.",
       icon: food.greenJelly,
+      targetId: "bag-item-초록 젤리",
+      showcase: true,
       onTap: () => onGoTo("kitchen"),
     });
   }
   return scene(0, {
-    line: "가방에 **초록 젤리**가 생겼어!\n**가방**을 열어 볼까?",
+    line: "**초록 젤리**를 3개나 모았어!\n**가방**을 열어 볼까?",
     icon: food.greenJelly,
     targetId: "bag",
   });

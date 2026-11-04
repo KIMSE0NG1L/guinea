@@ -84,6 +84,7 @@ export function CookingPots({
                 now={now}
                 rushCost={applyDiscount(getRushCost(pot.readyAt - now), rushDiscount)}
                 gems={gems}
+                tutorialId={`rush-pot-${index}`}
                 onRush={() => onRush(index)}
               />
             );
@@ -199,6 +200,7 @@ function SimmeringPot({
   recipe,
   now,
   rushCost,
+  tutorialId,
   gems,
   onRush,
 }: {
@@ -206,6 +208,7 @@ function SimmeringPot({
   recipe: Recipe;
   now: number;
   rushCost: number;
+  tutorialId?: string;
   gems: number;
   onRush: () => void;
 }) {
@@ -293,6 +296,7 @@ function SimmeringPot({
           setRushStart(Date.now());
         }}
         accessibilityLabel={`보석 ${rushCost}개로 ${recipe.name} 바로 완성`}
+        tutorialId={tutorialId}
         style={styles.rushButton}
       >
         <View style={styles.costContent}>

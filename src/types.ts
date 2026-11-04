@@ -52,6 +52,18 @@ export interface GameState {
   recipeTutorialDone?: boolean;
   // Set once the follow-up tutorial that has the player equip and cast their first skill is done.
   skillTutorialDone?: boolean;
+  // Kills left on the post-intro "선물" — each one is a one-hit kill with a sure 초록 젤리
+  // and enough gold for the first upgrade. Missing on older saves = none.
+  giftKills?: number;
+  // When the gift's one-hit kills kick in (epoch ms) — a short pause after the intro so the
+  // player gets to look at the stage first.
+  giftStartsAt?: number;
+  // The first gift kill's loot was frozen on the stage and explained (gold, then ingredients).
+  giftLootExplained?: boolean;
+  // The stat-upgrade tutorial that runs between the gift and the recipe tutorial.
+  upgradeTutorialDone?: boolean;
+  // The recipe tutorial's free gold (for the recipe) and gem (to rush the dish) were paid.
+  recipeGiftGiven?: boolean;
   // How many food slots are open (1–3); missing on older saves = 1.
   buffSlotsUnlocked?: number;
   buffSlots?: ({ recipeId: string; expiresAt: number; durationMs: number } | null)[];
