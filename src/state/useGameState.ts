@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
+import { ATTENDANCE_REWARDS, getAttendance, todayKey } from "./attendance";
 import { GLUTTON_FOOD_MULTIPLIER, INITIAL_SKILL_TIMERS, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
 import { applyUpgradeLevels, getBossTimeLimitMs, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
@@ -37,11 +38,6 @@ const AD_GEMS_COOLDOWN_MS = 15 * 60_000; // 15 minutes
 // The winged gem's "watch an ad" offer: gems per ad, and ads a day before only coins fly.
 export const FLYING_GEM_AD_REWARD = 5;
 export const FLYING_GEM_ADS_PER_DAY = 8;
-// Local calendar day, for the per-day ad cap.
-const todayKey = () => {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-};
 const flyingGemAdsToday = (state: GameState) => (state.flyingGemAds?.day === todayKey() ? state.flyingGemAds.count : 0);
 // Gold each of the three post-intro gift kills pays at the least (the first attack
 // upgrade costs 120).
@@ -236,7 +232,11 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         setAnnouncedStageNumber(loadedState.stageNumber);
         // The enemy on screen was built for the fresh game's stage 1 before the save came in —
         // replace it with a full-HP mob of the loaded stage, or it walks in nearly dead.
-        battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, false));
+        // A save left mid boss fight (the stage's mob quota already full) brings the boss
+        // straight back, entrance and all — the fight itself isn't saved, only the quota.
+        const bossDue = loadedState.stageKills >= STAGE_KILL_TARGET;
+        if (bossDue) startBossFight(loadedState.stageNumber);
+        battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, bossDue));
         // A first-clear celebration that was still open when the game closed comes back.
         if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, key: Date.now() });
         setState(loadedState);
@@ -329,9 +329,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // Spawns the boss and snapshots its deadline — a fixed per-stage value (see
   // getBossTimeLimitMs) — but the clock itself waits for the player to tap the entrance
   // banner (beginBossFight), so the boss can be sized up first.
-  const startBossFight = useCallback(() => {
+  // `stageNumber`: for a save just loaded, whose stage isn't in `state` yet this render.
+  const startBossFight = useCallback((stageNumber: number = state.stageNumber) => {
     setBossTimerStartedAt(null);
-    setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber));
+    setBossTimeLimitMs(getBossTimeLimitMs(stageNumber));
     setBossIntroPending(true);
     setBoss(true);
   }, [state.stageNumber]);
@@ -470,6 +471,30 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
 
   // Flying coins grant stage-scaled gold (5x the stage's regular mob); a winged gem pays
   // nothing on the catch itself — its gems come from the ad it offers (FLYING_GEM_AD_REWARD).
+  // What one of the current stage's regular mobs pays right now (buffs included) — the unit
+  // the flying coin and the attendance gold days are measured in.
+  const currentMobGold = () => {
+    const attack = Math.round(getTotalAttack(state) * (1 + buffs.attack / 100));
+    return getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyMaxHp(state.stageNumber, false), false);
+  };
+
+  // Today's attendance reward; returns what it paid (nothing if already claimed today).
+  const attendance = getAttendance(state, todayKey(new Date(now)));
+  const claimAttendance = () => {
+    const today = todayKey();
+    const { dayIndex, ready } = getAttendance(state, today);
+    if (!ready) return { gems: 0, gold: 0 };
+    const reward = ATTENDANCE_REWARDS[dayIndex];
+    const gems = reward.kind === "gems" ? reward.amount : 0;
+    const gold = reward.kind === "gold" ? Math.max(1, Math.round(currentMobGold() * reward.mobs)) : 0;
+    if (gold > 0) addBonusGold(gold);
+    setState((previous) => {
+      if (previous.attendance?.lastDay === today) return previous;
+      return { ...previous, gems: previous.gems + gems, attendance: { claimed: (previous.attendance?.claimed ?? 0) + 1, lastDay: today } };
+    });
+    return { gems, gold };
+  };
+
   const catchFlyingCoin = (kind: "coin" | "gem", watchAd = false) => {
     if (kind === "gem") {
       if (!watchAd || flyingGemAdsToday(state) >= FLYING_GEM_ADS_PER_DAY) return { gold: 0, gems: 0 };
@@ -1103,6 +1128,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     upgradeStat,
     claimQuest,
     catchFlyingCoin,
+    attendanceDay: attendance.dayIndex,
+    attendanceReady: attendance.ready,
+    attendanceGold: (mobs: number) => Math.max(1, Math.round(currentMobGold() * mobs)),
+    claimAttendance,
     // Winged-gem ads still left today; at 0 only coins fly.
     flyingGemAdsLeft: Math.max(0, FLYING_GEM_ADS_PER_DAY - flyingGemAdsToday(state)),
     heldLoot,

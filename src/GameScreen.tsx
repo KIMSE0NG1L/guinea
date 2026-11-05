@@ -41,6 +41,7 @@ import { setBgmTrack } from "./sound";
 import { UpgradeTutorial } from "./components/UpgradeTutorial";
 import { getStatLevel, getUpgradeCost } from "./state/gameMath";
 import { MiniGuide } from "./components/MiniGuide";
+import { AttendanceModal } from "./components/AttendanceModal";
 import { getSkill } from "./state/skills";
 import { uiImages } from "./assets";
 import type { Tab } from "./types";
@@ -112,6 +113,8 @@ export function GameScreen() {
   // player picks "watch an ad" or "skip", and a tutorial's dim on top would block both.
   const [skillTutorialArmed, setSkillTutorialArmed] = useState(false);
   const [stealHint, setStealHint] = useState(false);
+  // The attendance card shows once per launch while today's reward is unclaimed.
+  const [attendanceClosed, setAttendanceClosed] = useState(false);
   useEffect(() => {
     if (!stealHint) return;
     const timer = setTimeout(() => setStealHint(false), getSkill("steal").durationMs ?? 5000);
@@ -363,6 +366,14 @@ export function GameScreen() {
             summary={game.offlineSummary}
             onClaim={game.dismissOfflineSummary}
             onClaimDouble={game.claimOfflineDouble}
+          />
+        )}
+        {game.loaded && game.attendanceReady && !attendanceClosed && state.tutorialDone && state.recipeTutorialDone && !game.offlineSummary && !game.firstClear && (
+          <AttendanceModal
+            dayIndex={game.attendanceDay}
+            goldFor={game.attendanceGold}
+            onClaim={game.claimAttendance}
+            onClose={() => setAttendanceClosed(true)}
           />
         )}
         {game.firstClear && (

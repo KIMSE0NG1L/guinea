@@ -9,6 +9,14 @@ import { GameButton } from "./GameButton";
 import { AdUnavailableModal } from "./AdUnavailableModal";
 import { formatGameNumber } from "../state/gameMath";
 import type { OfflineSummary } from "../state/offline";
+import { ITEM_IMAGES } from "../state/recipes";
+
+// When each part of the summary lands (ms after opening): gold and kills count up first,
+// then the ingredients pop in one by one, then the level-up.
+const ITEMS_AT = 900;
+const ITEM_GAP = 110;
+// The most ingredient icons shown; the rest fold into a "+N종" chip.
+const MAX_ITEMS = 8;
 
 function formatTimeAway(ms: number) {
   const totalMinutes = Math.round(ms / 60000);
@@ -40,7 +48,7 @@ export function OfflineRewardModal({
   const levelPop = useSharedValue(0);
   const levelPopStyle = useAnimatedStyle(() => ({ opacity: Math.min(1, levelPop.value), transform: [{ scale: levelPop.value }] }));
   useEffect(() => {
-    levelPop.set(withDelay(1300, withSequence(withTiming(1.3, { duration: 180, easing: Easing.out(Easing.quad) }), withTiming(1, { duration: 160 }))));
+    levelPop.set(withDelay(ITEMS_AT + Math.min(summary.items.length, MAX_ITEMS + 1) * ITEM_GAP + 250, withSequence(withTiming(1.3, { duration: 180, easing: Easing.out(Easing.quad) }), withTiming(1, { duration: 160 }))));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const startDouble = () => {
@@ -80,14 +88,43 @@ export function OfflineRewardModal({
               <Text style={styles.statValue}>{formatGameNumber(countedKills)}마리</Text>
               <Text style={styles.statLabel}>처치</Text>
             </View>
-            {summary.levelsGained > 0 && (
-              <Animated.View style={[styles.statItem, levelPopStyle]}>
-                <Image source={icons.star} style={styles.statIcon} />
-                <Text style={styles.statValue}>+{formatGameNumber(summary.levelsGained)}</Text>
-                <Text style={styles.statLabel}>레벨업</Text>
-              </Animated.View>
-            )}
           </Panel>
+
+          {/* Ingredients picked up: icons pop in one at a time, each with its count. */}
+          {summary.items.length > 0 && (
+            <View style={styles.itemsBlock}>
+              <Text style={styles.sectionLabel}>주운 재료</Text>
+              <View style={styles.itemsRow}>
+                {summary.items.slice(0, MAX_ITEMS).map((item, index) => (
+                  <PopIn key={item.name} delay={ITEMS_AT + index * ITEM_GAP}>
+                    <View style={styles.itemCell}>
+                      {ITEM_IMAGES[item.name] !== undefined && <Image source={ITEM_IMAGES[item.name]} style={styles.itemIcon} />}
+                      <Text style={styles.itemCount}>×{formatGameNumber(item.quantity)}</Text>
+                    </View>
+                  </PopIn>
+                ))}
+                {summary.items.length > MAX_ITEMS && (
+                  <PopIn delay={ITEMS_AT + MAX_ITEMS * ITEM_GAP}>
+                    <View style={[styles.itemCell, styles.moreCell]}>
+                      <Text style={styles.moreText}>+{summary.items.length - MAX_ITEMS}종</Text>
+                    </View>
+                  </PopIn>
+                )}
+              </View>
+              {summary.bagFull && <Text style={styles.bagFull}>가방이 꽉 차서 일부 재료는 두고 왔어요</Text>}
+            </View>
+          )}
+
+          {/* Level-up: a gold banner that slams in last, with the old and new level. */}
+          {summary.levelsGained > 0 && (
+            <Animated.View style={[styles.levelBanner, levelPopStyle]}>
+              <Image source={icons.star} style={styles.levelStar} />
+              <Text style={styles.levelText}>
+                레벨업! Lv.{formatGameNumber(summary.levelFrom)} → <Text style={styles.levelTo}>Lv.{formatGameNumber(summary.levelTo)}</Text>
+              </Text>
+              <Image source={icons.star} style={styles.levelStar} />
+            </Animated.View>
+          )}
 
           {summary.bossReady && <Text style={styles.bossNote}>보스가 기다리고 있어요 — 직접 잡으러 가볼까요?</Text>}
 
@@ -108,7 +145,51 @@ export function OfflineRewardModal({
   );
 }
 
+// Springs a child in from nothing after `delay`.
+function PopIn({ delay, children }: { delay: number; children: React.ReactNode }) {
+  const pop = useSharedValue(0);
+  useEffect(() => {
+    pop.set(withDelay(delay, withSequence(withTiming(1.25, { duration: 160, easing: Easing.out(Easing.quad) }), withTiming(1, { duration: 120 }))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: Math.min(1, pop.value), transform: [{ scale: pop.value }] }));
+  return <Animated.View style={style}>{children}</Animated.View>;
+}
+
 const styles = StyleSheet.create({
+  itemsBlock: { marginTop: 12, width: "100%", alignItems: "center" },
+  sectionLabel: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown, letterSpacing: 1 },
+  itemsRow: { marginTop: 6, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 },
+  itemCell: {
+    width: 44,
+    paddingTop: 4,
+    paddingBottom: 3,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#c9a978",
+    backgroundColor: "#fff6e2",
+    alignItems: "center",
+  },
+  itemIcon: { width: 26, height: 26, resizeMode: "contain" },
+  itemCount: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  moreCell: { height: 47, justifyContent: "center" },
+  moreText: { fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
+  bagFull: { marginTop: 6, fontSize: 9, fontWeight: "700", fontFamily: fonts.bold, color: colors.red },
+  levelBanner: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: "#ffd84a",
+  },
+  levelStar: { width: 16, height: 16 },
+  levelText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  levelTo: { color: colors.red },
   statValueDouble: { color: colors.red },
   backdrop: {
     flex: 1,

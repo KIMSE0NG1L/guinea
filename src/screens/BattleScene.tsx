@@ -95,7 +95,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   candyBasketSlime: 180,
   bee: 152,
   angryCandyBasketSlime: 170,
-  thiefCrow: 220,
+  thiefCrow: 180,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -1004,8 +1004,11 @@ function PlayerFighter({
     <Animated.View style={[styles.characterWrap, style]}>
       {stealAuraId > 0 && <StealAura key={`steal-${stealAuraId}`} durationMs={STEAL_DURATION} />}
       {focusAuraId > 0 && <FocusAura key={`focus-${focusAuraId}`} durationMs={FOCUS_DURATION} />}
-      <View style={styles.unitLabel}>
-        <Text style={styles.unitLabelText}>{OUTFIT_NAMES[outfit]}</Text>
+      {/* Same see-through plate and outlined name as the enemy's. */}
+      <View style={[styles.unitLabel, styles.unitLabelClear]}>
+        <StrokedText style={styles.unitLabelText} strokeColor={colors.line} strokeWidth={1.5}>
+          {OUTFIT_NAMES[outfit]}
+        </StrokedText>
       </View>
       <CharacterSprite
         outfit={outfit}
@@ -1143,7 +1146,10 @@ function EnemyFighter({
       {/* Fixed position regardless of sprite size, so the boss's HP bar lines up with a
           regular mob's — the (much taller) boss sprite grows upward behind it instead. */}
       <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, boss && styles.enemyNameplateBoss]}>
-        <Text style={styles.unitLabelText}>{boss ? BOSS_NAME[enemyKind] : ENEMY_NAME[enemyKind]}</Text>
+        {/* Outlined, since the plate behind it is see-through. */}
+        <StrokedText style={styles.unitLabelText} strokeColor={colors.line} strokeWidth={1.5}>
+          {boss ? BOSS_NAME[enemyKind] : ENEMY_NAME[enemyKind]}
+        </StrokedText>
         <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
       </View>
       {executedKill && phase === "defeated" ? (
@@ -1335,8 +1341,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.line,
     borderRadius: 5,
   },
+  unitLabelClear: { backgroundColor: "#2b1d1259" },
   unitLabelText: { color: colors.cream, fontSize: 8, fontWeight: "800", fontFamily: fonts.bold },
-  enemyNameplate: { width: 104, paddingHorizontal: 6, paddingTop: 4, paddingBottom: 5, gap: 3, alignItems: "center" },
+  // See-through, so a tall boss behind it (head, horns) still shows.
+  enemyNameplate: { width: 104, paddingHorizontal: 6, paddingTop: 4, paddingBottom: 5, gap: 3, alignItems: "center", backgroundColor: "#2b1d1259" },
   // Pinned at the regular mob's natural nameplate position (108px sprite + its 4px gap)
   // so a much taller boss sprite doesn't drag its HP bar up with it. zIndex keeps it
   // painted above the sprite below — a tall boss (e.g. the mushroom boss's cap) can

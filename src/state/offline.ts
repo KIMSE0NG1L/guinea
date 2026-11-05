@@ -1,8 +1,10 @@
 import type { GameState } from "../types";
-import { getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
+import { getEnemyKind, getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
 import { getExpReward, getExpToLevel, getGoldReward, getTotalAttack } from "./gameMath";
 import { DILIGENT_OFFLINE_BONUS } from "./skills";
 import { getBuffTotals, OUTFIT_BUFFS, OUTFIT_FIRST_STRIKE, OUTFIT_NO_OFFLINE } from "./buffs";
+import { getDropTable } from "./drops";
+import { fitItems, getBagCapacity } from "./bag";
 
 export type OfflineSummary = {
   mobsKilled: number;
@@ -10,6 +12,12 @@ export type OfflineSummary = {
   expGained: number;
   levelsGained: number;
   timeAwayMs: number;
+  // Level before and after, for the "Lv.12 → Lv.15" line.
+  levelFrom: number;
+  levelTo: number;
+  // Ingredients picked up while away (already in the bag), and whether some didn't fit.
+  items: { name: string; quantity: number }[];
+  bagFull: boolean;
   // True when the offline grind filled the kill target — the boss is queued up and
   // waiting, but was deliberately not auto-fought (see simulateOfflineProgress).
   bossReady: boolean;
@@ -117,6 +125,26 @@ export function simulateOfflineProgress(
 
   const levelsGained = level - state.level;
 
+  // Ingredients: each of the mob's drops, at its own chance per kill and the same offline
+  // rate as gold, rounded at random so small piles still turn up now and then. Whatever the
+  // bag has no room for is left behind, as it would be in a live fight.
+  const rolled = getDropTable(getEnemyKind(state.stageNumber), false)
+    .map((entry) => {
+      const expected = mobsKilled * entry.chance * OFFLINE_REWARD_RATE * (entry.quantity ?? 1);
+      return { name: entry.name, quantity: Math.floor(expected) + (Math.random() < expected % 1 ? 1 : 0) };
+    })
+    .filter((item) => item.quantity > 0);
+  const fitted = fitItems(state.inventory, rolled, getBagCapacity(state.bagExpansions));
+  const items = fitted.kept.map(({ name, quantity }) => ({ name, quantity }));
+  const inventory = items.reduce((bag, item) => {
+    const owned = bag.find((entry) => entry.name === item.name);
+    return owned
+      ? bag.map((entry) => (entry === owned ? { ...entry, quantity: entry.quantity + item.quantity } : entry))
+      : [...bag, { name: item.name, quantity: item.quantity, type: "food" as const }];
+  }, state.inventory);
+  const known = state.discoveredItems ?? [];
+  const discoveredItems = [...known, ...items.map((item) => item.name).filter((name) => !known.includes(name))];
+
   const newState: GameState = {
     ...state,
     gold,
@@ -124,6 +152,8 @@ export function simulateOfflineProgress(
     kills,
     experience,
     level,
+    inventory,
+    discoveredItems,
   };
 
   return {
@@ -134,6 +164,10 @@ export function simulateOfflineProgress(
       expGained,
       levelsGained,
       timeAwayMs: elapsedMs - remainingMs,
+      levelFrom: state.level,
+      levelTo: level,
+      items,
+      bagFull: fitted.overflow.length > 0,
       bossReady: state.stageKills >= STAGE_KILL_TARGET,
     },
   };

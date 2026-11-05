@@ -7,6 +7,7 @@ import { images } from "../assets";
 import { loadSave } from "../state/storage";
 import { getStageLabel } from "../state/stages";
 import { OUTFIT_NAMES, OUTFIT_NO_OFFLINE } from "../state/buffs";
+import { getAttendance } from "../state/attendance";
 import { playSfx } from "../sound";
 import { MAX_OFFLINE_MS } from "../state/offline";
 import appConfig from "../../app.json";
@@ -51,7 +52,7 @@ const EXIT_MS = 380;
 // shows again on every real app launch, not just the first-ever one).
 export function TitleScreen({ onStart }: { onStart: () => void }) {
   // Where a returning player left off, read straight from the save (null: still loading).
-  const [progress, setProgress] = useState<{ line: string; away?: string } | null>(null);
+  const [progress, setProgress] = useState<{ line: string; away?: string; attendance?: boolean } | null>(null);
   useEffect(() => {
     let alive = true;
     loadSave().then((save) => {
@@ -71,6 +72,8 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
       }
       setProgress({
         away,
+        // Today's attendance reward still waiting (only once the game's under way).
+        attendance: Boolean(state?.tutorialDone && state.recipeTutorialDone && getAttendance(state).ready),
         line: state && state.tutorialDone
           ? `Lv.${state.level} ${OUTFIT_NAMES[state.equippedOutfit] ?? "모험기니"} · ${getStageLabel(state.stageNumber)}`
           : "새로운 모험을 시작해요",
@@ -156,6 +159,7 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
             </View>
           )}
           {progress?.away && <Text style={styles.awayText}>{progress.away}</Text>}
+          {progress?.attendance && <AttendanceBadge />}
         </View>
         <Animated.View style={[styles.tipWrap, tipStyle]} pointerEvents="none">
           <StrokedText style={styles.tipText} strokeColor={colors.line} strokeWidth={1.5}>
@@ -183,6 +187,21 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
         <Animated.View style={[StyleSheet.absoluteFill, styles.flash, flashStyle]} pointerEvents="none" />
       </Pressable>
     </View>
+  );
+}
+
+// "오늘의 보상" — a gift badge that bobs, telling a returning player the daily reward waits.
+function AttendanceBadge() {
+  const bob = useSharedValue(0);
+  useEffect(() => {
+    bob.value = withRepeat(withSequence(withTiming(1, { duration: 550, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 550, easing: Easing.inOut(Easing.quad) })), -1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.value * 4 }, { rotate: `${(bob.value - 0.5) * 4}deg` }] }));
+  return (
+    <Animated.View style={[styles.attendance, style]}>
+      <Text style={styles.attendanceText}>🎁 오늘의 출석 보상이 기다려요!</Text>
+    </Animated.View>
   );
 }
 
@@ -256,6 +275,8 @@ const styles = StyleSheet.create({
   tipWrap: { position: "absolute", bottom: "8%", left: 24, right: 24, alignItems: "center" },
   tipText: { color: "#f3e6c8", fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, textAlign: "center" },
   flash: { backgroundColor: "#ffffff" },
+  attendance: { marginTop: 10, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, borderWidth: 2, borderColor: "#3a2410", backgroundColor: "#ff6b4a" },
+  attendanceText: { color: "#fff8e6", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
   awayText: { marginTop: 6, color: "#fff4d6", fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 4 },
   // Bottom-right corner, out of the way of the tip and "터치하여 시작".
   footer: { position: "absolute", bottom: 10, right: 12, flexDirection: "row", alignItems: "center", gap: 10 },

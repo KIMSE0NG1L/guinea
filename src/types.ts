@@ -117,6 +117,9 @@ export interface GameState {
   // A first boss clear whose celebration (and its ad-for-gems offer) hasn't been closed yet —
   // saved so a reload brings it back instead of losing the reward. Missing when none.
   pendingFirstClear?: { stageNumber: number; bossName: string; gems: number; companions: string[] };
+  // Daily attendance: days claimed in all (the 7-day cycle is claimed % 7) and the local
+  // date of the last claim. Missing until the first claim.
+  attendance?: { claimed: number; lastDay: string };
   // Winged-gem ads watched today (`day` is the local date, YYYY-MM-DD) — capped per day.
   flyingGemAds?: { day: string; count: number };
   // Quirk counters behind the hidden quests; all missing on older saves.
