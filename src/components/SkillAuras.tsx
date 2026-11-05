@@ -11,7 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Defs, Ellipse, RadialGradient, Rect, Stop } from "react-native-svg";
 import { effects, food, uiImages } from "../assets";
-import { CARROT_THROW_HIT_MS, CHILI_THROW_BURN_MS, CHILI_THROW_HIT_MS } from "../state/skills";
+import { CARROT_THROW_HIT_MS, CHILI_THROW_BURN_MS, CHILI_THROW_HIT_MS, METEOR_HIT_MS } from "../state/skills";
 import { Flash, Sparks, SpriteBurst, type Point } from "./ExecuteEffect";
 import { SkillCallout } from "./SkillCallout";
 
@@ -604,3 +604,48 @@ const styles = StyleSheet.create({
   sinkingArrow: { position: "absolute", bottom: 80 },
   sinkingArrowText: { fontSize: 14, color: SHOUT_RED, textShadowColor: "#4a0a06", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
 });
+
+// ---- 운석 낙하 ---------------------------------------------------------------------------
+
+// pixelfx fire/meteor: 272x232 frames, the rock hitting the ground at (150, 208) at 0.62s
+// (METEOR_HIT_MS). Only its first 66 frames ship; the smoke left at the end fades out here.
+const METEOR_FRAME = { w: 272, h: 232 };
+const METEOR_GROUND = { x: 150, y: 208 };
+const METEOR_FRAMES = 66;
+const METEOR_FPS = 30;
+const METEOR_SCALE = 1.1;
+const METEOR_FADE_START = 1600;
+const METEOR_FADE_MS = 600;
+
+// One falling meteor, its impact point lined up on `at` (the enemy's feet). Mount fresh per
+// strike; it ends fully transparent, so it can stay mounted until the next one.
+export function MeteorStrikeEffect({ at }: { at: Point }) {
+  const width = METEOR_FRAME.w * METEOR_SCALE;
+  const height = METEOR_FRAME.h * METEOR_SCALE;
+  // SpriteBurst centres the frame on its point — shift that so the impact lands on `at`.
+  const center = {
+    left: at.left + (METEOR_FRAME.w / 2 - METEOR_GROUND.x) * METEOR_SCALE,
+    bottom: at.bottom + (METEOR_GROUND.y - METEOR_FRAME.h / 2) * METEOR_SCALE,
+  };
+  const fade = useSharedValue(1);
+  useEffect(() => {
+    fade.value = withDelay(METEOR_FADE_START, withTiming(0, { duration: METEOR_FADE_MS }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: fade.value }));
+  return (
+    <Animated.View style={[StyleSheet.absoluteFill, style]} pointerEvents="none">
+      <SpriteBurst
+        source={effects.meteorStrike}
+        frameSize={[METEOR_FRAME.w, METEOR_FRAME.h]}
+        frameCount={METEOR_FRAMES}
+        fps={METEOR_FPS}
+        at={center}
+        displayWidth={width}
+        displayHeight={height}
+      />
+      {/* The ground shakes with a warm flash right as the rock lands. */}
+      <Flash color="#ffb060" peak={0.45} delay={METEOR_HIT_MS} rise={30} fall={260} />
+    </Animated.View>
+  );
+}

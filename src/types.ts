@@ -1,11 +1,12 @@
+import type { SkillTimers } from "./state/skills";
 export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
 export type EnemyAnimation = "idle" | "hit" | "die";
-export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander" | "monkey" | "carp" | "cactus" | "fox" | "lizard" | "mantou" | "pig" | "magpie" | "snowRabbit" | "drunkCat" | "flowerSnake" | "riceSack" | "mackerel" | "blossomCrab" | "shrineFox" | "armorBeetle" | "onsenMonkey" | "ninjaFrog" | "lanternAngler" | "clamMaid" | "gondolaDuck" | "bellCalf" | "croissantKid" | "sleepyGini" | "sleepwalkerGini" | "candyBasketSlime" | "bee" | "angryCandyBasketSlime";
+export type EnemyKind = "slime" | "mushroom" | "carrot" | "chicken" | "potato" | "mouse" | "cauldron" | "mudskipper" | "bluefish" | "salamander" | "monkey" | "carp" | "cactus" | "fox" | "lizard" | "mantou" | "pig" | "magpie" | "snowRabbit" | "drunkCat" | "flowerSnake" | "riceSack" | "mackerel" | "blossomCrab" | "shrineFox" | "armorBeetle" | "onsenMonkey" | "ninjaFrog" | "lanternAngler" | "clamMaid" | "gondolaDuck" | "bellCalf" | "croissantKid" | "sleepyGini" | "sleepwalkerGini" | "candyBasketSlime" | "bee" | "angryCandyBasketSlime" | "thiefCrow";
 export type Outfit = "default" | "explorerHamster" | "tetoGini" | "assassinGini" | "egenGini" | "samuraiGini" | "chefGini" | "boxerGini" | "witchGini";
-export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton" | "barrage" | "teleport" | "carrotThrow" | "chiliThrow";
+export type SkillId = "beam" | "steal" | "focus" | "execute" | "shout" | "diligent" | "glutton" | "barrage" | "teleport" | "carrotThrow" | "chiliThrow" | "meteor";
 export type UpgradeMode = 1 | 10 | 100 | "next" | "max";
 
 export interface Quest {
@@ -109,6 +110,13 @@ export interface GameState {
   questClaimed?: string[];
   // Winged coins caught in battle (a chapter mission); missing on older saves.
   coinsCaught?: number;
+  // Skill cooldowns (absolute timestamps) and the last cast, saved so a reload doesn't
+  // hand every skill back early. Missing on older saves.
+  skillTimers?: SkillTimers;
+  lastSkillCastAt?: number;
+  // A first boss clear whose celebration (and its ad-for-gems offer) hasn't been closed yet —
+  // saved so a reload brings it back instead of losing the reward. Missing when none.
+  pendingFirstClear?: { stageNumber: number; bossName: string; gems: number; companions: string[] };
   // Winged-gem ads watched today (`day` is the local date, YYYY-MM-DD) — capped per day.
   flyingGemAds?: { day: string; count: number };
   // Quirk counters behind the hidden quests; all missing on older saves.

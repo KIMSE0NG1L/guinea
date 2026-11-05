@@ -42,6 +42,7 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   candyBasketSlime: ["사탕은 못 줘!", "호박등을 지켜!"],
   bee: ["킁킁, 달콤한 냄새!", "호박 어디서 났어?"],
   angryCandyBasketSlime: ["호박죽은 우리 거야!", "사탕도 내놔!"],
+  thiefCrow: ["먹을 건 다 우리 거야!", "이 성채는 우리 둥지다!"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -83,4 +84,5 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   candyBasketSlime: ["이 숲의 호박은 내 것이다!", "호박등의 불꽃을 받아라!"],
   bee: ["그 호박을 내려놔!", "여왕벌의 꿀을 받아라!"],
   angryCandyBasketSlime: ["호박죽 냄새가 날 깨웠다!", "광장의 먹거리는 전부 내 것이다!"],
+  thiefCrow: ["내가 숨긴 음식에 손대지 마라!", "배고픈 용의 분노를 받아라!"],
 };

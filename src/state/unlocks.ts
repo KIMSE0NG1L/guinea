@@ -32,23 +32,24 @@ export function getOutfitGemPrice(outfit: Outfit): number | undefined {
   return OUTFIT_GEM_PRICE[outfit] ?? OUTFIT_EARLY_UNLOCK_GEMS;
 }
 
-// Skills: utility and short buffs early, the big damage dealers late. Scaled 5x (was
-// 3..30, all skills unlocked by level 30) so the full set isn't open until level 150.
+// Skills: utility and short buffs early, the big damage dealers late, spread out so a new
+// one opens every 15-25 levels up to Execute — the strongest passive — at level 200.
 // steal is pulled down to 2 on its own — that's about when a fresh player reaches the
 // first boss (see gini_balance_economy memory), so it's the one skill introduced via
 // SkillTutorial right as the player has something to use it on.
 export const SKILL_UNLOCK_LEVEL: Record<SkillId, number> = {
   steal: 2,
   carrotThrow: 15,
-  chiliThrow: 20,
-  focus: 30,
-  glutton: 45,
-  diligent: 60,
-  barrage: 75,
-  shout: 90,
-  teleport: 110,
-  beam: 130,
-  execute: 150,
+  chiliThrow: 30,
+  focus: 45,
+  glutton: 60,
+  diligent: 75,
+  barrage: 90,
+  shout: 110,
+  teleport: 130,
+  meteor: 150,
+  beam: 175,
+  execute: 200,
 };
 
 // `highestStageNumber`: the furthest stage (0-based) ever reached. `purchasedOutfits`:

@@ -5,7 +5,7 @@ import { kit } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { BattleScene } from "../screens/BattleScene";
-import { BEAM_TIMING, CARROT_THROW_HIT_MS, CHILI_THROW_DOT_TICK_MS, CHILI_THROW_DOT_TICKS, CHILI_THROW_HIT_MS, getSkill, type SkillId } from "../state/skills";
+import { BEAM_TIMING, CARROT_THROW_HIT_MS, CHILI_THROW_DOT_TICK_MS, CHILI_THROW_DOT_TICKS, CHILI_THROW_HIT_MS, getSkill, METEOR_HIT_MS, type SkillId } from "../state/skills";
 import type { BattlePhase, EnemyKind, Outfit } from "../types";
 
 const MAX_HP = 1000;
@@ -13,7 +13,7 @@ const HIT = 80; // a plain swing's damage on the stand-in enemy
 
 // Skills that change something you can actually watch in a fight — the rest (오프라인
 // 골드, 음식 버프 시간) have nothing to act out.
-export const PREVIEWABLE_SKILLS: SkillId[] = ["beam", "steal", "focus", "execute", "shout", "barrage", "teleport", "carrotThrow", "chiliThrow"];
+export const PREVIEWABLE_SKILLS: SkillId[] = ["beam", "steal", "focus", "execute", "shout", "barrage", "teleport", "carrotThrow", "chiliThrow", "meteor"];
 
 type Fx = {
   phase: BattlePhase;
@@ -25,10 +25,12 @@ type Fx = {
   goldEvents: { id: number; amount: number }[];
   castIds: Record<SkillId, number>;
   executeId: number;
+  // One per falling meteor (운석 낙하's own count, apart from castIds).
+  meteorStrikeId: number;
 };
 
 const NO_CASTS = Object.fromEntries(PREVIEWABLE_SKILLS.map((id) => [id, 0])) as Record<SkillId, number>;
-const INITIAL: Fx = { phase: "idle", enemyHp: MAX_HP, enemyId: 1, critical: false, executedKill: false, damageEvents: [], goldEvents: [], castIds: NO_CASTS, executeId: 0 };
+const INITIAL: Fx = { phase: "idle", enemyHp: MAX_HP, enemyId: 1, critical: false, executedKill: false, damageEvents: [], goldEvents: [], castIds: NO_CASTS, executeId: 0, meteorStrikeId: 0 };
 
 // A looping, scripted mini fight in the real BattleScene (preview mode: no HUD) that acts
 // out one skill: the guinea pig against the current stage's mob, the skill's own cast VFX,
@@ -119,6 +121,19 @@ export function SkillPreviewModal({ skillId, enemyKind, outfit, onClose }: { ski
           at(1840, () => update((previous) => ({ enemyHp: 0, phase: "defeated", executedKill: true, executeId: previous.executeId + 1 })));
           respawn(2900);
           return 4000;
+        case "meteor": {
+          // The cast's meteor, then the shower: each arriving mob gets one of its own.
+          const drop = (ms: number) => {
+            at(ms, () => update((previous) => ({ meteorStrikeId: previous.meteorStrikeId + 1 })));
+            at(ms + METEOR_HIT_MS, () => damage(MAX_HP, true));
+            respawn(ms + METEOR_HIT_MS + 700);
+          };
+          cast(400);
+          drop(400);
+          drop(400 + 1900);
+          drop(400 + 3800);
+          return 400 + 3800 + METEOR_HIT_MS + 1300;
+        }
         case "teleport":
           cast(500);
           respawn(500 + 300);
@@ -189,6 +204,7 @@ export function SkillPreviewModal({ skillId, enemyKind, outfit, onClose }: { ski
               shoutId={fx.castIds.shout}
               carrotThrowId={fx.castIds.carrotThrow}
               chiliThrowId={fx.castIds.chiliThrow}
+              meteorStrikeId={fx.meteorStrikeId}
               dropEvents={[]}
               bossEntranceKey={null}
               onBeginBoss={noop}

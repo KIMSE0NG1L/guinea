@@ -47,6 +47,13 @@ export const CHILI_THROW_DOT_TICKS = 5;
 export const CHILI_THROW_DOT_TICK_MS = 900;
 export const CHILI_THROW_DOT_HP_RATIO = 0.3;
 export const CHILI_THROW_BURN_MS = (CHILI_THROW_DOT_TICKS - 1) * CHILI_THROW_DOT_TICK_MS;
+// 운석 낙하: a meteor comes down on the enemy and flattens it; on a regular mob the next
+// METEOR_KILLS - 1 mobs each get one of their own as they arrive (a meteor shower clearing the
+// stage), on a boss it's a single strike for a share of its max HP. METEOR_HIT_MS is when the
+// rock hits the ground in MeteorStrikeEffect's pixelfx strip (fire/meteor's impact at 0.62s).
+export const METEOR_KILLS = 5;
+export const METEOR_BOSS_HP_RATIO = 0.3;
+export const METEOR_HIT_MS = 620;
 // After casting a skill — or putting a passive in the slot — the slot can't change for this
 // long, so you can't chain several skills' cooldowns or flick passives on and off.
 export const SKILL_SWAP_LOCK_MS = 3 * 60 * SECOND;
@@ -78,6 +85,12 @@ export const SKILLS: Skill[] = [
     description: "적에게 매운 고추를 던져 체력의 30%를 화상 피해로 깎아요. 한 번에 깎이지 않고 잠시에 걸쳐 타들어가요.",
     cooldownMs: SKILL_COOLDOWN_MS,
   },
+  {
+    id: "meteor",
+    name: "운석 낙하",
+    description: "하늘에서 운석이 떨어져 일반 몹 5마리를 차례로 한 방에 쓰러뜨려요. 보스에게는 최대 체력의 30% 피해를 줘요.",
+    cooldownMs: SKILL_COOLDOWN_MS,
+  },
 ];
 
 // One-line effect summaries for the battle slot's info bubble.
@@ -93,6 +106,7 @@ export const SKILL_SUMMARY: Record<SkillId, string> = {
   teleport: "깬 스테이지에서 보스로 즉시 이동",
   carrotThrow: "적 체력 25% 즉시 감소",
   chiliThrow: "적 체력 30%를 화상 피해로 감소 (지속)",
+  meteor: "일반 몹 5마리 즉사 · 보스 체력 -30%",
 };
 
 export function getSkill(id: SkillId) {
@@ -113,6 +127,7 @@ export const INITIAL_SKILL_TIMERS: SkillTimers = {
   teleport: { readyAt: 0, activeUntil: 0 },
   carrotThrow: { readyAt: 0, activeUntil: 0 },
   chiliThrow: { readyAt: 0, activeUntil: 0 },
+  meteor: { readyAt: 0, activeUntil: 0 },
 };
 
 export function isSkillActive(timers: SkillTimers, id: SkillId, now: number) {

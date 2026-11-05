@@ -10,7 +10,7 @@ import { OfflineRewardModal } from "./components/OfflineRewardModal";
 import { BattleScreen } from "./screens/BattleScreen";
 import { GrowthScreen } from "./screens/GrowthScreen";
 import { EquipmentScreen } from "./screens/EquipmentScreen";
-import { CompanionsHub } from "./screens/CompanionsHub";
+import { CompanionsScreen } from "./screens/CompanionsScreen";
 import { InventoryScreen } from "./screens/InventoryScreen";
 import { WardrobeScreen } from "./screens/WardrobeScreen";
 import { ShopScreen } from "./screens/ShopScreen";
@@ -41,6 +41,7 @@ import { setBgmTrack } from "./sound";
 import { UpgradeTutorial } from "./components/UpgradeTutorial";
 import { getStatLevel, getUpgradeCost } from "./state/gameMath";
 import { MiniGuide } from "./components/MiniGuide";
+import { getSkill } from "./state/skills";
 import { uiImages } from "./assets";
 import type { Tab } from "./types";
 
@@ -110,6 +111,12 @@ export function GameScreen() {
   // Every tutorial below also waits out the first-clear celebration: it stays up until the
   // player picks "watch an ad" or "skip", and a tutorial's dim on top would block both.
   const [skillTutorialArmed, setSkillTutorialArmed] = useState(false);
+  const [stealHint, setStealHint] = useState(false);
+  useEffect(() => {
+    if (!stealHint) return;
+    const timer = setTimeout(() => setStealHint(false), getSkill("steal").durationMs ?? 5000);
+    return () => clearTimeout(timer);
+  }, [stealHint]);
   useEffect(() => {
     if (!game.skillTutorialActive || skillTutorialArmed) return;
     const timer = setTimeout(() => setSkillTutorialArmed(true), 3000);
@@ -184,7 +191,7 @@ export function GameScreen() {
         return <EquipmentScreen equipment={state.equipment} />;
       case "companions":
         return (
-          <CompanionsHub
+          <CompanionsScreen
             equippedOutfit={state.equippedOutfit}
             highestStageNumber={state.highestStageNumber ?? state.stageNumber}
             outfitsSeen={state.outfitsSeen}
@@ -343,14 +350,11 @@ export function GameScreen() {
           }}
           scrollEventThrottle={32}
           style={styles.content}
-          // The village runs edge to edge, down under the nav bar's rim (no padding gap).
-          contentContainerStyle={[styles.contentContainer, state.selectedTab === "companions" && styles.contentFlush]}
+          contentContainerStyle={styles.contentContainer}
         >
           {renderContent()}
         </ScrollView>
-        <View style={state.selectedTab === "companions" && styles.navOverlap}>
-          <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
-        </View>
+        <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
         {questOpen && (
           <QuestModal state={state} gems={state.gems} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
         )}
@@ -455,7 +459,18 @@ export function GameScreen() {
             equippedSkill={state.equippedSkill ?? null}
             skillTimers={game.battle.skillTimers}
             onGoTo={onSelectTab}
-            onFinish={() => setState((previous) => ({ ...previous, skillTutorialDone: true }))}
+            onFinish={(cast) => {
+              setState((previous) => ({ ...previous, skillTutorialDone: true }));
+              if (cast) setStealHint(true);
+            }}
+          />
+        )}
+        {/* After the skill tutorial's cast: a light hint (no dim — taps still reach the fight)
+            for as long as 훔치기's tap window runs. */}
+        {stealHint && state.selectedTab === "battle" && (
+          <MiniGuide
+            line={"지금 **화면을 연타**해서 공격해 봐!\n때릴 때마다 **골드**가 튀어나와. 다 쓰면\n3분 뒤에 다시 쓸 수 있어."}
+            onTap={() => setStealHint(false)}
           />
         )}
         {collected && collectedRecipe && (
@@ -482,7 +497,4 @@ const styles = StyleSheet.create({
   frame: { flex: 1, maxWidth: 430, width: "100%", alignSelf: "center", backgroundColor: colors.paper },
   content: { flex: 1 },
   contentContainer: { flexGrow: 1, paddingBottom: 12 },
-  contentFlush: { paddingBottom: 0 },
-  // Pulled up over the bottom of the page so the map shows behind the nav's rounded rim.
-  navOverlap: { marginTop: -18 },
 });

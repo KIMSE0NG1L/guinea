@@ -20,6 +20,9 @@ import {
   isSkillActive,
   type SkillId,
   type SkillTimers,
+  METEOR_BOSS_HP_RATIO,
+  METEOR_HIT_MS,
+  METEOR_KILLS,
 } from "./skills";
 
 // Player's win animation is 480ms/cycle and plays 3x on a boss kill (see BattleScene's
@@ -153,7 +156,13 @@ export function useAutoBattle({
     teleport: 0,
     carrotThrow: 0,
     chiliThrow: 0,
+    meteor: 0,
   });
+  // 운석 낙하: bumped per falling meteor (the cast's own, then one per mob of the shower), so
+  // the scene drops a fresh rock each time. Charges are the mobs still to come in the shower.
+  const [meteorStrikeId, setMeteorStrikeId] = useState(0);
+  const meteorChargesRef = useRef(0);
+  const meteorInFlightRef = useRef(false);
   // Whether the current/last kill was an Execute — the player strikes a crit pose for it.
   const [lastKillExecuted, setLastKillExecuted] = useState(false);
   // Bumped each time this enemy comes back from the dead (reviveHpRatio) instead of dying.
@@ -500,6 +509,37 @@ export function useAutoBattle({
     return phase !== "defeated" && phase !== "entering";
   };
 
+  // One meteor onto whatever enemy is here now, landing when the rock hits the ground. A
+  // mob dies outright; a boss takes a share of its max HP. Fizzles if that enemy is already
+  // gone by then, like the other thrown skills.
+  const dropMeteor = useCallback(() => {
+    const epoch = enemyEpochRef.current;
+    meteorInFlightRef.current = true;
+    setMeteorStrikeId((value) => value + 1);
+    const hitTimer = setTimeout(() => {
+      meteorInFlightRef.current = false;
+      if (epoch !== enemyEpochRef.current) return;
+      if (phaseRef.current === "defeated" || phaseRef.current === "entering") return;
+      const damage = bossRef.current ? Math.ceil(maxHpRef.current * METEOR_BOSS_HP_RATIO) : hpRef.current;
+      setLastCritical(true);
+      dealDamage(damage, true);
+    }, METEOR_HIT_MS);
+    eventTimersRef.current.push(hitTimer);
+  }, [dealDamage]);
+
+  // The rest of the shower: each new mob gets its own meteor once it's settled in (idle) —
+  // not while the battle is paused (a banner or cutscene up), so nothing dies unseen. A
+  // boss turning up ends the shower.
+  useEffect(() => {
+    if (paused || phase !== "idle" || meteorInFlightRef.current || meteorChargesRef.current <= 0) return;
+    if (bossRef.current) {
+      meteorChargesRef.current = 0;
+      return;
+    }
+    meteorChargesRef.current -= 1;
+    dropMeteor();
+  }, [paused, phase, enemyId, dropMeteor]);
+
   const castSkill = useCallback(() => {
     const id = equippedSkillRef.current;
     if (!id) return;
@@ -570,7 +610,21 @@ export function useAutoBattle({
       }, CHILI_THROW_HIT_MS);
       eventTimersRef.current.push(landTimer);
     }
-  }, [dealDamage]);
+
+    if (id === "meteor") {
+      // On a boss: one strike, no shower. On a mob: this one plus the next METEOR_KILLS - 1.
+      meteorChargesRef.current = bossRef.current ? 0 : METEOR_KILLS - 1;
+      dropMeteor();
+    }
+  }, [dealDamage, dropMeteor]);
+
+  // Puts saved cooldowns back after a reload (skills added since the save start ready).
+  const restoreSkillTimers = useCallback((saved: Partial<SkillTimers>, lastCastAt: number) => {
+    const next = { ...INITIAL_SKILL_TIMERS, ...saved };
+    skillTimersRef.current = next;
+    setSkillTimers(next);
+    setLastSkillCastAt(lastCastAt);
+  }, []);
 
   // A food buff (skillReset) makes the equipped skill ready to cast right now.
   const resetSkillCooldown = useCallback(() => {
@@ -635,6 +689,7 @@ export function useAutoBattle({
     executeId,
     reviveId,
     castIds,
+    meteorStrikeId,
     lastKillExecuted,
     resetEnemy,
     healEnemy,
@@ -643,6 +698,7 @@ export function useAutoBattle({
     castSkill,
     canCastSkill,
     resetSkillCooldown,
+    restoreSkillTimers,
     firstStrikeId,
     autoLocked,
   };

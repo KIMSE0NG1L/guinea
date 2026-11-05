@@ -22,12 +22,13 @@ import { EXECUTE_TIMING, ExecuteEffect } from "../components/ExecuteEffect";
 import { BeamEffect } from "../components/BeamEffect";
 import { BossReviveEffect, BossSkillCastEffect } from "../components/BossSkillEffect";
 import type { BossSkill } from "../state/bossSkills";
-import { BEAM_TIMING, CARROT_THROW_HIT_MS, CHILI_THROW_HIT_MS, getSkill } from "../state/skills";
+import { BEAM_TIMING, CARROT_THROW_HIT_MS, CHILI_THROW_HIT_MS, getSkill, METEOR_HIT_MS } from "../state/skills";
 import {
   BarrageCastEffect,
   BuffVignette,
   CarrotThrowEffect,
   ChiliThrowEffect,
+  MeteorStrikeEffect,
   FocusAura,
   FocusCastEffect,
   ShoutCastEffect,
@@ -94,6 +95,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   candyBasketSlime: 180,
   bee: 152,
   angryCandyBasketSlime: 170,
+  thiefCrow: 220,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -106,6 +108,7 @@ const MOB_SIZE: Partial<Record<EnemyKind, number>> = {
   candyBasketSlime: 125,
   bee: 110,
   angryCandyBasketSlime: 125,
+  thiefCrow: 120,
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -147,6 +150,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   candyBasketSlime: images.battleBackgroundPumpkinForest,
   bee: images.battleBackgroundHoneyTrail,
   angryCandyBasketSlime: images.battleBackgroundGiniMetropolis,
+  thiefCrow: images.battleBackgroundRuinedCitadel,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.
@@ -266,6 +270,7 @@ export function BattleScene({
   shoutId: rawShoutId,
   carrotThrowId: rawCarrotThrowId,
   chiliThrowId: rawChiliThrowId,
+  meteorStrikeId: rawMeteorStrikeId = 0,
   dropEvents,
   bossEntranceKey,
   bossFirstMeet = false,
@@ -331,6 +336,8 @@ export function BattleScene({
   shoutId: number;
   carrotThrowId: number;
   chiliThrowId: number;
+  // Bumped per falling 운석 낙하 meteor (the cast's, then one per mob of the shower).
+  meteorStrikeId?: number;
   dropEvents: DropEvent[];
   // Set while a freshly spawned boss waits to be tapped (useGameState's bossIntroPending).
   bossEntranceKey: string | null;
@@ -382,6 +389,7 @@ export function BattleScene({
   const shout = useSkillEvent(rawShoutId, SHOUT_DURATION);
   const { id: carrotThrowId } = useSkillEvent(rawCarrotThrowId, CARROT_THROW_HIT_MS);
   const { id: chiliThrowId } = useSkillEvent(rawChiliThrowId, CHILI_THROW_HIT_MS);
+  const { id: meteorStrikeId } = useSkillEvent(rawMeteorStrikeId, METEOR_HIT_MS);
   // Teleport doesn't move the player or swing anything — it just holds them on their
   // existing "win" pose (see playerAnimation below) while TeleportCastEffect sells the
   // instant enemy swap underneath them.
@@ -702,6 +710,9 @@ export function BattleScene({
               from={{ left: playerCenterLeft + 34, bottom: FIGHTERS_BOTTOM + 48 }}
               to={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}
             />
+          )}
+          {meteorStrikeId > 0 && fightersWidth > 0 && (
+            <MeteorStrikeEffect key={`meteor-${meteorStrikeId}`} at={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + 8 }} />
           )}
           {chiliThrowId > 0 && fightersWidth > 0 && (
             <ChiliThrowEffect

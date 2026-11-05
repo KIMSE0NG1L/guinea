@@ -439,6 +439,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/angry-candy-basket-slime-hit-strip.png"),
     die: require("../assets/sprites/angry-candy-basket-slime-die-strip.png"),
   },
+  thiefCrow: {
+    idle: require("../assets/sprites/thief-crow-idle-strip.png"),
+    hit: require("../assets/sprites/thief-crow-hit-strip.png"),
+    die: require("../assets/sprites/thief-crow-die-strip.png"),
+  },
+  bossHungryRedDragon: {
+    idle: require("../assets/sprites/hungry-red-dragon-idle-strip.png"),
+    hit: require("../assets/sprites/hungry-red-dragon-hit-strip.png"),
+    die: require("../assets/sprites/hungry-red-dragon-die-strip.png"),
+  },
 };
 
 export const images = {
@@ -480,6 +490,8 @@ export const images = {
   battleBackgroundSuspiciousHouse: require("../assets/sprites/battle-suspicious-house.png"),
   battleBackgroundPumpkinForest: require("../assets/sprites/battle-pumpkin-forest.png"),
   battleBackgroundHoneyTrail: require("../assets/sprites/battle-honey-trail.png"),
+  battleBackgroundDragonMountainRuin: require("../assets/sprites/battle-dragon-mountain-ruin.png"),
+  battleBackgroundRuinedCitadel: require("../assets/sprites/battle-ruined-citadel.png"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -512,6 +524,10 @@ export const effects = {
   // already matches the skill's own icon, no recolor needed: 96x104, 72 frames —
   // `node tools/pixelfx-export.mjs scifi/teleporter-pad --out teleport-pad`.
   teleportPad: require("../assets/effects/teleport-pad-strip.png"),
+  // 운석 낙하's falling rock and impact, pixelfx's own fire palette: 272x232, the first 66
+  // frames (2.2s) of 151 — the long smoke tail is faded out in code instead —
+  // `node tools/pixelfx-export.mjs fire/meteor --out meteor-strike --max-frames 66`.
+  meteorStrike: require("../assets/effects/meteor-strike-strip.png"),
   // 마녀기니's spells (src/components/WitchSpell.tsx), all `--square` padded: five element
   // bolts (looping, flying right) each with its matching hit-spark, plus three big crit
   // bursts. Bolts: projectiles/plasma-shot (arcane / poison palettes), fire/fireball,
@@ -612,6 +628,7 @@ export const skillImages = {
   teleport: require("../assets/skills/teleport.png"),
   carrotThrow: require("../assets/skills/carrotThrow.png"),
   chiliThrow: require("../assets/skills/chiliThrow.png"),
+  meteor: require("../assets/skills/meteor.png"),
 };
 const WIDE_ICON = 256 / 222;
 const SQUARE_ICON = 256 / 258;
@@ -627,6 +644,7 @@ export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
   teleport: SQUARE_ICON,
   carrotThrow: SQUARE_ICON,
   chiliThrow: SQUARE_ICON,
+  meteor: 1,
 };
 
 export const food = {
@@ -1082,6 +1100,10 @@ export const comics = {
   giniReturn2: require("../assets/comics/gini-return-2.png"),
   giniReturn3: require("../assets/comics/gini-return-3.png"),
   giniReturn4: require("../assets/comics/gini-return-4.png"),
+  griffinFlight1: require("../assets/comics/griffin-flight-1.png"),
+  griffinFlight2: require("../assets/comics/griffin-flight-2.png"),
+  griffinFlight3: require("../assets/comics/griffin-flight-3.png"),
+  griffinFlight4: require("../assets/comics/griffin-flight-4.png"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.

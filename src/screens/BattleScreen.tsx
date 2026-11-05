@@ -112,6 +112,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         shoutId={battle.castIds.shout}
         carrotThrowId={battle.castIds.carrotThrow}
         chiliThrowId={battle.castIds.chiliThrow}
+        meteorStrikeId={battle.meteorStrikeId}
         dropEvents={game.dropEvents}
         bossEntranceKey={bossEntranceKey}
         bossFirstMeet={!game.clearedStages.includes(state.stageNumber)}

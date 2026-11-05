@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
-import { GLUTTON_FOOD_MULTIPLIER, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
+import { GLUTTON_FOOD_MULTIPLIER, INITIAL_SKILL_TIMERS, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
 import { applyUpgradeLevels, getBossTimeLimitMs, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
@@ -186,7 +186,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           : "default";
         // Same guard for a save written before a skill (e.g. the old "freeze"/"swords"/"meteor"
         // magic trio) was retired — getSkill() would otherwise throw looking it up.
-        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton", "barrage", "teleport", "carrotThrow", "chiliThrow"];
+        const validSkills = ["beam", "steal", "focus", "execute", "shout", "diligent", "glutton", "barrage", "teleport", "carrotThrow", "chiliThrow", "meteor"];
         const equippedSkill = save.state.equippedSkill && validSkills.includes(save.state.equippedSkill) ? save.state.equippedSkill : null;
         // Placeholder starter materials that were never used by any recipe — strip them
         // from older saves so they stop cluttering the bag.
@@ -217,7 +217,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         const cookedRecipes =
           save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
         let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, skillTutorialDone, upgradeTutorialDone, discoveredItems, cookedRecipes };
-        lastSeenAtRef.current = save.lastSeenAt;
+        // The game is running again from now on — so a reload (which never fires the
+        // background event below) can't hand the same offline stretch out a second time.
+        lastSeenAtRef.current = Date.now();
         if (save.lastSeenAt) {
           const awayMs = Date.now() - save.lastSeenAt;
           const result = simulateOfflineProgress(loadedState, awayMs);
@@ -229,6 +231,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           }
         }
         previousLevelRef.current = loadedState.level;
+        // A first-clear celebration that was still open when the game closed comes back.
+        if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, key: Date.now() });
         setState(loadedState);
       }
       setLoaded(true);
@@ -238,6 +242,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   useEffect(() => {
     if (!loaded) return;
     const timer = setTimeout(() => {
+      lastSeenAtRef.current = Date.now();
       writeSave({ state, lastSeenAt: lastSeenAtRef.current });
     }, 800);
 
@@ -256,6 +261,21 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       subscription.remove();
     };
   }, [state, loaded]);
+
+  // Heartbeat: keeps lastSeenAt current while nothing in the save changes (a paused screen,
+  // a banner waiting for its tap), so offline time is only ever time the game wasn't running.
+  const latestStateRef = useRef(state);
+  useEffect(() => {
+    latestStateRef.current = state;
+  });
+  useEffect(() => {
+    if (!loaded) return;
+    const id = setInterval(() => {
+      lastSeenAtRef.current = Date.now();
+      writeSave({ state: latestStateRef.current, lastSeenAt: lastSeenAtRef.current });
+    }, 15_000);
+    return () => clearInterval(id);
+  }, [loaded]);
 
   // Reacts to stageNumber changes during render (not in an effect) so the banner shows up
   // in the same pass as the new stage instead of one cascaded render later.
@@ -369,8 +389,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       stageNumber: state.stageNumber,
     }).includes(state.stageNumber);
     if (firstClear) {
-      setFirstClear({
-        key: Date.now(),
+      const pending = {
         stageNumber: state.stageNumber,
         bossName: BOSS_NAME[getEnemyKind(state.stageNumber)],
         gems: FIRST_CLEAR_GEMS,
@@ -383,7 +402,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
                 // Already brought along early with gems — nothing new to announce.
                 .filter((outfit) => !(state.purchasedOutfits ?? []).includes(outfit))
                 .map((outfit) => OUTFIT_NAMES[outfit]),
-      });
+      };
+      setFirstClear({ ...pending, key: Date.now() });
+      setState((previous) => ({ ...previous, pendingFirstClear: pending }));
     }
 
     setState((previous) => {
@@ -503,6 +524,28 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
   });
 
+  // Skill cooldowns survive a reload: put the saved ones back once the save is in, then keep
+  // the save in step with every cast (deferred out of the effect body, like the others here).
+  const skillTimersRestored = useRef(false);
+  useEffect(() => {
+    if (!loaded || skillTimersRestored.current) return;
+    skillTimersRestored.current = true;
+    if (state.skillTimers) battle.restoreSkillTimers(state.skillTimers, state.lastSkillCastAt ?? 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+  useEffect(() => {
+    // Still the untouched initial timers (nothing cast, nothing restored yet): nothing to save.
+    if (!loaded || battle.skillTimers === INITIAL_SKILL_TIMERS) return;
+    const timer = setTimeout(() => {
+      setState((previous) =>
+        previous.skillTimers === battle.skillTimers && previous.lastSkillCastAt === battle.lastSkillCastAt
+          ? previous
+          : { ...previous, skillTimers: battle.skillTimers, lastSkillCastAt: battle.lastSkillCastAt },
+      );
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loaded, battle.skillTimers, battle.lastSkillCastAt]);
+
   // The boss fight's clock: once bossTimeLimitMs elapses without a kill, it flees — back to
   // square one on this stage's regular mobs, not just a free re-fight. `now` only ticks
   // once a second (see its own effect above), so this fires within a second of the real
@@ -619,7 +662,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     if (!firstClear) return;
     const { gems } = firstClear;
     setFirstClear(null);
-    setState((previous) => ({ ...previous, gems: previous.gems + gems }));
+    setState((previous) => ({ ...previous, gems: previous.gems + gems, pendingFirstClear: undefined }));
   };
 
   const retryBossAfterAd = useCallback(() => {
@@ -1036,7 +1079,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     continueStage: () => setStageAnnouncement(null),
     firstClear,
     clearedStages: getClearedBosses(state),
-    dismissFirstClear: () => setFirstClear(null),
+    dismissFirstClear: () => {
+      setFirstClear(null);
+      setState((previous) => (previous.pendingFirstClear ? { ...previous, pendingFirstClear: undefined } : previous));
+    },
     claimFirstClearGems,
     levelUpAnnouncement,
     levelUpAttackGain,

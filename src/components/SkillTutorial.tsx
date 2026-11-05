@@ -1,9 +1,10 @@
+import { useEffect } from "react";
 import { navIcons, skillImages } from "../assets";
 import { GuideScene } from "./TutorialOverlay";
 import type { SkillId, SkillTimers } from "../state/skills";
 import type { Tab } from "../types";
 
-const STEPS = 5;
+const STEPS = 4;
 
 // Starts once the player reaches the level that unlocks 훔치기 (the first skill, see
 // SKILL_UNLOCK_LEVEL). Walks them to the skills tab, has them equip it, sends them back to
@@ -25,22 +26,24 @@ export function SkillTutorial({
   equippedSkill: SkillId | null;
   skillTimers: SkillTimers;
   onGoTo: (tab: Tab) => void;
-  onFinish: () => void;
+  // `cast`: it ended on the cast itself (not a skip) — the caller shows a light hint while
+  // 훔치기's tap window runs.
+  onFinish: (cast?: boolean) => void;
 }) {
   const equipped = equippedSkill === "steal";
   const cast = equipped && skillTimers.steal.readyAt > 0;
 
   const scene = (index: number, props: Omit<Parameters<typeof GuideScene>[0], "stepKey" | "dots">) => (
-    <GuideScene key={index} stepKey={index} dots={{ count: STEPS, index }} onSkip={index < STEPS - 1 ? onFinish : undefined} {...props} />
+    <GuideScene key={index} stepKey={index} dots={{ count: STEPS, index }} onSkip={index < STEPS - 1 ? () => onFinish() : undefined} {...props} />
   );
 
-  if (cast) {
-    return scene(4, {
-      line: "좋아! 공격할 때마다 처치 골드를\n더 얻고 있어. 다 쓰면 3분 뒤에\n다시 쓸 수 있어.",
-      icon: skillImages.steal,
-      action: { label: "알겠어!", onPress: onFinish },
-    });
-  }
+  // The cast ends it on the spot: 훔치기 opens a few seconds of tapping to attack, and both a
+  // full-screen dim and the battle pause this tutorial holds would eat that whole window.
+  useEffect(() => {
+    if (cast) onFinish(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cast]);
+  if (cast) return null;
   if (equipped) {
     if (tab !== "battle") {
       return scene(2, {
