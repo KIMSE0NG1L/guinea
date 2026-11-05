@@ -61,7 +61,9 @@ const CRITS: Clip[] = [
 
 // One cast: mount fresh (new key) per swing. Picks its element (and crit burst) at random
 // on mount, flies the bolt from `from` to `to`, then plays the burst there.
-export function WitchSpell({ from, to, critical }: { from: Point; to: Point; critical: boolean }) {
+// `travelMs`: the bolt's flight time — WITCH_TRAVEL_MS scaled by the battle's speed, since the
+// hit it has to meet lands sooner when the fight runs faster (2x boost, attack-speed food).
+export function WitchSpell({ from, to, critical, travelMs = WITCH_TRAVEL_MS }: { from: Point; to: Point; critical: boolean; travelMs?: number }) {
   const [pick] = useState(() => ({
     element: ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)],
     crit: CRITS[Math.floor(Math.random() * CRITS.length)],
@@ -70,8 +72,8 @@ export function WitchSpell({ from, to, critical }: { from: Point; to: Point; cri
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withTiming(1, { duration: WITCH_TRAVEL_MS, easing: Easing.in(Easing.quad) });
-    const timer = setTimeout(() => setLanded(true), WITCH_TRAVEL_MS);
+    progress.value = withTiming(1, { duration: travelMs, easing: Easing.in(Easing.quad) });
+    const timer = setTimeout(() => setLanded(true), travelMs);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

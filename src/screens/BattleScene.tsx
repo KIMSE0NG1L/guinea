@@ -14,7 +14,7 @@ import { GoldFly } from "../components/GoldFly";
 import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
 import { BossFleeBanner } from "../components/BossFleeBanner";
 import { BossEntranceBanner } from "../components/BossEntranceBanner";
-import { WITCH_SPELL_LIFE_MS, WitchSpell } from "../components/WitchSpell";
+import { WITCH_SPELL_LIFE_MS, WITCH_TRAVEL_MS, WitchSpell } from "../components/WitchSpell";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
@@ -241,6 +241,7 @@ export function BattleScene({
   lastGoldReward,
   stageAdvance,
   onContinueStage,
+  battleSpeed = 1,
   stageLabel,
   stageKills,
   questReady,
@@ -298,6 +299,8 @@ export function BattleScene({
   stageAdvance: string | null;
   // Tapping the stage-clear banner moves on (battle waits until then).
   onContinueStage?: () => void;
+  // How fast the fight runs (2x boost and attack-speed buffs) — paces 마녀기니's bolts.
+  battleSpeed?: number;
   stageLabel: string;
   stageKills: number;
   questReady: boolean;
@@ -726,6 +729,7 @@ export function BattleScene({
               <WitchSpell
                 key={`witch-${spell.id}`}
                 critical={spell.critical}
+                travelMs={WITCH_TRAVEL_MS / battleSpeed}
                 // Just in front of her, at wand height — not out of her mouth like the beam.
                 from={{ left: playerCenterLeft + 66, bottom: FIGHTERS_BOTTOM + 42 }}
                 to={{ left: enemyCenterLeft, bottom: FIGHTERS_BOTTOM + enemySize * 0.45 }}

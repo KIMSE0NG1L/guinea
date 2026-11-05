@@ -1,13 +1,32 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { StrokedText } from "./StrokedText";
 import { images } from "../assets";
 import { loadSave } from "../state/storage";
 import { getStageLabel } from "../state/stages";
-import { OUTFIT_NAMES } from "../state/buffs";
+import { OUTFIT_NAMES, OUTFIT_NO_OFFLINE } from "../state/buffs";
 import { playSfx } from "../sound";
+import { MAX_OFFLINE_MS } from "../state/offline";
+import appConfig from "../../app.json";
+
+// Shown in the corner. The policy links only appear once their pages exist — fill these in.
+const APP_VERSION = appConfig.expo.version;
+const PRIVACY_URL = "";
+const TERMS_URL = "";
+// Shorter than this away and it's just a reload, not worth a line (offline.ts's own floor).
+const AWAY_MIN_MS = 30 * 1000;
+
+// "3시간 20분" / "45분" / "1분 미만" for the away line.
+function formatAway(ms: number) {
+  const minutes = Math.floor(ms / 60000);
+  if (minutes < 1) return "1분 미만";
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${minutes}분`;
+  return rest === 0 ? `${hours}시간` : `${hours}시간 ${rest}분`;
+}
 
 // One shown at a time above "터치하여 시작", cycling.
 const TIPS = [
@@ -32,13 +51,26 @@ const EXIT_MS = 380;
 // shows again on every real app launch, not just the first-ever one).
 export function TitleScreen({ onStart }: { onStart: () => void }) {
   // Where a returning player left off, read straight from the save (null: still loading).
-  const [progress, setProgress] = useState<{ line: string } | null>(null);
+  const [progress, setProgress] = useState<{ line: string; away?: string } | null>(null);
   useEffect(() => {
     let alive = true;
     loadSave().then((save) => {
       if (!alive) return;
       const state = save?.state;
+      // How long the game was closed: the companion has been out hunting (capped like the
+      // offline reward itself), or — for one who doesn't hunt offline — resting.
+      let away: string | undefined;
+      const awayMs = state?.tutorialDone && save?.lastSeenAt ? Date.now() - save.lastSeenAt : 0;
+      if (state && awayMs >= AWAY_MIN_MS) {
+        const name = OUTFIT_NAMES[state.equippedOutfit] ?? "모험기니";
+        away = OUTFIT_NO_OFFLINE[state.equippedOutfit]
+          ? `${formatAway(awayMs)} 동안 ${name}가 푹 쉬었어요`
+          : awayMs > MAX_OFFLINE_MS
+            ? `${formatAway(awayMs)} 동안 ${name}가 사냥했어요 (최대 ${MAX_OFFLINE_MS / 3600000}시간 보상)`
+            : `${formatAway(awayMs)} 동안 ${name}가 사냥했어요`;
+      }
       setProgress({
+        away,
         line: state && state.tutorialDone
           ? `Lv.${state.level} ${OUTFIT_NAMES[state.equippedOutfit] ?? "모험기니"} · ${getStageLabel(state.stageNumber)}`
           : "새로운 모험을 시작해요",
@@ -123,6 +155,7 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
               <Text style={styles.progressText}>{progress.line}</Text>
             </View>
           )}
+          {progress?.away && <Text style={styles.awayText}>{progress.away}</Text>}
         </View>
         <Animated.View style={[styles.tipWrap, tipStyle]} pointerEvents="none">
           <StrokedText style={styles.tipText} strokeColor={colors.line} strokeWidth={1.5}>
@@ -134,6 +167,19 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
             터치하여 시작
           </StrokedText>
         </Animated.View>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>v{APP_VERSION}</Text>
+          {PRIVACY_URL !== "" && (
+            <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8} accessibilityRole="link">
+              <Text style={[styles.footerText, styles.footerLink]}>개인정보처리방침</Text>
+            </Pressable>
+          )}
+          {TERMS_URL !== "" && (
+            <Pressable onPress={() => Linking.openURL(TERMS_URL)} hitSlop={8} accessibilityRole="link">
+              <Text style={[styles.footerText, styles.footerLink]}>이용약관</Text>
+            </Pressable>
+          )}
+        </View>
         <Animated.View style={[StyleSheet.absoluteFill, styles.flash, flashStyle]} pointerEvents="none" />
       </Pressable>
     </View>
@@ -210,5 +256,10 @@ const styles = StyleSheet.create({
   tipWrap: { position: "absolute", bottom: "8%", left: 24, right: 24, alignItems: "center" },
   tipText: { color: "#f3e6c8", fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, textAlign: "center" },
   flash: { backgroundColor: "#ffffff" },
+  awayText: { marginTop: 6, color: "#fff4d6", fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 4 },
+  // Bottom-right corner, out of the way of the tip and "터치하여 시작".
+  footer: { position: "absolute", bottom: 10, right: 12, flexDirection: "row", alignItems: "center", gap: 10 },
+  footerText: { color: "#f3e6c8b3", fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 3 },
+  footerLink: { textDecorationLine: "underline" },
   start: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
 });

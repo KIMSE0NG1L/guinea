@@ -74,6 +74,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         lastGoldReward={battle.lastGoldReward}
         stageAdvance={game.stageAnnouncement}
         onContinueStage={game.continueStage}
+        battleSpeed={game.battleSpeed}
         stageLabel={boss ? `${stageLabel} · 보스` : stageLabel}
         stageKills={state.stageKills}
         questReady={hasClaimableQuest(state)}

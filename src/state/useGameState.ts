@@ -1182,6 +1182,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     now,
     eatDish,
     speedMultiplier,
+    // The fight's actual pace (boost x attack-speed buffs), as useAutoBattle runs it.
+    battleSpeed,
     speedBoostRemainingMs,
     watchAdForSpeedBoost,
     adGemsRemainingMs,
