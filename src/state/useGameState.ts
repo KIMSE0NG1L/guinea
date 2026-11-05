@@ -231,12 +231,20 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           }
         }
         previousLevelRef.current = loadedState.level;
+        // The saved stage is where the player already is, not one they just reached — mark it
+        // announced in the same update so loading it doesn't pop the stage-clear banner.
+        setAnnouncedStageNumber(loadedState.stageNumber);
+        // The enemy on screen was built for the fresh game's stage 1 before the save came in —
+        // replace it with a full-HP mob of the loaded stage, or it walks in nearly dead.
+        battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, false));
         // A first-clear celebration that was still open when the game closed comes back.
         if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, key: Date.now() });
         setState(loadedState);
       }
       setLoaded(true);
     });
+    // Runs once, on mount — the load itself; `battle` is only used for that one reset.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

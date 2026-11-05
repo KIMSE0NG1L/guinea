@@ -1448,31 +1448,31 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
     panels: [
       {
         image: comics.griffinFlight1,
-        aspect: 554 / 592,
-        bubbles: [{ text: "미안하다… 너무 배가 고파서\n그만 냄비를 노렸구나.", right: 0.03, top: 0.03, maxWidth: 0.5, tail: "bottom", tailAt: 0.45 }],
+        aspect: 435 / 799,
+        bubbles: [{ text: "미안하다… 너무 배가 고파서\n그만 냄비를 노렸구나.", right: 0.03, top: 0.03, maxWidth: 0.42, tail: "bottom", tailAt: 0.4 }],
       },
       {
         image: comics.griffinFlight2,
-        aspect: 554 / 590,
+        aspect: 435 / 800,
         bubbles: [
-          { text: "음식을 숨겨 둔 용을 안다.\n꽉 잡아라!", left: 0.03, top: 0.03, maxWidth: 0.44, tail: "bottom", tailAt: 0.7 },
-          { text: "우와, 하늘을 난다~!", right: 0.03, top: 0.6, maxWidth: 0.38, tail: "top", tailAt: 0.55 },
+          { text: "음식을 숨겨 둔 용을 안다.\n꽉 잡아라!", left: 0.02, top: 0.66, maxWidth: 0.36, tail: "top", tailAt: 0.7 },
+          { text: "우와, 하늘을 난다~!", right: 0.02, top: 0.04, maxWidth: 0.28, tail: "left", tailAt: 0.5 },
         ],
       },
       {
         image: comics.griffinFlight3,
-        aspect: 629 / 592,
+        aspect: 434 / 799,
         sfx: "hit",
         shake: true,
-        bubbles: [{ text: "까마귀 떼다!\n으아아, 떨어진다!", right: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.25, shout: true }],
+        bubbles: [{ text: "까마귀 떼다!\n으아아, 떨어진다!", right: 0.02, top: 0.03, maxWidth: 0.32, tail: "bottom", tailAt: 0.2, shout: true }],
       },
       {
         image: comics.griffinFlight4,
-        aspect: 629 / 590,
+        aspect: 434 / 800,
         sfx: "bossEnter",
         bubbles: [
-          { text: "…내 음식에\n손대지 마라.", left: 0.03, top: 0.03, maxWidth: 0.34, tail: "right", tailAt: 0.5, shout: true },
-          { text: "으윽… 여긴 어디야?", left: 0.03, top: 0.44, maxWidth: 0.4, tail: "bottom", tailAt: 0.45 },
+          { text: "…내 음식에\n손대지 마라.", left: 0.02, top: 0.04, maxWidth: 0.3, tail: "right", tailAt: 0.5, shout: true },
+          { text: "으윽… 여긴 어디야?", right: 0.02, top: 0.4, maxWidth: 0.28, tail: "left", tailAt: 0.75 },
         ],
       },
     ],

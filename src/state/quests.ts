@@ -156,7 +156,7 @@ export const CHAPTERS: Chapter[] = [
     missions: [
       { metric: "stage", target: LAST_STAGE, reward: 50 },
       { metric: "kills", target: 20000, reward: 50 },
-      { metric: "level", target: 150, reward: 50 },
+      { metric: "level", target: 200, reward: 50 },
       { metric: "foodSlots", target: 3, reward: 50 },
       { metric: "recipes", target: ALL_RECIPES, reward: 50 },
       { metric: "ingredients", target: Math.min(80, GROCERY.length), reward: 50 },
