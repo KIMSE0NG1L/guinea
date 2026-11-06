@@ -400,6 +400,10 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
           state={state}
           onReset={game.resetSave}
           onSkipToBoss={game.skipToBoss}
+          onSpawnGoldenMini={() => {
+            game.spawnGoldenMiniBoss();
+            onSelectTab("battle");
+          }}
           onKillEnemy={game.battle.killEnemy}
           onAddLevels={() => game.cheatAddLevels(50)}
           onUnlockAllStages={game.cheatUnlockAllStages}

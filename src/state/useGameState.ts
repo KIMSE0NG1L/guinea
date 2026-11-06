@@ -11,7 +11,7 @@ import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
 import { getOutfitGemPrice, getOutfitsUnlockedByStage, getUnlocksAtLevel, isOutfitUnlocked, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
-import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
+import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
@@ -50,6 +50,10 @@ export const LOOT_COINS = 5;
 export const LOOT_COIN_GAP_MS = 280;
 // Gems for beating a stage's boss for the very first time.
 export const FIRST_CLEAR_GEMS = 50;
+// A retry after the boss fled (watching an ad) gets this share of the usual time limit: the
+// boss keeps its remaining HP, so a near miss still has plenty, while one far off is better
+// served by getting stronger first.
+export const BOSS_RETRY_TIME_RATIO = 0.5;
 
 
 // Grocery category of each ingredient, for the category drop buffs (vegetableDrop, seafoodDrop).
@@ -89,6 +93,11 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // A regular mob wandered over from the stage before (STRAY_MOB_CHANCE) is the one up now —
   // null for the stage's own. The defeated one is kept for its death clip, like the boss.
   const [strayKind, setStrayKind] = useState<EnemyKind | null>(null);
+  // The mid-boss up now is a golden one (isGoldenMiniBoss), and the one just beaten was.
+  const [goldenMini, setGoldenMini] = useState(false);
+  const [defeatedGolden, setDefeatedGolden] = useState(false);
+  // Bumped when a golden mid-boss falls, with what it paid, for the battle's reward toast.
+  const [goldenReward, setGoldenReward] = useState<{ id: number; gold: number; gems: number } | null>(null);
   const [defeatedStrayKind, setDefeatedStrayKind] = useState<EnemyKind | null>(null);
   const [defeatedBoss, setDefeatedBoss] = useState(false);
   // When the current boss fight started (wall-clock) and how long it gets before the boss
@@ -255,10 +264,13 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         // replace it with a full-HP mob of the loaded stage, or it walks in nearly dead.
         // A save left mid boss fight (the stage's mob quota already full) brings the boss
         // straight back, entrance and all — the fight itself isn't saved, only the quota.
-        const miniDue = isMiniBossDue(loadedState.stageKills, loadedState.stageMiniBosses ?? 0, loadedState.stageNumber, loadedState.bossKills ?? 0);
+        const miniDue = isMiniBossDue(loadedState.stageKills, loadedState.stageMiniBosses ?? 0, loadedState.stageNumber, getMiniBossSalt(loadedState));
         const bossDue = !miniDue && loadedState.stageKills >= STAGE_KILL_TARGET;
         if (bossDue) startBossFight(loadedState.stageNumber);
-        if (miniDue) setMiniBoss(true);
+        if (miniDue) {
+          setMiniBoss(true);
+          setGoldenMini(isGoldenMiniBoss(loadedState.stageNumber, loadedState.stageMiniBosses ?? 0, getMiniBossSalt(loadedState)));
+        }
         battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, bossDue) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
         // A first-clear celebration that was still open when the game closed comes back.
         if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, key: Date.now() });
@@ -399,6 +411,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // A mid-boss going down doesn't count toward the stage's mob quota.
     const wasMiniBoss = miniBoss && !boss;
     setDefeatedMiniBoss(wasMiniBoss);
+    const wasGolden = wasMiniBoss && goldenMini;
+    setDefeatedGolden(wasGolden);
+    if (wasMiniBoss) setGoldenMini(false);
+    // A golden mid-boss: its gold many times over, and gems on top.
+    const goldenGold = wasGolden ? Math.round(rawGold * (GOLDEN_GOLD_MULTIPLIER - 1)) : 0;
+    if (wasGolden) setGoldenReward((previous) => ({ id: (previous?.id ?? 0) + 1, gold: rawGold + goldenGold, gems: GOLDEN_GEMS }));
     if (wasMiniBoss) setMiniBoss(false);
     // How long the boss fight ran (from the tap that started it), for the fastest-boss record.
     const bossFightMs = boss && bossTimerStartedAt !== null ? Date.now() - bossTimerStartedAt : null;
@@ -408,10 +426,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // boss once the quota's full and all three are down.
     const killsAfter = boss ? 0 : wasMiniBoss ? state.stageKills : state.stageKills + 1;
     const miniBeatenAfter = boss ? 0 : (state.stageMiniBosses ?? 0) + (wasMiniBoss ? 1 : 0);
-    const miniDue = !boss && isMiniBossDue(killsAfter, miniBeatenAfter, state.stageNumber, state.bossKills ?? 0);
+    const miniDue = !boss && isMiniBossDue(killsAfter, miniBeatenAfter, state.stageNumber, getMiniBossSalt({ bossKills: state.bossKills, runSeed: state.runSeed }));
     const reachesBossThreshold = !boss && !miniDue && !wasMiniBoss && killsAfter >= STAGE_KILL_TARGET;
-    if (miniDue) setMiniBoss(true);
-    else if (reachesBossThreshold || (wasMiniBoss && killsAfter >= STAGE_KILL_TARGET)) startBossFight();
+    if (miniDue) {
+      setMiniBoss(true);
+      setGoldenMini(isGoldenMiniBoss(state.stageNumber, miniBeatenAfter, getMiniBossSalt({ bossKills: state.bossKills, runSeed: state.runSeed })));
+    } else if (reachesBossThreshold || (wasMiniBoss && killsAfter >= STAGE_KILL_TARGET)) startBossFight();
     // The one just beaten, and whether the next regular mob is a stray from the stage before.
     const wasStray = !boss && !wasMiniBoss ? strayKind : null;
     setDefeatedStrayKind(wasStray);
@@ -493,7 +513,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         level += 1;
       }
       const creditedGold = holdLoot ? 0 : goldReward;
-      const totalGoldEarned = previous.totalGoldEarned + creditedGold;
+      const totalGoldEarned = previous.totalGoldEarned + creditedGold + goldenGold;
       const bossKills = (previous.bossKills ?? 0) + (boss ? 1 : 0);
       // Clearing the last implemented boss loops back to stage 1; keep this dynamic as
       // each new region is added.
@@ -502,7 +522,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       const highestStageNumber = Math.max(previous.highestStageNumber ?? previous.stageNumber, stageNumber);
       return {
         ...previous,
-        gold: previous.gold + creditedGold,
+        gold: previous.gold + creditedGold + goldenGold,
+        gems: previous.gems + (wasGolden ? GOLDEN_GEMS : 0),
         giftKills: gift ? Math.max(0, (previous.giftKills ?? 0) - 1) : previous.giftKills,
         bossesCleared: paysFirstClear ? [...cleared, previous.stageNumber] : previous.bossesCleared,
         stageKillsSaved: boss && previous.stageKillsSaved?.[String(previous.stageNumber)] ? { ...previous.stageKillsSaved, [String(previous.stageNumber)]: 0 } : previous.stageKillsSaved,
@@ -522,7 +543,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, miniBoss, strayKind, bossTimerStartedAt, state.stageKills, state.stageMiniBosses, state.bossKills, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
+  }, [boss, miniBoss, goldenMini, strayKind, bossTimerStartedAt, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -633,6 +654,13 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battle.damageEvents]);
+
+  // Every save gets its own random seed for the mid-boss rolls, once (see runSeed).
+  useEffect(() => {
+    if (!loaded || state.runSeed !== undefined) return;
+    const timer = setTimeout(() => setState((previous) => (previous.runSeed !== undefined ? previous : { ...previous, runSeed: Math.floor(Math.random() * 1_000_000_000) })), 0);
+    return () => clearTimeout(timer);
+  }, [loaded, state.runSeed]);
 
   // Skill cooldowns survive a reload: put the saved ones back once the save is in, then keep
   // the save in step with every cast (deferred out of the effect body, like the others here).
@@ -778,9 +806,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const retryBossAfterAd = useCallback(() => {
     if (!bossRetryAvailable) return;
     setBossRetryAvailable(false);
-    // Same enemy, fresh window — no entrance banner for a retry.
+    // Same enemy, a fresh but shorter window (BOSS_RETRY_TIME_RATIO) — no entrance banner.
     setBossTimerStartedAt(Date.now());
-    setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber));
+    setBossTimeLimitMs(Math.round(getBossTimeLimitMs(state.stageNumber) * BOSS_RETRY_TIME_RATIO));
     setNow(Date.now());
   }, [bossRetryAvailable, state.stageNumber]);
 
@@ -882,13 +910,28 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // Coming back to a stage with a mid-boss still owed meets it right away.
     const targetKills = Math.min(state.stageKillsSaved?.[String(stageNumber)] ?? 0, STAGE_KILL_TARGET - 1);
     const targetMinis = state.stageMiniBossesSaved?.[String(stageNumber)] ?? 0;
-    const miniDue = isMiniBossDue(targetKills, targetMinis, stageNumber, state.bossKills ?? 0);
-    if (miniDue) setMiniBoss(true);
+    const miniDue = isMiniBossDue(targetKills, targetMinis, stageNumber, getMiniBossSalt(state));
+    if (miniDue) {
+      setMiniBoss(true);
+      setGoldenMini(isGoldenMiniBoss(stageNumber, targetMinis, getMiniBossSalt(state)));
+    }
     battle.resetEnemy(getEnemyMaxHp(stageNumber, false) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
   };
 
+  // Dev-convenience shortcut from the settings menu: a golden mid-boss right now, in place of
+  // the current regular mob, to see it without waiting on its 5% roll. Beating it counts like
+  // any mid-boss.
+  const spawnGoldenMiniBoss = () => {
+    if (boss) return;
+    setStageAnnouncement(null);
+    setStrayKind(null);
+    setMiniBoss(true);
+    setGoldenMini(true);
+    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, false) * MINI_BOSS_HP_MULTIPLIER);
+  };
+
   // Dev-convenience shortcut from the settings menu — skips straight to the current
-  // stage's boss instead of grinding out the 25 regular-mob kills first.
+  // stage's boss instead of grinding out the regular-mob kills first.
   const skipToBoss = () => {
     if (boss) return;
     setStageAnnouncement(null);
@@ -1204,6 +1247,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     displayMiniBoss,
     isMiniDefeatFlash,
     displayStrayKind,
+    // Golden mid-boss on screen (through its death clip), and its payout for the toast.
+    displayGolden: battle.phase === "defeated" ? defeatedGolden : goldenMini && miniBoss,
+    goldenReward,
     isBossDefeatFlash,
     bossTimerStartedAt,
     bossTimeLimitMs,
@@ -1289,6 +1335,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     dismissBagFull: () => setBagFullAt(null),
     selectStage,
     skipToBoss,
+    spawnGoldenMiniBoss,
     teleportToBoss,
     canTeleportToBoss,
     cheatAddLevels,

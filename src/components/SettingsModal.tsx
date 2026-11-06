@@ -8,6 +8,7 @@ import { playSfx, setBgmVolume, setSfxVolume, useBgmVolume, useSfxVolume } from 
 
 export function SettingsModal({
   onSkipToBoss,
+  onSpawnGoldenMini,
   onKillEnemy,
   onAddLevels,
   onUnlockAllStages,
@@ -21,6 +22,7 @@ export function SettingsModal({
   onClose,
 }: {
   onSkipToBoss: () => void;
+  onSpawnGoldenMini: () => void;
   onKillEnemy: () => void;
   onAddLevels: () => void;
   onUnlockAllStages: () => void;
@@ -97,56 +99,6 @@ export function SettingsModal({
               업데이트 소식
             </GameButton>
             <GameButton
-              variant="green"
-              onPress={() => {
-                onSkipToBoss();
-                onClose();
-              }}
-              style={styles.button}
-            >
-              보스로 바로 가기
-            </GameButton>
-            <GameButton
-              variant="green"
-              onPress={() => {
-                onKillEnemy();
-                onClose();
-              }}
-              style={styles.button}
-            >
-              몹 즉사
-            </GameButton>
-            <GameButton
-              variant="green"
-              onPress={() => {
-                onAddLevels();
-                onClose();
-              }}
-              style={styles.button}
-            >
-              +50레벨
-            </GameButton>
-            <GameButton
-              variant="green"
-              onPress={() => {
-                onUnlockAllStages();
-                onClose();
-              }}
-              style={styles.button}
-            >
-              맵 다 깨기
-            </GameButton>
-            <GameButton
-              variant="green"
-              onPress={() => {
-                onAddGems();
-                onClose();
-              }}
-              style={styles.button}
-            >
-              보석 +10000
-            </GameButton>
-            <GameButton
               variant="cream"
               onPress={() => {
                 onReplayTutorial();
@@ -166,19 +118,85 @@ export function SettingsModal({
             >
               만화 다시 보기 (추억 앨범)
             </GameButton>
-            <GameButton
-              variant="green"
-              onPress={() => {
-                onUnlockAllComics();
-                onClose();
-              }}
-              style={styles.button}
-            >
-              만화 다 열기
-            </GameButton>
             <GameButton variant="red" onPress={onResetRequest} style={styles.button}>
               세이브 초기화
             </GameButton>
+            {/* Cheats for testing: only in development builds (__DEV__), never in a release. */}
+            {__DEV__ && (
+              <>
+                <Text style={styles.devLabel}>개발용</Text>
+              <GameButton
+                variant="green"
+                onPress={() => {
+                  onSkipToBoss();
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                보스로 바로 가기
+              </GameButton>
+              <GameButton
+                variant="green"
+                onPress={() => {
+                  onSpawnGoldenMini();
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                황금 중간보스 소환
+              </GameButton>
+              <GameButton
+                variant="green"
+                onPress={() => {
+                  onKillEnemy();
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                몹 즉사
+              </GameButton>
+              <GameButton
+                variant="green"
+                onPress={() => {
+                  onAddLevels();
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                +50레벨
+              </GameButton>
+              <GameButton
+                variant="green"
+                onPress={() => {
+                  onUnlockAllStages();
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                맵 다 깨기
+              </GameButton>
+              <GameButton
+                variant="green"
+                onPress={() => {
+                  onAddGems();
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                보석 +10000
+              </GameButton>
+              <GameButton
+                variant="green"
+                onPress={() => {
+                  onUnlockAllComics();
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                만화 다 열기
+              </GameButton>
+              </>
+            )}
           </View>
         </Pressable>
       </Pressable>
@@ -187,6 +205,7 @@ export function SettingsModal({
 }
 
 const styles = StyleSheet.create({
+  devLabel: { marginTop: 6, textAlign: "center", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted, letterSpacing: 2 },
   backdrop: {
     flex: 1,
     padding: 22,

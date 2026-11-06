@@ -6,7 +6,8 @@ import { SkillSlot } from "../components/SkillSlot";
 import { AdUnavailableModal } from "../components/AdUnavailableModal";
 import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
-import type { UseGameState } from "../state/useGameState";
+import { BOSS_RETRY_TIME_RATIO, type UseGameState } from "../state/useGameState";
+import { getBossTimeLimitMs } from "../state/gameMath";
 import { getEnemyKind, getStageLabel } from "../state/stages";
 import { getBagCapacity, slotsUsed } from "../state/bag";
 import { playSfx } from "../sound";
@@ -70,6 +71,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         boss={displayBoss}
         miniBoss={game.displayMiniBoss}
         miniBossDefeated={game.isMiniDefeatFlash}
+        golden={game.displayGolden}
+        goldenReward={game.goldenReward}
         enemyKind={regularEnemyKind}
         foeKind={game.displayStrayKind ?? regularEnemyKind}
         phase={battle.phase}
@@ -78,7 +81,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         stageAdvance={game.stageAnnouncement}
         onContinueStage={game.continueStage}
         battleSpeed={game.battleSpeed}
-        stageLabel={boss ? `${stageLabel} · 보스` : game.displayMiniBoss ? `${stageLabel} · 중간 보스` : stageLabel}
+        stageLabel={boss ? `${stageLabel} · 보스` : game.displayMiniBoss ? `${stageLabel} · ${game.displayGolden ? "황금 " : ""}중간 보스` : stageLabel}
         stageKills={state.stageKills}
         questReady={hasClaimableQuest(state)}
         onQuest={() => game.setQuestOpen(true)}
@@ -186,7 +189,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       )}
       {game.bossRetryAvailable && (
         <AdUnavailableModal
-          message="광고를 보고 보스에 다시 도전할 수 있어요. 보스의 남은 체력은 유지되고 제한 시간만 새로 시작됩니다."
+          message={`광고를 보고 보스에 다시 도전할 수 있어요. 보스의 남은 체력은 그대로이고, 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber) * BOSS_RETRY_TIME_RATIO) / 1000)}초)으로 다시 시작해요.`}
           claimLabel="보스 다시 도전하기"
           onClaim={game.retryBossAfterAd}
         />

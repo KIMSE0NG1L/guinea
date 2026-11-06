@@ -126,6 +126,9 @@ export interface GameState {
   stageKillsSaved?: Record<string, number>;
   // Mid-bosses beaten on the current stage, and on stages left from the map (by stageNumber).
   stageMiniBosses?: number;
+  // A random number fixed for this save, mixed into where mid-bosses fall and which are
+  // golden — so two players don't meet them all in the same places. Set on first load.
+  runSeed?: number;
   stageMiniBossesSaved?: Record<string, number>;
   // 업데이트 소식: the LATEST_UPDATE id this player has seen (and got the gift for).
   seenUpdate?: string;

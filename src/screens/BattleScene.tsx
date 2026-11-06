@@ -17,6 +17,7 @@ import { BossFleeBanner } from "../components/BossFleeBanner";
 import { BossEntranceBanner } from "../components/BossEntranceBanner";
 import { WITCH_SPELL_LIFE_MS, WITCH_TRAVEL_MS, WitchSpell } from "../components/WitchSpell";
 import { playSfx } from "../sound";
+import { formatGameNumber } from "../state/gameMath";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
@@ -285,6 +286,8 @@ export function BattleScene({
   boss,
   miniBoss = false,
   miniBossDefeated = false,
+  golden = false,
+  goldenReward = null,
   enemyKind,
   foeKind,
   phase,
@@ -347,6 +350,9 @@ export function BattleScene({
   miniBoss?: boolean;
   // Whether the enemy now dying is a mid-boss (for its defeat burst).
   miniBossDefeated?: boolean;
+  // The mid-boss is a rare golden one, and what the last golden one paid (for its toast).
+  golden?: boolean;
+  goldenReward?: { id: number; gold: number; gems: number } | null;
   enemyKind: EnemyKind;
   // The regular mob actually on screen, when it's not the stage's own (a stray from the stage
   // before); the stage's look (backdrop, ambience, boss) still follows `enemyKind`.
@@ -690,6 +696,7 @@ export function BattleScene({
           {stageAdvance && <StageAdvanceBanner key={stageAdvance} stageLabel={stageAdvance} onContinue={onContinueStage} />}
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} tagline={BOSS_TAGLINE[enemyKind]} onStart={onBeginBoss} />}
           {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
+          {goldenReward && <GoldenRewardToast key={goldenReward.id} gold={goldenReward.gold} gems={goldenReward.gems} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
           {/* Same camera layer as the backdrop, so the two zoom as one picture. */}
           <Animated.View style={[StyleSheet.absoluteFill, styles.camLayer, styles.camFighters, camStyle]} pointerEvents="box-none">
@@ -717,6 +724,7 @@ export function BattleScene({
               boss={boss}
               miniBoss={miniBoss}
               miniBossDefeated={miniBossDefeated}
+              golden={golden}
               stray={stray}
               enemyKind={fighterKind}
               enemyId={enemyId}
@@ -1111,6 +1119,7 @@ function EnemyFighter({
   boss,
   miniBoss,
   miniBossDefeated,
+  golden,
   stray,
   enemyKind,
   enemyId,
@@ -1127,6 +1136,7 @@ function EnemyFighter({
   boss: boolean;
   miniBoss: boolean;
   miniBossDefeated: boolean;
+  golden: boolean;
   stray: boolean;
   enemyKind: EnemyKind;
   enemyId: number;
@@ -1242,10 +1252,10 @@ function EnemyFighter({
       {shoutDebuffId > 0 && <ShoutDebuff key={`shout-${shoutDebuffId}`} durationMs={SHOUT_DURATION} />}
       {/* Fixed position regardless of sprite size, so the boss's HP bar lines up with a
           regular mob's — the (much taller) boss sprite grows upward behind it instead. */}
-      <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, (boss || miniBoss) && styles.enemyNameplateBoss, miniBoss && styles.enemyNameplateMini]}>
+      <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, (boss || miniBoss) && styles.enemyNameplateBoss, miniBoss && (golden ? styles.enemyNameplateGolden : styles.enemyNameplateMini)]}>
         {/* Outlined, since the plate behind it is see-through. */}
         <StrokedText style={styles.unitLabelText} strokeColor={colors.line} strokeWidth={1.5}>
-          {boss ? BOSS_NAME[enemyKind] : stray ? `길 잃은 ${ENEMY_NAME[enemyKind]}` : ENEMY_NAME[enemyKind]}
+          {boss ? BOSS_NAME[enemyKind] : golden ? `황금 ${ENEMY_NAME[enemyKind]}` : stray ? `길 잃은 ${ENEMY_NAME[enemyKind]}` : ENEMY_NAME[enemyKind]}
         </StrokedText>
         <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
       </View>
@@ -1271,7 +1281,9 @@ function EnemyFighter({
         </View>
       )}
       {/* Mid-boss: its own silhouette washed red (pulsing), and the rage aura over it. */}
-      {miniBoss && phase !== "defeated" && <MiniBossRage size={size} boss={boss} enemyKind={enemyKind} animation={animation} restartKey={`${animation}-${enemyId}`} />}
+      {miniBoss && phase !== "defeated" && (
+        <MiniBossRage size={size} boss={boss} enemyKind={enemyKind} animation={animation} restartKey={`${animation}-${enemyId}`} golden={golden} />
+      )}
       {/* White silhouette flash on every landed hit — same sprite/frame, tinted and faded
           in/out fast, so it exactly matches the current pose with no extra art. */}
       <Animated.View style={[styles.hitFlash, { width: size, height: size }, hitFlashStyle]} pointerEvents="none">
@@ -1297,7 +1309,38 @@ function EnemyFighter({
 
 // The mid-boss's anger: a red silhouette of the current frame pulsing over the sprite, and
 // pixelfx's rage aura (anger mark, steam, stress lines) around its head and feet.
-function MiniBossRage({ size, boss, enemyKind, animation, restartKey }: { size: number; boss: boolean; enemyKind: EnemyKind; animation: EnemyAnimation; restartKey: string }) {
+// "황금 처치!": what a golden mid-boss paid, rising over the scene and fading.
+function GoldenRewardToast({ gold, gems }: { gold: number; gems: number }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withTiming(1, { duration: 2200, easing: Easing.out(Easing.quad) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity: t.value < 0.1 ? t.value * 10 : t.value > 0.75 ? (1 - t.value) / 0.25 : 1,
+    transform: [{ translateY: -t.value * 30 }, { scale: t.value < 0.1 ? 0.7 + t.value * 4 : 1.1 - Math.min(0.1, (t.value - 0.1) * 0.5) }],
+  }));
+  return (
+    <Animated.View style={[styles.goldenToast, style]} pointerEvents="none">
+      <StrokedText style={styles.goldenToastTitle} strokeColor="#5a3a06" strokeWidth={2.5}>
+        황금 처치!
+      </StrokedText>
+      <View style={styles.goldenToastRow}>
+        <Image source={uiImages.coin} style={styles.goldenToastIcon} />
+        <StrokedText style={styles.goldenToastValue} strokeColor={colors.line} strokeWidth={2}>
+          {`+${formatGameNumber(gold)}`}
+        </StrokedText>
+        <Image source={uiImages.crystal} style={styles.goldenToastIcon} />
+        <StrokedText style={styles.goldenToastValue} strokeColor={colors.line} strokeWidth={2}>
+          {`+${gems}`}
+        </StrokedText>
+      </View>
+    </Animated.View>
+  );
+}
+
+// A golden one is washed gold instead, with no rage aura.
+function MiniBossRage({ size, boss, enemyKind, animation, restartKey, golden }: { size: number; boss: boolean; enemyKind: EnemyKind; animation: EnemyAnimation; restartKey: string; golden: boolean }) {
   const pulse = useSharedValue(0);
   useEffect(() => {
     pulse.value = withRepeat(withSequence(withTiming(1, { duration: 450 }), withTiming(0, { duration: 450 })), -1);
@@ -1308,11 +1351,13 @@ function MiniBossRage({ size, boss, enemyKind, animation, restartKey }: { size: 
   return (
     <>
       <Animated.View style={[styles.hitFlash, { width: size, height: size }, tintStyle]} pointerEvents="none">
-        <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={restartKey} tintColor="#ff2a1a" />
+        <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={restartKey} tintColor={golden ? "#ffd84a" : "#ff2a1a"} />
       </Animated.View>
+      {!golden && (
       <View style={[styles.rageAura, { width: aura, height: aura, marginLeft: -aura / 2 }]} pointerEvents="none">
         <SpriteStrip source={effects.miniBossRage} frameSize={80} frameCount={36} displaySize={aura} durationMs={1167} mode="loop" />
       </View>
+      )}
     </>
   );
 }
@@ -1475,6 +1520,12 @@ const styles = StyleSheet.create({
   // Centred on the sprite's box, the aura's floor glow at the feet.
   rageAura: { position: "absolute", bottom: -10, left: "50%" },
   miniBurst: { position: "absolute", left: "50%", bottom: -20, zIndex: 6 },
+  enemyNameplateGolden: { backgroundColor: "#7a5a0acc", borderWidth: 1.5, borderColor: "#ffe27a" },
+  goldenToast: { position: "absolute", top: 70, left: 0, right: 0, alignItems: "center", zIndex: 9 },
+  goldenToastTitle: { color: "#ffe27a", fontSize: 22, fontWeight: "900", fontFamily: fonts.bold },
+  goldenToastRow: { marginTop: 2, flexDirection: "row", alignItems: "center", gap: 4 },
+  goldenToastIcon: { width: 18, height: 18, resizeMode: "contain" },
+  goldenToastValue: { color: "#fff4bd", fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, marginRight: 6 },
   enemyNameplateMini: { backgroundColor: "#6a120ccc", borderWidth: 1.5, borderColor: "#ffb020" },
   unitLabelClear: { backgroundColor: "#2b1d1259" },
   unitLabelText: { color: colors.cream, fontSize: 8, fontWeight: "800", fontFamily: fonts.bold },

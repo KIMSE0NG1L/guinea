@@ -24,6 +24,7 @@ export function GameHeader({
   state,
   onReset,
   onSkipToBoss,
+  onSpawnGoldenMini,
   onKillEnemy,
   onAddLevels,
   onUnlockAllStages,
@@ -39,6 +40,7 @@ export function GameHeader({
   state: GameState;
   onReset: () => void;
   onSkipToBoss: () => void;
+  onSpawnGoldenMini: () => void;
   onKillEnemy: () => void;
   onAddLevels: () => void;
   onUnlockAllStages: () => void;
@@ -95,6 +97,7 @@ export function GameHeader({
       {settingsOpen && (
         <SettingsModal
           onSkipToBoss={onSkipToBoss}
+          onSpawnGoldenMini={onSpawnGoldenMini}
           onKillEnemy={onKillEnemy}
           onAddLevels={onAddLevels}
           onUnlockAllStages={onUnlockAllStages}
