@@ -1,33 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import { Image, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, type SharedValue } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { StrokedText } from "./StrokedText";
+import { RisingMotes } from "./RisingMotes";
 import { images } from "../assets";
-import { loadSave } from "../state/storage";
-import { getStageLabel } from "../state/stages";
-import { OUTFIT_NAMES, OUTFIT_NO_OFFLINE } from "../state/buffs";
-import { getAttendance } from "../state/attendance";
 import { playSfx } from "../sound";
-import { MAX_OFFLINE_MS } from "../state/offline";
 import appConfig from "../../app.json";
 
 // Shown in the corner. The policy links only appear once their pages exist — fill these in.
 const APP_VERSION = appConfig.expo.version;
 const PRIVACY_URL = "";
 const TERMS_URL = "";
-// Shorter than this away and it's just a reload, not worth a line (offline.ts's own floor).
-const AWAY_MIN_MS = 30 * 1000;
 
-// "3시간 20분" / "45분" / "1분 미만" for the away line.
-function formatAway(ms: number) {
-  const minutes = Math.floor(ms / 60000);
-  if (minutes < 1) return "1분 미만";
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  if (hours === 0) return `${minutes}분`;
-  return rest === 0 ? `${hours}시간` : `${hours}시간 ${rest}분`;
-}
 
 // One shown at a time above "터치하여 시작", cycling.
 const TIPS = [
@@ -44,6 +29,32 @@ const TIPS = [
 ];
 const TIP_MS = 7000;
 const DUST_COUNT = 22;
+
+// The title art follows the player's own clock: day, a sunset hour band, then night. Each
+// has its own drifting particles — warm dust by day, ember-orange at sunset, and blinking
+// fireflies wandering at night.
+type TimeOfDay = "day" | "sunset" | "night";
+function getTimeOfDay(hour = new Date().getHours()): TimeOfDay {
+  // Web preview: `?tod=day|sunset|night` forces one, to check the art without touching the
+  // computer's clock (which the save uses for offline time, attendance and cooldowns).
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    const forced = new URLSearchParams(window.location.search).get("tod");
+    if (forced === "day" || forced === "sunset" || forced === "night") return forced;
+  }
+  if (hour >= 17 && hour < 19) return "sunset";
+  if (hour >= 19 || hour < 6) return "night";
+  return "day";
+}
+const BACKGROUND: Record<TimeOfDay, number> = {
+  day: images.titleScreen,
+  sunset: images.titleScreenSunset,
+  night: images.titleScreenNight,
+};
+const MOTE_COLORS: Record<TimeOfDay, [string, string]> = {
+  day: ["#fff1c9", "#ffd27a"],
+  sunset: ["#ffd0a0", "#ff9a5a"],
+  night: ["#f4ff9a", "#c8ff6a"],
+};
 // How long the tap's flash plays before the game takes over.
 const EXIT_MS = 380;
 
@@ -51,38 +62,8 @@ const EXIT_MS = 380;
 // the game (App.tsx gates GameScreen behind this with local, non-persisted state, so it
 // shows again on every real app launch, not just the first-ever one).
 export function TitleScreen({ onStart }: { onStart: () => void }) {
-  // Where a returning player left off, read straight from the save (null: still loading).
-  const [progress, setProgress] = useState<{ line: string; away?: string; attendance?: boolean } | null>(null);
-  useEffect(() => {
-    let alive = true;
-    loadSave().then((save) => {
-      if (!alive) return;
-      const state = save?.state;
-      // How long the game was closed: the companion has been out hunting (capped like the
-      // offline reward itself), or — for one who doesn't hunt offline — resting.
-      let away: string | undefined;
-      const awayMs = state?.tutorialDone && save?.lastSeenAt ? Date.now() - save.lastSeenAt : 0;
-      if (state && awayMs >= AWAY_MIN_MS) {
-        const name = OUTFIT_NAMES[state.equippedOutfit] ?? "모험기니";
-        away = OUTFIT_NO_OFFLINE[state.equippedOutfit]
-          ? `${formatAway(awayMs)} 동안 ${name}가 푹 쉬었어요`
-          : awayMs > MAX_OFFLINE_MS
-            ? `${formatAway(awayMs)} 동안 ${name}가 사냥했어요 (최대 ${MAX_OFFLINE_MS / 3600000}시간 보상)`
-            : `${formatAway(awayMs)} 동안 ${name}가 사냥했어요`;
-      }
-      setProgress({
-        away,
-        // Today's attendance reward still waiting (only once the game's under way).
-        attendance: Boolean(state?.tutorialDone && state.recipeTutorialDone && getAttendance(state).ready),
-        line: state && state.tutorialDone
-          ? `Lv.${state.level} ${OUTFIT_NAMES[state.equippedOutfit] ?? "모험기니"} · ${getStageLabel(state.stageNumber)}`
-          : "새로운 모험을 시작해요",
-      });
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
+  // Fixed for this visit to the title (it's only up for a moment).
+  const [timeOfDay] = useState(() => getTimeOfDay());
 
   // Tips: fade out, swap, fade back in.
   const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * TIPS.length));
@@ -144,22 +125,18 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
     <View style={styles.shell}>
       <Pressable style={styles.frame} onPress={start} accessibilityRole="button" accessibilityLabel="터치하여 시작">
         <Animated.View style={[StyleSheet.absoluteFill, zoomStyle]}>
-          <Image source={images.titleScreen} style={[StyleSheet.absoluteFill, styles.background]} resizeMode="cover" />
+          <Image source={BACKGROUND[timeOfDay]} style={[StyleSheet.absoluteFill, styles.background]} resizeMode="cover" />
         </Animated.View>
-        <Dust />
+        <RisingMotes count={timeOfDay === "night" ? 16 : DUST_COUNT} colors={MOTE_COLORS[timeOfDay]} fireflies={timeOfDay === "night"} />
         <View style={styles.titleWrap} pointerEvents="none">
-          <Animated.Text style={[styles.sparkle, styles.sparkleLeft, sparkleStyle]}>✦</Animated.Text>
-          <Animated.Text style={[styles.sparkle, styles.sparkleRight, sparkleStyle]}>✧</Animated.Text>
-          <StrokedText style={styles.title} strokeColor={colors.line} strokeWidth={3}>
-            기니 키우기
-          </StrokedText>
-          {progress && (
-            <View style={styles.progress}>
-              <Text style={styles.progressText}>{progress.line}</Text>
-            </View>
-          )}
-          {progress?.away && <Text style={styles.awayText}>{progress.away}</Text>}
-          {progress?.attendance && <AttendanceBadge />}
+          <TitleLogo>
+            <Animated.Text style={[styles.sparkle, styles.sparkleLeft, sparkleStyle]}>✦</Animated.Text>
+            <Animated.Text style={[styles.sparkle, styles.sparkleRight, sparkleStyle]}>✧</Animated.Text>
+            <StrokedText style={styles.title} strokeColor={colors.line} strokeWidth={3}>
+              기니 키우기
+            </StrokedText>
+          </TitleLogo>
+
         </View>
         <Animated.View style={[styles.tipWrap, tipStyle]} pointerEvents="none">
           <StrokedText style={styles.tipText} strokeColor={colors.line} strokeWidth={1.5}>
@@ -190,70 +167,82 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
   );
 }
 
-// "오늘의 보상" — a gift badge that bobs, telling a returning player the daily reward waits.
-function AttendanceBadge() {
+// The title's entrance: it drops in from above, lands with a squash and a bounce, then a
+// glint sweeps across it and a ring of sparkles pops off it. After that it bobs gently.
+const DROP_MS = 520;
+const GLINT_AT = DROP_MS + 260;
+const GLINT_MS = 520;
+const BURST = [
+  { x: -120, y: -18, glyph: "✦" },
+  { x: -70, y: -34, glyph: "✧" },
+  { x: 0, y: -40, glyph: "✦" },
+  { x: 72, y: -32, glyph: "✧" },
+  { x: 118, y: -14, glyph: "✦" },
+  { x: -96, y: 26, glyph: "✧" },
+  { x: 100, y: 28, glyph: "✧" },
+];
+
+function TitleLogo({ children }: { children: React.ReactNode }) {
+  const drop = useSharedValue(0);
+  const squash = useSharedValue(0);
+  const glint = useSharedValue(0);
+  const burst = useSharedValue(0);
   const bob = useSharedValue(0);
   useEffect(() => {
-    bob.value = withRepeat(withSequence(withTiming(1, { duration: 550, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 550, easing: Easing.inOut(Easing.quad) })), -1);
+    drop.value = withTiming(1, { duration: DROP_MS, easing: Easing.out(Easing.bounce) });
+    // A squash on each of the bounce's first contacts, settling out.
+    squash.value = withDelay(
+      DROP_MS * 0.36,
+      withSequence(
+        withTiming(1, { duration: 70 }),
+        withTiming(0, { duration: 140 }),
+        withDelay(DROP_MS * 0.2, withSequence(withTiming(0.4, { duration: 60 }), withTiming(0, { duration: 120 }))),
+      ),
+    );
+    glint.value = withDelay(GLINT_AT, withTiming(1, { duration: GLINT_MS, easing: Easing.inOut(Easing.quad) }));
+    burst.value = withDelay(GLINT_AT + 80, withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) }));
+    bob.value = withDelay(
+      GLINT_AT + GLINT_MS,
+      withRepeat(withSequence(withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 1400, easing: Easing.inOut(Easing.sin) })), -1),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const style = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.value * 4 }, { rotate: `${(bob.value - 0.5) * 4}deg` }] }));
+  const logoStyle = useAnimatedStyle(() => ({
+    opacity: Math.min(1, drop.value * 3),
+    transform: [
+      { translateY: (1 - drop.value) * -180 - bob.value * 4 },
+      { scaleX: 1 + squash.value * 0.12 },
+      { scaleY: 1 - squash.value * 0.14 },
+    ],
+  }));
+  // A slanted streak of light passing over the title, left to right.
+  const glintStyle = useAnimatedStyle(() => ({
+    opacity: glint.value > 0 && glint.value < 1 ? 0.45 : 0,
+    transform: [{ translateX: -150 + glint.value * 300 }, { rotate: "18deg" }],
+  }));
   return (
-    <Animated.View style={[styles.attendance, style]}>
-      <Text style={styles.attendanceText}>🎁 오늘의 출석 보상이 기다려요!</Text>
+    <Animated.View style={[styles.logo, logoStyle]}>
+      {children}
+      <View style={styles.glintClip} pointerEvents="none">
+        <Animated.View style={[styles.glint, glintStyle]} />
+      </View>
+      {BURST.map((spark, index) => (
+        <BurstSpark key={index} burst={burst} x={spark.x} y={spark.y} glyph={spark.glyph} />
+      ))}
     </Animated.View>
   );
 }
 
-// Warm motes of dust drifting up from the bottom of the art, each on its own size, speed,
-// sway and start — fading in low and out before the top, then looping from the bottom.
-function Dust() {
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  return (
-    <View
-      style={StyleSheet.absoluteFill}
-      pointerEvents="none"
-      onLayout={(event) => setSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })}
-    >
-      {size.height > 0 && Array.from({ length: DUST_COUNT }, (_, index) => <Mote key={index} width={size.width} height={size.height} />)}
-    </View>
-  );
+function BurstSpark({ burst, x, y, glyph }: { burst: SharedValue<number>; x: number; y: number; glyph: string }) {
+  const style = useAnimatedStyle(() => ({
+    opacity: burst.value > 0 ? Math.sin(burst.value * Math.PI) : 0,
+    transform: [{ translateX: x * (0.4 + burst.value * 0.6) }, { translateY: y * (0.4 + burst.value * 0.6) }, { scale: 0.4 + Math.sin(burst.value * Math.PI) * 0.9 }],
+  }));
+  return <Animated.Text style={[styles.burstSpark, style]}>{glyph}</Animated.Text>;
 }
 
-function Mote({ width, height }: { width: number; height: number }) {
-  // Fixed per mote for this mount, so re-renders don't reshuffle the drift.
-  const [mote] = useState(() => ({
-    x: Math.random() * width,
-    size: 2 + Math.random() * 3.5,
-    duration: 6000 + Math.random() * 6000,
-    delay: Math.random() * 8000,
-    sway: 10 + Math.random() * 22,
-    rise: height * (0.55 + Math.random() * 0.4),
-    color: Math.random() < 0.7 ? "#fff1c9" : "#ffd27a",
-  }));
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.value = withDelay(mote.delay, withRepeat(withTiming(1, { duration: mote.duration, easing: Easing.linear }), -1));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const style = useAnimatedStyle(() => ({
-    // In over the first 15%, out over the last 30%.
-    opacity: t.value === 0 ? 0 : Math.min(1, t.value / 0.15) * Math.min(1, (1 - t.value) / 0.3) * 0.8,
-    transform: [{ translateY: -t.value * mote.rise }, { translateX: Math.sin(t.value * Math.PI * 2) * mote.sway }],
-  }));
-  return (
-    <Animated.View
-      style={[
-        styles.mote,
-        { left: mote.x, width: mote.size, height: mote.size, borderRadius: mote.size, backgroundColor: mote.color, shadowColor: mote.color },
-        style,
-      ]}
-    />
-  );
-}
 
 const styles = StyleSheet.create({
-  mote: { position: "absolute", bottom: -6, shadowOpacity: 0.9, shadowRadius: 4, shadowOffset: { width: 0, height: 0 } },
   shell: { flex: 1, backgroundColor: colors.appBackground },
   frame: { flex: 1, maxWidth: 430, width: "100%", alignSelf: "center", overflow: "hidden" },
   background: { width: "100%", height: "100%" },
@@ -269,15 +258,15 @@ const styles = StyleSheet.create({
   sparkleLeft: { left: "50%", marginLeft: -132 },
   sparkleRight: { left: "50%", marginLeft: 112, top: -6, fontSize: 12 },
   startWrap: { position: "absolute", bottom: "14%", width: "100%", alignItems: "center" },
-  progress: { marginTop: 10, paddingVertical: 5, paddingHorizontal: 14, borderRadius: 999, backgroundColor: "#2b1d12b8", borderWidth: 2, borderColor: "#f3d993" },
-  progressText: { color: "#fff4d6", fontSize: 13, fontWeight: "900", fontFamily: fonts.bold },
   // Just under "터치하여 시작", plain outlined text like it.
   tipWrap: { position: "absolute", bottom: "8%", left: 24, right: 24, alignItems: "center" },
   tipText: { color: "#f3e6c8", fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, textAlign: "center" },
   flash: { backgroundColor: "#ffffff" },
-  attendance: { marginTop: 10, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, borderWidth: 2, borderColor: "#3a2410", backgroundColor: "#ff6b4a" },
-  attendanceText: { color: "#fff8e6", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
-  awayText: { marginTop: 6, color: "#fff4d6", fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 4 },
+  logo: { alignItems: "center", justifyContent: "center" },
+  // The glint is clipped to roughly the title's box so it reads as light on the letters.
+  glintClip: { position: "absolute", left: -10, right: -10, top: 0, bottom: 0, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  glint: { width: 26, height: 90, backgroundColor: "#fffbe6" },
+  burstSpark: { position: "absolute", color: "#fff1c9", fontSize: 16, textShadowColor: "#ffd27a", textShadowRadius: 6 },
   // Bottom-right corner, out of the way of the tip and "터치하여 시작".
   footer: { position: "absolute", bottom: 10, right: 12, flexDirection: "row", alignItems: "center", gap: 10 },
   footerText: { color: "#f3e6c8b3", fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 3 },

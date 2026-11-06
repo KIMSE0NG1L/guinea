@@ -453,6 +453,9 @@ export const spriteSheets = {
 
 export const images = {
   titleScreen: require("../assets/sprites/title-screen.png"),
+  // Same scene and framing as titleScreen, at sunset and at night (see TitleScreen's TIME_OF_DAY).
+  titleScreenSunset: require("../assets/sprites/title-screen-sunset.png"),
+  titleScreenNight: require("../assets/sprites/title-screen-night.png"),
   battleBackground: require("../assets/sprites/battle-forest.webp"),
   battleBackgroundMushroom: require("../assets/sprites/battle-mushroom-swamp.webp"),
   battleBackgroundFarm: require("../assets/sprites/battle-farm.webp"),
@@ -1145,7 +1148,16 @@ export const bgm = {
     field: require("../assets/bgm/field-hauntedHouse.mp3"),
     boss: require("../assets/bgm/boss-hauntedHouse.mp3"),
   },
+  // Classic-fantasy road from 꿀향기 귀갓길 on (castles, a griffin, a dragon): "Curventure"
+  // and "The Final Surge".
+  fantasy: {
+    field: require("../assets/bgm/field-fantasy.mp3"),
+    boss: require("../assets/bgm/boss-fantasy.mp3"),
+  },
 };
+
+// The title screen's own theme (마을 대기 화면), looping until the player taps in.
+export const bgmTitle = require("../assets/bgm/title-village.mp3");
 
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
 export const FRAME_SIZE = 160;

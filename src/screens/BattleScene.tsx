@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, with
 import { colors, fonts } from "../theme";
 import { effects, food, icons, images, kitImages, FRAME_SIZE, uiImages } from "../assets";
 import { StrokedText } from "../components/StrokedText";
+import { MOTE_PRESETS, RisingMotes, type MotePreset } from "../components/RisingMotes";
 import { CharacterSprite } from "../components/CharacterSprite";
 import { EnemySprite } from "../components/EnemySprite";
 import { SpriteStrip } from "../components/SpriteStrip";
@@ -109,6 +110,50 @@ const MOB_SIZE: Partial<Record<EnemyKind, number>> = {
   bee: 110,
   angryCandyBasketSlime: 125,
   thiefCrow: 120,
+};
+
+// What drifts through each stage's scene, to suit its place: snow on the snowy stages, petals
+// in the blossom ones, embers on the volcano, bubbles under the sea, fireflies at night.
+const AMBIENCE: Record<EnemyKind, MotePreset> = {
+  slime: "dust",
+  mushroom: "spores",
+  carrot: "dust",
+  chicken: "dust",
+  potato: "spores",
+  mouse: "dust",
+  cauldron: "dust",
+  mudskipper: "sand",
+  bluefish: "bubbles",
+  salamander: "embers",
+  monkey: "leaves",
+  carp: "sand",
+  cactus: "sand",
+  fox: "sand",
+  lizard: "fireflies",
+  mantou: "dust",
+  pig: "fireflies",
+  snowRabbit: "snow",
+  magpie: "snow",
+  drunkCat: "snow",
+  flowerSnake: "petals",
+  riceSack: "dust",
+  mackerel: "dust",
+  blossomCrab: "petals",
+  shrineFox: "fireflies",
+  armorBeetle: "petals",
+  onsenMonkey: "snow",
+  ninjaFrog: "leaves",
+  lanternAngler: "bubbles",
+  clamMaid: "bubbles",
+  gondolaDuck: "dust",
+  bellCalf: "dust",
+  croissantKid: "dust",
+  sleepyGini: "dust",
+  sleepwalkerGini: "magic",
+  candyBasketSlime: "fireflies",
+  bee: "honey",
+  angryCandyBasketSlime: "dust",
+  thiefCrow: "embers",
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -558,6 +603,10 @@ export function BattleScene({
             style={StyleSheet.absoluteFill}
             pointerEvents="none"
           />
+
+          {/* The stage's ambience (AMBIENCE), behind the fighters and HUD. */}
+          {/* Keyed by the look so a new stage starts its own set fresh. */}
+          {!preview && <RisingMotes key={AMBIENCE[enemyKind]} {...MOTE_PRESETS[AMBIENCE[enemyKind]]} />}
 
           {/* One vignette for every buff skill — Steal and Focus render this exact element.
               It sits right on the backdrop, under the stage bar, fighters and buttons. */}

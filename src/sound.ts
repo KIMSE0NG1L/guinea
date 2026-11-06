@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AppState, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from "expo-audio";
-import { bgm, sfx } from "./assets";
+import { bgm, bgmTitle, sfx } from "./assets";
 import type { BgmGroupId } from "./state/stages";
 
 const VOLUME_KEY = "gini.sfx.volume";
@@ -87,6 +87,10 @@ const bgmPlayers = (Object.keys(bgm) as LoadedBgmGroup[]).reduce((acc, group) =>
   acc[group] = { field, boss };
   return acc;
 }, {} as Record<LoadedBgmGroup, Record<BgmKind, AudioPlayer>>);
+// The title screen plays its own theme instead of any region's, until the game starts.
+const titlePlayer = createAudioPlayer(bgmTitle);
+titlePlayer.loop = true;
+let titleMode = true;
 
 let bgmGroup: LoadedBgmGroup = FALLBACK_GROUP;
 let bgmKind: BgmKind = "field";
@@ -96,6 +100,7 @@ let appActive = AppState.currentState === "active";
 const bgmListeners = new Set<(volume: number) => void>();
 
 function forEachBgmPlayer(fn: (player: AudioPlayer) => void) {
+  fn(titlePlayer);
   (Object.keys(bgmPlayers) as LoadedBgmGroup[]).forEach((group) => {
     fn(bgmPlayers[group].field);
     fn(bgmPlayers[group].boss);
@@ -111,9 +116,11 @@ applyBgmVolume();
 
 function syncBgm() {
   const shouldPlay = bgmStarted && bgmVolume > 0 && appActive;
+  if (shouldPlay && titleMode) titlePlayer.play();
+  else titlePlayer.pause();
   (Object.keys(bgmPlayers) as LoadedBgmGroup[]).forEach((group) => {
     (["field", "boss"] as BgmKind[]).forEach((kind) => {
-      if (shouldPlay && group === bgmGroup && kind === bgmKind) bgmPlayers[group][kind].play();
+      if (shouldPlay && !titleMode && group === bgmGroup && kind === bgmKind) bgmPlayers[group][kind].play();
       else bgmPlayers[group][kind].pause();
     });
   });
@@ -147,6 +154,13 @@ AppState.addEventListener("change", (status) => {
   appActive = status === "active";
   syncBgm();
 });
+
+// Off once the player taps past the title: the region's field/boss tracks take over.
+export function setTitleBgm(on: boolean) {
+  if (titleMode === on) return;
+  titleMode = on;
+  syncBgm();
+}
 
 export function startBgm() {
   bgmStarted = true;

@@ -5,7 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GameScreen } from "./src/GameScreen";
 import { TitleScreen } from "./src/components/TitleScreen";
 import { colors } from "./src/theme";
-import { startBgm } from "./src/sound";
+import { setTitleBgm, startBgm } from "./src/sound";
 import { checkContent } from "./src/state/contentCheck";
 
 // Lists any half-added recipe/ingredient in the console (dev builds only).
@@ -30,7 +30,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {started ? <GameScreen /> : <TitleScreen onStart={() => setStarted(true)} />}
+      {started ? <GameScreen /> : <TitleScreen
+          onStart={() => {
+            setTitleBgm(false);
+            setStarted(true);
+          }}
+        />}
     </SafeAreaProvider>
   );
 }
