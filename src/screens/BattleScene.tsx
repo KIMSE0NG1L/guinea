@@ -1082,13 +1082,18 @@ function EnemyFighter({
     if (phase === "hit") {
       // A brief static hold (hit-stop) before the knockback punches out and eases back,
       // instead of jumping straight into the recoil — sells the impact as actually landing.
+      // A crit holds longer and swings further/harder, so it reads as a heavier blow than
+      // a regular hit instead of just triggering the same recoil with a different flash.
+      const holdMs = critical ? 100 : 55;
+      const knockbackPeak = critical ? 1.6 : 1;
+      const shakePeak = critical ? 1.8 : 1;
       knockback.value = withSequence(
-        withTiming(0, { duration: 55 }),
-        withTiming(1, { duration: 70, easing: Easing.out(Easing.quad) }),
+        withTiming(0, { duration: holdMs }),
+        withTiming(knockbackPeak, { duration: 70, easing: Easing.out(Easing.quad) }),
         withTiming(0, { duration: 190, easing: Easing.out(Easing.quad) }),
       );
-      shake.value = withSequence(withTiming(0, { duration: 55 }), withTiming(1, { duration: 160 }), withTiming(0, { duration: 160 }));
-      hitFlash.value = withSequence(withTiming(1, { duration: 55 }), withTiming(0.85, { duration: 40 }), withTiming(0, { duration: 110 }));
+      shake.value = withSequence(withTiming(0, { duration: holdMs }), withTiming(shakePeak, { duration: 160 }), withTiming(0, { duration: 160 }));
+      hitFlash.value = withSequence(withTiming(1, { duration: holdMs }), withTiming(0.85, { duration: 40 }), withTiming(0, { duration: 110 }));
     }
     if (phase === "defeated") {
       defeat.value = withTiming(1, { duration: 620, easing: Easing.in(Easing.quad) });
@@ -1110,7 +1115,7 @@ function EnemyFighter({
       enter.value = 1;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, executedKill]);
+  }, [phase, executedKill, critical]);
 
   const style = useAnimatedStyle(() => ({
     opacity: (1 - defeat.value) * (0.4 + enter.value * 0.6),
