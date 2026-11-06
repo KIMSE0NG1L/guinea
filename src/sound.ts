@@ -106,6 +106,8 @@ let bgmKind: BgmKind = "field";
 let bgmVolume = DEFAULT_BGM_VOLUME;
 let bgmStarted = false;
 let appActive = AppState.currentState === "active";
+// True while a full-screen rewarded ad is up: its own audio plays instead of ours.
+let bgmSuspended = false;
 const bgmListeners = new Set<(volume: number) => void>();
 
 function forEachBgmPlayer(fn: (player: AudioPlayer) => void) {
@@ -124,7 +126,7 @@ function applyBgmVolume() {
 applyBgmVolume();
 
 function syncBgm() {
-  const shouldPlay = bgmStarted && bgmVolume > 0 && appActive;
+  const shouldPlay = bgmStarted && bgmVolume > 0 && appActive && !bgmSuspended;
   if (shouldPlay && titleMode) titlePlayer.play();
   else titlePlayer.pause();
   (Object.keys(bgmPlayers) as LoadedBgmGroup[]).forEach((group) => {
@@ -169,6 +171,13 @@ AppState.addEventListener("change", (status) => {
 export function setTitleBgm(on: boolean) {
   if (titleMode === on) return;
   titleMode = on;
+  syncBgm();
+}
+
+// Silences the music while an ad plays (src/ads), and brings it back after.
+export function setBgmSuspended(on: boolean) {
+  if (bgmSuspended === on) return;
+  bgmSuspended = on;
   syncBgm();
 }
 

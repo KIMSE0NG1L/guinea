@@ -15,7 +15,7 @@ import { colors, fonts } from "../theme";
 import { uiImages } from "../assets";
 import { StrokedText } from "./StrokedText";
 import { GameButton } from "./GameButton";
-import { AdUnavailableModal } from "./AdUnavailableModal";
+import { RewardedAdModal } from "./RewardedAdModal";
 
 const CONFETTI_COLORS = ["#ffd34d", "#ff7a59", "#7ed957", "#5bc0ff", "#ff9ad5", "#fff3b8"];
 const RAY_COUNT = 14;
@@ -228,7 +228,7 @@ export function FirstClearCelebration({
         </Pressable>
       </Animated.View>
       {adOpen && (
-        <AdUnavailableModal
+        <RewardedAdModal
           message={`대신 섭섭하지 않게 보석 ${gems}개는 그대로 챙겨드릴게요.`}
           claimLabel="보석 받기"
           onClaim={() => {
@@ -236,6 +236,7 @@ export function FirstClearCelebration({
             onClaimAd();
             onDone();
           }}
+          onCancel={() => setAdOpen(false)}
         />
       )}
     </View>

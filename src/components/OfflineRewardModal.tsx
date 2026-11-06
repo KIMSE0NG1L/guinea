@@ -6,7 +6,7 @@ import { colors, fonts } from "../theme";
 import { kit, icons, uiImages } from "../assets";
 import { NineSlice, Panel } from "./NineSlice";
 import { GameButton } from "./GameButton";
-import { AdUnavailableModal } from "./AdUnavailableModal";
+import { RewardedAdModal } from "./RewardedAdModal";
 import { formatGameNumber } from "../state/gameMath";
 import type { OfflineSummary } from "../state/offline";
 import { ITEM_IMAGES } from "../state/recipes";
@@ -59,10 +59,14 @@ export function OfflineRewardModal({
 
   if (adOpen) {
     return (
-      <AdUnavailableModal
+      <RewardedAdModal
         message={`대신 섭섭하지 않게 골드 2배는 그대로 챙겨드릴게요.\n+${formatGameNumber(summary.goldEarned * 2)} 골드`}
         claimLabel="2배 받기"
         onClaim={onClaimDouble}
+        onCancel={() => {
+          setAdOpen(false);
+          setDoubling(false);
+        }}
       />
     );
   }

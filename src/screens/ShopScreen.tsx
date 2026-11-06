@@ -5,7 +5,7 @@ import { useShake } from "../components/motion";
 import { colors, fonts } from "../theme";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
-import { AdUnavailableModal } from "../components/AdUnavailableModal";
+import { RewardedAdModal } from "../components/RewardedAdModal";
 import { kit, uiImages } from "../assets";
 import { Panel } from "../components/NineSlice";
 import { CoinPrice } from "../components/CoinPrice";
@@ -47,16 +47,17 @@ export function ShopScreen({ game }: { game: UseGameState }) {
         ))}
       </View>
       <View style={styles.note}>
-        <Text style={styles.noteText}>실제 결제 및 광고 기능은 연결되지 않았어요.</Text>
+        <Text style={styles.noteText}>실제 결제 기능은 아직 연결되지 않았어요.</Text>
       </View>
       {adModalOpen && (
-        <AdUnavailableModal
+        <RewardedAdModal
           message={`대신 섭섭하지 않게 보석 ${AD_GEMS_REWARD}개는 그대로 챙겨드릴게요.`}
           claimLabel="보석 받기"
           onClaim={() => {
             game.watchAdForGems();
             setAdModalOpen(false);
           }}
+          onCancel={() => setAdModalOpen(false)}
         />
       )}
     </View>

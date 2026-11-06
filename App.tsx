@@ -9,6 +9,7 @@ import { setTitleBgm, startBgm } from "./src/sound";
 import { writeSave } from "./src/state/storage";
 import type { GameState } from "./src/types";
 import { checkContent } from "./src/state/contentCheck";
+import { initAds } from "./src/ads";
 
 // Lists any half-added recipe/ingredient in the console (dev builds only).
 if (__DEV__) checkContent();
@@ -36,6 +37,8 @@ export default function App() {
 
   useEffect(() => {
     startBgm();
+    // Starts the ad SDK and preloads one rewarded ad (no-op on web).
+    initAds();
   }, []);
 
   if (!fontsLoaded) {

@@ -3,7 +3,7 @@ import { DishPicker } from "../components/DishPicker";
 import { BattleActionsPanel } from "../components/BattleActionsPanel";
 import { BuffSlots } from "../components/BuffSlots";
 import { SkillSlot } from "../components/SkillSlot";
-import { AdUnavailableModal } from "../components/AdUnavailableModal";
+import { RewardedAdModal } from "../components/RewardedAdModal";
 import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import { BOSS_RETRY_TIME_RATIO, type UseGameState } from "../state/useGameState";
@@ -178,20 +178,22 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         />
       )}
       {adModalOpen && (
-        <AdUnavailableModal
+        <RewardedAdModal
           message="대신 섭섭하지 않게 2배속 효과는 그대로 챙겨드릴게요."
           claimLabel="2배속 받기"
           onClaim={() => {
             game.watchAdForSpeedBoost();
             setAdModalOpen(false);
           }}
+          onCancel={() => setAdModalOpen(false)}
         />
       )}
       {game.bossRetryAvailable && (
-        <AdUnavailableModal
+        <RewardedAdModal
           message={`광고를 보고 보스에 다시 도전할 수 있어요. 보스의 남은 체력은 그대로이고, 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber) * BOSS_RETRY_TIME_RATIO) / 1000)}초)으로 다시 시작해요.`}
           claimLabel="보스 다시 도전하기"
           onClaim={game.retryBossAfterAd}
+          autoStart={false}
         />
       )}
       <BattleActionsPanel

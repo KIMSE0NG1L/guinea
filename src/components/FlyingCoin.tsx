@@ -6,7 +6,7 @@ import { uiImages } from "../assets";
 import { formatGameNumber } from "../state/gameMath";
 import { StrokedText } from "./StrokedText";
 import { GameButton } from "./GameButton";
-import { AdUnavailableModal } from "./AdUnavailableModal";
+import { RewardedAdModal } from "./RewardedAdModal";
 import { FLYING_GEM_AD_REWARD } from "../state/useGameState";
 
 const COIN_W = 58;
@@ -160,7 +160,7 @@ function CatchPopup({ caught, onDone, onClaimGem }: { caught: Catch; onDone: () 
           ) : <Text style={styles.popupLabel}>잡았다!</Text>}
         </Animated.View>
       )}
-      {adOpen && <AdUnavailableModal message={`광고 시청을 완료하면 보석 ${FLYING_GEM_AD_REWARD}개를 드려요.`} claimLabel={`보석 ${FLYING_GEM_AD_REWARD}개 받기`} onClaim={() => { onClaimGem(); onDone(); }} />}
+      {adOpen && <RewardedAdModal message={`대신 섭섭하지 않게 보석 ${FLYING_GEM_AD_REWARD}개는 그대로 챙겨드릴게요.`} claimLabel={`보석 ${FLYING_GEM_AD_REWARD}개 받기`} onClaim={() => { onClaimGem(); onDone(); }} onCancel={onDone} />}
     </View>
   );
 }

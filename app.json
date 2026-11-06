@@ -46,6 +46,13 @@
           "resizeMode": "contain",
           "imageWidth": 220
         }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-7612859698236948~6928355401",
+          "iosAppId": "ca-app-pub-7612859698236948~9460196159"
+        }
       ]
     ]
   }
