@@ -65,18 +65,14 @@ function ComicPanelView({ panel, width, shown }: { panel: (typeof COMICS)[ComicI
   const shake = useSharedValue(0);
   useEffect(() => {
     enter.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) });
-    if (panel.sfx) {
-      const timer = setTimeout(() => playSfx(panel.sfx!), 200);
-      if (panel.shake) {
-        shake.value = withSequence(
-          withTiming(0, { duration: 260 }),
-          withTiming(-8, { duration: 50 }),
-          withTiming(8, { duration: 70 }),
-          withTiming(-5, { duration: 60 }),
-          withTiming(0, { duration: 60 }),
-        );
-      }
-      return () => clearTimeout(timer);
+    if (panel.shake) {
+      shake.value = withSequence(
+        withTiming(0, { duration: 260 }),
+        withTiming(-8, { duration: 50 }),
+        withTiming(8, { duration: 70 }),
+        withTiming(-5, { duration: 60 }),
+        withTiming(0, { duration: 60 }),
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
