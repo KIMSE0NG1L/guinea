@@ -8,10 +8,10 @@ import { images } from "../assets";
 import { playSfx } from "../sound";
 import appConfig from "../../app.json";
 
-// Shown in the corner. The policy links only appear once their pages exist — fill these in.
+// Version shown in the corner. Policy pages are docs/*.md served by GitHub Pages (main, /docs).
 const APP_VERSION = appConfig.expo.version;
-const PRIVACY_URL = "";
-const TERMS_URL = "";
+const PRIVACY_URL = "https://kimse0ng1l.github.io/guinea/privacy-policy";
+const TERMS_URL = "https://kimse0ng1l.github.io/guinea/terms-of-service";
 
 
 // One shown at a time above "터치하여 시작", cycling.
@@ -150,16 +150,12 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
         </Animated.View>
         <View style={styles.footer}>
           <Text style={styles.footerText}>v{APP_VERSION}</Text>
-          {PRIVACY_URL !== "" && (
-            <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8} accessibilityRole="link">
-              <Text style={[styles.footerText, styles.footerLink]}>개인정보처리방침</Text>
-            </Pressable>
-          )}
-          {TERMS_URL !== "" && (
-            <Pressable onPress={() => Linking.openURL(TERMS_URL)} hitSlop={8} accessibilityRole="link">
-              <Text style={[styles.footerText, styles.footerLink]}>이용약관</Text>
-            </Pressable>
-          )}
+          <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8} accessibilityRole="link">
+            <Text style={[styles.footerText, styles.footerLink]}>개인정보처리방침</Text>
+          </Pressable>
+          <Pressable onPress={() => Linking.openURL(TERMS_URL)} hitSlop={8} accessibilityRole="link">
+            <Text style={[styles.footerText, styles.footerLink]}>이용약관</Text>
+          </Pressable>
         </View>
         <Animated.View style={[StyleSheet.absoluteFill, styles.flash, flashStyle]} pointerEvents="none" />
       </Pressable>
