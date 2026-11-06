@@ -11,6 +11,10 @@ import { BattleScreen } from "./screens/BattleScreen";
 import { CompanionsScreen } from "./screens/CompanionsScreen";
 import { InventoryScreen } from "./screens/InventoryScreen";
 import { StatsScreen } from "./screens/StatsScreen";
+import { GuideScreen } from "./screens/GuideScreen";
+import { CreditsScreen } from "./screens/CreditsScreen";
+import { BackupScreen } from "./screens/BackupScreen";
+import { WhatsNewModal } from "./components/WhatsNewModal";
 import { ShopScreen } from "./screens/ShopScreen";
 import { SkillsScreen } from "./screens/SkillsScreen";
 import { MilestoneScreen } from "./screens/MilestoneScreen";
@@ -35,14 +39,14 @@ import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES, ITEM_IMAGES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
 import { BGM_GROUP, getEnemyKind } from "./state/stages";
-import { setBgmTrack } from "./sound";
+import { setBattleVisible, setBgmTrack } from "./sound";
 import { UpgradeTutorial } from "./components/UpgradeTutorial";
 import { getStatLevel, getUpgradeCost } from "./state/gameMath";
 import { MiniGuide } from "./components/MiniGuide";
 import { AttendanceModal } from "./components/AttendanceModal";
 import { getSkill } from "./state/skills";
 import { uiImages } from "./assets";
-import type { Tab } from "./types";
+import type { GameState, Tab } from "./types";
 
 // Kills on the post-intro gift: one-hit kills that pay for the first upgrade and the
 // recipe tutorial's 초록 젤리.
@@ -62,9 +66,14 @@ const TAB_PARENT: Partial<Record<Tab, Tab>> = {
   recipes: "kitchen",
   grocery: "kitchen",
   stats: "battle",
+  guide: "battle",
+  credits: "battle",
+  backup: "battle",
 };
 
-export function GameScreen() {
+// `onRestoreSave`: replaces the whole save with a backup's and restarts the game on it (App
+// owns that, since this screen has to unmount for it).
+export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState) => void }) {
   // Declared ahead of useGameState so it can tell that hook to pause battle while a comic
   // (a real cutscene — full-screen, has to be read/dismissed) is up; this is
   // presentation/navigation state GameScreen already owns, not something useGameState itself
@@ -88,6 +97,10 @@ export function GameScreen() {
   }, [bgmGroup, game.displayBoss]);
 
   const onSelectTab = useCallback((selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab })), [setState]);
+  // Hit sounds stay on the battle page (see setBattleVisible).
+  useEffect(() => {
+    setBattleVisible(state.selectedTab === "battle");
+  }, [state.selectedTab]);
 
   // The recipe tutorial opens after a beat (so the last drop finishes flying into the bag)
   // once the player has gathered 3 초록 젤리 from slimes — exactly one 말랑 초록 젤리's
@@ -127,6 +140,9 @@ export function GameScreen() {
   const [stealHint, setStealHint] = useState(false);
   // The attendance card shows once per launch while today's reward is unclaimed.
   const [attendanceClosed, setAttendanceClosed] = useState(false);
+  // The update list reopened from the settings (its first, gift-bearing showing is automatic).
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+  const updateDue = Boolean(game.loaded && game.updateUnseen && state.tutorialDone && Boolean(state.recipeTutorialDone) && !game.offlineSummary && !game.firstClear);
   useEffect(() => {
     if (!stealHint) return;
     const timer = setTimeout(() => setStealHint(false), getSkill("steal").durationMs ?? 5000);
@@ -241,6 +257,12 @@ export function GameScreen() {
     switch (state.selectedTab) {
       case "stats":
         return <StatsScreen state={state} />;
+      case "guide":
+        return <GuideScreen />;
+      case "credits":
+        return <CreditsScreen />;
+      case "backup":
+        return <BackupScreen state={state} onRestore={onRestoreSave} />;
       case "companions":
         return (
           <CompanionsScreen
@@ -387,6 +409,8 @@ export function GameScreen() {
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
           onOpenComics={() => onSelectTab("comics")}
           onUnlockAllComics={() => setState((previous) => ({ ...previous, allComicsUnlocked: true, selectedTab: "comics" }))}
+          onOpenPage={onSelectTab}
+          onOpenWhatsNew={() => setWhatsNewOpen(true)}
         />
         <ScrollView
           key={state.selectedTab}
@@ -411,7 +435,16 @@ export function GameScreen() {
             onClaimDouble={game.claimOfflineDouble}
           />
         )}
-        {game.loaded && game.attendanceReady && !attendanceClosed && state.tutorialDone && state.recipeTutorialDone && !game.offlineSummary && !game.firstClear && (
+        {(updateDue || whatsNewOpen) && (
+          <WhatsNewModal
+            gift={updateDue}
+            onClose={() => {
+              if (updateDue) game.claimUpdateGift();
+              setWhatsNewOpen(false);
+            }}
+          />
+        )}
+        {game.loaded && game.attendanceReady && !attendanceClosed && !updateDue && !whatsNewOpen && state.tutorialDone && state.recipeTutorialDone && !game.offlineSummary && !game.firstClear && (
           <AttendanceModal
             dayIndex={game.attendanceDay}
             goldFor={game.attendanceGold}

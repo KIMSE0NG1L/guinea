@@ -239,7 +239,37 @@ export function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highe
 }
 
 // Regular-mob kills needed in a stage before the boss spawns automatically.
-export const STAGE_KILL_TARGET = 25;
+// Regular mobs per stage before its boss. Once in each of the first MINI_BOSS_COUNT blocks of
+// MINI_BOSS_EVERY mobs, at a random point in it, a mid-boss turns up; the last block leads
+// straight to the boss.
+export const STAGE_KILL_TARGET = 40;
+export const MINI_BOSS_EVERY = 10;
+export const MINI_BOSS_COUNT = 3;
+// A mid-boss is the stage's own mob, enraged: this many times its HP, and this much exp.
+export const MINI_BOSS_HP_MULTIPLIER = 4;
+export const MINI_BOSS_EXP_MULTIPLIER = 3;
+// Territories overlap: now and then (this share of regular spawns) the mob that turns up is
+// one from the stage before, wandered over — with its own HP, drops and rewards.
+export const STRAY_MOB_CHANCE = 0.05;
+
+// Where in its block of MINI_BOSS_EVERY mobs each mid-boss turns up: somewhere from the 1st
+// to the 10th kill of the block, picked by a hash of the stage, the block and `salt` (the
+// player's boss kill count, so each run of a stage lands them differently). Deterministic, so
+// a reload or a trip away and back finds them where they were.
+export function getMiniBossKill(stageNumber: number, block: number, salt: number) {
+  let hash = (stageNumber * 73856093) ^ (block * 19349663) ^ (salt * 83492791);
+  hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
+  hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
+  hash ^= hash >>> 16;
+  return block * MINI_BOSS_EVERY + 1 + ((hash >>> 0) % MINI_BOSS_EVERY);
+}
+
+// Whether a mid-boss is owed: the next unbeaten one's kill (getMiniBossKill) has been
+// reached. Read off saved numbers, so a reload or a trip away and back brings an unbeaten one
+// straight back.
+export function isMiniBossDue(stageKills: number, miniBossesBeaten: number, stageNumber: number, salt: number) {
+  return miniBossesBeaten < MINI_BOSS_COUNT && stageKills >= getMiniBossKill(stageNumber, miniBossesBeaten, salt);
+}
 
 // Un-scaled HP at stage 1 — getEnemyMaxHp below grows this per stage. The boss sits at
 // 10x a regular mob, the usual range for a stage-gate boss (vs. ~30-100x for a raid-tier

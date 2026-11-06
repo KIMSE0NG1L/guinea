@@ -16,6 +16,8 @@ export function SettingsModal({
   onOpenComics,
   onUnlockAllComics,
   onResetRequest,
+  onOpenPage,
+  onOpenWhatsNew,
   onClose,
 }: {
   onSkipToBoss: () => void;
@@ -29,6 +31,9 @@ export function SettingsModal({
   // Opens every story comic in the album, then shows the album.
   onUnlockAllComics: () => void;
   onResetRequest: () => void;
+  // Full pages opened from here (guide / backup / credits) and the update list.
+  onOpenPage: (page: "guide" | "backup" | "credits") => void;
+  onOpenWhatsNew: () => void;
   onClose: () => void;
 }) {
   const sfxVolume = useSfxVolume();
@@ -62,6 +67,35 @@ export function SettingsModal({
             </View>
           </View>
           <View style={styles.list}>
+            {(
+              [
+                ["guide", "게임 가이드"],
+                ["backup", "세이브 백업"],
+                ["credits", "크레딧"],
+              ] as const
+            ).map(([page, label]) => (
+              <GameButton
+                key={page}
+                variant="cream"
+                onPress={() => {
+                  onOpenPage(page);
+                  onClose();
+                }}
+                style={styles.button}
+              >
+                {label}
+              </GameButton>
+            ))}
+            <GameButton
+              variant="cream"
+              onPress={() => {
+                onOpenWhatsNew();
+                onClose();
+              }}
+              style={styles.button}
+            >
+              업데이트 소식
+            </GameButton>
             <GameButton
               variant="green"
               onPress={() => {

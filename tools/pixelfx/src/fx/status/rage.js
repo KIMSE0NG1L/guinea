@@ -19,6 +19,11 @@ export const meta = {
     palette: ["#1a0208", "#4a0612", "#8a0c1c", "#c81828", "#ff3040", "#ff7a7a", "#ffc8c8", "#ffffff"],
     heat: ["#5a0a0a", "#c8281a", "#ff7a2a", "#ffd27a"],
     steam: "#f2e8ee",
+    // false leaves out the jagged lines flashing round the head on each beat
+    stressLines: true,
+    // false leaves out everything painted onto the stand-in's own body (the flushed, shaking
+    // figure and its burning eyes) — for laying the aura over a character drawn elsewhere
+    body: true,
     seed: 6,
   },
 };
@@ -93,13 +98,13 @@ export function draw(p, t, o) {
   const C = fit(o.palette, 8), Hh = fit(o.heat, 4), a = o.actor, S = shape(a), b = beat(t), steam = hex(o.steam);
   const shake = shaking(t), dx = shake ? (Math.floor(t * 60) % 2 ? 1 : -1) : 0, dy = shake && since(t, LUB - 0.02) < 0.06 ? -1 : 0;
   // the body: shaken while the beat lands, the face flushing red with it
-  for (const [mx, my] of S.body) {
+  for (const [mx, my] of o.body === false ? [] : S.body) {
     const c = colorAt(a, mx, my), l = luma(c), skin = l > 0.55 && (c & 255) > ((c >>> 16) & 255) + 30;
     if (skin) p.px(a.x + mx + dx, a.y + my + dy, mix(c, C[4], 0.22 + 0.3 * b));
     else if (shake) p.px(a.x + mx + dx, a.y + my + dy, c);
   }
   // burning eyes under angry brows
-  for (const e of eyes(a)) {
+  for (const e of o.body === false ? [] : eyes(a)) {
     const ex = a.x + dx, ey = a.y + dy, inner = (e.x0 + e.x1) / 2 < a.w / 2 ? 1 : -1;
     for (const [x, y] of e.px) p.px(ex + x, ey + y, y === e.y0 ? C[7] : y === e.y0 + 1 ? C[6] : C[4]);
     const xi = inner > 0 ? e.x1 : e.x0, xo = inner > 0 ? e.x0 : e.x1;
@@ -128,7 +133,7 @@ export function draw(p, t, o) {
         if (u < 0.3) p.dot(x, y, 0xffffffff, 1 - u / 0.3);
       }
   // jagged stress lines flashing out round the head on the beat
-  for (const [at, n, len] of [[LUB, 8, 7], [DUB, 6, 5]]) {
+  for (const [at, n, len] of o.stressLines === false ? [] : [[LUB, 8, 7], [DUB, 6, 5]]) {
     const age = since(t, at);
     if (age > 0.2) continue;
     const k = age / 0.2;

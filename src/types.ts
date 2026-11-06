@@ -1,5 +1,5 @@
 import type { SkillTimers } from "./state/skills";
-export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats";
+export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats" | "guide" | "credits" | "backup";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
@@ -116,6 +116,19 @@ export interface GameState {
   // A first boss clear whose celebration (and its ad-for-gems offer) hasn't been closed yet —
   // saved so a reload brings it back instead of losing the reward. Missing when none.
   pendingFirstClear?: { stageNumber: number; bossName: string; gems: number; companions: string[] };
+  // 기니의 발자취: when this save began, how long the game has been played (ms), and personal
+  // bests. All missing on older saves (tracked from the update on).
+  startedAt?: number;
+  playTimeMs?: number;
+  records?: { maxHit?: number; fastestBossMs?: number; bestOfflineGold?: number };
+  // Mob kills made on a stage before leaving it from the map (stageNumber -> kills), so going
+  // back picks up where it was. Missing on older saves.
+  stageKillsSaved?: Record<string, number>;
+  // Mid-bosses beaten on the current stage, and on stages left from the map (by stageNumber).
+  stageMiniBosses?: number;
+  stageMiniBossesSaved?: Record<string, number>;
+  // 업데이트 소식: the LATEST_UPDATE id this player has seen (and got the gift for).
+  seenUpdate?: string;
   // Daily attendance: days claimed in all (the 7-day cycle is claimed % 7) and the local
   // date of the last claim. Missing until the first claim.
   attendance?: { claimed: number; lastDay: string };

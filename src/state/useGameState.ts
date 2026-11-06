@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
-import type { GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
+import type { EnemyKind, GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
 import { ATTENDANCE_REWARDS, getAttendance, todayKey } from "./attendance";
+import { LATEST_UPDATE } from "./updates";
 import { GLUTTON_FOOD_MULTIPLIER, INITIAL_SKILL_TIMERS, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
 import { applyUpgradeLevels, getBossTimeLimitMs, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
@@ -10,8 +11,8 @@ import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
 import { getOutfitGemPrice, getOutfitsUnlockedByStage, getUnlocksAtLevel, isOutfitUnlocked, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
-import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, STAGE_KILL_TARGET } from "./stages";
-import { rollDrops } from "./drops";
+import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
+import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
@@ -81,6 +82,14 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const [appActive, setAppActive] = useState(() => AppState.currentState === "active");
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
+  // An enraged mid-boss (the stage's mob, bigger and tougher) is up. The fight itself isn't
+  // saved, but which ones are beaten is (stageMiniBosses) — so a reload brings it back.
+  const [miniBoss, setMiniBoss] = useState(false);
+  const [defeatedMiniBoss, setDefeatedMiniBoss] = useState(false);
+  // A regular mob wandered over from the stage before (STRAY_MOB_CHANCE) is the one up now —
+  // null for the stage's own. The defeated one is kept for its death clip, like the boss.
+  const [strayKind, setStrayKind] = useState<EnemyKind | null>(null);
+  const [defeatedStrayKind, setDefeatedStrayKind] = useState<EnemyKind | null>(null);
   const [defeatedBoss, setDefeatedBoss] = useState(false);
   // When the current boss fight started (wall-clock) and how long it gets before the boss
   // flees — snapshotted together the moment `boss` turns true (see startBossFight below),
@@ -121,7 +130,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const [skipStageAnnouncement, setSkipStageAnnouncement] = useState(false);
   const [announcedStageNumber, setAnnouncedStageNumber] = useState(state.stageNumber);
   // Enemies get tougher each stage so progression isn't flat — tuned in stages.ts.
-  const enemyMaxHp = getEnemyMaxHp(state.stageNumber, boss);
+  const enemyMaxHp =
+    strayKind && !boss && !miniBoss
+      ? getEnemyMaxHp(Math.max(0, state.stageNumber - 1), false)
+      : getEnemyMaxHp(state.stageNumber, boss) * (miniBoss && !boss ? MINI_BOSS_HP_MULTIPLIER : 1);
   // Ticks once a second so buff timers count down and expire on time.
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -230,6 +242,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
             // Away the full offline cap or longer: a "slept the whole time" for the hidden quest.
             if (awayMs >= MAX_OFFLINE_MS) loadedState = { ...loadedState, longNaps: (loadedState.longNaps ?? 0) + 1 };
             setOfflineSummary(result.summary);
+            if (result.summary.goldEarned > (loadedState.records?.bestOfflineGold ?? 0)) {
+              loadedState = { ...loadedState, records: { ...loadedState.records, bestOfflineGold: result.summary.goldEarned } };
+            }
           }
         }
         previousLevelRef.current = loadedState.level;
@@ -240,9 +255,11 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         // replace it with a full-HP mob of the loaded stage, or it walks in nearly dead.
         // A save left mid boss fight (the stage's mob quota already full) brings the boss
         // straight back, entrance and all — the fight itself isn't saved, only the quota.
-        const bossDue = loadedState.stageKills >= STAGE_KILL_TARGET;
+        const miniDue = isMiniBossDue(loadedState.stageKills, loadedState.stageMiniBosses ?? 0, loadedState.stageNumber, loadedState.bossKills ?? 0);
+        const bossDue = !miniDue && loadedState.stageKills >= STAGE_KILL_TARGET;
         if (bossDue) startBossFight(loadedState.stageNumber);
-        battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, bossDue));
+        if (miniDue) setMiniBoss(true);
+        battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, bossDue) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
         // A first-clear celebration that was still open when the game closed comes back.
         if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, key: Date.now() });
         setState(loadedState);
@@ -292,7 +309,14 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   });
   useEffect(() => {
     if (!loaded) return;
+    let lastTick = Date.now();
     const id = setInterval(() => {
+      // Play time: the real gap since the last tick, capped so a suspended tab or a sleeping
+      // phone doesn't count as play.
+      const tick = Date.now();
+      const played = Math.min(tick - lastTick, 20_000);
+      lastTick = tick;
+      setState((previous) => ({ ...previous, playTimeMs: (previous.playTimeMs ?? 0) + played, startedAt: previous.startedAt ?? tick }));
       lastSeenAtRef.current = Date.now();
       writeSave({ state: latestStateRef.current, lastSeenAt: lastSeenAtRef.current });
     }, 15_000);
@@ -345,6 +369,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // banner (beginBossFight), so the boss can be sized up first.
   // `stageNumber`: for a save just loaded, whose stage isn't in `state` yet this render.
   const startBossFight = useCallback((stageNumber: number = state.stageNumber) => {
+    setMiniBoss(false);
     setBossTimerStartedAt(null);
     setBossTimeLimitMs(getBossTimeLimitMs(stageNumber));
     setBossIntroPending(true);
@@ -358,6 +383,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   }, [bossIntroPending]);
   const endBossFight = () => {
     setBoss(false);
+    setMiniBoss(false);
+    setStrayKind(null);
     setBossIntroPending(false);
     setBossTimerStartedAt(null);
   };
@@ -369,15 +396,32 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     const gift = (state.giftKills ?? 0) > 0 && !boss;
     const goldReward = gift ? Math.max(rawGold, GIFT_KILL_GOLD) : rawGold;
     setDefeatedBoss(boss);
+    // A mid-boss going down doesn't count toward the stage's mob quota.
+    const wasMiniBoss = miniBoss && !boss;
+    setDefeatedMiniBoss(wasMiniBoss);
+    if (wasMiniBoss) setMiniBoss(false);
+    // How long the boss fight ran (from the tap that started it), for the fastest-boss record.
+    const bossFightMs = boss && bossTimerStartedAt !== null ? Date.now() - bossTimerStartedAt : null;
     if (boss) endBossFight();
-    // Killing the 25th regular mob spawns the boss directly — no manual "challenge" step.
-    const reachesBossThreshold = !boss && state.stageKills + 1 >= STAGE_KILL_TARGET;
-    if (reachesBossThreshold) startBossFight();
+    // What comes next: a mid-boss whenever one is owed (every MINI_BOSS_EVERY mobs, and one
+    // more straight away if a save carried in more kills than mid-bosses beaten), else the
+    // boss once the quota's full and all three are down.
+    const killsAfter = boss ? 0 : wasMiniBoss ? state.stageKills : state.stageKills + 1;
+    const miniBeatenAfter = boss ? 0 : (state.stageMiniBosses ?? 0) + (wasMiniBoss ? 1 : 0);
+    const miniDue = !boss && isMiniBossDue(killsAfter, miniBeatenAfter, state.stageNumber, state.bossKills ?? 0);
+    const reachesBossThreshold = !boss && !miniDue && !wasMiniBoss && killsAfter >= STAGE_KILL_TARGET;
+    if (miniDue) setMiniBoss(true);
+    else if (reachesBossThreshold || (wasMiniBoss && killsAfter >= STAGE_KILL_TARGET)) startBossFight();
+    // The one just beaten, and whether the next regular mob is a stray from the stage before.
+    const wasStray = !boss && !wasMiniBoss ? strayKind : null;
+    setDefeatedStrayKind(wasStray);
+    const nextIsRegular = !boss && !miniDue && !reachesBossThreshold && !(wasMiniBoss && killsAfter >= STAGE_KILL_TARGET);
+    setStrayKind(nextIsRegular && state.stageNumber > 0 && Math.random() < STRAY_MOB_CHANCE ? getEnemyKind(state.stageNumber - 1) : null);
 
     // Rolled out here, not inside the state updater, so a re-run updater can't re-roll.
     // A full bag turns away whatever has no room left (no free slot, no space in its
     // last stack of 64) — those just don't drop.
-    const rolled = rollDrops(getEnemyKind(state.stageNumber), boss, {
+    const dropOptions: DropModifiers = {
       chanceBonus: (name) =>
         dropRate +
         (ITEM_CATEGORY.get(name) === "vegetable" ? vegetableDrop : 0) +
@@ -385,7 +429,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       doubleChance: dropDouble,
       bossSure: bossDropSure > 0,
       allSure: OUTFIT_SURE_DROPS[state.equippedOutfit] ?? false,
-    });
+    };
+    // A mid-boss drops what its kind does, twice over.
+    const rolled = [
+      ...rollDrops(wasStray ?? getEnemyKind(state.stageNumber), boss, dropOptions),
+      ...(wasMiniBoss ? rollDrops(getEnemyKind(state.stageNumber), false, dropOptions) : []),
+    ];
     const withGift = gift ? [...rolled.filter((drop) => drop.name !== "초록 젤리"), { name: "초록 젤리", quantity: 1 }] : rolled;
     const fitted = fitItems(state.inventory, withGift, getBagCapacity(state.bagExpansions));
     const drops = fitted.kept;
@@ -437,7 +486,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
 
       const kills = previous.kills + 1;
       let level = previous.level;
-      const expReward = Math.round(getExpReward(previous.stageNumber, boss) * (1 + expBonus / 100));
+      const expReward = Math.round(getExpReward(Math.max(0, previous.stageNumber - (wasStray ? 1 : 0)), boss) * (1 + expBonus / 100) * (wasMiniBoss ? MINI_BOSS_EXP_MULTIPLIER : 1));
       let experience = previous.experience + expReward;
       while (experience >= getExpToLevel(level)) {
         experience -= getExpToLevel(level);
@@ -456,20 +505,24 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         gold: previous.gold + creditedGold,
         giftKills: gift ? Math.max(0, (previous.giftKills ?? 0) - 1) : previous.giftKills,
         bossesCleared: paysFirstClear ? [...cleared, previous.stageNumber] : previous.bossesCleared,
+        stageKillsSaved: boss && previous.stageKillsSaved?.[String(previous.stageNumber)] ? { ...previous.stageKillsSaved, [String(previous.stageNumber)]: 0 } : previous.stageKillsSaved,
+        stageMiniBossesSaved: boss && previous.stageMiniBossesSaved?.[String(previous.stageNumber)] ? { ...previous.stageMiniBossesSaved, [String(previous.stageNumber)]: 0 } : previous.stageMiniBossesSaved,
+        records: bossFightMs !== null && bossFightMs < (previous.records?.fastestBossMs ?? Infinity) ? { ...previous.records, fastestBossMs: bossFightMs } : previous.records,
         inventory: holdLoot ? previous.inventory : addItems(previous.inventory, drops),
         discoveredItems: holdLoot ? previous.discoveredItems : discover(previous.discoveredItems, drops.map((drop) => drop.name)),
         kills,
         currentStage: boss ? getStageLabel(stageNumber) : previous.currentStage,
         stageNumber,
         highestStageNumber,
-        stageKills: boss ? 0 : previous.stageKills + 1,
+        stageKills: boss ? 0 : wasMiniBoss ? previous.stageKills : previous.stageKills + 1,
+        stageMiniBosses: boss ? 0 : (previous.stageMiniBosses ?? 0) + (wasMiniBoss ? 1 : 0),
         totalGoldEarned,
         bossKills,
         level,
         experience,
       };
     });
-  }, [boss, state.stageKills, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
+  }, [boss, miniBoss, strayKind, bossTimerStartedAt, state.stageKills, state.stageMiniBosses, state.bossKills, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -571,6 +624,15 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
     instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
   });
+
+  // Personal best: the biggest single hit.
+  useEffect(() => {
+    const top = battle.damageEvents.reduce((max, event) => (event.missed ? max : Math.max(max, event.amount)), 0);
+    if (top <= (state.records?.maxHit ?? 0)) return;
+    const timer = setTimeout(() => setState((previous) => (top > (previous.records?.maxHit ?? 0) ? { ...previous, records: { ...previous.records, maxHit: top } } : previous)), 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [battle.damageEvents]);
 
   // Skill cooldowns survive a reload: put the saved ones back once the save is in, then keep
   // the save in step with every cast (deferred out of the effect body, like the others here).
@@ -729,6 +791,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const isMobToBossTransition = battle.phase === "defeated" && !defeatedBoss && boss;
   const isBossDefeatFlash = battle.phase === "defeated" && defeatedBoss;
   const displayBoss = (boss && !isMobToBossTransition) || isBossDefeatFlash;
+  const isMobToMiniTransition = battle.phase === "defeated" && !defeatedMiniBoss && miniBoss;
+  const isMiniDefeatFlash = battle.phase === "defeated" && defeatedMiniBoss;
+  // The regular mob on screen, if it's a stray: the one dying through its death clip, else
+  // the one up now.
+  const displayStrayKind = battle.phase === "defeated" ? defeatedStrayKind : strayKind;
+  const displayMiniBoss = !displayBoss && ((miniBoss && !isMobToMiniTransition) || isMiniDefeatFlash);
 
   // Only one skill fits the battle slot — equipping one replaces whatever was there.
   // A new skill can only go in once SKILL_SWAP_LOCK_MS has passed since the last cast.
@@ -782,19 +850,41 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const selectStage = (stageNumber: number) => {
     const highestStageNumber = state.highestStageNumber ?? state.stageNumber;
     if (stageNumber > highestStageNumber) return;
-    if (stageNumber !== state.stageNumber) setSkipStageAnnouncement(true);
+    // Already here: just back to the fight, which carries on untouched (mob, boss and all).
+    if (stageNumber === state.stageNumber) {
+      setState((previous) => ({ ...previous, selectedTab: "battle" }));
+      return;
+    }
+    setSkipStageAnnouncement(true);
     setStageAnnouncement(null);
     endBossFight();
     setDefeatedBoss(false);
-    setState((previous) => ({
-      ...previous,
-      currentStage: getStageLabel(stageNumber),
-      stageNumber,
-      stageKills: 0,
-      highestStageNumber,
-      selectedTab: "battle",
-    }));
-    battle.resetEnemy(getEnemyMaxHp(stageNumber, false));
+    setState((previous) => {
+      // Leave this stage's kills behind for when you come back, and pick up the target's.
+      // Capped one short of the boss: a fight left mid-boss isn't kept, so you come back to
+      // one last mob and then the boss.
+      const saved = { ...previous.stageKillsSaved, [String(previous.stageNumber)]: previous.stageKills };
+      const savedMinis = { ...previous.stageMiniBossesSaved, [String(previous.stageNumber)]: previous.stageMiniBosses ?? 0 };
+      const resumed = Math.min(saved[String(stageNumber)] ?? 0, STAGE_KILL_TARGET - 1);
+      const resumedMinis = savedMinis[String(stageNumber)] ?? 0;
+      return {
+        ...previous,
+        currentStage: getStageLabel(stageNumber),
+        stageNumber,
+        stageKills: resumed,
+        stageKillsSaved: saved,
+        stageMiniBosses: resumedMinis,
+        stageMiniBossesSaved: savedMinis,
+        highestStageNumber,
+        selectedTab: "battle",
+      };
+    });
+    // Coming back to a stage with a mid-boss still owed meets it right away.
+    const targetKills = Math.min(state.stageKillsSaved?.[String(stageNumber)] ?? 0, STAGE_KILL_TARGET - 1);
+    const targetMinis = state.stageMiniBossesSaved?.[String(stageNumber)] ?? 0;
+    const miniDue = isMiniBossDue(targetKills, targetMinis, stageNumber, state.bossKills ?? 0);
+    if (miniDue) setMiniBoss(true);
+    battle.resetEnemy(getEnemyMaxHp(stageNumber, false) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
   };
 
   // Dev-convenience shortcut from the settings menu — skips straight to the current
@@ -804,7 +894,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setStageAnnouncement(null);
     setDefeatedBoss(false);
     startBossFight();
-    setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET }));
+    setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET, stageMiniBosses: MINI_BOSS_COUNT }));
     battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
   };
 
@@ -819,7 +909,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setStageAnnouncement(null);
     setDefeatedBoss(false);
     startBossFight();
-    setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET }));
+    setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET, stageMiniBosses: MINI_BOSS_COUNT }));
     battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
   };
 
@@ -1111,6 +1201,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     defeatedBoss,
     defeatedStageNumber,
     displayBoss,
+    displayMiniBoss,
+    isMiniDefeatFlash,
+    displayStrayKind,
     isBossDefeatFlash,
     bossTimerStartedAt,
     bossTimeLimitMs,
@@ -1147,6 +1240,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     attendanceReady: attendance.ready,
     attendanceGold: (mobs: number) => Math.max(1, Math.round(currentMobGold() * mobs)),
     claimAttendance,
+    // 업데이트 소식: unseen until closed once; closing it the first time pays its gift.
+    updateUnseen: state.seenUpdate !== LATEST_UPDATE.id,
+    claimUpdateGift: () =>
+      setState((previous) =>
+        previous.seenUpdate === LATEST_UPDATE.id ? previous : { ...previous, gems: previous.gems + LATEST_UPDATE.gems, seenUpdate: LATEST_UPDATE.id },
+      ),
     // Winged-gem ads still left today; at 0 only coins fly.
     flyingGemAdsLeft: Math.max(0, FLYING_GEM_ADS_PER_DAY - flyingGemAdsToday(state)),
     heldLoot,

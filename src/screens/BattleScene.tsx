@@ -16,6 +16,7 @@ import { StageAdvanceBanner } from "../components/StageAdvanceBanner";
 import { BossFleeBanner } from "../components/BossFleeBanner";
 import { BossEntranceBanner } from "../components/BossEntranceBanner";
 import { WITCH_SPELL_LIFE_MS, WITCH_TRAVEL_MS, WitchSpell } from "../components/WitchSpell";
+import { playSfx } from "../sound";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
 import { SKILL_SLOT_HEIGHT } from "../components/SkillSlot";
@@ -203,6 +204,8 @@ const BACKGROUND: Record<EnemyKind, number> = {
 const FIGHTERS_BOTTOM = 55;
 const FIGHTERS_SIDE = 15;
 const SKY_HEIGHT = 260;
+// How much bigger a mid-boss is drawn than its regular mob.
+const MINI_BOSS_SIZE = 1.3;
 // How far the boss entrance close-up pushes in (first meeting / a boss beaten before).
 const CLOSE_UP_ZOOM = 1.6;
 const CLOSE_UP_ZOOM_REPEAT = 1.25;
@@ -280,7 +283,10 @@ export function BattleScene({
   enemyHp,
   enemyMaxHp,
   boss,
+  miniBoss = false,
+  miniBossDefeated = false,
   enemyKind,
+  foeKind,
   phase,
   enemyId,
   lastGoldReward,
@@ -337,7 +343,14 @@ export function BattleScene({
   enemyHp: number;
   enemyMaxHp: number;
   boss: boolean;
+  // An enraged mid-boss: the stage's mob drawn bigger and red, with a rage aura.
+  miniBoss?: boolean;
+  // Whether the enemy now dying is a mid-boss (for its defeat burst).
+  miniBossDefeated?: boolean;
   enemyKind: EnemyKind;
+  // The regular mob actually on screen, when it's not the stage's own (a stray from the stage
+  // before); the stage's look (backdrop, ambience, boss) still follows `enemyKind`.
+  foeKind?: EnemyKind;
   phase: BattlePhase;
   enemyId: number;
   lastGoldReward: number;
@@ -496,7 +509,10 @@ export function BattleScene({
 
   const enemyAnimation: EnemyAnimation =
     phase === "hit" ? "hit" : phase === "defeated" ? "die" : "idle";
-  const enemySize = boss ? BOSS_SIZE[enemyKind] : MOB_SIZE[enemyKind] ?? 108;
+  const fighterKind = boss ? enemyKind : (foeKind ?? enemyKind);
+  // A mob wandered over from the stage before: named and talking like one that's lost.
+  const stray = !boss && !miniBoss && fighterKind !== enemyKind;
+  const enemySize = boss ? BOSS_SIZE[enemyKind] : (MOB_SIZE[fighterKind] ?? 108) * (miniBoss ? MINI_BOSS_SIZE : 1);
   // Sits just past the enemy's left edge at roughly its mid-height, scaling with its own
   // size (the sprite is always centred on ENEMY_CENTER_RIGHT regardless of how wide it
   // renders, so half its size is exactly the gap to clear it) — works the same for a
@@ -518,6 +534,24 @@ export function BattleScene({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
   const sceneShake = useSharedValue(0);
+  // A mid-boss arriving: a thud and a hard shake of the scene.
+  const miniShake = useSharedValue(0);
+  const wasMiniBoss = useRef(miniBoss);
+  useEffect(() => {
+    const arrived = miniBoss && !wasMiniBoss.current;
+    wasMiniBoss.current = miniBoss;
+    if (!arrived || preview) return;
+    playSfx("bossEnter", 0.8);
+    miniShake.value = withSequence(
+      withTiming(10, { duration: 40 }),
+      withTiming(-9, { duration: 50 }),
+      withTiming(7, { duration: 50 }),
+      withTiming(-5, { duration: 50 }),
+      withTiming(3, { duration: 50 }),
+      withTiming(0, { duration: 60 }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [miniBoss]);
   useEffect(() => {
     if (beamId === 0) return;
     sceneShake.value = withDelay(
@@ -533,7 +567,7 @@ export function BattleScene({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beamId]);
   const killPunchStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: sceneShake.value }, { translateY: sceneShake.value * -0.4 }, { scale: killPunch.value }],
+    transform: [{ translateX: sceneShake.value + miniShake.value }, { translateY: (sceneShake.value + miniShake.value) * -0.4 }, { scale: killPunch.value }],
   }));
   // Flying gold coins only for the fresh kill this render reflects (new enemyId + reward).
   const goldFlyFrom = { right: ENEMY_CENTER_RIGHT, bottom: FIGHTERS_BOTTOM + enemySize * 0.6 };
@@ -681,7 +715,10 @@ export function BattleScene({
             <EnemyFighter
               animation={enemyAnimation}
               boss={boss}
-              enemyKind={enemyKind}
+              miniBoss={miniBoss}
+              miniBossDefeated={miniBossDefeated}
+              stray={stray}
+              enemyKind={fighterKind}
               enemyId={enemyId}
               currentHp={enemyHp}
               maxHp={enemyMaxHp}
@@ -1072,6 +1109,9 @@ function PlayerFighter({
 function EnemyFighter({
   animation,
   boss,
+  miniBoss,
+  miniBossDefeated,
+  stray,
   enemyKind,
   enemyId,
   currentHp,
@@ -1085,6 +1125,9 @@ function EnemyFighter({
 }: {
   animation: EnemyAnimation;
   boss: boolean;
+  miniBoss: boolean;
+  miniBossDefeated: boolean;
+  stray: boolean;
   enemyKind: EnemyKind;
   enemyId: number;
   currentHp: number;
@@ -1199,10 +1242,10 @@ function EnemyFighter({
       {shoutDebuffId > 0 && <ShoutDebuff key={`shout-${shoutDebuffId}`} durationMs={SHOUT_DURATION} />}
       {/* Fixed position regardless of sprite size, so the boss's HP bar lines up with a
           regular mob's — the (much taller) boss sprite grows upward behind it instead. */}
-      <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, boss && styles.enemyNameplateBoss]}>
+      <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, (boss || miniBoss) && styles.enemyNameplateBoss, miniBoss && styles.enemyNameplateMini]}>
         {/* Outlined, since the plate behind it is see-through. */}
         <StrokedText style={styles.unitLabelText} strokeColor={colors.line} strokeWidth={1.5}>
-          {boss ? BOSS_NAME[enemyKind] : ENEMY_NAME[enemyKind]}
+          {boss ? BOSS_NAME[enemyKind] : stray ? `길 잃은 ${ENEMY_NAME[enemyKind]}` : ENEMY_NAME[enemyKind]}
         </StrokedText>
         <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
       </View>
@@ -1221,6 +1264,14 @@ function EnemyFighter({
       ) : (
         <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={`${animation}-${enemyId}`} />
       )}
+      {/* Going down: a gold starburst over it. */}
+      {miniBossDefeated && phase === "defeated" && (
+        <View style={[styles.miniBurst, { width: size * 1.8, height: size * 1.8, marginLeft: -size * 0.9 }]} pointerEvents="none">
+          <SpriteStrip source={effects.miniBossBurst} frameSize={216} frameCount={28} displaySize={size * 1.8} durationMs={900} mode="once" />
+        </View>
+      )}
+      {/* Mid-boss: its own silhouette washed red (pulsing), and the rage aura over it. */}
+      {miniBoss && phase !== "defeated" && <MiniBossRage size={size} boss={boss} enemyKind={enemyKind} animation={animation} restartKey={`${animation}-${enemyId}`} />}
       {/* White silhouette flash on every landed hit — same sprite/frame, tinted and faded
           in/out fast, so it exactly matches the current pose with no extra art. */}
       <Animated.View style={[styles.hitFlash, { width: size, height: size }, hitFlashStyle]} pointerEvents="none">
@@ -1236,6 +1287,7 @@ function EnemyFighter({
       <EnemySpeech
         key={`${enemyId}-${boss}-${enemyKind}`}
         boss={boss}
+        stray={stray}
         enemyKind={enemyKind}
         anchor={{ right: CHARACTER_WIDTH / 2 + size / 2 + 10, bottom: size / 2 }}
       />
@@ -1243,11 +1295,36 @@ function EnemyFighter({
   );
 }
 
+// The mid-boss's anger: a red silhouette of the current frame pulsing over the sprite, and
+// pixelfx's rage aura (anger mark, steam, stress lines) around its head and feet.
+function MiniBossRage({ size, boss, enemyKind, animation, restartKey }: { size: number; boss: boolean; enemyKind: EnemyKind; animation: EnemyAnimation; restartKey: string }) {
+  const pulse = useSharedValue(0);
+  useEffect(() => {
+    pulse.value = withRepeat(withSequence(withTiming(1, { duration: 450 }), withTiming(0, { duration: 450 })), -1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const tintStyle = useAnimatedStyle(() => ({ opacity: 0.32 + pulse.value * 0.2 }));
+  const aura = size * 1.35;
+  return (
+    <>
+      <Animated.View style={[styles.hitFlash, { width: size, height: size }, tintStyle]} pointerEvents="none">
+        <EnemySprite boss={boss} kind={enemyKind} animation={animation} size={size} restartKey={restartKey} tintColor="#ff2a1a" />
+      </Animated.View>
+      <View style={[styles.rageAura, { width: aura, height: aura, marginLeft: -aura / 2 }]} pointerEvents="none">
+        <SpriteStrip source={effects.miniBossRage} frameSize={80} frameCount={36} displaySize={aura} durationMs={1167} mode="loop" />
+      </View>
+    </>
+  );
+}
+
 // Picks and shows dialogue once for the currently displayed enemy.
-function EnemySpeech({ boss, enemyKind, anchor }: { boss: boolean; enemyKind: EnemyKind; anchor: { right: number; bottom: number } }) {
+// What a stray says — always, so it's clear it isn't from around here.
+const STRAY_LINES = ["여기 어디지...?", "우리 동네가 아니잖아?", "길을 잃었나 봐...", "집에 가고 싶어...", "어라, 풍경이 달라졌네?"];
+
+function EnemySpeech({ boss, stray, enemyKind, anchor }: { boss: boolean; stray: boolean; enemyKind: EnemyKind; anchor: { right: number; bottom: number } }) {
   const [line, setLine] = useState<string | null>(() => {
-    const pool = boss ? BOSS_LINES[enemyKind] : MOB_LINES[enemyKind];
-    return boss || Math.random() < MOB_SPEECH_CHANCE ? pool[Math.floor(Math.random() * pool.length)] : null;
+    const pool = boss ? BOSS_LINES[enemyKind] : stray ? STRAY_LINES : MOB_LINES[enemyKind];
+    return boss || stray || Math.random() < MOB_SPEECH_CHANCE ? pool[Math.floor(Math.random() * pool.length)] : null;
   });
   return line ? <MonsterSpeechBubble line={line} anchor={anchor} onClose={() => setLine(null)} /> : null;
 }
@@ -1395,6 +1472,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.line,
     borderRadius: 5,
   },
+  // Centred on the sprite's box, the aura's floor glow at the feet.
+  rageAura: { position: "absolute", bottom: -10, left: "50%" },
+  miniBurst: { position: "absolute", left: "50%", bottom: -20, zIndex: 6 },
+  enemyNameplateMini: { backgroundColor: "#6a120ccc", borderWidth: 1.5, borderColor: "#ffb020" },
   unitLabelClear: { backgroundColor: "#2b1d1259" },
   unitLabelText: { color: colors.cream, fontSize: 8, fontWeight: "800", fontFamily: fonts.bold },
   // See-through, so a tall boss behind it (head, horns) still shows.

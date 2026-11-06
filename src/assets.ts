@@ -527,6 +527,13 @@ export const effects = {
   // already matches the skill's own icon, no recolor needed: 96x104, 72 frames —
   // `node tools/pixelfx-export.mjs scifi/teleporter-pad --out teleport-pad`.
   teleportPad: require("../assets/effects/teleport-pad-strip.png"),
+  // The mid-boss's seething aura (anger mark, steam, stress lines, hot floor — none of the
+  // effect's own stand-in figure): 80x80, 36 frames looping —
+  // `node tools/pixelfx-export.mjs status/rage --out mini-boss-rage --opts '{"body":false}'`.
+  miniBossRage: require("../assets/effects/mini-boss-rage-strip.png"),
+  // The mid-boss going down: a gold starburst with sparks (216x216 padded, 28 frames) —
+  // `node tools/pixelfx-export.mjs impacts/crit-hit --out mini-boss-burst --square`.
+  miniBossBurst: require("../assets/effects/mini-boss-burst-strip.png"),
   // 운석 낙하's falling rock and impact, pixelfx's own fire palette: 272x232, the first 66
   // frames (2.2s) of 151 — the long smoke tail is faded out in code instead —
   // `node tools/pixelfx-export.mjs fire/meteor --out meteor-strike --max-frames 66`.

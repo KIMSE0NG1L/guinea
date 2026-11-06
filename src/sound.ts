@@ -34,8 +34,17 @@ AsyncStorage.getItem(VOLUME_KEY)
   })
   .catch(() => {});
 
+// Hit sounds only while the battle is on screen: auto-battle keeps fighting behind every
+// other page, and its hits clattering away under the kitchen or the shop is just noise.
+const BATTLE_ONLY_SFX: SfxKey[] = ["hit", "crit"];
+let battleVisible = true;
+export function setBattleVisible(visible: boolean) {
+  battleVisible = visible;
+}
+
 export function playSfx(key: SfxKey, volume = 1) {
   if (sfxVolume <= 0) return;
+  if (!battleVisible && BATTLE_ONLY_SFX.includes(key)) return;
   const pool = pools[key];
   const player = pool.players[pool.next];
   pool.next = (pool.next + 1) % pool.players.length;
@@ -126,16 +135,17 @@ function syncBgm() {
   });
 }
 
-// The boss theme restarts from the top on every boss; the field theme picks up where it
-// left off once the boss is down. Falls back to "countryside" for any region that
-// doesn't have its own tracks yet.
+// The boss theme restarts from the top on every boss, and so does the field theme once a
+// boss is over (the stage cleared) — never picking up mid-song from before the boss. Falls
+// back to "countryside" for any region that doesn't have its own tracks yet.
 export function setBgmTrack(group: BgmGroupId, boss: boolean) {
   const resolvedGroup: LoadedBgmGroup = group in bgmPlayers ? (group as LoadedBgmGroup) : FALLBACK_GROUP;
   const kind: BgmKind = boss ? "boss" : "field";
   if (resolvedGroup === bgmGroup && kind === bgmKind) return;
+  const leavingBoss = bgmKind === "boss";
   bgmGroup = resolvedGroup;
   bgmKind = kind;
-  if (kind === "boss") bgmPlayers[resolvedGroup].boss.seekTo(0);
+  if (kind === "boss" || leavingBoss) bgmPlayers[resolvedGroup][kind].seekTo(0);
   syncBgm();
 }
 

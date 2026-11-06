@@ -33,6 +33,8 @@ export function GameHeader({
   onReplayTutorial,
   onOpenComics,
   onUnlockAllComics,
+  onOpenPage,
+  onOpenWhatsNew,
 }: {
   state: GameState;
   onReset: () => void;
@@ -46,6 +48,8 @@ export function GameHeader({
   onReplayTutorial: () => void;
   onOpenComics: () => void;
   onUnlockAllComics: () => void;
+  onOpenPage: (page: "guide" | "backup" | "credits") => void;
+  onOpenWhatsNew: () => void;
 }) {
   const { width: screenWidth } = useWindowDimensions();
   const fit = Math.min(1, (Math.min(screenWidth, FRAME_WIDTH) - HEADER_PADDING * 2) / DESIGN_ROW);
@@ -98,6 +102,8 @@ export function GameHeader({
           onReplayTutorial={onReplayTutorial}
           onOpenComics={onOpenComics}
           onUnlockAllComics={onUnlockAllComics}
+          onOpenPage={onOpenPage}
+          onOpenWhatsNew={onOpenWhatsNew}
           onResetRequest={() => {
             setSettingsOpen(false);
             setConfirmingReset(true);

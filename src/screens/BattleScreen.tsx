@@ -68,14 +68,17 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         enemyHp={battle.enemyHp}
         enemyMaxHp={enemyMaxHp}
         boss={displayBoss}
+        miniBoss={game.displayMiniBoss}
+        miniBossDefeated={game.isMiniDefeatFlash}
         enemyKind={regularEnemyKind}
+        foeKind={game.displayStrayKind ?? regularEnemyKind}
         phase={battle.phase}
         enemyId={battle.enemyId}
         lastGoldReward={battle.lastGoldReward}
         stageAdvance={game.stageAnnouncement}
         onContinueStage={game.continueStage}
         battleSpeed={game.battleSpeed}
-        stageLabel={boss ? `${stageLabel} · 보스` : stageLabel}
+        stageLabel={boss ? `${stageLabel} · 보스` : game.displayMiniBoss ? `${stageLabel} · 중간 보스` : stageLabel}
         stageKills={state.stageKills}
         questReady={hasClaimableQuest(state)}
         onQuest={() => game.setQuestOpen(true)}

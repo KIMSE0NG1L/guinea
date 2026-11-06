@@ -6,6 +6,8 @@ import { GameScreen } from "./src/GameScreen";
 import { TitleScreen } from "./src/components/TitleScreen";
 import { colors } from "./src/theme";
 import { setTitleBgm, startBgm } from "./src/sound";
+import { writeSave } from "./src/state/storage";
+import type { GameState } from "./src/types";
 import { checkContent } from "./src/state/contentCheck";
 
 // Lists any half-added recipe/ingredient in the console (dev builds only).
@@ -19,6 +21,18 @@ export default function App() {
   // Not persisted — the title screen is meant to greet every cold launch, not just the
   // very first one ever.
   const [started, setStarted] = useState(false);
+  // Restoring a backup: the game is taken down (so its own autosave can't write the old state
+  // over the new one), the backup written with no lastSeenAt (no offline reward off it), then
+  // a fresh GameScreen loads it.
+  const [gameKey, setGameKey] = useState(0);
+  const [restoring, setRestoring] = useState(false);
+  const restoreSave = (state: GameState) => {
+    setRestoring(true);
+    writeSave({ state: { ...state, selectedTab: "battle" } }).then(() => {
+      setGameKey((key) => key + 1);
+      setRestoring(false);
+    });
+  };
 
   useEffect(() => {
     startBgm();
@@ -30,12 +44,18 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {started ? <GameScreen /> : <TitleScreen
+      {restoring ? (
+        <View style={{ flex: 1, backgroundColor: colors.appBackground }} />
+      ) : started ? (
+        <GameScreen key={gameKey} onRestoreSave={restoreSave} />
+      ) : (
+        <TitleScreen
           onStart={() => {
             setTitleBgm(false);
             setStarted(true);
           }}
-        />}
+        />
+      )}
     </SafeAreaProvider>
   );
 }
