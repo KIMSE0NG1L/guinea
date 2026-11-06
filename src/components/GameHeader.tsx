@@ -29,6 +29,7 @@ export function GameHeader({
   onUnlockAllStages,
   onAddGems,
   onOpenShop,
+  onOpenStats,
   onReplayTutorial,
   onOpenComics,
   onUnlockAllComics,
@@ -41,6 +42,7 @@ export function GameHeader({
   onUnlockAllStages: () => void;
   onAddGems: () => void;
   onOpenShop: () => void;
+  onOpenStats: () => void;
   onReplayTutorial: () => void;
   onOpenComics: () => void;
   onUnlockAllComics: () => void;
@@ -53,23 +55,25 @@ export function GameHeader({
   return (
     <View style={styles.header}>
       <View style={styles.statusRow}>
-        <Panel slice={headerKit.profile} scale={0.74 * fit} style={[styles.profile, { width: PROFILE_WIDTH * fit, height: 50 * fit }]}>
-          <View style={[styles.avatar, { width: 50 * fit, height: 50 * fit }]}>
-            <Image source={frameImages.ringGold} style={[styles.avatarRing, { width: 50 * fit, height: 50 * fit }]} />
-            <Image source={navIcons.companions} style={{ width: 36 * fit, height: 36 * fit }} />
-          </View>
-          <View style={styles.profileCopy}>
-            <View style={styles.nameRow}>
-              <Text style={styles.levelText}>Lv.{formatGameNumber(state.level)}</Text>
-              <Text style={styles.nickname} numberOfLines={1}>{getCompanionName(state.equippedOutfit)}</Text>
+        <Pressable onPress={onOpenStats} accessibilityRole="button" accessibilityLabel="통계 보기" style={({ pressed }) => [pressed && styles.pressed]}>
+          <Panel slice={headerKit.profile} scale={0.74 * fit} style={[styles.profile, { width: PROFILE_WIDTH * fit, height: 50 * fit }]}>
+            <View style={[styles.avatar, { width: 50 * fit, height: 50 * fit }]}>
+              <Image source={frameImages.ringGold} style={[styles.avatarRing, { width: 50 * fit, height: 50 * fit }]} />
+              <Image source={navIcons.companions} style={{ width: 36 * fit, height: 36 * fit }} />
             </View>
-            <ProgressBar
-              progress={(state.experience / getExpToLevel(state.level)) * 100}
-              height={13}
-              label={`${formatGameNumber(state.experience)} / ${formatGameNumber(getExpToLevel(state.level))}`}
-            />
-          </View>
-        </Panel>
+            <View style={styles.profileCopy}>
+              <View style={styles.nameRow}>
+                <Text style={styles.levelText}>Lv.{formatGameNumber(state.level)}</Text>
+                <Text style={styles.nickname} numberOfLines={1}>{getCompanionName(state.equippedOutfit)}</Text>
+              </View>
+              <ProgressBar
+                progress={(state.experience / getExpToLevel(state.level)) * 100}
+                height={13}
+                label={`${formatGameNumber(state.experience)} / ${formatGameNumber(getExpToLevel(state.level))}`}
+              />
+            </View>
+          </Panel>
+        </Pressable>
         <View style={styles.statusRight}>
           <ResourceBar gold={state.gold} gems={state.gems} onOpenShop={onOpenShop} width={Math.round(CHIP_WIDTH * fit)} />
           <Pressable

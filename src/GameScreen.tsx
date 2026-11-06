@@ -8,11 +8,9 @@ import { BottomNavigation } from "./components/BottomNavigation";
 import { QuestModal } from "./components/QuestModal";
 import { OfflineRewardModal } from "./components/OfflineRewardModal";
 import { BattleScreen } from "./screens/BattleScreen";
-import { GrowthScreen } from "./screens/GrowthScreen";
-import { EquipmentScreen } from "./screens/EquipmentScreen";
 import { CompanionsScreen } from "./screens/CompanionsScreen";
 import { InventoryScreen } from "./screens/InventoryScreen";
-import { WardrobeScreen } from "./screens/WardrobeScreen";
+import { StatsScreen } from "./screens/StatsScreen";
 import { ShopScreen } from "./screens/ShopScreen";
 import { SkillsScreen } from "./screens/SkillsScreen";
 import { MilestoneScreen } from "./screens/MilestoneScreen";
@@ -63,9 +61,7 @@ const TAB_PARENT: Partial<Record<Tab, Tab>> = {
   cookbook: "kitchen",
   recipes: "kitchen",
   grocery: "kitchen",
-  growth: "battle",
-  equipment: "battle",
-  wardrobe: "battle",
+  stats: "battle",
 };
 
 export function GameScreen() {
@@ -243,10 +239,8 @@ export function GameScreen() {
 
   const renderContent = () => {
     switch (state.selectedTab) {
-      case "growth":
-        return <GrowthScreen game={game} />;
-      case "equipment":
-        return <EquipmentScreen equipment={state.equipment} />;
+      case "stats":
+        return <StatsScreen state={state} />;
       case "companions":
         return (
           <CompanionsScreen
@@ -277,13 +271,6 @@ export function GameScreen() {
             codexSeen={state.codexSeen}
             onSeen={({ bag, codex }) => setState((previous) => ({ ...previous, bagSeen: bag, codexSeen: codex }))}
             onOpenShop={() => onSelectTab("shop")}
-          />
-        );
-      case "wardrobe":
-        return (
-          <WardrobeScreen
-            equippedOutfit={state.equippedOutfit}
-            onEquip={(equippedOutfit) => setState((previous) => ({ ...previous, equippedOutfit }))}
           />
         );
       case "skills":
@@ -396,6 +383,7 @@ export function GameScreen() {
           onUnlockAllStages={game.cheatUnlockAllStages}
           onAddGems={() => game.cheatAddGems(10000)}
           onOpenShop={() => onSelectTab("shop")}
+          onOpenStats={() => onSelectTab("stats")}
           onReplayTutorial={() => setState((previous) => ({ ...previous, selectedTab: "battle", tutorialDone: false }))}
           onOpenComics={() => onSelectTab("comics")}
           onUnlockAllComics={() => setState((previous) => ({ ...previous, allComicsUnlocked: true, selectedTab: "comics" }))}

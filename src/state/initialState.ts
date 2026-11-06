@@ -32,7 +32,6 @@ export const initialState: GameState = {
   bossesCleared: [],
   buffSlotsUnlocked: 1,
   discoveredItems: [],
-  equipment: { weapon: null, hat: null, armor: null, accessory: null },
   quests: [],
   questClaimed: [],
   kills: 0,

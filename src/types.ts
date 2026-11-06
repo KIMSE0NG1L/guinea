@@ -1,5 +1,5 @@
 import type { SkillTimers } from "./state/skills";
-export type Tab = "battle" | "growth" | "equipment" | "companions" | "inventory" | "wardrobe" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics";
+export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
@@ -102,7 +102,6 @@ export interface GameState {
   // Recipe ids cooked at least once (the "NEW" badge, and the cookbook goal — see
   // state/cookbook.ts). Older saves are seeded from the dishes in their bag on load.
   cookedRecipes?: string[];
-  equipment: Record<string, string | null>;
   // Legacy quest rows (ladder / first chapter system) — only read to migrate claims.
   quests: Quest[];
   questChapter?: number;
