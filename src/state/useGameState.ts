@@ -73,6 +73,12 @@ function addItems(inventory: GameState["inventory"], items: { name: string; quan
 
 export function useGameState({ externallyPaused = false }: { externallyPaused?: boolean } = {}) {
   const [state, setState] = useState(initialState);
+  // True while the app/tab is actually in front of the player — backgrounding it (home
+  // button, hardware back, switching browser tabs, minimizing the window) flips this false
+  // so `paused` below stops auto-battle immediately, the same way a cutscene does. Without
+  // this, battle kept simulating unseen while backgrounded, on top of the offline-reward
+  // catch-up that already covers the time away once they come back.
+  const [appActive, setAppActive] = useState(() => AppState.currentState === "active");
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
   const [defeatedBoss, setDefeatedBoss] = useState(false);
@@ -269,6 +275,14 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       subscription.remove();
     };
   }, [state, loaded]);
+
+  // Separate from the save-flushing listener above (that one resubscribes on every state
+  // change; this just needs to exist once for the hook's lifetime) — flips `paused` the
+  // instant the app/tab stops being the one in front of the player.
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (status) => setAppActive(status === "active"));
+    return () => subscription.remove();
+  }, []);
 
   // Heartbeat: keeps lastSeenAt current while nothing in the save changes (a paused screen,
   // a banner waiting for its tap), so offline time is only ever time the game wasn't running.
@@ -550,8 +564,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // (ComicViewer) — GameScreen owns that state (it's presentation/navigation, not game
     // state), so it passes it in rather than this hook reaching out to know about it.
     // The very first fight starts from the tutorial: nothing happens during the story and
-    // intro, and none while the first gift kill's loot is being explained.
-    paused: skillTutorialActive || bossRetryAvailable || bossIntroPending || stageAnnouncement !== null || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null,
+    // intro, and none while the first gift kill's loot is being explained. !appActive covers
+    // the app/tab being backgrounded — see its declaration above.
+    paused: skillTutorialActive || bossRetryAvailable || bossIntroPending || stageAnnouncement !== null || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null || !appActive,
     autoStunned: now < bossStunnedUntil,
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
     instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
