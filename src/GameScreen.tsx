@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { ScrollView, StatusBar, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { BackHandler, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "./theme";
 import { LOOT_COIN_GAP_MS, LOOT_COINS, LOOT_FLIGHT_MS, useGameState } from "./state/useGameState";
@@ -52,6 +52,22 @@ const GIFT_KILLS = 3;
 // A beat to look at the stage between closing the intro and the gift kicking in.
 const GIFT_PAUSE_MS = 2000;
 
+// Sub-screens reachable only from another screen (not the bottom bar): hardware back goes
+// to whichever tab opened them, mirroring each screen's own onBack button. Root tabs
+// (battle/companions/skills/shop, absent here) have no parent — back exits the app there.
+const TAB_PARENT: Partial<Record<Tab, Tab>> = {
+  milestone: "battle",
+  kitchen: "battle",
+  inventory: "battle",
+  comics: "milestone",
+  cookbook: "kitchen",
+  recipes: "kitchen",
+  grocery: "kitchen",
+  growth: "battle",
+  equipment: "battle",
+  wardrobe: "battle",
+};
+
 export function GameScreen() {
   // Declared ahead of useGameState so it can tell that hook to pause battle while a comic
   // (a real cutscene — full-screen, has to be read/dismissed) is up; this is
@@ -75,7 +91,7 @@ export function GameScreen() {
     setBgmTrack(bgmGroup, game.displayBoss);
   }, [bgmGroup, game.displayBoss]);
 
-  const onSelectTab = (selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab }));
+  const onSelectTab = useCallback((selectedTab: Tab) => setState((previous) => ({ ...previous, selectedTab })), [setState]);
 
   // The recipe tutorial opens after a beat (so the last drop finishes flying into the bag)
   // once the player has gathered 3 초록 젤리 from slimes — exactly one 말랑 초록 젤리's
@@ -185,6 +201,45 @@ export function GameScreen() {
       if (target) scroll?.scrollTo({ y: Math.max(0, scrollY.current + target.y - top - 90), animated: true });
     });
   };
+
+  // Named so the hardware-back handler below and the overlays' own render checks agree on
+  // exactly what's "showing" — these overlays aren't RN <Modal>s (unlike the quest/reward/
+  // settings popups, which already close themselves on back via their own onRequestClose),
+  // so back would otherwise fall through to the OS and background/exit the app mid-tutorial.
+  const introTutorialShowing = game.loaded && !state.tutorialDone && openingSeen && !game.offlineSummary;
+  const upgradeTutorialShowing = game.loaded && state.tutorialDone && !state.upgradeTutorialDone && upgradeTutorialArmed && !game.offlineSummary && !game.firstClear && state.selectedTab === "battle";
+  const recipeTutorialShowing = game.loaded && state.tutorialDone && state.upgradeTutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && !game.firstClear;
+  const skillTutorialShowing = game.loaded && game.skillTutorialActive && skillTutorialArmed && !game.offlineSummary && !game.firstClear;
+  const stealHintShowing = stealHint && state.selectedTab === "battle";
+  const heldLootGuideShowing = Boolean(game.heldLoot && (game.heldLoot.stage === "gold" || game.heldLoot.stage === "items") && state.selectedTab === "battle");
+  const firstClearShowing = Boolean(game.firstClear);
+  const cookCompleteBurstShowing = Boolean(collected && collectedRecipe);
+  const backBlockedByOverlay =
+    introTutorialShowing ||
+    upgradeTutorialShowing ||
+    recipeTutorialShowing ||
+    skillTutorialShowing ||
+    stealHintShowing ||
+    heldLootGuideShowing ||
+    firstClearShowing ||
+    cookCompleteBurstShowing;
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      // A plain overlay (not a <Modal>) is up — swallow back rather than let it exit/background
+      // the app, or close a Modal further down the stack that isn't actually on top.
+      if (backBlockedByOverlay) return true;
+      const parentTab = TAB_PARENT[state.selectedTab];
+      if (parentTab) {
+        onSelectTab(parentTab);
+        return true;
+      }
+      // On a root tab (battle/companions/skills/shop) with nothing else showing: fully quit.
+      BackHandler.exitApp();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [backBlockedByOverlay, state.selectedTab, onSelectTab]);
 
   const renderContent = () => {
     switch (state.selectedTab) {
@@ -409,7 +464,7 @@ export function GameScreen() {
             }}
           />
         )}
-        {game.loaded && !state.tutorialDone && openingSeen && !game.offlineSummary && (
+        {introTutorialShowing && (
           <TutorialOverlay onFinish={() => setState((previous) => ({ ...previous, tutorialDone: true, giftKills: GIFT_KILLS, giftStartsAt: Date.now() + GIFT_PAUSE_MS }))} />
         )}
         {/* First gift kill (after the intro): the loot sits frozen on the stage while 모험기니
@@ -443,14 +498,14 @@ export function GameScreen() {
             }}
           />
         )}
-        {game.loaded && state.tutorialDone && !state.upgradeTutorialDone && upgradeTutorialArmed && !game.offlineSummary && !game.firstClear && state.selectedTab === "battle" && (
+        {upgradeTutorialShowing && (
           <UpgradeTutorial
             attackUpgrades={state.attackUpgrades}
             canAfford={state.gold >= getUpgradeCost("attack", getStatLevel(state, "attack"))}
             onFinish={() => setState((previous) => ({ ...previous, upgradeTutorialDone: true }))}
           />
         )}
-        {game.loaded && state.tutorialDone && state.upgradeTutorialDone && !state.recipeTutorialDone && recipeTutorialArmed && !game.offlineSummary && !game.firstClear && (
+        {recipeTutorialShowing && (
           <RecipeTutorial
             tab={state.selectedTab}
             knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
@@ -464,7 +519,7 @@ export function GameScreen() {
             onFinish={() => setState((previous) => ({ ...previous, recipeTutorialDone: true }))}
           />
         )}
-        {game.loaded && game.skillTutorialActive && skillTutorialArmed && !game.offlineSummary && !game.firstClear && (
+        {skillTutorialShowing && (
           <SkillTutorial
             tab={state.selectedTab}
             equippedSkill={state.equippedSkill ?? null}
@@ -478,7 +533,7 @@ export function GameScreen() {
         )}
         {/* After the skill tutorial's cast: a light hint (no dim — taps still reach the fight)
             for as long as 훔치기's tap window runs. */}
-        {stealHint && state.selectedTab === "battle" && (
+        {stealHintShowing && (
           <MiniGuide
             line={"지금 **화면을 연타**해서 공격해 봐!\n때릴 때마다 **골드**가 튀어나와. 다 쓰면\n3분 뒤에 다시 쓸 수 있어."}
             onTap={() => setStealHint(false)}
