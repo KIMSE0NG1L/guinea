@@ -6,6 +6,18 @@ export type AdResult = "earned" | "dismissed" | "failed";
 
 export function initAds() {}
 
+export function getLastAdError(): string | null {
+  return null;
+}
+
+export function msSinceLastAd() {
+  return Infinity;
+}
+
+export function showInterstitial(): Promise<boolean> {
+  return Promise.resolve(false);
+}
+
 export function showRewardedAd(): Promise<AdResult> {
   return Promise.resolve("failed");
 }

@@ -32,6 +32,9 @@ export function getRushCost(remainingMs: number) {
   return Math.max(1, Math.ceil(remainingMs / (2 * 60 * 1000)));
 }
 
+// Pots a day that can be finished by watching an ad instead of paying gems.
+export const AD_RUSHES_PER_DAY = 3;
+
 // A gem or gold price with a food-buff discount (percent) taken off — never below 1.
 export function applyDiscount(price: number, percent: number) {
   return Math.max(1, Math.round(price * (1 - Math.min(90, percent) / 100)));

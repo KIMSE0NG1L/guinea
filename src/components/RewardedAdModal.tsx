@@ -4,7 +4,7 @@ import { colors, fonts } from "../theme";
 import { kit, icons } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
-import { showRewardedAd } from "../ads";
+import { getLastAdError, showRewardedAd } from "../ads";
 
 type Phase = "prompt" | "loading" | "fallback";
 
@@ -84,6 +84,7 @@ export function RewardedAdModal({
               <Text style={styles.title}>앗, 지금은 보여드릴 광고가 없어요!</Text>
               <Text style={styles.message}>{autoStart ? message : "대신 섭섭하지 않게 보상은 그대로 챙겨드릴게요."}</Text>
               <GameButton variant="green" onPress={onClaim} style={styles.claimButton}>{claimLabel}</GameButton>
+              {getLastAdError() !== null && <Text style={styles.errorCode}>광고 오류: {getLastAdError()}</Text>}
             </>
           )}
         </Pressable>
@@ -112,4 +113,5 @@ const styles = StyleSheet.create({
   message: { marginTop: 8, fontSize: 11, color: colors.brown, textAlign: "center", lineHeight: 16 },
   spinner: { marginTop: 14, marginBottom: 4 },
   claimButton: { marginTop: 16, minWidth: 140 },
+  errorCode: { marginTop: 8, fontSize: 8, color: colors.muted, textAlign: "center" },
 });

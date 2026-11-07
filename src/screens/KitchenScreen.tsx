@@ -68,6 +68,8 @@ export function KitchenScreen({
   onBuyAndCook,
   onCollect,
   onRush,
+  adRushesLeft,
+  onRushAd,
   onUnlockPot,
   onShowRecipe,
   cookedRecipes,
@@ -92,6 +94,8 @@ export function KitchenScreen({
   onBuyAndCook: (recipeId: string) => void;
   onCollect: (potIndex: number) => void;
   onRush: (potIndex: number) => void;
+  adRushesLeft: number;
+  onRushAd: (potIndex: number) => void;
   onUnlockPot: () => boolean;
   // Scroll the page to a recipe's card.
   onShowRecipe: (recipeId: string) => void;
@@ -158,6 +162,8 @@ export function KitchenScreen({
         suggestion={recipes.find((recipe) => canCook(inventory, recipe)) ?? null}
         onCollect={onCollect}
         onRush={onRush}
+        adRushesLeft={adRushesLeft}
+        onRushAd={onRushAd}
         onUnlock={onUnlockPot}
         onShowRecipe={onShowRecipe}
       />

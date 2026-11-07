@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import mobileAds, { AdEventType, RewardedAd, RewardedAdEventType, TestIds } from "react-native-google-mobile-ads";
+import mobileAds, { AdEventType, InterstitialAd, RewardedAd, RewardedAdEventType, TestIds } from "react-native-google-mobile-ads";
 import { setBgmSuspended } from "../sound";
 
 export type AdResult = "earned" | "dismissed" | "failed";
@@ -13,6 +13,14 @@ const REWARDED_UNIT_ID = __DEV__
       default: "ca-app-pub-7612859698236948/9410426390",
     });
 
+// Release interstitial units ("interstitial_main"); dev builds use Google's test unit.
+const INTERSTITIAL_UNIT_ID = __DEV__
+  ? TestIds.INTERSTITIAL
+  : Platform.select({
+      ios: "ca-app-pub-7612859698236948/7548136659",
+      default: "ca-app-pub-7612859698236948/8661732764",
+    });
+
 // How long a button press waits for an ad that isn't loaded yet before giving up.
 const LOAD_TIMEOUT_MS = 8000;
 // A loaded rewarded ad goes stale after an hour; drop it a little before that.
@@ -23,13 +31,36 @@ let initPromise: Promise<unknown> | null = null;
 let preloaded: { ad: RewardedAd; loadedAt: number } | null = null;
 let preloading: Promise<RewardedAd | null> | null = null;
 let showing = false;
+// Why the last ad couldn't be loaded or shown (e.g. "no-fill", "timeout"), shown small on the
+// "no ad right now" panel so a missing ad can be diagnosed from a release build.
+let lastAdError: string | null = null;
+// When the last full-screen ad of either kind closed, so an interstitial never follows one
+// the player just watched.
+let lastAdClosedAt = 0;
+
+export function msSinceLastAd() {
+  return lastAdClosedAt === 0 ? Infinity : Date.now() - lastAdClosedAt;
+}
+
+export function getLastAdError() {
+  return lastAdError;
+}
+
+function describeError(error: unknown) {
+  const code = (error as { code?: unknown } | null)?.code;
+  const text = typeof code === "string" ? code : error instanceof Error ? error.message : String(error);
+  return text.replace(/^googleMobileAds\//, "").slice(0, 60);
+}
 
 export function initAds() {
   if (!initPromise) {
     initPromise = mobileAds()
       .initialize()
       .catch(() => null);
-    initPromise.then(() => preload());
+    initPromise.then(() => {
+      preload();
+      preloadInterstitial();
+    });
   }
   return initPromise;
 }
@@ -46,9 +77,18 @@ function loadAd(timeoutMs: number): Promise<RewardedAd | null> {
       offError();
       resolve(result);
     };
-    const offLoaded = ad.addAdEventListener(RewardedAdEventType.LOADED, () => finish(ad));
-    const offError = ad.addAdEventListener(AdEventType.ERROR, () => finish(null));
-    const timer = setTimeout(() => finish(null), timeoutMs);
+    const offLoaded = ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
+      lastAdError = null;
+      finish(ad);
+    });
+    const offError = ad.addAdEventListener(AdEventType.ERROR, (error) => {
+      lastAdError = describeError(error);
+      finish(null);
+    });
+    const timer = setTimeout(() => {
+      lastAdError = "timeout";
+      finish(null);
+    }, timeoutMs);
     ad.load();
   });
 }
@@ -97,19 +137,81 @@ export async function showRewardedAd(): Promise<AdResult> {
           earned = true;
         }),
         ad.addAdEventListener(AdEventType.CLOSED, () => done(earned ? "earned" : "dismissed")),
-        ad.addAdEventListener(AdEventType.ERROR, () => done(earned ? "earned" : "failed")),
+        ad.addAdEventListener(AdEventType.ERROR, (error) => {
+          lastAdError = describeError(error);
+          done(earned ? "earned" : "failed");
+        }),
       ];
       const done = (result: AdResult) => {
         offs.forEach((off) => off());
         setBgmSuspended(false);
+        lastAdClosedAt = Date.now();
         resolve(result);
       };
       setBgmSuspended(true);
-      ad.show().catch(() => done("failed"));
+      ad.show().catch((error) => {
+        lastAdError = describeError(error);
+        done("failed");
+      });
     });
   } finally {
     showing = false;
     // Line up the next one in the background.
     preload();
+  }
+}
+
+// ---- Interstitials ----
+// Only ever loaded in the background: if one isn't ready at the moment it's due, that
+// moment is simply skipped (the player is never made to wait for an ad they didn't ask for).
+let interstitial: { ad: InterstitialAd; loadedAt: number } | null = null;
+let interstitialLoading = false;
+
+function preloadInterstitial() {
+  if (!INTERSTITIAL_UNIT_ID || interstitial || interstitialLoading) return;
+  interstitialLoading = true;
+  const ad = InterstitialAd.createForAdRequest(INTERSTITIAL_UNIT_ID);
+  const offs = [
+    ad.addAdEventListener(AdEventType.LOADED, () => {
+      offs.forEach((off) => off());
+      interstitialLoading = false;
+      interstitial = { ad, loadedAt: Date.now() };
+    }),
+    ad.addAdEventListener(AdEventType.ERROR, () => {
+      offs.forEach((off) => off());
+      interstitialLoading = false;
+    }),
+  ];
+  ad.load();
+}
+
+// Shows the preloaded interstitial if there is one; resolves true once it was shown and closed.
+export async function showInterstitial(): Promise<boolean> {
+  if (showing) return false;
+  const ready = interstitial && Date.now() - interstitial.loadedAt < LOADED_AD_MAX_AGE_MS ? interstitial.ad : null;
+  interstitial = null;
+  if (!ready) {
+    preloadInterstitial();
+    return false;
+  }
+  showing = true;
+  try {
+    return await new Promise<boolean>((resolve) => {
+      const offs = [
+        ready.addAdEventListener(AdEventType.CLOSED, () => done(true)),
+        ready.addAdEventListener(AdEventType.ERROR, () => done(false)),
+      ];
+      const done = (shown: boolean) => {
+        offs.forEach((off) => off());
+        setBgmSuspended(false);
+        if (shown) lastAdClosedAt = Date.now();
+        resolve(shown);
+      };
+      setBgmSuspended(true);
+      ready.show().catch(() => done(false));
+    });
+  } finally {
+    showing = false;
+    preloadInterstitial();
   }
 }

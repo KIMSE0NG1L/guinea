@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { chef, food, icons, kit, uiImages } from "../assets";
-import { applyDiscount, formatRemaining, getPotUnlockCost, getRushCost, type CookingPot } from "../state/cooking";
+import { AD_RUSHES_PER_DAY, applyDiscount, formatRemaining, getPotUnlockCost, getRushCost, type CookingPot } from "../state/cooking";
 import { ITEM_IMAGES, RECIPES, type Recipe } from "../state/recipes";
 import type { RecipeTier } from "../state/recipeTiers";
 import { playSfx } from "../sound";
 import { tutorialRef } from "./tutorialTargets";
 import { GameButton } from "./GameButton";
+import { RewardedAdModal } from "./RewardedAdModal";
 import { LockBadge } from "./LockBadge";
 import { Panel } from "./NineSlice";
 import { ProgressBar } from "./ProgressBar";
@@ -25,6 +26,8 @@ export function CookingPots({
   suggestion,
   onCollect,
   onRush,
+  adRushesLeft,
+  onRushAd,
   onUnlock,
   onShowRecipe,
 }: {
@@ -39,6 +42,9 @@ export function CookingPots({
   onCollect: (potIndex: number) => void;
   // Finish a still-simmering dish right now for gems.
   onRush: (potIndex: number) => void;
+  // Finishes left today by watching an ad instead (offered when gems fall short).
+  adRushesLeft: number;
+  onRushAd: (potIndex: number) => void;
   onUnlock: () => boolean;
   // Scroll to a recipe's card (tapping an empty pot's suggestion).
   onShowRecipe: (recipeId: string) => void;
@@ -86,6 +92,8 @@ export function CookingPots({
                 gems={gems}
                 tutorialId={`rush-pot-${index}`}
                 onRush={() => onRush(index)}
+                adRushesLeft={adRushesLeft}
+                onRushAd={() => onRushAd(index)}
               />
             );
         }
@@ -203,6 +211,8 @@ function SimmeringPot({
   tutorialId,
   gems,
   onRush,
+  adRushesLeft,
+  onRushAd,
 }: {
   pot: NonNullable<CookingPot>;
   recipe: Recipe;
@@ -211,7 +221,14 @@ function SimmeringPot({
   tutorialId?: string;
   gems: number;
   onRush: () => void;
+  adRushesLeft: number;
+  onRushAd: () => void;
 }) {
+  // Short on gems with an ad finish left today: the button offers the ad instead.
+  const byAd = gems < rushCost && adRushesLeft > 0;
+  const [adOpen, setAdOpen] = useState(false);
+  // Which way the running rush was paid for, read when its animation lands.
+  const paidByAd = useRef(false);
   const look = TIER_LOOK[recipe.tier];
   const total = pot.readyAt - pot.startedAt;
   const hurry = pot.readyAt - now < total * HURRY_SHARE;
@@ -239,7 +256,8 @@ function SimmeringPot({
     if (rushStart === null) return;
     const frame = setInterval(() => setRushNow(Date.now()), 16);
     const done = setTimeout(() => {
-      onRush();
+      if (paidByAd.current) onRushAd();
+      else onRush();
       // Still here means it didn't go through (e.g. a full bag) — put the pot back as it was.
       setRushStart(null);
     }, 600);
@@ -287,23 +305,50 @@ function SimmeringPot({
         {pot.fast ? "⚡" : ""}
         {formatRemaining(rushStart === null ? pot.readyAt - now : 0)}
       </Text>
-      <GameButton
-        variant={gems >= rushCost && rushStart === null ? "green" : "gray"}
-        disabled={gems < rushCost || rushStart !== null}
-        onPress={() => {
-          gemDrop.value = withTiming(1, { duration: 260, easing: Easing.in(Easing.quad) });
-          setRushNow(Date.now());
-          setRushStart(Date.now());
-        }}
-        accessibilityLabel={`보석 ${rushCost}개로 ${recipe.name} 바로 완성`}
-        tutorialId={tutorialId}
-        style={styles.rushButton}
-      >
-        <View style={styles.costContent}>
-          <Image source={uiImages.crystal} style={styles.gem} />
-          <Text style={[styles.costText, gems < rushCost && styles.costTextDim]}>{`${rushCost} 즉시`}</Text>
-        </View>
-      </GameButton>
+      {byAd ? (
+        <GameButton
+          variant={rushStart === null ? "green" : "gray"}
+          disabled={rushStart !== null}
+          onPress={() => setAdOpen(true)}
+          accessibilityLabel={`광고 보고 ${recipe.name} 바로 완성 (오늘 ${adRushesLeft}번 남음)`}
+          tutorialId={tutorialId}
+          style={styles.rushButton}
+        >
+          <Text style={styles.costText}>{`광고 즉시 ${adRushesLeft}/${AD_RUSHES_PER_DAY}`}</Text>
+        </GameButton>
+      ) : (
+        <GameButton
+          variant={gems >= rushCost && rushStart === null ? "green" : "gray"}
+          disabled={gems < rushCost || rushStart !== null}
+          onPress={() => {
+            paidByAd.current = false;
+            gemDrop.value = withTiming(1, { duration: 260, easing: Easing.in(Easing.quad) });
+            setRushNow(Date.now());
+            setRushStart(Date.now());
+          }}
+          accessibilityLabel={`보석 ${rushCost}개로 ${recipe.name} 바로 완성`}
+          tutorialId={tutorialId}
+          style={styles.rushButton}
+        >
+          <View style={styles.costContent}>
+            <Image source={uiImages.crystal} style={styles.gem} />
+            <Text style={[styles.costText, gems < rushCost && styles.costTextDim]}>{`${rushCost} 즉시`}</Text>
+          </View>
+        </GameButton>
+      )}
+      {adOpen && (
+        <RewardedAdModal
+          message={`대신 섭섭하지 않게 ${recipe.name}은(는) 바로 완성해 드릴게요.`}
+          claimLabel="바로 완성하기"
+          onClaim={() => {
+            setAdOpen(false);
+            paidByAd.current = true;
+            setRushNow(Date.now());
+            setRushStart(Date.now());
+          }}
+          onCancel={() => setAdOpen(false)}
+        />
+      )}
     </Panel>
   );
 }

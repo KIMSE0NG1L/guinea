@@ -137,6 +137,12 @@ export interface GameState {
   attendance?: { claimed: number; lastDay: string };
   // Winged-gem ads watched today (`day` is the local date, YYYY-MM-DD) — capped per day.
   flyingGemAds?: { day: string; count: number };
+  // Interstitials shown today and when the last one was (see maybeShowInterstitial).
+  interstitialAds?: { day: string; count: number; lastAt: number };
+  // Pots finished instantly by watching an ad today (AD_RUSHES_PER_DAY).
+  adRushes?: { day: string; count: number };
+  // The day the attendance reward was doubled by an ad (once a day).
+  attendanceBonusDay?: string;
   // Quirk counters behind the hidden quests; all missing on older saves.
   tetoMisses?: number;
   bagFullCount?: number;

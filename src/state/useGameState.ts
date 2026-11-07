@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { EnemyKind, GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
 import { ATTENDANCE_REWARDS, getAttendance, todayKey } from "./attendance";
+import { msSinceLastAd, showInterstitial } from "../ads";
 import { LATEST_UPDATE } from "./updates";
 import { GLUTTON_FOOD_MULTIPLIER, INITIAL_SKILL_TIMERS, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
@@ -16,7 +17,7 @@ import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY, getSellPrice, getShortfall } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
-import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
+import { AD_RUSHES_PER_DAY, COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
 import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./offline";
 import {
@@ -39,6 +40,12 @@ const AD_GEMS_COOLDOWN_MS = 15 * 60_000; // 15 minutes
 // The winged gem's "watch an ad" offer: gems per ad, and ads a day before only coins fly.
 export const FLYING_GEM_AD_REWARD = 5;
 export const FLYING_GEM_ADS_PER_DAY = 8;
+// Interstitial pacing (continueStage).
+const INTERSTITIAL_GRACE_MS = 30 * 60 * 1000;
+const INTERSTITIALS_PER_DAY = 8;
+const INTERSTITIAL_GAP_MS = 4 * 60 * 1000;
+const INTERSTITIAL_AFTER_AD_MS = 2 * 60 * 1000;
+const adRushesToday = (state: GameState) => (state.adRushes?.day === todayKey() ? state.adRushes.count : 0);
 const flyingGemAdsToday = (state: GameState) => (state.flyingGemAds?.day === todayKey() ? state.flyingGemAds.count : 0);
 // Gold each of the three post-intro gift kills pays at the least (the first attack
 // upgrade costs 120).
@@ -583,6 +590,17 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     return { gems, gold };
   };
 
+  // The attendance card's "watch an ad for it again": pays today's reward a second time, once.
+  const claimAttendanceBonus = (reward: { gems: number; gold: number }) => {
+    const today = todayKey();
+    if (state.attendance?.lastDay !== today || state.attendanceBonusDay === today) return;
+    if (reward.gold > 0) addBonusGold(reward.gold);
+    setState((previous) => {
+      if (previous.attendanceBonusDay === today) return previous;
+      return { ...previous, gems: previous.gems + reward.gems, attendanceBonusDay: today };
+    });
+  };
+
   const catchFlyingCoin = (kind: "coin" | "gem", watchAd = false) => {
     if (kind === "gem") {
       if (!watchAd || flyingGemAdsToday(state) >= FLYING_GEM_ADS_PER_DAY) return { gold: 0, gems: 0 };
@@ -793,6 +811,32 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boss, bossTimerStartedAt, state.stageNumber, battle.enemyHp, battle.enemyId, enemyMaxHp]);
+
+  // Tapping on past the stage-clear banner is the one place an interstitial may show, and only
+  // gently: after the tutorial and the first INTERSTITIAL_GRACE_MS of play, at most
+  // INTERSTITIALS_PER_DAY a day, INTERSTITIAL_GAP_MS apart, never right after another ad, and
+  // not while the first-clear celebration is up.
+  const continueStage = () => {
+    setStageAnnouncement(null);
+    const today = todayKey();
+    const record = state.interstitialAds?.day === today ? state.interstitialAds : { day: today, count: 0, lastAt: state.interstitialAds?.lastAt ?? 0 };
+    const due =
+      state.tutorialDone &&
+      firstClear === null &&
+      (state.playTimeMs ?? 0) >= INTERSTITIAL_GRACE_MS &&
+      record.count < INTERSTITIALS_PER_DAY &&
+      Date.now() - record.lastAt >= INTERSTITIAL_GAP_MS &&
+      msSinceLastAd() >= INTERSTITIAL_AFTER_AD_MS;
+    if (!due) return;
+    showInterstitial().then((shown) => {
+      if (!shown) return;
+      setState((previous) => {
+        const day = todayKey();
+        const count = previous.interstitialAds?.day === day ? previous.interstitialAds.count : 0;
+        return { ...previous, interstitialAds: { day, count: count + 1, lastAt: Date.now() } };
+      });
+    });
+  };
 
   // The first-clear celebration's "watch an ad" reward. Clears `firstClear` in the same
   // update so a second tap can't pay twice.
@@ -1055,11 +1099,13 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // "ok"), so the kitchen can play the completion burst or explain.
   // With `rush`, a dish still simmering is finished on the spot for gems (getRushCost) —
   // checked against the bag first, so gems are never spent on a dish that can't come out.
-  const collectDish = (potIndex: number, rush = false): "ok" | "great" | "full" | "notReady" | "gems" => {
+  // `viaAd`: the rush was paid for with a watched ad instead of gems (AD_RUSHES_PER_DAY).
+  const collectDish = (potIndex: number, rush = false, viaAd = false): "ok" | "great" | "full" | "notReady" | "gems" => {
     const pot = getCookingPots(state.cookingPots)[potIndex];
     const recipe = pot && RECIPES.find((item) => item.id === pot.recipeId);
     if (!pot || !recipe) return "notReady";
-    const rushCost = rush ? applyDiscount(getRushCost(pot.readyAt - Date.now()), foodBuffs.rushDiscount) : 0;
+    if (viaAd && adRushesToday(state) >= AD_RUSHES_PER_DAY) return "gems";
+    const rushCost = rush && !viaAd ? applyDiscount(getRushCost(pot.readyAt - Date.now()), foodBuffs.rushDiscount) : 0;
     if (!rush && pot.readyAt > Date.now()) return "notReady";
     // The finished dish needs room — a free slot, or space left in its last stack.
     if (fitItems(state.inventory, [{ name: recipe.name, quantity: 1 }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
@@ -1084,6 +1130,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         cookingPots: pots.map((item, index) => (index === potIndex ? null : item)),
         cookedRecipes,
         dishesCooked,
+        adRushes: viaAd ? { day: todayKey(), count: adRushesToday(previous) + 1 } : previous.adRushes,
       };
     });
     return great ? "great" : "ok";
@@ -1308,7 +1355,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     bossStunned: now < bossStunnedUntil,
     bossReviveId: battle.reviveId,
     stageAnnouncement,
-    continueStage: () => setStageAnnouncement(null),
+    continueStage,
     firstClear,
     clearedStages: getClearedBosses(state),
     dismissFirstClear: () => {
@@ -1331,6 +1378,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     attendanceReady: attendance.ready,
     attendanceGold: (mobs: number) => Math.max(1, Math.round(currentMobGold() * mobs)),
     claimAttendance,
+    claimAttendanceBonus,
+    adRushesLeft: Math.max(0, AD_RUSHES_PER_DAY - adRushesToday(state)),
     // 업데이트 소식: unseen until closed once; closing it the first time pays its gift.
     updateUnseen: state.seenUpdate !== LATEST_UPDATE.id,
     claimUpdateGift: () =>

@@ -177,9 +177,9 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     setState((previous) => ({ ...previous, seenComics: [...new Set([...(previous.seenComics ?? []), id])] }));
   const cookingPots = getCookingPots(state.cookingPots);
   const collectCount = useRef(0);
-  const onCollect = (potIndex: number, rush = false) => {
+  const onCollect = (potIndex: number, rush = false, viaAd = false) => {
     const recipeId = cookingPots[potIndex]?.recipeId;
-    const result = game.collectDish(potIndex, rush);
+    const result = game.collectDish(potIndex, rush, viaAd);
     if ((result === "ok" || result === "great") && recipeId) {
       const isNew = !(state.cookedRecipes ?? []).includes(recipeId);
       collectCount.current += 1;
@@ -327,6 +327,8 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             onBuyAndCook={game.buyMissingAndCook}
             onCollect={onCollect}
             onRush={(potIndex) => onCollect(potIndex, true)}
+            adRushesLeft={game.adRushesLeft}
+            onRushAd={(potIndex) => onCollect(potIndex, true, true)}
             onUnlockPot={game.unlockPot}
             onShowRecipe={showRecipe}
             cookedRecipes={state.cookedRecipes}
@@ -458,6 +460,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             dayIndex={game.attendanceDay}
             goldFor={game.attendanceGold}
             onClaim={game.claimAttendance}
+            onBonus={game.claimAttendanceBonus}
             onClose={() => setAttendanceClosed(true)}
           />
         )}

@@ -7,30 +7,51 @@ import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { formatGameNumber } from "../state/gameMath";
 import { ATTENDANCE_REWARDS, type AttendanceReward } from "../state/attendance";
+import { RewardedAdModal } from "./RewardedAdModal";
 
 const STAMP_MS = 700;
 
 // The daily attendance card: the 7-day cycle as a row of tiles (4 + 3), days already claimed
-// stamped, today's glowing. Claiming stamps today's tile, then the card closes.
+// stamped, today's glowing. Claiming stamps today's tile; then the same reward can be taken
+// once more by watching an ad, or the card closed.
 export function AttendanceModal({
   dayIndex,
   goldFor,
   onClaim,
+  onBonus,
   onClose,
 }: {
   dayIndex: number;
   // Gold a "mobs" day pays right now.
   goldFor: (mobs: number) => number;
-  onClaim: () => void;
+  onClaim: () => { gems: number; gold: number };
+  // Pays `reward` again after the ad (once a day; the state guards it).
+  onBonus: (reward: { gems: number; gold: number }) => void;
   onClose: () => void;
 }) {
-  const [claimed, setClaimed] = useState(false);
+  const [claimed, setClaimed] = useState<{ gems: number; gold: number } | null>(null);
+  const [adOpen, setAdOpen] = useState(false);
+  const [stamped, setStamped] = useState(false);
   const claim = () => {
     if (claimed) return;
-    setClaimed(true);
-    onClaim();
-    setTimeout(onClose, STAMP_MS + 500);
+    setClaimed(onClaim());
+    setTimeout(() => setStamped(true), STAMP_MS);
   };
+
+  if (adOpen && claimed) {
+    const what = [claimed.gems > 0 ? `보석 ${claimed.gems}개` : "", claimed.gold > 0 ? `골드 ${formatGameNumber(claimed.gold)}` : ""].filter(Boolean).join(", ");
+    return (
+      <RewardedAdModal
+        message={`대신 섭섭하지 않게 ${what}를 한 번 더 챙겨드릴게요.`}
+        claimLabel="한 번 더 받기"
+        onClaim={() => {
+          onBonus(claimed);
+          onClose();
+        }}
+        onCancel={onClose}
+      />
+    );
+  }
 
   return (
     <Modal visible animationType="fade" transparent onRequestClose={claimed ? onClose : claim}>
@@ -47,15 +68,26 @@ export function AttendanceModal({
                 day={index + 1}
                 reward={reward}
                 gold={reward.kind === "gold" ? goldFor(reward.mobs) : 0}
-                state={index < dayIndex || (index === dayIndex && claimed) ? "done" : index === dayIndex ? "today" : "later"}
-                stamping={index === dayIndex && claimed}
+                state={index < dayIndex || (index === dayIndex && claimed !== null) ? "done" : index === dayIndex ? "today" : "later"}
+                stamping={index === dayIndex && claimed !== null}
                 wide={index === ATTENDANCE_REWARDS.length - 1}
               />
             ))}
           </View>
-          <GameButton variant={claimed ? "gray" : "green"} disabled={claimed} onPress={claim} style={styles.button}>
-            {claimed ? "받았어요!" : `${dayIndex + 1}일차 보상 받기`}
-          </GameButton>
+          {claimed && stamped ? (
+            <View style={styles.afterRow}>
+              <GameButton variant="cream" onPress={onClose} style={styles.afterButton}>
+                닫기
+              </GameButton>
+              <GameButton variant="green" onPress={() => setAdOpen(true)} style={styles.afterButton}>
+                광고 보고 한 번 더
+              </GameButton>
+            </View>
+          ) : (
+            <GameButton variant={claimed ? "gray" : "green"} disabled={claimed !== null} onPress={claim} style={styles.button}>
+              {claimed ? "받았어요!" : `${dayIndex + 1}일차 보상 받기`}
+            </GameButton>
+          )}
         </View>
       </View>
     </Modal>
@@ -109,6 +141,8 @@ function Tile({
 }
 
 const styles = StyleSheet.create({
+  afterRow: { marginTop: 14, flexDirection: "row", gap: 8 },
+  afterButton: { minWidth: 110 },
   backdrop: { flex: 1, padding: 18, justifyContent: "center", backgroundColor: "#263024cf" },
   panel: { width: "100%", maxWidth: 400, alignSelf: "center", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 18, alignItems: "center" },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 2 },
