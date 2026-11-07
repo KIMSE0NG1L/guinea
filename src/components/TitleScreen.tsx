@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Image, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, type SharedValue } from "react-native-reanimated";
-import { colors, fonts } from "../theme";
+import { APP_MAX_WIDTH, colors, fonts } from "../theme";
 import { StrokedText } from "./StrokedText";
 import { RisingMotes } from "./RisingMotes";
 import { images } from "../assets";
@@ -240,7 +240,7 @@ function BurstSpark({ burst, x, y, glyph }: { burst: SharedValue<number>; x: num
 
 const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: colors.appBackground },
-  frame: { flex: 1, maxWidth: 430, width: "100%", alignSelf: "center", overflow: "hidden" },
+  frame: { flex: 1, maxWidth: APP_MAX_WIDTH, width: "100%", alignSelf: "center", overflow: "hidden" },
   background: { width: "100%", height: "100%" },
   titleWrap: { position: "absolute", top: "13%", width: "100%", alignItems: "center" },
   title: {

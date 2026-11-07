@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BackHandler, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "./theme";
+import { APP_MAX_WIDTH, colors } from "./theme";
 import { LOOT_COIN_GAP_MS, LOOT_COINS, LOOT_FLIGHT_MS, useGameState } from "./state/useGameState";
 import { GameHeader } from "./components/GameHeader";
 import { BottomNavigation } from "./components/BottomNavigation";
@@ -593,7 +593,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
 
 const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: colors.appBackground },
-  frame: { flex: 1, maxWidth: 430, width: "100%", alignSelf: "center", backgroundColor: colors.paper },
+  frame: { flex: 1, maxWidth: APP_MAX_WIDTH, width: "100%", alignSelf: "center", backgroundColor: colors.paper },
   content: { flex: 1 },
   contentContainer: { flexGrow: 1, paddingBottom: 12 },
 });

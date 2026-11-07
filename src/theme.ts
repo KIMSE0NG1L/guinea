@@ -42,3 +42,7 @@ export const shadow = {
   offset: 3,
   color: colors.line,
 };
+
+// The game's frame: phones (narrower than this) use their full width; tablets get a frame
+// this wide, centred. The screens are laid out to stretch up to it.
+export const APP_MAX_WIDTH = 760;
