@@ -1,6 +1,7 @@
 import { getDropSources } from "./drops";
 import { STAGE_KILL_TARGET, STAGES } from "./stages";
 import { getReferenceMobGold, roundPrice } from "./gameMath";
+import { applyDiscount } from "./cooking";
 
 // Grandma's grocery stock. Prices are in gold, one item per purchase.
 export type GroceryCategory = "vegetable" | "fruit" | "grain" | "nut" | "farm" | "meat" | "seafood" | "special";
@@ -144,4 +145,25 @@ export function getSellPrice(name: string) {
     SELL_PRICES.set(name, price);
   }
   return price;
+}
+
+// What's missing from the bag to cook `ingredients`, and what the grocery would charge for it
+// (with the food-buff discount). null when something missing isn't sold there.
+export function getShortfall(
+  inventory: { name: string; quantity: number }[],
+  ingredients: { name: string; quantity: number }[],
+  discountPercent: number,
+): { items: { name: string; quantity: number }[]; cost: number } | null {
+  const items: { name: string; quantity: number }[] = [];
+  let cost = 0;
+  for (const ingredient of ingredients) {
+    const have = inventory.filter((item) => item.name === ingredient.name).reduce((sum, item) => sum + item.quantity, 0);
+    const missing = ingredient.quantity - have;
+    if (missing <= 0) continue;
+    const listing = GROCERY.find((item) => item.name === ingredient.name);
+    if (!listing) return null;
+    items.push({ name: ingredient.name, quantity: missing });
+    cost += applyDiscount(listing.price, discountPercent) * missing;
+  }
+  return { items, cost };
 }

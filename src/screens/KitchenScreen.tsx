@@ -20,6 +20,8 @@ import { GameButton } from "../components/GameButton";
 import { NineSlice, Panel } from "../components/NineSlice";
 import { canCook, getItemQuantity, getKnownRecipes, ITEM_IMAGES, RECIPES } from "../state/recipes";
 import { IconCaption } from "../components/IconCaption";
+import { CoinPrice } from "../components/CoinPrice";
+import { getShortfall } from "../state/grocery";
 import type { GameState } from "../types";
 
 export type KitchenLayout = "list" | "grid";
@@ -60,7 +62,10 @@ export function KitchenScreen({
   now,
   gems,
   rushDiscount,
+  gold,
+  groceryDiscount,
   onCook,
+  onBuyAndCook,
   onCollect,
   onRush,
   onUnlockPot,
@@ -79,7 +84,12 @@ export function KitchenScreen({
   now: number;
   gems: number;
   rushDiscount: number;
+  gold: number;
+  // Food-buff % off grocery prices, for the "buy what's missing" cost.
+  groceryDiscount: number;
   onCook: (recipeId: string) => void;
+  // Buys the missing ingredients from the grocery and starts the dish (see buyMissingAndCook).
+  onBuyAndCook: (recipeId: string) => void;
   onCollect: (potIndex: number) => void;
   onRush: (potIndex: number) => void;
   onUnlockPot: () => boolean;
@@ -96,8 +106,9 @@ export function KitchenScreen({
   const freePotIndex = pots.findIndex((pot, index) => index < potsUnlocked && !pot);
   const freePot = freePotIndex >= 0;
   // Ingredients hop from the recipe card into the pot the dish is going into.
-  const startCooking = (recipe: (typeof RECIPES)[number]) => {
-    onCook(recipe.id);
+  const startCooking = (recipe: (typeof RECIPES)[number], buyMissing = false) => {
+    if (buyMissing) onBuyAndCook(recipe.id);
+    else onCook(recipe.id);
     Promise.all([measureTarget(`cook-${recipe.id}`), measureTarget(`cook-pot-${freePotIndex}`)]).then(([from, to]) => {
       if (!from || !to) return;
       recipe.ingredients.forEach((ingredient, index) => {
@@ -222,7 +233,24 @@ export function KitchenScreen({
               align={layout === "grid" ? "center" : "flex-start"}
             />
           );
-          const cookButton = (
+          // Short on ingredients the grocery sells: one button buys the rest and starts it.
+          const shortfall = !ready && freePot ? getShortfall(inventory, recipe.ingredients, groceryDiscount) : null;
+          const affordable = shortfall !== null && gold >= shortfall.cost;
+          const cookButton = shortfall ? (
+            <GameButton
+              variant={affordable ? "cream" : "gray"}
+              disabled={!affordable}
+              onPress={() => startCooking(recipe, true)}
+              tutorialId={`cook-${recipe.id}`}
+              accessibilityLabel={`부족한 재료를 ${shortfall.cost}골드에 사서 ${recipe.name} 요리하기`}
+              style={layout === "grid" ? styles.gridCookButton : styles.cookButton}
+            >
+              <View style={styles.buyCook}>
+                <Text style={[styles.cookButtonText, styles.buyCookText]}>사서 요리</Text>
+                <CoinPrice amount={shortfall.cost} textStyle={[styles.buyCookCost, !affordable && styles.buyCookCostShort]} />
+              </View>
+            </GameButton>
+          ) : (
             <GameButton
               variant={cookable ? "green" : "gray"}
               disabled={!cookable}
@@ -357,4 +385,8 @@ const styles = StyleSheet.create({
   ingredientShort: { color: colors.red },
   cookButton: { minWidth: 68 },
   cookButtonText: { fontSize: 9 },
+  buyCook: { alignItems: "center" },
+  buyCookText: { fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
+  buyCookCost: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  buyCookCostShort: { color: colors.red },
 });

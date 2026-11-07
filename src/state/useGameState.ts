@@ -14,7 +14,7 @@ import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } 
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
-import { GROCERY, getSellPrice } from "./grocery";
+import { GROCERY, getSellPrice, getShortfall } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
@@ -995,32 +995,60 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // Spends the recipe's ingredients from the bag and adds one of the dish.
   // Puts a dish on to simmer in the first free pot — the ingredients go in now, the dish
   // comes out once its tier's cook time has passed (see collectDish).
+  // The state with `recipe` simmering in the first free pot, or `previous` unchanged when it
+  // can't start (not known, ingredients short, no free pot).
+  function startCookingIn(previous: GameState, recipe: (typeof RECIPES)[number]): GameState {
+    if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return previous;
+    const pots = getCookingPots(previous.cookingPots);
+    const potIndex = pots.findIndex((pot, index) => index < getPotsUnlocked(previous.potsUnlocked) && !pot);
+    if (potIndex < 0) return previous;
+    const inTutorial = previous.tutorialDone && !previous.recipeTutorialDone && recipe.id === "green-jelly";
+    const startedAt = Date.now();
+    // cookSpeed shortens it (never below a quarter); ingredientSave may spare one of each.
+    const cookTime = COOK_TIME_MS[recipe.tier] * Math.max(0.25, 1 - foodBuffs.cookSpeed / 100);
+    const readyAt = startedAt + (inTutorial ? TUTORIAL_COOK_MS : cookTime);
+    const used = {
+      ...recipe,
+      ingredients: recipe.ingredients.map((ingredient) => ({
+        ...ingredient,
+        quantity: ingredient.quantity - (Math.random() * 100 < foodBuffs.ingredientSave ? 1 : 0),
+      })),
+    };
+    return {
+      ...previous,
+      inventory: consumeIngredients(previous.inventory, used),
+      cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt, fast: foodBuffs.cookSpeed > 0 } : pot)),
+    };
+  }
+
   const cook = (recipeId: string) => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     if (!recipe) return;
+    setState((previous) => startCookingIn(previous, recipe));
+  };
+
+  // "재료 사서 요리": pays the grocery for whatever the bag is short of (getShortfall) and
+  // puts the dish on in one go. The bought ingredients go straight into the pot, so it needs
+  // no bag room. Nothing is spent unless the dish actually starts.
+  const buyMissingAndCook = (recipeId: string): "ok" | "gold" | "unavailable" => {
+    const recipe = RECIPES.find((item) => item.id === recipeId);
+    if (!recipe) return "unavailable";
+    const shortfall = getShortfall(state.inventory, recipe.ingredients, foodBuffs.groceryDiscount);
+    if (!shortfall) return "unavailable";
+    if (state.gold < shortfall.cost) return "gold";
     setState((previous) => {
-      if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return previous;
-      const pots = getCookingPots(previous.cookingPots);
-      const potIndex = pots.findIndex((pot, index) => index < getPotsUnlocked(previous.potsUnlocked) && !pot);
-      if (potIndex < 0) return previous;
-      const inTutorial = previous.tutorialDone && !previous.recipeTutorialDone && recipe.id === "green-jelly";
-      const startedAt = Date.now();
-      // cookSpeed shortens it (never below a quarter); ingredientSave may spare one of each.
-      const cookTime = COOK_TIME_MS[recipe.tier] * Math.max(0.25, 1 - foodBuffs.cookSpeed / 100);
-      const readyAt = startedAt + (inTutorial ? TUTORIAL_COOK_MS : cookTime);
-      const used = {
-        ...recipe,
-        ingredients: recipe.ingredients.map((ingredient) => ({
-          ...ingredient,
-          quantity: ingredient.quantity - (Math.random() * 100 < foodBuffs.ingredientSave ? 1 : 0),
-        })),
-      };
-      return {
+      const missing = getShortfall(previous.inventory, recipe.ingredients, foodBuffs.groceryDiscount);
+      if (!missing || previous.gold < missing.cost) return previous;
+      const stocked: GameState = {
         ...previous,
-        inventory: consumeIngredients(previous.inventory, used),
-        cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt, fast: foodBuffs.cookSpeed > 0 } : pot)),
+        gold: previous.gold - missing.cost,
+        inventory: addItems(previous.inventory, missing.items),
+        discoveredItems: discover(previous.discoveredItems, missing.items.map((item) => item.name)),
       };
+      const started = startCookingIn(stocked, recipe);
+      return started === stocked ? previous : started;
     });
+    return "ok";
   };
 
   // Takes a finished dish out of its pot and into the bag. Reports why it couldn't (or
@@ -1384,6 +1412,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     readyPotCount,
     buyIngredient,
     sellIngredient,
+    buyMissingAndCook,
     learnRecipe,
     dropEvents,
     buffSlots,

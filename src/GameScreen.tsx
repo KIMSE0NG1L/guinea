@@ -321,7 +321,10 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             now={game.now}
             gems={state.gems}
             rushDiscount={game.foodBuffs.rushDiscount}
+            gold={state.gold}
+            groceryDiscount={game.foodBuffs.groceryDiscount}
             onCook={game.cook}
+            onBuyAndCook={game.buyMissingAndCook}
             onCollect={onCollect}
             onRush={(potIndex) => onCollect(potIndex, true)}
             onUnlockPot={game.unlockPot}
