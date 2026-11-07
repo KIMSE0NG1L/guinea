@@ -38,6 +38,18 @@ let lastAdError: string | null = null;
 // the player just watched.
 let lastAdClosedAt = 0;
 
+// Whether a full-screen ad is up right now, for the game to pause under it (see subscribeAdShowing).
+const adShowingListeners = new Set<(showing: boolean) => void>();
+function setAdShowing(showing: boolean) {
+  adShowingListeners.forEach((listener) => listener(showing));
+}
+export function subscribeAdShowing(listener: (showing: boolean) => void) {
+  adShowingListeners.add(listener);
+  return () => {
+    adShowingListeners.delete(listener);
+  };
+}
+
 export function msSinceLastAd() {
   return lastAdClosedAt === 0 ? Infinity : Date.now() - lastAdClosedAt;
 }
@@ -145,10 +157,12 @@ export async function showRewardedAd(): Promise<AdResult> {
       const done = (result: AdResult) => {
         offs.forEach((off) => off());
         setBgmSuspended(false);
+        setAdShowing(false);
         lastAdClosedAt = Date.now();
         resolve(result);
       };
       setBgmSuspended(true);
+      setAdShowing(true);
       ad.show().catch((error) => {
         lastAdError = describeError(error);
         done("failed");
@@ -204,10 +218,12 @@ export async function showInterstitial(): Promise<boolean> {
       const done = (shown: boolean) => {
         offs.forEach((off) => off());
         setBgmSuspended(false);
+        setAdShowing(false);
         if (shown) lastAdClosedAt = Date.now();
         resolve(shown);
       };
       setBgmSuspended(true);
+      setAdShowing(true);
       ready.show().catch(() => done(false));
     });
   } finally {

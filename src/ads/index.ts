@@ -10,6 +10,11 @@ export function getLastAdError(): string | null {
   return null;
 }
 
+export function subscribeAdShowing(listener: (showing: boolean) => void) {
+  void listener;
+  return () => {};
+}
+
 export function msSinceLastAd() {
   return Infinity;
 }

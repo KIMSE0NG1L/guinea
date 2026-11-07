@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { EnemyKind, GameState, Outfit, SkillId, StatKey, UpgradeMode } from "../types";
 import { ATTENDANCE_REWARDS, getAttendance, todayKey } from "./attendance";
-import { msSinceLastAd, showInterstitial } from "../ads";
+import { msSinceLastAd, showInterstitial, subscribeAdShowing } from "../ads";
 import { LATEST_UPDATE } from "./updates";
 import { GLUTTON_FOOD_MULTIPLIER, INITIAL_SKILL_TIMERS, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
@@ -91,6 +91,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // this, battle kept simulating unseen while backgrounded, on top of the offline-reward
   // catch-up that already covers the time away once they come back.
   const [appActive, setAppActive] = useState(() => AppState.currentState === "active");
+  // A full-screen ad is up: the battle (and the boss clock) wait for it like for a backgrounded app.
+  const [adShowing, setAdShowing] = useState(false);
+  useEffect(() => subscribeAdShowing(setAdShowing), []);
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
   // An enraged mid-boss (the stage's mob, bigger and tougher) is up. The fight itself isn't
@@ -426,7 +429,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     if (wasGolden) setGoldenReward((previous) => ({ id: (previous?.id ?? 0) + 1, gold: rawGold + goldenGold, gems: GOLDEN_GEMS }));
     if (wasMiniBoss) setMiniBoss(false);
     // How long the boss fight ran (from the tap that started it), for the fastest-boss record.
-    const bossFightMs = boss && bossTimerStartedAt !== null ? Date.now() - bossTimerStartedAt : null;
+    const bossFightMs = boss && bossClockStartRef.current !== null ? Date.now() - bossClockStartRef.current : null;
     if (boss) endBossFight();
     // What comes next: a mid-boss whenever one is owed (every MINI_BOSS_EVERY mobs, and one
     // more straight away if a save carried in more kills than mid-bosses beaten), else the
@@ -550,7 +553,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, miniBoss, goldenMini, strayKind, bossTimerStartedAt, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
+  }, [boss, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -625,6 +628,46 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // Waits its turn behind the first-run tutorials (upgrade, recipe) so they never overlap.
   const skillTutorialActive = state.tutorialDone && Boolean(state.recipeTutorialDone) && !state.skillTutorialDone && isSkillUnlocked("steal", state.level) && !boss;
 
+  // The fight stands still: an overlay or cutscene is up, the app is in the background, or an
+  // ad is playing. FirstClearCelebration is one actual cutscene (full-screen, blocks input, has
+  // to be dismissed) — without pausing for it, auto-battle kept fighting invisibly behind it the
+  // whole ~4.2s it's up, so closing it could land you mid-swing against an enemy (or several
+  // kills) you never saw happen. externallyPaused covers the other one (ComicViewer) —
+  // GameScreen owns that state (it's presentation/navigation, not game state), so it passes it
+  // in rather than this hook reaching out to know about it. The very first fight starts from
+  // the tutorial: nothing happens during the story and intro, and none while the first gift
+  // kill's loot is being explained. !appActive covers the app/tab being backgrounded — see its
+  // declaration above.
+  const battlePaused =
+    skillTutorialActive || bossRetryAvailable || bossIntroPending || stageAnnouncement !== null || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null || !appActive || adShowing;
+
+  // The boss clock stands still with the fight: time spent paused (an ad for 2x speed, the app
+  // in the background, ...) is added back onto the fight's start. Kept per fight — keyed by
+  // the raw bossTimerStartedAt, which the boss-skill plan relies on staying put.
+  const [bossPause, setBossPause] = useState<{ start: number | null; total: number; since: number | null }>({ start: null, total: 0, since: null });
+  useEffect(() => {
+    if (!boss || bossTimerStartedAt === null) return;
+    // Deferred out of the effect body (react-hooks/set-state-in-effect), like the boss clock below.
+    const timer = setTimeout(() => {
+      setBossPause((previous) => {
+        const current = previous.start === bossTimerStartedAt ? previous : { start: bossTimerStartedAt, total: 0, since: null };
+        if (battlePaused && current.since === null) return { ...current, since: Date.now() };
+        if (!battlePaused && current.since !== null) return { ...current, total: current.total + (Date.now() - current.since), since: null };
+        return current;
+      });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [battlePaused, boss, bossTimerStartedAt]);
+  const bossPausedMs =
+    bossTimerStartedAt !== null && bossPause.start === bossTimerStartedAt ? bossPause.total + (bossPause.since !== null ? Math.max(0, now - bossPause.since) : 0) : 0;
+  // When the running fight "started" once its paused time is taken out — what the countdown,
+  // the flee check and the fastest-boss record go by.
+  const bossClockStart = bossTimerStartedAt === null ? null : bossTimerStartedAt + bossPausedMs;
+  const bossClockStartRef = useRef(bossClockStart);
+  useEffect(() => {
+    bossClockStartRef.current = bossClockStart;
+  });
+
   const battle = useAutoBattle({
     // Food buffs and the equipped companion's bonus apply on top of the upgraded stats.
     attack: Math.round(getTotalAttack(state) * (1 + buffs.attack / 100)),
@@ -649,16 +692,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     onMiss: () => setState((previous) => (previous.equippedOutfit === "tetoGini" ? { ...previous, tetoMisses: (previous.tetoMisses ?? 0) + 1 } : previous)),
     equippedSkill: state.equippedSkill ?? null,
     now,
-    // FirstClearCelebration is one actual cutscene (full-screen, blocks input, has to be
-    // dismissed) — without pausing for it, auto-battle kept fighting invisibly behind it the
-    // whole ~4.2s it's up, so closing it could land you mid-swing against an enemy (or
-    // several kills) you never saw happen. externallyPaused covers the other one
-    // (ComicViewer) — GameScreen owns that state (it's presentation/navigation, not game
-    // state), so it passes it in rather than this hook reaching out to know about it.
-    // The very first fight starts from the tutorial: nothing happens during the story and
-    // intro, and none while the first gift kill's loot is being explained. !appActive covers
-    // the app/tab being backgrounded — see its declaration above.
-    paused: skillTutorialActive || bossRetryAvailable || bossIntroPending || stageAnnouncement !== null || firstClear !== null || externallyPaused || !state.tutorialDone || heldLoot !== null || !appActive,
+    // See battlePaused above.
+    paused: battlePaused,
     autoStunned: now < bossStunnedUntil,
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
     instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
@@ -707,8 +742,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // once a second (see its own effect above), so this fires within a second of the real
   // deadline rather than needing its own interval.
   useEffect(() => {
-    if (!boss || bossTimerStartedAt === null) return;
-    if (now - bossTimerStartedAt < bossTimeLimitMs) return;
+    if (!boss || bossClockStart === null) return;
+    if (battlePaused || now - bossClockStart < bossTimeLimitMs) return;
     // Deferred out of the effect body itself (react-hooks/set-state-in-effect) — the
     // condition above is still evaluated synchronously on every `now` tick, only the
     // resulting state change is pushed to a fresh macrotask.
@@ -721,7 +756,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       setBossRetryAvailable(true);
     }, 0);
     return () => clearTimeout(timer);
-  }, [now, boss, bossTimerStartedAt, bossTimeLimitMs]);
+  }, [now, boss, bossClockStart, bossTimeLimitMs, battlePaused]);
 
   // Boss skill (src/state/bossSkills.ts): up to 3 casts per fight, one per BOSS_SKILL_CHECKPOINTS
   // entry (75%/50%/30% of the boss's own hp), each resolved — rolled and spent, hit or miss —
@@ -1343,7 +1378,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     displayGolden: battle.phase === "defeated" ? defeatedGolden : goldenMini && miniBoss,
     goldenReward,
     isBossDefeatFlash,
-    bossTimerStartedAt,
+    // The UI counts down from the pause-adjusted start (see bossClockStart).
+    bossTimerStartedAt: bossClockStart,
     bossTimeLimitMs,
     bossFledKey,
     bossRetryAvailable,
