@@ -8,10 +8,10 @@ import { images } from "../assets";
 import { playSfx } from "../sound";
 import appConfig from "../../app.json";
 
-// Version shown in the corner. Policy pages are docs/*.md served by GitHub Pages (main, /docs).
+// Version shown in the corner. Policy pages live on the game site (repo guinea_web, GitHub Pages).
 const APP_VERSION = appConfig.expo.version;
-const PRIVACY_URL = "https://kimse0ng1l.github.io/guinea/privacy-policy";
-const TERMS_URL = "https://kimse0ng1l.github.io/guinea/terms-of-service";
+const PRIVACY_URL = "https://kimse0ng1l.github.io/guinea_web/privacy-policy/";
+const TERMS_URL = "https://kimse0ng1l.github.io/guinea_web/terms-of-service/";
 
 
 // One shown at a time above "터치하여 시작", cycling.
