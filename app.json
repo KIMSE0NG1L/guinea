@@ -30,10 +30,35 @@
       [
         "expo-font",
         {
-          "fonts": [
-            "./assets/fonts/Maplestory-Bold.ttf",
-            "./assets/fonts/Maplestory-Light.ttf"
-          ]
+          "ios": {
+            "fonts": [
+              "./assets/fonts/Maplestory-Bold.ttf",
+              "./assets/fonts/Maplestory-Light.ttf"
+            ]
+          },
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Maplestory-Bold",
+                "fontDefinitions": [
+                  { "path": "./assets/fonts/Maplestory-Bold.ttf", "weight": 400 },
+                  { "path": "./assets/fonts/Maplestory-Bold.ttf", "weight": 500 },
+                  { "path": "./assets/fonts/Maplestory-Bold.ttf", "weight": 600 },
+                  { "path": "./assets/fonts/Maplestory-Bold.ttf", "weight": 700 },
+                  { "path": "./assets/fonts/Maplestory-Bold.ttf", "weight": 800 },
+                  { "path": "./assets/fonts/Maplestory-Bold.ttf", "weight": 900 }
+                ]
+              },
+              {
+                "fontFamily": "Maplestory-Light",
+                "fontDefinitions": [
+                  { "path": "./assets/fonts/Maplestory-Light.ttf", "weight": 300 },
+                  { "path": "./assets/fonts/Maplestory-Light.ttf", "weight": 400 },
+                  { "path": "./assets/fonts/Maplestory-Light.ttf", "weight": 700 }
+                ]
+              }
+            ]
+          }
         }
       ],
       "expo-audio",
