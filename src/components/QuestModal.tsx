@@ -8,7 +8,7 @@ import { ProgressBar } from "./ProgressBar";
 import { formatGameNumber } from "../state/gameMath";
 import { GameButton } from "./GameButton";
 import type { GameState } from "../types";
-import { getAllClaimable, getChapterInfo, getDefaultChapter, getQuestIcon, getRevealedHiddenQuests } from "../state/quests";
+import { CHAPTERS, getAllClaimable, getChapterInfo, getQuestIcon, getRevealedHiddenQuests } from "../state/quests";
 import { FlightLayer, launchFlight } from "./FlightLayer";
 import { measureTarget, tutorialRef } from "./tutorialTargets";
 import { useBumpOnChange, useRollingNumber } from "./motion";
@@ -25,10 +25,13 @@ export function QuestModal({
   onClose: () => void;
   onClaim: (id: string) => void;
 }) {
-  // Opens on the chapter with something to claim (or the newest open one); the arrows on
-  // the story card flip between every chapter, locked ones included (they say when they open).
-  const [chapterIndex, setChapterIndex] = useState(() => getDefaultChapter(state));
+  // Opens on the chapter list (with 모두 받기 for everything ready across chapters); tapping a
+  // chapter opens it, and its arrows flip between chapters, locked ones included.
+  const [view, setView] = useState<"list" | number>("list");
+  const chapterIndex = view === "list" ? 0 : view;
+  const setChapterIndex = (index: number) => setView(index);
   const chapter = getChapterInfo(state, chapterIndex);
+  const chapters = CHAPTERS.map((_, index) => getChapterInfo(state, index));
   const quests = chapter.quests;
   const claimedCount = chapter.claimedCount;
   const canPrev = chapterIndex > 0;
@@ -107,121 +110,163 @@ export function QuestModal({
               </View>
             </View>
 
-            <Panel slice={kit.panelParchment} style={styles.storyCard}>
-              <View style={styles.chapterRow}>
-                <Pressable
-                  onPress={() => canPrev && setChapterIndex(chapterIndex - 1)}
-                  disabled={!canPrev}
-                  accessibilityRole="button"
-                  accessibilityLabel="이전 장"
-                  hitSlop={6}
-                  style={({ pressed }) => [pressed && styles.arrowPressed]}
-                >
-                  <Image source={canPrev ? shopImages.arrowBack : shopImages.arrowBackGray} style={styles.arrow} />
-                </Pressable>
-                <View style={styles.chapterCopy}>
-                  <Text style={styles.storyEyebrow}>
-                    {chapter.title}
-                  </Text>
-                  <Text style={styles.storyCount}>
-                    {chapter.open ? `받은 미션 ${claimedCount} / ${quests.length}` : `Lv.${chapter.level}에 열려요`}
-                  </Text>
-                  <Text style={styles.storyLine}>{chapter.open ? `"${chapter.line}"` : "아직 열리지 않은 장이에요."}</Text>
-                </View>
-                <Pressable
-                  onPress={() => canNext && setChapterIndex(chapterIndex + 1)}
-                  disabled={!canNext}
-                  accessibilityRole="button"
-                  accessibilityLabel="다음 장"
-                  hitSlop={6}
-                  style={({ pressed }) => [pressed && styles.arrowPressed]}
-                >
-                  <Image source={canNext ? shopImages.arrowBack : shopImages.arrowBackGray} style={[styles.arrow, styles.arrowFlip]} />
-                </Pressable>
-              </View>
-            </Panel>
-
-            {claimable.length > 0 && (
-              <View ref={tutorialRef("quest-claim-all")} style={styles.claimAllWrap}>
-                <GameButton variant="green" onPress={claimAll} disabled={claiming !== null} style={styles.claimAll} accessibilityLabel={`보상 ${claimable.length}개 모두 받기`}>
-                  <View style={styles.claimAllContent}>
-                    <Text style={styles.claimAllText}>모두 받기 ({claimable.length})</Text>
-                    <RewardLabel gems={claimableGems} />
+            {view === "list" ? (
+              <>
+                {claimable.length > 0 && (
+                  <View ref={tutorialRef("quest-claim-all")} style={styles.claimAllWrap}>
+                    <GameButton variant="green" onPress={claimAll} disabled={claiming !== null} style={styles.claimAll} accessibilityLabel={`보상 ${claimable.length}개 모두 받기`}>
+                      <View style={styles.claimAllContent}>
+                        <Text style={styles.claimAllText}>모두 받기</Text>
+                        <RewardLabel gems={claimableGems} />
+                      </View>
+                    </GameButton>
+                    {/* How many are waiting, as a red count badge on the button's corner. */}
+                    <View style={styles.countBadge} pointerEvents="none">
+                      <Text style={styles.countBadgeText}>{claimable.length}</Text>
+                    </View>
                   </View>
-                </GameButton>
-              </View>
-            )}
+                )}
 
-            <View style={styles.list}>
-              {quests.map((quest) => {
-                const complete = quest.current >= quest.target;
-                const progress = Math.min(100, (quest.current / quest.target) * 100);
-                return (
-                  <FlipIn key={quest.id} fresh={false}>
-                  <Panel slice={kit.panel} scale={0.4} style={[styles.item, !chapter.open && styles.itemLocked]}>
-                    <Panel slice={frameKit.squareWood} scale={0.45} style={styles.iconSlot}>
-                      {getQuestIcon(quest.id) !== undefined && (
-                        <Image source={getQuestIcon(quest.id)} style={styles.icon} resizeMode="contain" />
-                      )}
-                      {chapter.open && complete && !quest.claimed && (
-                        <Image source={kitImages.dotRed} style={styles.readyDot} accessibilityLabel="받을 보상 있음" />
-                      )}
-                    </Panel>
-                    <View style={styles.info}>
-                      <View style={styles.titleRow}>
-                        <Text style={styles.infoTitle}>{quest.title}</Text>
-                      </View>
-                      <ProgressBar progress={progress} fill="green" height={12} style={styles.track} />
-                      <Text style={styles.infoSub}>
-                        {formatGameNumber(Math.min(quest.current, quest.target))} / {formatGameNumber(quest.target)}
-                      </Text>
-                    </View>
-                    <View ref={tutorialRef(`quest-claim-${quest.id}`)}>
-                      <GameButton
-                        variant="green"
-                        disabled={!chapter.open || !complete || quest.claimed || claiming === quest.id}
-                        onPress={() => claim(quest)}
-                        style={styles.claimButton}
-                        textStyle={styles.claimButtonText}
-                      >
-                        {quest.claimed ? "완료" : <RewardLabel gems={quest.reward} />}
-                      </GameButton>
-                    </View>
-                  </Panel>
-                  </FlipIn>
-                );
-              })}
-            </View>
-
-            {/* Hidden quests only appear once achieved — a little secret for whoever got there. */}
-            {hidden.length > 0 && (
-              <View style={styles.hiddenSection}>
-                <Text style={styles.hiddenHeading}>✦ 히든 퀘스트</Text>
-                {hidden.map((quest) => (
-                  <FlipIn key={quest.id} fresh={!openedIds.has(quest.id)}>
-                    <Panel slice={kit.panelParchment} scale={0.4} style={styles.item}>
-                      <Panel slice={frameKit.squareGold} scale={0.4} style={styles.iconSlot}>
-                        <Text style={styles.hiddenMark}>?!</Text>
+                <View style={[styles.list, styles.chapterList]}>
+                  {chapters.map((item) => (
+                    <Pressable
+                      key={item.index}
+                      onPress={() => setView(item.index)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item.title} 열기`}
+                      style={({ pressed }) => [pressed && styles.pressedRow]}
+                    >
+                      <Panel slice={item.open ? kit.panel : kit.inset} scale={0.4} style={[styles.chapterItem, !item.open && styles.itemLocked]}>
+                        <View style={styles.chapterBadge}>
+                          <Text style={styles.chapterBadgeText}>{item.index + 1}</Text>
+                          {item.claimable && <Image source={kitImages.dotRed} style={styles.readyDot} accessibilityLabel="받을 보상 있음" />}
+                        </View>
+                        <View style={styles.info}>
+                          <Text style={styles.chapterItemTitle}>{item.title.replace(/^\d+장:\s*/, "")}</Text>
+                          {item.open ? (
+                            <>
+                              <ProgressBar progress={(item.claimedCount / item.quests.length) * 100} fill="green" height={10} style={styles.track} />
+                              <Text style={styles.infoSub}>받은 미션 {item.claimedCount} / {item.quests.length}</Text>
+                            </>
+                          ) : (
+                            <Text style={styles.infoSub}>Lv.{item.level}에 열려요</Text>
+                          )}
+                        </View>
+                        <Text style={styles.chevron}>›</Text>
                       </Panel>
-                      <View style={styles.info}>
-                        <Text style={styles.infoTitle}>{quest.title}</Text>
-                        <Text style={styles.hiddenFlavor}>{quest.flavor}</Text>
-                      </View>
-                      <View ref={tutorialRef(`quest-claim-${quest.id}`)}>
-                        <GameButton
-                          variant="green"
-                          disabled={quest.claimed || claiming === quest.id}
-                          onPress={() => claim(quest)}
-                          style={styles.claimButton}
-                          textStyle={styles.claimButtonText}
-                        >
-                          {quest.claimed ? "완료" : <RewardLabel gems={quest.reward} />}
-                        </GameButton>
-                      </View>
-                    </Panel>
-                  </FlipIn>
-                ))}
-              </View>
+                    </Pressable>
+                  ))}
+                </View>
+                {/* Hidden quests only appear once achieved — a little secret for whoever got there. */}
+                {hidden.length > 0 && (
+                  <View style={styles.hiddenSection}>
+                    <Text style={styles.hiddenHeading}>✦ 히든 퀘스트</Text>
+                    {hidden.map((quest) => (
+                      <FlipIn key={quest.id} fresh={!openedIds.has(quest.id)}>
+                        <Panel slice={kit.panelParchment} scale={0.4} style={styles.item}>
+                          <Panel slice={frameKit.squareGold} scale={0.4} style={styles.iconSlot}>
+                            <Text style={styles.hiddenMark}>?!</Text>
+                          </Panel>
+                          <View style={styles.info}>
+                            <Text style={styles.infoTitle}>{quest.title}</Text>
+                            <Text style={styles.hiddenFlavor}>{quest.flavor}</Text>
+                          </View>
+                          <View ref={tutorialRef(`quest-claim-${quest.id}`)}>
+                            <GameButton
+                              variant="green"
+                              disabled={quest.claimed || claiming === quest.id}
+                              onPress={() => claim(quest)}
+                              style={styles.claimButton}
+                              textStyle={styles.claimButtonText}
+                            >
+                              {quest.claimed ? "완료" : <RewardLabel gems={quest.reward} />}
+                            </GameButton>
+                          </View>
+                        </Panel>
+                      </FlipIn>
+                    ))}
+                  </View>
+                )}
+              </>
+            ) : (
+              <>
+                <Pressable onPress={() => setView("list")} accessibilityRole="button" accessibilityLabel="장 목록으로" hitSlop={6} style={({ pressed }) => [styles.backRow, pressed && styles.pressedRow]}>
+                  <Text style={styles.backText}>‹ 장 목록</Text>
+                </Pressable>
+                <Panel slice={kit.panelParchment} style={styles.storyCard}>
+                  <View style={styles.chapterRow}>
+                    <Pressable
+                      onPress={() => canPrev && setChapterIndex(chapterIndex - 1)}
+                      disabled={!canPrev}
+                      accessibilityRole="button"
+                      accessibilityLabel="이전 장"
+                      hitSlop={6}
+                      style={({ pressed }) => [pressed && styles.arrowPressed]}
+                    >
+                      <Image source={canPrev ? shopImages.arrowBack : shopImages.arrowBackGray} style={styles.arrow} />
+                    </Pressable>
+                    <View style={styles.chapterCopy}>
+                      <Text style={styles.storyEyebrow}>
+                        {chapter.title}
+                      </Text>
+                      <Text style={styles.storyCount}>
+                        {chapter.open ? `받은 미션 ${claimedCount} / ${quests.length}` : `Lv.${chapter.level}에 열려요`}
+                      </Text>
+                      <Text style={styles.storyLine}>{chapter.open ? `"${chapter.line}"` : "아직 열리지 않은 장이에요."}</Text>
+                    </View>
+                    <Pressable
+                      onPress={() => canNext && setChapterIndex(chapterIndex + 1)}
+                      disabled={!canNext}
+                      accessibilityRole="button"
+                      accessibilityLabel="다음 장"
+                      hitSlop={6}
+                      style={({ pressed }) => [pressed && styles.arrowPressed]}
+                    >
+                      <Image source={canNext ? shopImages.arrowBack : shopImages.arrowBackGray} style={[styles.arrow, styles.arrowFlip]} />
+                    </Pressable>
+                  </View>
+                </Panel>
+                <View style={styles.list}>
+                  {quests.map((quest) => {
+                    const complete = quest.current >= quest.target;
+                    const progress = Math.min(100, (quest.current / quest.target) * 100);
+                    return (
+                      <FlipIn key={quest.id} fresh={false}>
+                      <Panel slice={kit.panel} scale={0.4} style={[styles.item, !chapter.open && styles.itemLocked]}>
+                        <Panel slice={frameKit.squareWood} scale={0.45} style={styles.iconSlot}>
+                          {getQuestIcon(quest.id) !== undefined && (
+                            <Image source={getQuestIcon(quest.id)} style={styles.icon} resizeMode="contain" />
+                          )}
+                          {chapter.open && complete && !quest.claimed && (
+                            <Image source={kitImages.dotRed} style={styles.readyDot} accessibilityLabel="받을 보상 있음" />
+                          )}
+                        </Panel>
+                        <View style={styles.info}>
+                          <View style={styles.titleRow}>
+                            <Text style={styles.infoTitle}>{quest.title}</Text>
+                          </View>
+                          <ProgressBar progress={progress} fill="green" height={12} style={styles.track} />
+                          <Text style={styles.infoSub}>
+                            {formatGameNumber(Math.min(quest.current, quest.target))} / {formatGameNumber(quest.target)}
+                          </Text>
+                        </View>
+                        <View ref={tutorialRef(`quest-claim-${quest.id}`)}>
+                          <GameButton
+                            variant="green"
+                            disabled={!chapter.open || !complete || quest.claimed || claiming === quest.id}
+                            onPress={() => claim(quest)}
+                            style={styles.claimButton}
+                            textStyle={styles.claimButtonText}
+                          >
+                            {quest.claimed ? "완료" : <RewardLabel gems={quest.reward} />}
+                          </GameButton>
+                        </View>
+                      </Panel>
+                      </FlipIn>
+                    );
+                  })}
+                </View>
+              </>
             )}
           </ScrollView>
           <FlightLayer channel="quest" />
@@ -275,7 +320,8 @@ const styles = StyleSheet.create({
   gemIcon: { width: 18, height: 18, resizeMode: "contain" },
   gemText: { color: colors.ink, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
   storyCard: {
-    marginVertical: 14,
+    marginTop: 6,
+    marginBottom: 14,
     paddingHorizontal: 16,
     paddingVertical: 15,
   },
@@ -309,7 +355,32 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: "row", alignItems: "center", gap: 5 },
   info: { flex: 1 },
   infoTitle: { fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  claimAllWrap: { marginBottom: 10 },
+  // The gap under the header stays the same with or without the 모두 받기 button.
+  claimAllWrap: { marginTop: 14 },
+  countBadge: {
+    position: "absolute",
+    top: -7,
+    right: -5,
+    minWidth: 24,
+    height: 24,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.red,
+    borderWidth: 2,
+    borderColor: colors.cream,
+  },
+  countBadgeText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  chapterList: { marginTop: 14 },
+  chapterItem: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12 },
+  chapterBadge: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.gold, borderWidth: 2, borderColor: colors.line },
+  chapterBadgeText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  chapterItemTitle: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  chevron: { fontSize: 24, fontWeight: "900", color: colors.brown, marginRight: 2 },
+  pressedRow: { transform: [{ scale: 0.98 }] },
+  backRow: { alignSelf: "flex-start", marginTop: 12, paddingVertical: 2 },
+  backText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
   claimAll: { minHeight: 40 },
   claimAllContent: { flexDirection: "row", alignItems: "center", gap: 10 },
   claimAllText: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
