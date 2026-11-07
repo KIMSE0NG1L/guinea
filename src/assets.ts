@@ -49,13 +49,13 @@ export const spriteSheets = {
     boxerGini: {
       idle: require("../assets/sprites/guinea-boxer-idle-strip.png"),
       attack: require("../assets/sprites/guinea-boxer-attack-strip.png"),
-      critical: require("../assets/sprites/guinea-boxer-critical-strip.png"),
+      critical: require("../assets/sprites/guinea-boxer-critical-strip.webp"),
       win: require("../assets/sprites/guinea-boxer-win-strip.png"),
     },
     witchGini: {
       idle: require("../assets/sprites/witch-gini-idle-strip.png"),
       attack: require("../assets/sprites/witch-gini-attack-strip.png"),
-      critical: require("../assets/sprites/witch-gini-critical-strip.png"),
+      critical: require("../assets/sprites/witch-gini-critical-strip.webp"),
       win: require("../assets/sprites/witch-gini-win-strip.png"),
     },
   },
@@ -395,9 +395,9 @@ export const spriteSheets = {
     die: require("../assets/sprites/sleepy-gini-die-strip.png"),
   },
   bossElderGini: {
-    idle: require("../assets/sprites/boss-elder-gini-idle-strip.png"),
-    hit: require("../assets/sprites/boss-elder-gini-hit-strip.png"),
-    die: require("../assets/sprites/boss-elder-gini-die-strip.png"),
+    idle: require("../assets/sprites/boss-elder-gini-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-elder-gini-hit-strip.webp"),
+    die: require("../assets/sprites/boss-elder-gini-die-strip.webp"),
   },
   sleepwalkerGini: {
     idle: require("../assets/sprites/sleepwalker-gini-idle-strip.png"),
@@ -410,17 +410,17 @@ export const spriteSheets = {
     die: require("../assets/sprites/boss-witch-gini-die-strip.png"),
   },
   candyBasketSlime: {
-    idle: require("../assets/sprites/candy-basket-slime-idle-strip.png"),
-    hit: require("../assets/sprites/candy-basket-slime-hit-strip.png"),
-    die: require("../assets/sprites/candy-basket-slime-die-strip.png"),
+    idle: require("../assets/sprites/candy-basket-slime-idle-strip.webp"),
+    hit: require("../assets/sprites/candy-basket-slime-hit-strip.webp"),
+    die: require("../assets/sprites/candy-basket-slime-die-strip.webp"),
   },
   bossPumpkinGolem: {
-    idle: require("../assets/sprites/pumpkin-golem-boss-idle-strip.png"),
-    hit: require("../assets/sprites/pumpkin-golem-boss-hit-strip.png"),
-    die: require("../assets/sprites/pumpkin-golem-boss-die-strip.png"),
+    idle: require("../assets/sprites/pumpkin-golem-boss-idle-strip.webp"),
+    hit: require("../assets/sprites/pumpkin-golem-boss-hit-strip.webp"),
+    die: require("../assets/sprites/pumpkin-golem-boss-die-strip.webp"),
   },
   bee: {
-    idle: require("../assets/sprites/bee-idle-strip.png"),
+    idle: require("../assets/sprites/bee-idle-strip.webp"),
     hit: require("../assets/sprites/bee-hit-strip.png"),
     die: require("../assets/sprites/bee-die-strip.png"),
   },
@@ -430,32 +430,32 @@ export const spriteSheets = {
     die: require("../assets/sprites/queen-bee-die-strip.png"),
   },
   bossGriffin: {
-    idle: require("../assets/sprites/boss-griffin-idle-strip.png"),
-    hit: require("../assets/sprites/boss-griffin-hit-strip.png"),
-    die: require("../assets/sprites/boss-griffin-die-strip.png"),
+    idle: require("../assets/sprites/boss-griffin-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-griffin-hit-strip.webp"),
+    die: require("../assets/sprites/boss-griffin-die-strip.webp"),
   },
   angryCandyBasketSlime: {
-    idle: require("../assets/sprites/angry-candy-basket-slime-idle-strip.png"),
-    hit: require("../assets/sprites/angry-candy-basket-slime-hit-strip.png"),
-    die: require("../assets/sprites/angry-candy-basket-slime-die-strip.png"),
+    idle: require("../assets/sprites/angry-candy-basket-slime-idle-strip.webp"),
+    hit: require("../assets/sprites/angry-candy-basket-slime-hit-strip.webp"),
+    die: require("../assets/sprites/angry-candy-basket-slime-die-strip.webp"),
   },
   thiefCrow: {
-    idle: require("../assets/sprites/thief-crow-idle-strip.png"),
-    hit: require("../assets/sprites/thief-crow-hit-strip.png"),
-    die: require("../assets/sprites/thief-crow-die-strip.png"),
+    idle: require("../assets/sprites/thief-crow-idle-strip.webp"),
+    hit: require("../assets/sprites/thief-crow-hit-strip.webp"),
+    die: require("../assets/sprites/thief-crow-die-strip.webp"),
   },
   bossHungryRedDragon: {
-    idle: require("../assets/sprites/hungry-red-dragon-idle-strip.png"),
-    hit: require("../assets/sprites/hungry-red-dragon-hit-strip.png"),
-    die: require("../assets/sprites/hungry-red-dragon-die-strip.png"),
+    idle: require("../assets/sprites/hungry-red-dragon-idle-strip.webp"),
+    hit: require("../assets/sprites/hungry-red-dragon-hit-strip.webp"),
+    die: require("../assets/sprites/hungry-red-dragon-die-strip.webp"),
   },
 };
 
 export const images = {
-  titleScreen: require("../assets/sprites/title-screen.png"),
+  titleScreen: require("../assets/sprites/title-screen.webp"),
   // Same scene and framing as titleScreen, at sunset and at night (see TitleScreen's TIME_OF_DAY).
-  titleScreenSunset: require("../assets/sprites/title-screen-sunset.png"),
-  titleScreenNight: require("../assets/sprites/title-screen-night.png"),
+  titleScreenSunset: require("../assets/sprites/title-screen-sunset.webp"),
+  titleScreenNight: require("../assets/sprites/title-screen-night.webp"),
   battleBackground: require("../assets/sprites/battle-forest.webp"),
   battleBackgroundMushroom: require("../assets/sprites/battle-mushroom-swamp.webp"),
   battleBackgroundFarm: require("../assets/sprites/battle-farm.webp"),
@@ -489,12 +489,12 @@ export const images = {
   battleBackgroundCanalCity: require("../assets/sprites/battle-canal-city.webp"),
   battleBackgroundAlpineVillage: require("../assets/sprites/battle-alpine-village.webp"),
   battleBackgroundBakeryStreet: require("../assets/sprites/battle-bakery-street.webp"),
-  battleBackgroundGiniMetropolis: require("../assets/sprites/battle-gini-metropolis.png"),
-  battleBackgroundSuspiciousHouse: require("../assets/sprites/battle-suspicious-house.png"),
-  battleBackgroundPumpkinForest: require("../assets/sprites/battle-pumpkin-forest.png"),
-  battleBackgroundHoneyTrail: require("../assets/sprites/battle-honey-trail.png"),
-  battleBackgroundDragonMountainRuin: require("../assets/sprites/battle-dragon-mountain-ruin.png"),
-  battleBackgroundRuinedCitadel: require("../assets/sprites/battle-ruined-citadel.png"),
+  battleBackgroundGiniMetropolis: require("../assets/sprites/battle-gini-metropolis.webp"),
+  battleBackgroundSuspiciousHouse: require("../assets/sprites/battle-suspicious-house.webp"),
+  battleBackgroundPumpkinForest: require("../assets/sprites/battle-pumpkin-forest.webp"),
+  battleBackgroundHoneyTrail: require("../assets/sprites/battle-honey-trail.webp"),
+  battleBackgroundDragonMountainRuin: require("../assets/sprites/battle-dragon-mountain-ruin.webp"),
+  battleBackgroundRuinedCitadel: require("../assets/sprites/battle-ruined-citadel.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -503,7 +503,7 @@ export const effects = {
   // Guinea Beam: charge → full beam → dissipate. 512x250 each, muzzle ring at the left.
   beam: [
     require("../assets/effects/beam-1.png"),
-    require("../assets/effects/beam-2.png"),
+    require("../assets/effects/beam-2.webp"),
     require("../assets/effects/beam-3.png"),
   ],
   // A spinning gold coin, 56x56, 48 frames — exported from the pixelfx effect library via
@@ -512,7 +512,7 @@ export const effects = {
   // The sustained fire stage of the beam, animated: 264x100, 36 frames, gold-recolored —
   // `node tools/pixelfx-export.mjs arcane/arcane-beam --out beam-fire --opts '{"palette":[...]}'`.
   // Stands in for beam[1] inside BeamArt's fire stage; not part of the `beam` array above.
-  beamFire: require("../assets/effects/beam-fire-strip.png"),
+  beamFire: require("../assets/effects/beam-fire-strip.webp"),
   // One-shot burst layered behind Execute's slash, blood-red recolored: 216x136, 28 frames —
   // `node tools/pixelfx-export.mjs impacts/crit-hit --out execute-burst --opts '{"palette":[...]}'`.
   executeBurst: require("../assets/effects/execute-burst-strip.png"),
@@ -526,14 +526,14 @@ export const effects = {
   // Looping teleport pad under the player on Teleport's cast — pixelfx's own default purple
   // already matches the skill's own icon, no recolor needed: 96x104, 72 frames —
   // `node tools/pixelfx-export.mjs scifi/teleporter-pad --out teleport-pad`.
-  teleportPad: require("../assets/effects/teleport-pad-strip.png"),
+  teleportPad: require("../assets/effects/teleport-pad-strip.webp"),
   // The mid-boss's seething aura (anger mark, steam, stress lines, hot floor — none of the
   // effect's own stand-in figure): 80x80, 36 frames looping —
   // `node tools/pixelfx-export.mjs status/rage --out mini-boss-rage --opts '{"body":false}'`.
   miniBossRage: require("../assets/effects/mini-boss-rage-strip.png"),
   // The mid-boss going down: a gold starburst with sparks (216x216 padded, 28 frames) —
   // `node tools/pixelfx-export.mjs impacts/crit-hit --out mini-boss-burst --square`.
-  miniBossBurst: require("../assets/effects/mini-boss-burst-strip.png"),
+  miniBossBurst: require("../assets/effects/mini-boss-burst-strip.webp"),
   // 운석 낙하's falling rock and impact, pixelfx's own fire palette: 272x232, the first 66
   // frames (2.2s) of 151 — the long smoke tail is faded out in code instead —
   // `node tools/pixelfx-export.mjs fire/meteor --out meteor-strike --max-frames 66`.
@@ -545,7 +545,7 @@ export const effects = {
   // Crits: impacts/crit-hit (arcane), explosions/plasma-explosion (--max-frames 30),
   // arcane/mana-burst (--max-frames 36).
   witchOrbArcane: require("../assets/effects/witch-orb-arcane-strip.png"),
-  witchOrbFire: require("../assets/effects/witch-orb-fire-strip.png"),
+  witchOrbFire: require("../assets/effects/witch-orb-fire-strip.webp"),
   witchOrbIce: require("../assets/effects/witch-orb-ice-strip.png"),
   witchOrbPoison: require("../assets/effects/witch-orb-poison-strip.png"),
   witchOrbVolt: require("../assets/effects/witch-orb-volt-strip.png"),
@@ -553,7 +553,7 @@ export const effects = {
   // (fireball, teal) — each with a hit-spark in the same palette.
   witchOrbHoly: require("../assets/effects/witch-orb-holy-strip.png"),
   witchOrbPink: require("../assets/effects/witch-orb-pink-strip.png"),
-  witchOrbGhost: require("../assets/effects/witch-orb-ghost-strip.png"),
+  witchOrbGhost: require("../assets/effects/witch-orb-ghost-strip.webp"),
   witchHitHoly: require("../assets/effects/witch-hit-holy-strip.png"),
   witchHitPink: require("../assets/effects/witch-hit-pink-strip.png"),
   witchHitGhost: require("../assets/effects/witch-hit-ghost-strip.png"),
@@ -562,33 +562,33 @@ export const effects = {
   witchHitIce: require("../assets/effects/witch-hit-ice-strip.png"),
   witchHitPoison: require("../assets/effects/witch-hit-poison-strip.png"),
   witchHitVolt: require("../assets/effects/witch-hit-volt-strip.png"),
-  witchCritStar: require("../assets/effects/witch-crit-star-strip.png"),
-  witchCritPlasma: require("../assets/effects/witch-crit-plasma-strip.png"),
-  witchCritMana: require("../assets/effects/witch-crit-mana-strip.png"),
+  witchCritStar: require("../assets/effects/witch-crit-star-strip.webp"),
+  witchCritPlasma: require("../assets/effects/witch-crit-plasma-strip.webp"),
+  witchCritMana: require("../assets/effects/witch-crit-mana-strip.webp"),
   // Boss skills (src/state/bossSkills.ts): stun variants play over the player (status-effect
   // style, loop), heal variants play over the boss (one-shot, cropped early with --max-frames
   // — both are several seconds of pixelfx's own art, only the opening beat is used here).
   bossStunStunned: require("../assets/effects/stun-stunned-strip.png"),
   bossStunSleep: require("../assets/effects/stun-sleep-strip.png"),
   bossStunConfused: require("../assets/effects/stun-confused-strip.png"),
-  bossHealHoly: require("../assets/effects/heal-holy-strip.png"),
-  bossHealBloom: require("../assets/effects/heal-bloom-strip.png"),
+  bossHealHoly: require("../assets/effects/heal-holy-strip.webp"),
+  bossHealBloom: require("../assets/effects/heal-bloom-strip.webp"),
   // 밤의 실크로드's lizard (flavor-texted as a ghost-possessed goat — see stages.ts) comes
   // back from the dead once a fight, guaranteed: a spectral light pillar, 128x150, 50 frames
   // — `node tools/pixelfx-export.mjs spawn/respawn-beam --out boss-revive --max-frames 50`.
-  bossRevive: require("../assets/effects/boss-revive-strip.png"),
+  bossRevive: require("../assets/effects/boss-revive-strip.webp"),
   // The burn mark Chili Throw's DoT leaves on the enemy for its duration, fire-recolored:
   // 80x124, 90 frames — `node tools/pixelfx-export.mjs fire/spirit-flame --out chili-burn
   // --opts '{"palette":[...]}'`.
-  chiliBurn: require("../assets/effects/chili-burn-strip.png"),
+  chiliBurn: require("../assets/effects/chili-burn-strip.webp"),
 };
 
 export const icons = {
-  map: require("../assets/icons/icon-map.png"),
+  map: require("../assets/icons/icon-map.webp"),
   backpack: require("../assets/icons/icon-backpack.png"),
   backpackOutlined: require("../assets/icons/icon-backpack-outlined.png"),
   // Trimmed to their visible art, for the battle scene's fixed-box button row.
-  mapTrim: require("../assets/icons/icon-map-trim.png"),
+  mapTrim: require("../assets/icons/icon-map-trim.webp"),
   backpackTrim: require("../assets/icons/icon-backpack-trim.png"),
   coins: require("../assets/icons/icon-coins.png"),
   chest: require("../assets/icons/icon-chest.png"),
@@ -634,8 +634,8 @@ export const skillImages = {
   shout: require("../assets/skills/shout.png"),
   diligent: require("../assets/skills/diligent.png"),
   glutton: require("../assets/skills/glutton.png"),
-  barrage: require("../assets/skills/barrage.png"),
-  teleport: require("../assets/skills/teleport.png"),
+  barrage: require("../assets/skills/barrage.webp"),
+  teleport: require("../assets/skills/teleport.webp"),
   carrotThrow: require("../assets/skills/carrotThrow.png"),
   chiliThrow: require("../assets/skills/chiliThrow.png"),
   meteor: require("../assets/skills/meteor.png"),
@@ -659,8 +659,8 @@ export const SKILL_ICON_ASPECT: Record<keyof typeof skillImages, number> = {
 
 export const food = {
   cookPot: require("../assets/food/cook-pot.png"),
-  cookPotOutlined: require("../assets/food/cook-pot-outlined.png"),
-  cookPotTrim: require("../assets/food/cook-pot-trim.png"),
+  cookPotOutlined: require("../assets/food/cook-pot-outlined.webp"),
+  cookPotTrim: require("../assets/food/cook-pot-trim.webp"),
   fryingPan: require("../assets/food/frying-pan.png"),
   stewPot: require("../assets/food/stew-pot.png"),
   cuttingBoard: require("../assets/food/cutting-board.png"),
@@ -867,7 +867,7 @@ export const chef = {
   cheer: require("../assets/npc/chef-cheer.png"),
   serve: require("../assets/npc/chef-serve.png"),
   book: require("../assets/npc/chef-book.png"),
-  wok: require("../assets/npc/chef-wok.png"),
+  wok: require("../assets/npc/chef-wok.webp"),
 };
 
 // Blank recipe scrolls/books. A recipe's card is one of these plus its dish drawn on top,
@@ -884,9 +884,9 @@ export const recipeTemplates = {
 export const grandma = {
   happy: require("../assets/npc/grandma-happy.png"),
   wave: require("../assets/npc/grandma-wave.png"),
-  basket: require("../assets/npc/grandma-basket.png"),
-  menu: require("../assets/npc/grandma-menu.png"),
-  counter: require("../assets/npc/grandma-counter.png"),
+  basket: require("../assets/npc/grandma-basket.webp"),
+  menu: require("../assets/npc/grandma-menu.webp"),
+  counter: require("../assets/npc/grandma-counter.webp"),
 };
 
 export const statIcons = {
@@ -1090,30 +1090,30 @@ export const comics = {
   sledbakery2: require("../assets/comics/sledbakery-2.webp"),
   sledbakery3: require("../assets/comics/sledbakery-3.webp"),
   sledbakery4: require("../assets/comics/sledbakery-4.webp"),
-  townasleep1: require("../assets/comics/townasleep-1.png"),
-  townasleep2: require("../assets/comics/townasleep-2.png"),
-  townasleep3: require("../assets/comics/townasleep-3.png"),
-  townasleep4: require("../assets/comics/townasleep-4.png"),
-  ginitown1: require("../assets/comics/ginitown-1.png"),
-  ginitown2: require("../assets/comics/ginitown-2.png"),
-  ginitown3: require("../assets/comics/ginitown-3.png"),
-  ginitown4: require("../assets/comics/ginitown-4.png"),
-  pumpkinforest1: require("../assets/comics/pumpkinforest-1.png"),
-  pumpkinforest2: require("../assets/comics/pumpkinforest-2.png"),
-  pumpkinforest3: require("../assets/comics/pumpkinforest-3.png"),
-  pumpkinforest4: require("../assets/comics/pumpkinforest-4.png"),
-  beeChase1: require("../assets/comics/bee-chase-1.png"),
-  beeChase2: require("../assets/comics/bee-chase-2.png"),
-  beeChase3: require("../assets/comics/bee-chase-3.png"),
-  beeChase4: require("../assets/comics/bee-chase-4.png"),
-  giniReturn1: require("../assets/comics/gini-return-1.png"),
-  giniReturn2: require("../assets/comics/gini-return-2.png"),
-  giniReturn3: require("../assets/comics/gini-return-3.png"),
-  giniReturn4: require("../assets/comics/gini-return-4.png"),
-  griffinFlight1: require("../assets/comics/griffin-flight-1.png"),
-  griffinFlight2: require("../assets/comics/griffin-flight-2.png"),
-  griffinFlight3: require("../assets/comics/griffin-flight-3.png"),
-  griffinFlight4: require("../assets/comics/griffin-flight-4.png"),
+  townasleep1: require("../assets/comics/townasleep-1.webp"),
+  townasleep2: require("../assets/comics/townasleep-2.webp"),
+  townasleep3: require("../assets/comics/townasleep-3.webp"),
+  townasleep4: require("../assets/comics/townasleep-4.webp"),
+  ginitown1: require("../assets/comics/ginitown-1.webp"),
+  ginitown2: require("../assets/comics/ginitown-2.webp"),
+  ginitown3: require("../assets/comics/ginitown-3.webp"),
+  ginitown4: require("../assets/comics/ginitown-4.webp"),
+  pumpkinforest1: require("../assets/comics/pumpkinforest-1.webp"),
+  pumpkinforest2: require("../assets/comics/pumpkinforest-2.webp"),
+  pumpkinforest3: require("../assets/comics/pumpkinforest-3.webp"),
+  pumpkinforest4: require("../assets/comics/pumpkinforest-4.webp"),
+  beeChase1: require("../assets/comics/bee-chase-1.webp"),
+  beeChase2: require("../assets/comics/bee-chase-2.webp"),
+  beeChase3: require("../assets/comics/bee-chase-3.webp"),
+  beeChase4: require("../assets/comics/bee-chase-4.webp"),
+  giniReturn1: require("../assets/comics/gini-return-1.webp"),
+  giniReturn2: require("../assets/comics/gini-return-2.webp"),
+  giniReturn3: require("../assets/comics/gini-return-3.webp"),
+  giniReturn4: require("../assets/comics/gini-return-4.webp"),
+  griffinFlight1: require("../assets/comics/griffin-flight-1.webp"),
+  griffinFlight2: require("../assets/comics/griffin-flight-2.webp"),
+  griffinFlight3: require("../assets/comics/griffin-flight-3.webp"),
+  griffinFlight4: require("../assets/comics/griffin-flight-4.webp"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.
