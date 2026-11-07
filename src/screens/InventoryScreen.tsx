@@ -12,6 +12,7 @@ import { GameButton } from "../components/GameButton";
 import { ProgressBar } from "../components/ProgressBar";
 import { IconCaption } from "../components/IconCaption";
 import { tutorialRef } from "../components/tutorialTargets";
+import { SellIngredientModal } from "../components/SellIngredientModal";
 import type { GameState } from "../types";
 
 type InventoryItem = GameState["inventory"][number];
@@ -28,6 +29,8 @@ export function InventoryScreen({
   bagSeen,
   codexSeen,
   onSeen,
+  canSell,
+  onSell,
 }: {
   inventory: GameState["inventory"];
   discoveredItems: string[];
@@ -40,6 +43,9 @@ export function InventoryScreen({
   codexSeen: string[] | undefined;
   // Called on leaving with what's there now, so the next visit marks only newer things.
   onSeen: (seen: { bag: string[]; codex: string[] }) => void;
+  // Ingredients can be tapped to sell once the tutorials that cook with them are done.
+  canSell: boolean;
+  onSell: (name: string, quantity: number) => void;
 }) {
   const capacity = getBagCapacity(expansions);
   const cost = getBagExpandCost(expansions);
@@ -60,6 +66,8 @@ export function InventoryScreen({
   const cells = [...stacks, ...Array.from({ length: Math.max(0, shown - used) }, () => null)];
 
   const [codex, setCodex] = useState(false);
+  const [selling, setSelling] = useState<string | null>(null);
+  const sellingItem = selling ? inventory.find((item) => item.name === selling && item.type === "food") : undefined;
 
   // Fixed for the whole visit: what's new since last time, and the bag size on arrival.
   const bagNames = inventory.map((item) => item.name);
@@ -110,7 +118,9 @@ export function InventoryScreen({
             height={16}
             label={`${used} / ${capacity}`}
           />
-          <Text style={styles.summaryHint}>같은 아이템은 한 칸에 64개까지 쌓여요.</Text>
+          <Text style={styles.summaryHint}>
+            {canSell ? "같은 아이템은 64개씩 쌓여요. 재료를 누르면 팔 수 있어요." : "같은 아이템은 한 칸에 64개까지 쌓여요."}
+          </Text>
         </View>
         {maxed ? (
           <View style={styles.maxed}>
@@ -141,6 +151,13 @@ export function InventoryScreen({
             delay={!item && expansions > expansionsOnArrival ? (index - used) * 45 : -1}
             style={styles.cellWrap}
           >
+            <Pressable
+              disabled={!item || !canSell || item.type !== "food"}
+              onPress={() => item && setSelling(item.name)}
+              accessibilityRole={item && canSell && item.type === "food" ? "button" : undefined}
+              accessibilityLabel={item && canSell && item.type === "food" ? `${item.name} 팔기` : undefined}
+              style={({ pressed }) => pressed && styles.cellPressed}
+            >
             <Panel slice={item ? frameKit.squareGold : frameKit.squareWood} scale={0.5} style={styles.cell}>
               {item && (
                 <>
@@ -155,10 +172,19 @@ export function InventoryScreen({
                 </>
               )}
             </Panel>
+            </Pressable>
           </PopIn>
         ))}
       </View>
       {shown < capacity && <Text style={styles.moreSlots}>빈 칸 {capacity - shown}개 더 있어요</Text>}
+      {sellingItem && (
+        <SellIngredientModal
+          name={sellingItem.name}
+          owned={sellingItem.quantity}
+          onSell={(quantity) => onSell(sellingItem.name, quantity)}
+          onClose={() => setSelling(null)}
+        />
+      )}
       </>
       )}
     </View>
@@ -242,6 +268,7 @@ const styles = StyleSheet.create({
   moreSlots: { marginTop: 10, textAlign: "center", fontSize: 10, fontFamily: fonts.bold, color: colors.muted },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   cellWrap: { width: "23%" },
+  cellPressed: { transform: [{ scale: 0.94 }] },
   cell: {
     width: "100%",
     aspectRatio: 1,

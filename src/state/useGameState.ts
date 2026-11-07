@@ -14,7 +14,7 @@ import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } 
 import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
-import { GROCERY } from "./grocery";
+import { GROCERY, getSellPrice } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
 import { COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
@@ -1097,6 +1097,23 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     return "ok";
   };
 
+  // Sells `quantity` of an ingredient from the bag for getSellPrice each (dishes aren't sold).
+  const sellIngredient = (name: string, quantity: number) => {
+    setState((previous) => {
+      const item = previous.inventory.find((entry) => entry.name === name && entry.type === "food");
+      if (!item) return previous;
+      const count = Math.max(0, Math.min(Math.floor(quantity), item.quantity));
+      if (count === 0) return previous;
+      return {
+        ...previous,
+        gold: previous.gold + getSellPrice(name) * count,
+        inventory: previous.inventory
+          .map((entry) => (entry === item ? { ...entry, quantity: entry.quantity - count } : entry))
+          .filter((entry) => entry.quantity > 0),
+      };
+    });
+  };
+
   // Opens the next locked food slot for gems; returns whether it went through.
   const unlockBuffSlot = () => {
     const index = state.buffSlotsUnlocked ?? 1;
@@ -1366,6 +1383,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     unlockPot,
     readyPotCount,
     buyIngredient,
+    sellIngredient,
     learnRecipe,
     dropEvents,
     buffSlots,

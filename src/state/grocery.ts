@@ -129,3 +129,19 @@ export function getGroceryPrice(name: string, shopPrice?: number) {
 export const GROCERY: { name: string; price: number; category: GroceryCategory; shopOnly: boolean }[] = STOCK
   .map((item) => ({ name: item.name, category: item.category, price: getGroceryPrice(item.name, item.shopPrice), shopOnly: item.shopPrice !== undefined }))
   .sort((a, b) => a.price - b.price);
+
+// Selling an ingredient from the bag pays a tenth of what the grocery charges for it: a
+// small top-up for spare drops (selling every drop shouldn't out-earn the hunt itself), and
+// buying to resell always loses gold.
+const SELL_RATIO = 0.1;
+const SELL_PRICES = new Map<string, number>();
+
+export function getSellPrice(name: string) {
+  let price = SELL_PRICES.get(name);
+  if (price === undefined) {
+    const shopPrice = STOCK.find((item) => item.name === name)?.shopPrice;
+    price = Math.max(1, Math.floor(getGroceryPrice(name, shopPrice) * SELL_RATIO));
+    SELL_PRICES.set(name, price);
+  }
+  return price;
+}

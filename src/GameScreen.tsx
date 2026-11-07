@@ -293,6 +293,8 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             codexSeen={state.codexSeen}
             onSeen={({ bag, codex }) => setState((previous) => ({ ...previous, bagSeen: bag, codexSeen: codex }))}
             onOpenShop={() => onSelectTab("shop")}
+            canSell={Boolean(state.tutorialDone && state.recipeTutorialDone)}
+            onSell={game.sellIngredient}
           />
         );
       case "skills":
