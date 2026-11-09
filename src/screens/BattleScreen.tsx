@@ -75,6 +75,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         miniBossDefeated={game.isMiniDefeatFlash}
         golden={game.displayGolden}
         goldenReward={game.goldenReward}
+        bossReward={game.bossReward}
         enemyKind={regularEnemyKind}
         foeKind={game.displayStrayKind ?? regularEnemyKind}
         phase={battle.phase}
@@ -192,7 +193,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       )}
       {game.bossRetryAvailable && (
         <RewardedAdModal
-          message={`광고를 보고 보스에 다시 도전할 수 있어요. 보스의 남은 체력은 그대로이고, 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber) * BOSS_RETRY_TIME_RATIO) / 1000)}초)으로 다시 시작해요.`}
+          message={`광고를 보고 보스에 다시 도전할 수 있어요. 보스의 남은 체력은 그대로이고, 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber, game.bossEnraged ? 2 : 1) * BOSS_RETRY_TIME_RATIO) / 1000)}초)으로 다시 시작해요.`}
           claimLabel="보스 다시 도전하기"
           onClaim={game.retryBossAfterAd}
           autoStart={false}

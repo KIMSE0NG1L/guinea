@@ -24,6 +24,13 @@ export const BOSS_SKILL_CHECKPOINTS: BossSkillCheckpoint[] = [
   { hpRatio: 0.5, chance: 0.5 },
   { hpRatio: 0.3, chance: 1 },
 ];
+// The enraged second phase: four checkpoints, each likelier to land. Same 30% floor as above.
+export const ENRAGED_BOSS_SKILL_CHECKPOINTS: BossSkillCheckpoint[] = [
+  { hpRatio: 0.85, chance: 0.7 },
+  { hpRatio: 0.65, chance: 0.8 },
+  { hpRatio: 0.45, chance: 0.9 },
+  { hpRatio: 0.3, chance: 1 },
+];
 // Stun: how long auto-battle stays paused. At ~1.2s per swing this skips roughly 3-4 hits —
 // noticeable, not a wipe, especially with manual tapping open the whole time.
 export const BOSS_SKILL_STUN_MS = 4500;

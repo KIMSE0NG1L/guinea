@@ -6,11 +6,12 @@ import { matchesSearch } from "../state/search";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { Panel } from "./NineSlice";
-import { GROCERY, type GroceryCategory } from "../state/grocery";
+import { getGroceryPrice, GROCERY, type GroceryCategory } from "../state/grocery";
 import { getDropSources } from "../state/drops";
 import { ITEM_IMAGES, RECIPES } from "../state/recipes";
 import { CoinPrice } from "./CoinPrice";
 import { getStageCode, STAGES } from "../state/stages";
+import { CODEX_GOLD_PER_TIER, getCodexGoldBonus } from "../state/progression";
 
 const CATEGORY_LABEL: Record<GroceryCategory, string> = {
   vegetable: "채소",
@@ -44,7 +45,7 @@ function getSourceStages(name: string) {
 // One you've ever had shows where it drops, its shop price and the dishes it goes into;
 // the rest are dark silhouettes with a hint of where to look.
 // `fresh`: found since the codex was last opened — they light up from silhouette with "발견!".
-export function IngredientCodex({ discovered, fresh = [] }: { discovered: string[]; fresh?: string[] }) {
+export function IngredientCodex({ discovered, dropped, priceStage, fresh = [] }: { discovered: string[]; dropped: string[] | undefined; priceStage: number; fresh?: string[] }) {
   const found = GROCERY.filter((item) => discovered.includes(item.name)).length;
   // Search by ingredient name or a dish that uses it; undiscovered ones only show unfiltered.
   const [query, setQuery] = useState("");
@@ -56,7 +57,7 @@ export function IngredientCodex({ discovered, fresh = [] }: { discovered: string
   return (
     <View>
       <Text style={styles.count}>
-        모은 식재료 {found} / {GROCERY.length}
+        모은 식재료 {found} / {GROCERY.length} · 완성 보상: 골드 획득 +{getCodexGoldBonus(dropped)}% (몬스터에게 얻은 재료 25%마다 +{CODEX_GOLD_PER_TIER}%)
       </Text>
       <SearchBox value={query} onChange={setQuery} placeholder="재료나 요리 이름으로 찾기" resultCount={shown.length} />
       <View style={styles.grid}>
@@ -69,7 +70,7 @@ export function IngredientCodex({ discovered, fresh = [] }: { discovered: string
               <View style={[styles.tag, { backgroundColor: CATEGORY_COLOR[item.category] }]}>
                 <Text style={styles.tagText}>{CATEGORY_LABEL[item.category]}</Text>
               </View>
-              <CoinPrice amount={item.price} textStyle={styles.priceText} style={styles.price} />
+              <CoinPrice amount={getGroceryPrice(item.name, priceStage)} textStyle={styles.priceText} style={styles.price} />
               <View>
                 <Image
                   source={ITEM_IMAGES[item.name]}

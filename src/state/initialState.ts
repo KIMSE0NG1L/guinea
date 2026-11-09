@@ -32,6 +32,7 @@ export const initialState: GameState = {
   bossesCleared: [],
   buffSlotsUnlocked: 1,
   discoveredItems: [],
+  droppedItems: [],
   quests: [],
   questClaimed: [],
   kills: 0,

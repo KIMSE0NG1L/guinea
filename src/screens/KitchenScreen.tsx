@@ -64,6 +64,7 @@ export function KitchenScreen({
   rushDiscount,
   gold,
   groceryDiscount,
+  priceStage,
   onCook,
   onBuyAndCook,
   onCollect,
@@ -89,6 +90,8 @@ export function KitchenScreen({
   gold: number;
   // Food-buff % off grocery prices, for the "buy what's missing" cost.
   groceryDiscount: number;
+  // The stage grocery prices are set by (see getGroceryPrice).
+  priceStage: number;
   onCook: (recipeId: string) => void;
   // Buys the missing ingredients from the grocery and starts the dish (see buyMissingAndCook).
   onBuyAndCook: (recipeId: string) => void;
@@ -240,7 +243,7 @@ export function KitchenScreen({
             />
           );
           // Short on ingredients the grocery sells: one button buys the rest and starts it.
-          const shortfall = !ready && freePot ? getShortfall(inventory, recipe.ingredients, groceryDiscount) : null;
+          const shortfall = !ready && freePot ? getShortfall(inventory, recipe.ingredients, groceryDiscount, priceStage) : null;
           const affordable = shortfall !== null && gold >= shortfall.cost;
           const cookButton = shortfall ? (
             <GameButton

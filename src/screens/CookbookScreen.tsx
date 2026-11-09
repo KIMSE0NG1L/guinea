@@ -12,6 +12,7 @@ import { ShopTopBar } from "../components/ShopScene";
 import { getCookbookProgress, isCookbookComplete } from "../state/cookbook";
 import { getKnownRecipes, getRecipeStage, isRecipeForSale, RECIPES } from "../state/recipes";
 import { RECIPE_TIERS } from "../state/recipeTiers";
+import { COOKBOOK_ATTACK_PER_TIER, getCookbookAttackBonus } from "../state/progression";
 
 // A line under the progress bar that moves on as the book fills up.
 function progressLine(done: number, total: number) {
@@ -64,6 +65,7 @@ export function CookbookScreen({
           </Text>
           <ProgressBar progress={(done / total) * 100} height={14} />
           <Text style={styles.heroLine}>{progressLine(done, total)}</Text>
+          <Text style={styles.heroLine}>{`완성 보상: 공격력 +${getCookbookAttackBonus(cookedRecipes)}% (직접 만든 요리 25%마다 +${COOKBOOK_ATTACK_PER_TIER}%)`}</Text>
         </View>
       </Panel>
 

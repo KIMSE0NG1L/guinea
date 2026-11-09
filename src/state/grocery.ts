@@ -115,36 +115,38 @@ function expectedKills(boss: boolean, chance: number, quantity = 1) {
   return (boss ? STAGE_KILL_TARGET + 1 : 1) / (chance * quantity);
 }
 
-// Priced as the gold those kills would pay at the item's stage (getReferenceMobGold), so a
-// stage-10 ingredient costs what stage-10 kills are worth. The cheapest source sets it.
-export function getGroceryPrice(name: string, shopPrice?: number) {
-  const prices = getDropSources(name).map(({ kind, boss, entry }) => {
-    const stage = Math.max(0, STAGES.findIndex((item) => item.enemyKind === kind));
-    return getReferenceMobGold(stage) * expectedKills(boss, entry.chance, entry.quantity) * BUY_PREMIUM;
-  });
-  return prices.length > 0 ? roundPrice(Math.min(...prices)) : (shopPrice ?? 30);
+// Priced as the gold those kills would pay at `stageNumber` (the furthest stage of this run,
+// so prices keep up with income and walking back to stage 1 can't get them cheap). The
+// easiest source to farm sets it. A shop-only item's `shopPrice` is its stage-1 price.
+export function getGroceryPrice(name: string, stageNumber: number) {
+  const mobGold = getReferenceMobGold(stageNumber);
+  const kills = getDropSources(name).map(({ boss, entry }) => expectedKills(boss, entry.chance, entry.quantity));
+  if (kills.length > 0) return roundPrice(mobGold * Math.min(...kills) * BUY_PREMIUM);
+  const shopPrice = STOCK.find((item) => item.name === name)?.shopPrice ?? 30;
+  return roundPrice((shopPrice * mobGold) / getReferenceMobGold(0));
 }
 
-// Cheapest first.
-// `shopOnly`: sold here on purpose without any monster dropping it (a fixed shopPrice).
-export const GROCERY: { name: string; price: number; category: GroceryCategory; shopOnly: boolean }[] = STOCK
-  .map((item) => ({ name: item.name, category: item.category, price: getGroceryPrice(item.name, item.shopPrice), shopOnly: item.shopPrice !== undefined }))
-  .sort((a, b) => a.price - b.price);
+// On the shelf once this run has reached a stage that drops it. Prices no longer depend on
+// where an item comes from, so without this a fresh run could buy late-game ingredients cheaply.
+// Shop-only items, which nothing drops, are always in stock.
+export function isGroceryAvailable(name: string, stageNumber: number) {
+  const stages = getDropSources(name).map(({ kind }) => STAGES.findIndex((item) => item.enemyKind === kind));
+  return stages.length === 0 || Math.min(...stages) <= stageNumber;
+}
+
+// Cheapest first (prices all scale together, so the order holds at every stage).
+// `shopOnly`: sold here on purpose without any monster dropping it (a set shopPrice).
+export const GROCERY: { name: string; category: GroceryCategory; shopOnly: boolean }[] = STOCK
+  .map((item) => ({ name: item.name, category: item.category, shopOnly: item.shopPrice !== undefined }))
+  .sort((a, b) => getGroceryPrice(a.name, 0) - getGroceryPrice(b.name, 0));
 
 // Selling an ingredient from the bag pays a tenth of what the grocery charges for it: a
 // small top-up for spare drops (selling every drop shouldn't out-earn the hunt itself), and
 // buying to resell always loses gold.
 const SELL_RATIO = 0.1;
-const SELL_PRICES = new Map<string, number>();
 
-export function getSellPrice(name: string) {
-  let price = SELL_PRICES.get(name);
-  if (price === undefined) {
-    const shopPrice = STOCK.find((item) => item.name === name)?.shopPrice;
-    price = Math.max(1, Math.floor(getGroceryPrice(name, shopPrice) * SELL_RATIO));
-    SELL_PRICES.set(name, price);
-  }
-  return price;
+export function getSellPrice(name: string, stageNumber: number) {
+  return Math.max(1, Math.floor(getGroceryPrice(name, stageNumber) * SELL_RATIO));
 }
 
 // What's missing from the bag to cook `ingredients`, and what the grocery would charge for it
@@ -153,6 +155,7 @@ export function getShortfall(
   inventory: { name: string; quantity: number }[],
   ingredients: { name: string; quantity: number }[],
   discountPercent: number,
+  stageNumber: number,
 ): { items: { name: string; quantity: number }[]; cost: number } | null {
   const items: { name: string; quantity: number }[] = [];
   let cost = 0;
@@ -160,10 +163,9 @@ export function getShortfall(
     const have = inventory.filter((item) => item.name === ingredient.name).reduce((sum, item) => sum + item.quantity, 0);
     const missing = ingredient.quantity - have;
     if (missing <= 0) continue;
-    const listing = GROCERY.find((item) => item.name === ingredient.name);
-    if (!listing) return null;
+    if (!GROCERY.some((item) => item.name === ingredient.name) || !isGroceryAvailable(ingredient.name, stageNumber)) return null;
     items.push({ name: ingredient.name, quantity: missing });
-    cost += applyDiscount(listing.price, discountPercent) * missing;
+    cost += applyDiscount(getGroceryPrice(ingredient.name, stageNumber), discountPercent) * missing;
   }
   return { items, cost };
 }

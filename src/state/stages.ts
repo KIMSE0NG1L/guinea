@@ -316,8 +316,9 @@ const LATE_STAGE_START = 24;
 const LATE_STAGE_HP_GROWTH = 2.0;
 // Each 환생 (state/rebirth.ts) makes every enemy this many times tougher.
 export const REBIRTH_HP_MULTIPLIER = 4;
-// A boss fights twice: beaten once it comes back enraged with this much more HP.
-export const BOSS_PHASE_TWO_HP_MULTIPLIER = 1.5;
+// A boss fights twice: beaten once it comes back enraged at this share of its HP, on a shorter
+// clock (BOSS_PHASE_TWO_TIME_LIMIT_MS) and casting more (ENRAGED_BOSS_SKILL_CHECKPOINTS).
+export const BOSS_PHASE_TWO_HP_MULTIPLIER = 0.75;
 
 export function getEnemyMaxHp(stageNumber: number, boss: boolean, rebirths = 0) {
   const early = STAGE_HP_GROWTH ** Math.min(stageNumber, LATE_STAGE_START);

@@ -14,16 +14,18 @@ import { playSfx } from "../sound";
 export function SellIngredientModal({
   name,
   owned,
+  priceStage,
   onSell,
   onClose,
 }: {
   name: string;
   owned: number;
+  priceStage: number;
   onSell: (quantity: number) => void;
   onClose: () => void;
 }) {
   const [count, setCount] = useState(1);
-  const unit = getSellPrice(name);
+  const unit = getSellPrice(name, priceStage);
   const image = ITEM_IMAGES[name];
   const change = (next: number) => setCount(Math.max(1, Math.min(owned, next)));
 

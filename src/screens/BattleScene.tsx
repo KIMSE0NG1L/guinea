@@ -45,6 +45,7 @@ import {
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { MonsterSpeechBubble } from "../components/MonsterSpeechBubble";
 import { BOSS_NAME, BOSS_TAGLINE, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
+import { SHARDS_PER_BOSS } from "../state/progression";
 import { BOSS_LINES, MOB_LINES } from "../state/monsterLines";
 import { OUTFIT_NAMES } from "../state/buffs";
 import { ITEM_IMAGES } from "../state/recipes";
@@ -289,6 +290,7 @@ export function BattleScene({
   miniBossDefeated = false,
   golden = false,
   goldenReward = null,
+  bossReward = null,
   enemyKind,
   foeKind,
   phase,
@@ -356,6 +358,8 @@ export function BattleScene({
   // The mid-boss is a rare golden one, and what the last golden one paid (for its toast).
   golden?: boolean;
   goldenReward?: { id: number; gold: number; gems: number } | null;
+  // What the last boss cleared paid beyond its drops (for its toast).
+  bossReward?: { id: number; stars: number; gems: number; companion: string | null } | null;
   enemyKind: EnemyKind;
   // The regular mob actually on screen, when it's not the stage's own (a stray from the stage
   // before); the stage's look (backdrop, ambience, boss) still follows `enemyKind`.
@@ -700,6 +704,7 @@ export function BattleScene({
           {bossEntranceKey && <BossEntranceBanner key={bossEntranceKey} bossName={BOSS_NAME[enemyKind]} tagline={BOSS_TAGLINE[enemyKind]} onStart={onBeginBoss} />}
           {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
           {goldenReward && <GoldenRewardToast key={goldenReward.id} gold={goldenReward.gold} gems={goldenReward.gems} />}
+          {bossReward && <BossRewardToast key={bossReward.id} stars={bossReward.stars} gems={bossReward.gems} companion={bossReward.companion} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
           {/* Same camera layer as the backdrop, so the two zoom as one picture. */}
           <Animated.View style={[StyleSheet.absoluteFill, styles.camLayer, styles.camFighters, camStyle]} pointerEvents="box-none">
@@ -1345,6 +1350,30 @@ function GoldenRewardToast({ gold, gems }: { gold: number; gems: number }) {
   );
 }
 
+// The shards this boss drops, plus any stars this clear newly earned. Over the stage-clear banner.
+function BossRewardToast({ stars, gems, companion }: { stars: number; gems: number; companion: string | null }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withTiming(1, { duration: 2600, easing: Easing.out(Easing.quad) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: t.value < 0.1 ? t.value * 10 : t.value > 0.8 ? (1 - t.value) / 0.2 : 1 }));
+  return (
+    <Animated.View style={[styles.goldenToast, styles.bossRewardToast, style]} pointerEvents="none">
+      {companion && (
+        <StrokedText style={styles.goldenToastValue} strokeColor={colors.line} strokeWidth={2}>
+          {`${companion} 조각 +${SHARDS_PER_BOSS}`}
+        </StrokedText>
+      )}
+      {stars > 0 && (
+        <StrokedText style={styles.goldenToastTitle} strokeColor="#5a3a06" strokeWidth={2.5}>
+          {`${"★".repeat(stars)} 보석 +${gems}`}
+        </StrokedText>
+      )}
+    </Animated.View>
+  );
+}
+
 // A golden one is washed gold instead, with no rage aura.
 function MiniBossRage({ size, boss, enemyKind, animation, restartKey, golden }: { size: number; boss: boolean; enemyKind: EnemyKind; animation: EnemyAnimation; restartKey: string; golden: boolean }) {
   const pulse = useSharedValue(0);
@@ -1528,6 +1557,7 @@ const styles = StyleSheet.create({
   miniBurst: { position: "absolute", left: "50%", bottom: -20, zIndex: 6 },
   enemyNameplateGolden: { backgroundColor: "#7a5a0acc", borderWidth: 1.5, borderColor: "#ffe27a" },
   goldenToast: { position: "absolute", top: 70, left: 0, right: 0, alignItems: "center", zIndex: 9 },
+  bossRewardToast: { top: 24, zIndex: 40, elevation: 40 },
   goldenToastTitle: { color: "#ffe27a", fontSize: 22, fontWeight: "900", fontFamily: fonts.bold },
   goldenToastRow: { marginTop: 2, flexDirection: "row", alignItems: "center", gap: 4 },
   goldenToastIcon: { width: 18, height: 18, resizeMode: "contain" },

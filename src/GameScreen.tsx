@@ -282,6 +282,10 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             gems={state.gems}
             purchasedOutfits={state.purchasedOutfits}
             onPurchase={game.purchaseOutfit}
+            progress={state}
+            onUpgrade={game.upgradeCompanion}
+            shardAdsLeft={game.shardAdsLeft}
+            onClaimShardAd={game.claimShardAd}
             onOpenShop={() => onSelectTab("shop")}
           />
         );
@@ -290,6 +294,8 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
           <InventoryScreen
             inventory={state.inventory}
             discoveredItems={state.discoveredItems ?? []}
+            droppedItems={state.droppedItems}
+            priceStage={state.highestStageNumber ?? state.stageNumber}
             gems={state.gems}
             expansions={state.bagExpansions ?? 0}
             onExpand={game.expandBag}
@@ -327,6 +333,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             rushDiscount={game.foodBuffs.rushDiscount}
             gold={state.gold}
             groceryDiscount={game.foodBuffs.groceryDiscount}
+            priceStage={state.highestStageNumber ?? state.stageNumber}
             onCook={game.cook}
             onBuyAndCook={game.buyMissingAndCook}
             onCollect={onCollect}
@@ -372,6 +379,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             gold={state.gold}
             onBuy={game.buyIngredient}
             discount={game.foodBuffs.groceryDiscount}
+            stageNumber={state.highestStageNumber ?? state.stageNumber}
             onBack={() => onSelectTab("kitchen")}
             onOpenRecipes={() => onSelectTab("recipes")}
           />
@@ -389,6 +397,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             onOpenRebirth={() => onSelectTab("rebirth")}
             codexStageNumber={getPeakStageNumber(state)}
             runNumber={getRunNumber(state)}
+            stageStars={state.stageStars}
           />
         );
       case "comics":

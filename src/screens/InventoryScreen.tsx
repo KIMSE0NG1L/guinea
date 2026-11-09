@@ -22,6 +22,8 @@ const COLUMNS = 4;
 export function InventoryScreen({
   inventory,
   discoveredItems,
+  droppedItems,
+  priceStage,
   gems,
   expansions,
   onExpand,
@@ -34,6 +36,9 @@ export function InventoryScreen({
 }: {
   inventory: GameState["inventory"];
   discoveredItems: string[];
+  droppedItems: string[] | undefined;
+  // The stage grocery and sell prices are set by (see getGroceryPrice).
+  priceStage: number;
   gems: number;
   expansions: number;
   onExpand: () => boolean;
@@ -103,7 +108,7 @@ export function InventoryScreen({
         </Pressable>
       </View>
       {codex ? (
-        <IngredientCodex discovered={discoveredItems} fresh={newInCodex} />
+        <IngredientCodex discovered={discoveredItems} dropped={droppedItems} priceStage={priceStage} fresh={newInCodex} />
       ) : (
       <>
       <Panel slice={kit.buttonBeige} style={styles.summary}>
@@ -181,6 +186,7 @@ export function InventoryScreen({
         <SellIngredientModal
           name={sellingItem.name}
           owned={sellingItem.quantity}
+          priceStage={priceStage}
           onSell={(quantity) => onSell(sellingItem.name, quantity)}
           onClose={() => setSelling(null)}
         />

@@ -43,6 +43,15 @@ export interface GameState {
   rebirths?: number;
   peakStageNumber?: number;
   everClearedBosses?: number[];
+  // state/progression.ts, all missing on older saves and kept through 환생: each companion's
+  // unspent shards and level, today's shard ads, and each stage's stars (STAR_* bits).
+  companionShards?: Partial<Record<Outfit, number>>;
+  companionLevels?: Partial<Record<Outfit, number>>;
+  shardAds?: { day: string; count: number };
+  stageStars?: Record<string, number>;
+  // Ingredients got from monsters, for the codex's gold bonus (buying one doesn't count).
+  // Saves from before this start from everything their codex already held.
+  droppedItems?: string[];
   // Recipe ids the player has learned; missing on saves from before the recipe shop.
   knownRecipes?: string[];
   // Food buff slots on the battle screen (null = empty); missing on older saves.

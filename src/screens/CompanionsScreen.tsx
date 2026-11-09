@@ -27,7 +27,10 @@ import { RECIPES } from "../state/recipes";
 import { LockBadge } from "../components/LockBadge";
 import { getOutfitGemPrice, isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
 import { ConfirmModal } from "../components/ConfirmModal";
-import type { Outfit } from "../types";
+import { RewardedAdModal } from "../components/RewardedAdModal";
+import { COMPANION_ATTACK_PER_LEVEL, COMPANION_MAX_LEVEL, COMPANION_SHARD_STAGE, getCompanionLevel, getCompanionShards, getShardCost, SHARD_AD_REWARD, SHARD_ADS_PER_DAY, SHARDS_PER_BOSS } from "../state/progression";
+import { BOSS_NAME, getEnemyKind, getStageCode } from "../state/stages";
+import type { GameState, Outfit } from "../types";
 
 // Each entry swaps the battle sprite to that companion's art and grants whichever of these
 // quirks apply for as long as it stays equipped.
@@ -195,7 +198,16 @@ export function CompanionsScreen({
   purchasedOutfits,
   onPurchase,
   onOpenShop,
+  progress,
+  onUpgrade,
+  shardAdsLeft,
+  onClaimShardAd,
 }: {
+  // 동료 승급 (state/progression.ts).
+  progress: Pick<GameState, "companionLevels" | "companionShards">;
+  onUpgrade: (outfit: Outfit) => void;
+  shardAdsLeft: number;
+  onClaimShardAd: () => void;
   equippedOutfit: Outfit;
   // Furthest stage reached (0-based) — companions join on arriving at their stage.
   highestStageNumber: number;
@@ -213,6 +225,7 @@ export function CompanionsScreen({
   const [previewWidth, setPreviewWidth] = useState(0);
   // A locked companion whose gem button was tapped: confirm before spending.
   const [buying, setBuying] = useState<Outfit | null>(null);
+  const [shardAdOpen, setShardAdOpen] = useState(false);
   const unlockedNow = COMPANIONS.filter((item) => isOutfitUnlocked(item.outfit, highestStageNumber, purchasedOutfits)).map((item) => item.outfit);
   // Unlocked since the last visit: their padlock breaks open this time.
   const [freshlyUnlocked] = useState(() => (outfitsSeen ? unlockedNow.filter((outfit) => !outfitsSeen.includes(outfit)) : []));
@@ -261,6 +274,17 @@ export function CompanionsScreen({
         </View>
       </Panel>
 
+      <Text style={styles.shardHint}>{`동료마다 전담 보스가 있어요. 그 보스를 쓰러뜨리면 조각 ${SHARDS_PER_BOSS}개를 얻어요.`}</Text>
+      <GameButton
+        variant={shardAdsLeft > 0 ? "green" : "gray"}
+        disabled={shardAdsLeft === 0}
+        onPress={() => setShardAdOpen(true)}
+        style={styles.shardAdButton}
+        textStyle={styles.equipButtonText}
+      >
+        {`광고 보고 ${equippedItem.name} 조각 +${SHARD_AD_REWARD} (오늘 ${shardAdsLeft}/${SHARD_ADS_PER_DAY})`}
+      </GameButton>
+
       <View style={styles.list}>
         {COMPANIONS.map((item) => {
           const equipped = item.outfit === equippedOutfit;
@@ -269,6 +293,11 @@ export function CompanionsScreen({
           const gemOnly = item.outfit in OUTFIT_GEM_PRICE;
           const locked = !equipped && !isOutfitUnlocked(item.outfit, highestStageNumber, purchasedOutfits);
           const affordable = gemPrice !== undefined && gems >= gemPrice;
+          const level = getCompanionLevel(progress, item.outfit);
+          const shards = getCompanionShards(progress, item.outfit);
+          const shardCost = getShardCost(level);
+          const maxed = level >= COMPANION_MAX_LEVEL;
+          const canUpgrade = !locked && !maxed && shards >= shardCost;
           return (
             <Panel slice={equipped ? kit.panel : kit.inset} style={styles.card} key={item.outfit}>
               <View>
@@ -294,6 +323,21 @@ export function CompanionsScreen({
                 <Text style={styles.cardBlurb}>{item.blurb}</Text>
                 <Text style={styles.cardSpan}>{item.detail}</Text>
                 <PartnerDishes outfit={item.outfit} />
+                <Text style={styles.shardSource}>
+                  {`조각: ${BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])]} (${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}스테이지 보스)`}
+                </Text>
+                {!locked && (
+                  <View style={styles.upgradeRow}>
+                    <Text style={styles.upgradeText}>
+                      {`Lv.${level} · 공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? " · 최고 레벨" : ` · 조각 ${shards}/${shardCost}`}`}
+                    </Text>
+                    {canUpgrade && (
+                      <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={`${item.name} 승급`}>
+                        승급
+                      </GameButton>
+                    )}
+                  </View>
+                )}
               </View>
               {locked && gemPrice !== undefined ? (
                 <GameButton
@@ -322,6 +366,17 @@ export function CompanionsScreen({
           );
         })}
       </View>
+      {shardAdOpen && (
+        <RewardedAdModal
+          message={`지금은 광고가 없네요. 그래도 조각 ${SHARD_AD_REWARD}개를 챙겨드릴게요.`}
+          claimLabel={`조각 ${SHARD_AD_REWARD}개 받기`}
+          onClaim={() => {
+            onClaimShardAd();
+            setShardAdOpen(false);
+          }}
+          onCancel={() => setShardAdOpen(false)}
+        />
+      )}
       {buying && (() => {
         const item = COMPANIONS.find((companion) => companion.outfit === buying)!;
         const price = getOutfitGemPrice(buying) ?? 0;
@@ -362,6 +417,12 @@ const styles = StyleSheet.create({
   previewSub: { marginTop: 5, color: "#f3d993", fontSize: 9, fontWeight: "800", fontFamily: fonts.bold },
   previewSprite: { flex: 1, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
   list: { gap: 8 },
+  shardHint: { marginBottom: 6, fontSize: 10, color: colors.brown, textAlign: "center" },
+  shardAdButton: { marginBottom: 12 },
+  shardSource: { marginTop: 3, fontSize: 8, color: colors.muted },
+  upgradeRow: { marginTop: 5, flexDirection: "row", alignItems: "center", gap: 6 },
+  upgradeText: { flexShrink: 1, fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  upgradeButton: { minWidth: 48 },
   swap: { alignItems: "center", justifyContent: "center" },
   puff: { position: "absolute", width: 36, height: 36, borderRadius: 18, backgroundColor: "#f3eee2" },
   breaking: { position: "absolute", right: 0, bottom: 0, width: 24, height: 24 },

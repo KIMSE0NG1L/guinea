@@ -7,7 +7,24 @@ import { LATEST_UPDATE } from "./updates";
 import { GLUTTON_FOOD_MULTIPLIER, INITIAL_SKILL_TIMERS, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
 import { applyRebirth, canRebirth } from "./rebirth";
-import { applyUpgradeLevels, getBossTimeLimitMs, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
+import {
+  addCompanionShards,
+  applyCompanionUpgrade,
+  COMPANION_ATTACK_PER_LEVEL,
+  countStars,
+  getCodexGoldBonus,
+  getCompanionLevel,
+  getCookbookAttackBonus,
+  getShardCompanion,
+  SHARDS_PER_BOSS,
+  SHARD_AD_REWARD,
+  SHARD_ADS_PER_DAY,
+  STAR_CLEAR,
+  STAR_FAST,
+  STAR_GEMS,
+  STAR_NO_FOOD,
+} from "./progression";
+import { applyUpgradeLevels, BOSS_PHASE_TWO_TIME_LIMIT_MS, getBossTimeLimitMs, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
@@ -23,6 +40,7 @@ import { playSfx } from "../sound";
 import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./offline";
 import {
   BOSS_SKILL_CHECKPOINTS,
+  ENRAGED_BOSS_SKILL_CHECKPOINTS,
   BOSS_SKILL_HEAL_RATIO,
   BOSS_SKILL_STUN_MS,
   getBossSkill,
@@ -112,6 +130,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const [defeatedGolden, setDefeatedGolden] = useState(false);
   // Bumped when a golden mid-boss falls, with what it paid, for the battle's reward toast.
   const [goldenReward, setGoldenReward] = useState<{ id: number; gold: number; gems: number } | null>(null);
+  // What the last boss cleared paid beyond its drops, for the battle's reward toast.
+  const [bossReward, setBossReward] = useState<{ id: number; stars: number; gems: number; companion: string | null } | null>(null);
   const [defeatedStrayKind, setDefeatedStrayKind] = useState<EnemyKind | null>(null);
   const [defeatedBoss, setDefeatedBoss] = useState(false);
   // When the current boss fight started (wall-clock) and how long it gets before the boss
@@ -172,10 +192,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const foodBuffs = getBuffTotals(buffSlots, now, state.equippedOutfit);
   const outfitBuff = OUTFIT_BUFFS[state.equippedOutfit];
   const buffs = {
-    attack: foodBuffs.attack + (outfitBuff?.attack ?? 0),
+    attack: foodBuffs.attack + (outfitBuff?.attack ?? 0) + getCompanionLevel(state, state.equippedOutfit) * COMPANION_ATTACK_PER_LEVEL + getCookbookAttackBonus(state.cookedRecipes),
     criticalChance: foodBuffs.criticalChance + (outfitBuff?.criticalChance ?? 0),
     criticalDamage: foodBuffs.criticalDamage + (outfitBuff?.criticalDamage ?? 0),
-    gold: foodBuffs.gold + (outfitBuff?.gold ?? 0),
+    gold: foodBuffs.gold + (outfitBuff?.gold ?? 0) + getCodexGoldBonus(state.droppedItems),
   };
   // Ingredient drops currently flying from the defeated monster into the bag button.
   const [dropEvents, setDropEvents] = useState<DropEvent[]>([]);
@@ -258,7 +278,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         // in the bag as a dish was clearly cooked, so that's the starting page count.
         const cookedRecipes =
           save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
-        let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, skillTutorialDone, upgradeTutorialDone, discoveredItems, cookedRecipes };
+        let loadedState: GameState = { ...save.state, equippedOutfit, equippedSkill, inventory, questClaimed, knownRecipes, recipeTutorialDone, skillTutorialDone, upgradeTutorialDone, discoveredItems, droppedItems: save.state.droppedItems ?? discoveredItems, cookedRecipes };
         // The game is running again from now on — so a reload (which never fires the
         // background event below) can't hand the same offline stretch out a second time.
         lastSeenAtRef.current = Date.now();
@@ -461,6 +481,18 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     if (wasMiniBoss) setMiniBoss(false);
     // How long the boss fight ran (from the tap that started it), for the fastest-boss record.
     const bossFightMs = boss && bossClockStartRef.current !== null ? Date.now() - bossClockStartRef.current : null;
+    // The stage's stars: the clear itself, the enraged boss inside half its full clock (a retry
+    // after an ad runs a shorter clock, and doesn't count), and no food running.
+    const beatTheClock = bossFightMs !== null && bossTimeLimitMs === BOSS_PHASE_TWO_TIME_LIMIT_MS && bossFightMs <= BOSS_PHASE_TWO_TIME_LIMIT_MS / 2;
+    const foodRunning = (state.buffSlots ?? []).some((slot) => slot !== null && slot.expiresAt > Date.now());
+    const earnedStars = boss ? STAR_CLEAR | (beatTheClock ? STAR_FAST : 0) | (foodRunning ? 0 : STAR_NO_FOOD) : 0;
+    if (boss) {
+      const stars = countStars(earnedStars & ~(state.stageStars?.[String(state.stageNumber)] ?? 0));
+      const shardCompanion = getShardCompanion(state.stageNumber);
+      if (stars > 0 || shardCompanion) {
+        setBossReward((previous) => ({ id: (previous?.id ?? 0) + 1, stars, gems: stars * STAR_GEMS, companion: shardCompanion ? OUTFIT_NAMES[shardCompanion] : null }));
+      }
+    }
     if (boss) endBossFight();
     // What comes next: a mid-boss whenever one is owed (every MINI_BOSS_EVERY mobs, and one
     // more straight away if a save carried in more kills than mid-bosses beaten), else the
@@ -561,10 +593,16 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       const stageNumber = boss ? (previous.stageNumber >= LAST_STAGE_NUMBER ? 0 : previous.stageNumber + 1) : previous.stageNumber;
       // Saves from before the milestone map have no record — what they're on is the floor.
       const highestStageNumber = Math.max(previous.highestStageNumber ?? previous.stageNumber, stageNumber);
+      const starKey = String(previous.stageNumber);
+      const starsBefore = previous.stageStars?.[starKey] ?? 0;
+      const starGems = countStars(earnedStars & ~starsBefore) * STAR_GEMS;
+      const shardOwner = boss ? getShardCompanion(previous.stageNumber) : undefined;
+      const withShard = shardOwner ? addCompanionShards(previous, shardOwner, SHARDS_PER_BOSS) : previous;
       return {
-        ...previous,
+        ...withShard,
+        stageStars: boss ? { ...previous.stageStars, [starKey]: starsBefore | earnedStars } : previous.stageStars,
         gold: previous.gold + creditedGold + goldenGold,
-        gems: previous.gems + (wasGolden ? GOLDEN_GEMS : 0),
+        gems: previous.gems + (wasGolden ? GOLDEN_GEMS : 0) + starGems,
         giftKills: gift ? Math.max(0, (previous.giftKills ?? 0) - 1) : previous.giftKills,
         bossesCleared: paysFirstClear ? [...cleared, previous.stageNumber] : previous.bossesCleared,
         stageKillsSaved: boss && previous.stageKillsSaved?.[String(previous.stageNumber)] ? { ...previous.stageKillsSaved, [String(previous.stageNumber)]: 0 } : previous.stageKillsSaved,
@@ -572,6 +610,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         records: bossFightMs !== null && bossFightMs < (previous.records?.fastestBossMs ?? Infinity) ? { ...previous.records, fastestBossMs: bossFightMs } : previous.records,
         inventory: holdLoot ? previous.inventory : addItems(previous.inventory, drops),
         discoveredItems: holdLoot ? previous.discoveredItems : discover(previous.discoveredItems, drops.map((drop) => drop.name)),
+        droppedItems: holdLoot ? previous.droppedItems : discover(previous.droppedItems, drops.map((drop) => drop.name)),
         kills,
         currentStage: boss ? getStageLabel(stageNumber) : previous.currentStage,
         stageNumber,
@@ -584,7 +623,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, bossPhase, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
+  }, [boss, bossPhase, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained, bossTimeLimitMs, state.buffSlots, state.stageStars]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -795,7 +834,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   useEffect(() => {
     if (!boss || bossPhase !== 2 || bossTimerStartedAt !== null || bossRetryAvailable || battle.phase === "defeated") return;
     const timer = setTimeout(() => {
-      setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber));
+      setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber, 2));
       setBossTimerStartedAt(Date.now());
       setNow(Date.now());
     }, 0);
@@ -843,6 +882,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     resolved: [],
     synced: false,
   });
+  const bossSkillCheckpoints = bossPhase === 2 ? ENRAGED_BOSS_SKILL_CHECKPOINTS : BOSS_SKILL_CHECKPOINTS;
   useEffect(() => {
     const plan = bossSkillPlanRef.current;
     if (boss && bossTimerStartedAt !== null && plan.startedAt !== bossTimerStartedAt) {
@@ -853,7 +893,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       // A retry-after-ad (same enemy, new bossTimerStartedAt — see freshSpawn's own comment
       // above) picks the same fight back up: checkpoints it already used stay used, or every
       // failed attempt would hand back up to 3 fresh skill rolls for free.
-      if (freshSpawn) plan.resolved = BOSS_SKILL_CHECKPOINTS.map(() => false);
+      if (freshSpawn) plan.resolved = bossSkillCheckpoints.map(() => false);
       plan.synced = !freshSpawn;
     }
     if (plan.startedAt === null || plan.enemyId !== battle.enemyId) return;
@@ -863,7 +903,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     }
     if (battle.enemyHp <= 0) return;
     let castIndex = -1;
-    BOSS_SKILL_CHECKPOINTS.forEach((checkpoint, index) => {
+    bossSkillCheckpoints.forEach((checkpoint, index) => {
       if (plan.resolved[index] || battle.enemyHp > plan.maxHp * checkpoint.hpRatio) return;
       plan.resolved[index] = true;
       if (castIndex === -1 && Math.random() < checkpoint.chance) castIndex = index;
@@ -889,7 +929,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     }, 0);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boss, bossTimerStartedAt, state.stageNumber, battle.enemyHp, battle.enemyId, enemyMaxHp]);
+  }, [boss, bossPhase, bossTimerStartedAt, state.stageNumber, battle.enemyHp, battle.enemyId, enemyMaxHp]);
 
   // Tapping on past the stage-clear banner is the one place an interstitial may show, and only
   // gently: after the tutorial and the first INTERSTITIAL_GRACE_MS of play, at most
@@ -945,9 +985,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setBossRetryAvailable(false);
     // Same enemy, a fresh but shorter window (BOSS_RETRY_TIME_RATIO) — no entrance banner.
     setBossTimerStartedAt(Date.now());
-    setBossTimeLimitMs(Math.round(getBossTimeLimitMs(state.stageNumber) * BOSS_RETRY_TIME_RATIO));
+    setBossTimeLimitMs(Math.round(getBossTimeLimitMs(state.stageNumber, bossPhase) * BOSS_RETRY_TIME_RATIO));
     setNow(Date.now());
-  }, [bossRetryAvailable, state.stageNumber]);
+  }, [bossRetryAvailable, state.stageNumber, bossPhase]);
 
   // Whether the boss sprite is actually on screen — lags `boss` by the death clip on both
   // ends. The 25th regular-mob kill flips `boss` true immediately (so the next spawn is
@@ -1170,11 +1210,11 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const buyMissingAndCook = (recipeId: string): "ok" | "gold" | "unavailable" => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     if (!recipe) return "unavailable";
-    const shortfall = getShortfall(state.inventory, recipe.ingredients, foodBuffs.groceryDiscount);
+    const shortfall = getShortfall(state.inventory, recipe.ingredients, foodBuffs.groceryDiscount, state.highestStageNumber ?? state.stageNumber);
     if (!shortfall) return "unavailable";
     if (state.gold < shortfall.cost) return "gold";
     setState((previous) => {
-      const missing = getShortfall(previous.inventory, recipe.ingredients, foodBuffs.groceryDiscount);
+      const missing = getShortfall(previous.inventory, recipe.ingredients, foodBuffs.groceryDiscount, previous.highestStageNumber ?? previous.stageNumber);
       if (!missing || previous.gold < missing.cost) return previous;
       const stocked: GameState = {
         ...previous,
@@ -1274,7 +1314,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       if (count === 0) return previous;
       return {
         ...previous,
-        gold: previous.gold + getSellPrice(name) * count,
+        gold: previous.gold + getSellPrice(name, previous.highestStageNumber ?? previous.stageNumber) * count,
         inventory: previous.inventory
           .map((entry) => (entry === item ? { ...entry, quantity: entry.quantity - count } : entry))
           .filter((entry) => entry.quantity > 0),
@@ -1460,6 +1500,17 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     },
     bossEnraged: boss && bossPhase === 2 && battle.phase !== "defeated",
     rebirth,
+    // Held back while the first-clear celebration covers the screen.
+    bossReward: firstClear ? null : bossReward,
+    upgradeCompanion: (outfit: Outfit) => setState((previous) => applyCompanionUpgrade(previous, outfit)),
+    shardAdsLeft: Math.max(0, SHARD_ADS_PER_DAY - (state.shardAds?.day === todayKey() ? state.shardAds.count : 0)),
+    claimShardAd: () =>
+      setState((previous) => {
+        const day = todayKey();
+        const count = previous.shardAds?.day === day ? previous.shardAds.count : 0;
+        if (count >= SHARD_ADS_PER_DAY) return previous;
+        return { ...addCompanionShards(previous, previous.equippedOutfit, SHARD_AD_REWARD), shardAds: { day, count: count + 1 } };
+      }),
     claimFirstClearGems,
     levelUpAnnouncement,
     levelUpAttackGain,
@@ -1515,6 +1566,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           ...previous,
           inventory: addItems(previous.inventory, items),
           discoveredItems: discover(previous.discoveredItems, items.map((item) => item.name)),
+          droppedItems: discover(previous.droppedItems, items.map((item) => item.name)),
           giftLootExplained: true,
         }));
       }, LOOT_FLIGHT_MS + 300);

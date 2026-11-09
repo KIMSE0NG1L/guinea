@@ -9,6 +9,7 @@ import { Panel } from "../components/NineSlice";
 import { MonsterCodex } from "../components/MonsterCodex";
 import { IconCaption } from "../components/IconCaption";
 import { BOSS_NAME, ENEMY_NAME, getStageCode, STAGES } from "../state/stages";
+import { countStars, STAR_GEMS } from "../state/progression";
 
 type Page = "map" | "monsters";
 
@@ -28,7 +29,10 @@ export function MilestoneScreen({
   onOpenRebirth,
   codexStageNumber,
   runNumber,
+  stageStars,
 }: {
+  // Each stage's stars (STAR_* bits in state/progression.ts).
+  stageStars: Record<string, number> | undefined;
   stageNumber: number;
   highestStageNumber: number;
   // Furthest stage shown last visit (undefined = never tracked), and the report on leaving.
@@ -102,6 +106,7 @@ export function MilestoneScreen({
         <MonsterCodex highestStageNumber={codexStageNumber} />
       ) : (
       <View style={styles.list}>
+        <Text style={styles.starGuide}>{`★ 보스 처치 · ★ 분노한 보스를 40초 안에 처치 · ★ 음식 없이 처치 (별마다 보석 ${STAR_GEMS}개)`}</Text>
         {STAGES.map((stage, index) => {
           const current = index === stageNumber;
           const unlocked = index <= highestStageNumber;
@@ -120,6 +125,7 @@ export function MilestoneScreen({
                   <View style={styles.titleRow}>
                     <Text style={styles.cardStrong}>{stage.area}</Text>
                     {cleared && <WavingStar delay={index * 120} />}
+                    {unlocked && <Text style={styles.stars} accessibilityLabel={`별 ${countStars(stageStars?.[String(index)] ?? 0)}개`}>{"★".repeat(countStars(stageStars?.[String(index)] ?? 0)) + "☆".repeat(3 - countStars(stageStars?.[String(index)] ?? 0))}</Text>}
                   </View>
                   <Text style={styles.cardSpan}>{unlocked ? stage.story : "이전 스테이지 보스를 처치하세요"}</Text>
                   {unlocked && (
@@ -205,6 +211,8 @@ const styles = StyleSheet.create({
   toggleIcon: { width: 46, height: 46 },
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
   list: {},
+  starGuide: { marginBottom: 8, fontSize: 9, color: colors.brown, textAlign: "center" },
+  stars: { fontSize: 11, color: colors.gold },
   card: {
     paddingHorizontal: 13,
     paddingTop: 11,

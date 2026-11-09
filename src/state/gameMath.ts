@@ -108,8 +108,11 @@ export function getExpReward(stageNumber: number, boss: boolean) {
 // the moment each boss spawns.
 export const BOSS_TIME_LIMIT_MS = 160_000;
 
-export function getBossTimeLimitMs(_stageNumber: number) {
-  return BOSS_TIME_LIMIT_MS;
+// The enraged second phase runs on a shorter clock of its own.
+export const BOSS_PHASE_TWO_TIME_LIMIT_MS = 80_000;
+
+export function getBossTimeLimitMs(_stageNumber: number, phase: 1 | 2 = 1) {
+  return phase === 2 ? BOSS_PHASE_TWO_TIME_LIMIT_MS : BOSS_TIME_LIMIT_MS;
 }
 
 // A `base * rate^n`-style exponential, left alone below `safeN` steps but switched to a

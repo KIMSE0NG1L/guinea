@@ -12,7 +12,7 @@ import { useBumpOnChange, useShake } from "../components/motion";
 import { Panel } from "../components/NineSlice";
 import { ShopHero, ShopTopBar, useShopTalk } from "../components/ShopScene";
 import { applyDiscount } from "../state/cooking";
-import { GROCERY, type GroceryCategory } from "../state/grocery";
+import { getGroceryPrice, GROCERY, isGroceryAvailable, type GroceryCategory } from "../state/grocery";
 import { getItemQuantity, ITEM_IMAGES } from "../state/recipes";
 import { CoinPrice } from "../components/CoinPrice";
 import type { GameState } from "../types";
@@ -49,9 +49,12 @@ export function GroceryScreen({
   gold,
   onBuy,
   discount,
+  stageNumber,
   onBack,
   onOpenRecipes,
 }: {
+  // The stage prices are set by (see getGroceryPrice).
+  stageNumber: number;
   inventory: GameState["inventory"];
   gold: number;
   onBuy: (name: string, price: number) => "ok" | "gold" | "full";
@@ -88,7 +91,7 @@ export function GroceryScreen({
 
   // Typing searches every category at once, so a tab can't hide what you're looking for.
   const [query, setQuery] = useState("");
-  const items = GROCERY.filter((item) => (query.trim() ? matchesSearch(query, item.name) : filter === "all" || item.category === filter));
+  const items = GROCERY.filter((item) => isGroceryAvailable(item.name, stageNumber)).filter((item) => (query.trim() ? matchesSearch(query, item.name) : filter === "all" || item.category === filter));
 
   return (
     <View style={styles.page}>
@@ -117,10 +120,10 @@ export function GroceryScreen({
           <GroceryCard
             key={item.name}
             name={item.name}
-            price={applyDiscount(item.price, discount)}
+            price={applyDiscount(getGroceryPrice(item.name, stageNumber), discount)}
             owned={getItemQuantity(inventory, item.name)}
             gold={gold}
-            onBuy={() => buy(item.name, item.price)}
+            onBuy={() => buy(item.name, getGroceryPrice(item.name, stageNumber))}
           />
         ))}
       </View>
