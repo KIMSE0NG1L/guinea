@@ -9,7 +9,7 @@
     "ios": {
       "bundleIdentifier": "com.guinea.adventure",
       "supportsTablet": true,
-      "buildNumber": "6",
+      "buildNumber": "7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -21,7 +21,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.guinea.adventure",
-      "versionCode": 6
+      "versionCode": 7
     },
     "web": {
       "favicon": "./assets/app-icon.png"
