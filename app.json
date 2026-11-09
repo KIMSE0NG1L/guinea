@@ -64,6 +64,12 @@
       "expo-audio",
       "expo-asset",
       [
+        "expo-notifications",
+        {
+          "color": "#3D4F27"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#FCEFC7",

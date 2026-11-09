@@ -1,7 +1,9 @@
 import type { RecipeTier } from "./recipeTiers";
 
-// `fast`: started under a cook-speed buff (the pot shows a ⚡).
-export type CookingPot = { recipeId: string; startedAt: number; readyAt: number; fast?: boolean } | null;
+// `fast`: started under a cook-speed buff (the pot shows a ⚡). `notificationId`: the local
+// notification scheduled for readyAt (see src/notifications.ts) — missing until that async
+// schedule call resolves, and read back only to cancel it if the pot's rushed early.
+export type CookingPot = { recipeId: string; startedAt: number; readyAt: number; fast?: boolean; notificationId?: string } | null;
 
 const MINUTE = 60 * 1000;
 

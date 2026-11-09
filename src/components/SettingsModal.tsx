@@ -5,6 +5,7 @@ import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { VolumeSlider } from "./VolumeSlider";
 import { playSfx, setBgmVolume, setSfxVolume, useBgmVolume, useSfxVolume } from "../sound";
+import { playHaptic, setHapticsEnabled, useHapticsEnabled } from "../haptics";
 
 export function SettingsModal({
   onSkipToBoss,
@@ -40,6 +41,7 @@ export function SettingsModal({
 }) {
   const sfxVolume = useSfxVolume();
   const bgmVolume = useBgmVolume();
+  const hapticsEnabled = useHapticsEnabled();
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
@@ -67,6 +69,22 @@ export function SettingsModal({
             <View style={styles.sliderWrap}>
               <VolumeSlider value={bgmVolume} accessibilityLabel="배경음 음량" onChange={setBgmVolume} />
             </View>
+          </View>
+          <View style={[styles.sfxRow, styles.bgmRow]}>
+            <Text style={styles.sfxLabel}>진동</Text>
+            <GameButton
+              variant={hapticsEnabled ? "green" : "beige"}
+              onPress={() => {
+                const next = !hapticsEnabled;
+                setHapticsEnabled(next);
+                playSfx("uiToggle");
+                if (next) playHaptic("claim");
+              }}
+              style={styles.hapticButton}
+              textStyle={styles.hapticButtonText}
+            >
+              {hapticsEnabled ? "켜짐" : "꺼짐"}
+            </GameButton>
           </View>
           <View style={styles.list}>
             {(
@@ -231,6 +249,8 @@ const styles = StyleSheet.create({
   bgmRow: { marginTop: 10 },
   sfxLabel: { fontSize: 13, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   sliderWrap: { width: 140 },
+  hapticButton: { minHeight: 28, paddingHorizontal: 16 },
+  hapticButtonText: { fontSize: 11 },
   list: { marginTop: 16, width: "100%", gap: 8 },
   button: { width: "100%" },
 });

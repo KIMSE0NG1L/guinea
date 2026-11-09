@@ -103,15 +103,15 @@ const styles = StyleSheet.create({
 // Named looks for a scene's ambience (the battle picks one per stage — see BattleScene).
 export type MotePreset = "dust" | "spores" | "sand" | "embers" | "bubbles" | "snow" | "petals" | "leaves" | "fireflies" | "magic" | "honey";
 export const MOTE_PRESETS: Record<MotePreset, { count: number; colors: [string, string]; opacity: number; fall?: boolean; fireflies?: boolean; scale?: number }> = {
-  dust: { count: 10, colors: ["#fff1c9", "#ffd27a"], opacity: 0.5 },
-  spores: { count: 12, colors: ["#e6f7b8", "#b8e07a"], opacity: 0.55 },
-  sand: { count: 12, colors: ["#f6e2b0", "#e8c27a"], opacity: 0.5, scale: 0.8 },
-  embers: { count: 14, colors: ["#ffb060", "#ff6a3a"], opacity: 0.75 },
-  bubbles: { count: 10, colors: ["#dff4ff", "#9fd8ff"], opacity: 0.55, scale: 1.6 },
+  dust: { count: 20, colors: ["#fff1c9", "#ffd27a"], opacity: 0.5 },
+  spores: { count: 22, colors: ["#e6f7b8", "#b8e07a"], opacity: 0.55 },
+  sand: { count: 22, colors: ["#f6e2b0", "#e8c27a"], opacity: 0.5, scale: 0.8 },
+  embers: { count: 24, colors: ["#ffb060", "#ff6a3a"], opacity: 0.75 },
+  bubbles: { count: 20, colors: ["#dff4ff", "#9fd8ff"], opacity: 0.55, scale: 1.6 },
   snow: { count: 16, colors: ["#ffffff", "#e6f2ff"], opacity: 0.8, fall: true, scale: 1.2 },
   petals: { count: 12, colors: ["#ffd0e2", "#ff9ac0"], opacity: 0.75, fall: true, scale: 1.4 },
   leaves: { count: 10, colors: ["#b8e07a", "#7cc24a"], opacity: 0.65, fall: true, scale: 1.4 },
-  fireflies: { count: 8, colors: ["#f4ff9a", "#c8ff6a"], opacity: 0.75, fireflies: true },
-  magic: { count: 12, colors: ["#e2c4ff", "#b07aff"], opacity: 0.65 },
-  honey: { count: 12, colors: ["#ffe27a", "#ffb020"], opacity: 0.6 },
+  fireflies: { count: 16, colors: ["#f4ff9a", "#c8ff6a"], opacity: 0.75, fireflies: true },
+  magic: { count: 22, colors: ["#e2c4ff", "#b07aff"], opacity: 0.65 },
+  honey: { count: 22, colors: ["#ffe27a", "#ffb020"], opacity: 0.6 },
 };

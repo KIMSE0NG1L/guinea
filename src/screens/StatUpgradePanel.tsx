@@ -80,6 +80,9 @@ function StatRow({
   const quote = getUpgradeQuote(key, level, state.gold, upgradeMode, value);
   const nextValue = applyUpgradeLevels(key, value, quote.levels);
   const suffix = key === "attack" ? "" : "%";
+  // 공격력 only: formatGameNumber shows up to 3 decimals under 1000 — too noisy here,
+  // capped to 1 instead of switching every other screen that reads attack.
+  const formatStat = (n: number) => (key === "attack" ? n.toLocaleString("ko-KR", { maximumFractionDigits: 1 }) : formatGameNumber(n));
   const atCap = STAT_CAP[key] !== undefined && getStatValue(state, key) >= STAT_CAP[key]!;
   const affordable = quote.levels > 0 && state.gold >= quote.cost;
   const short = !atCap && !affordable;
@@ -100,7 +103,7 @@ function StatRow({
     onUpgrade(key);
     flashIcon();
     const id = ++gainId.current;
-    setGains((current) => [...current.slice(-3), { id, text: `+${formatGameNumber(latest.gain)}${suffix}` }]);
+    setGains((current) => [...current.slice(-3), { id, text: `+${formatStat(latest.gain)}${suffix}` }]);
     setTimeout(() => setGains((current) => current.filter((gain) => gain.id !== id)), 800);
   };
   // Holding only keeps buying while it can — running dry just stops, no rattling.
@@ -117,14 +120,14 @@ function StatRow({
         </Panel>
         <View style={styles.rowCopy}>
           <Text style={styles.rowSmall}>Lv. {formatGameNumber(level)} · {info.label}</Text>
-          <Text style={styles.rowValue}>{formatGameNumber(value)}{suffix}</Text>
+          <Text style={styles.rowValue}>{formatStat(value)}{suffix}</Text>
           {gains.map((gain) => (
             <FloatText key={gain.id} text={gain.text} style={styles.gainFloat} />
           ))}
         </View>
         <View style={styles.gain}>
           <Text style={styles.gainSmall}>다음</Text>
-          <Text style={styles.gainValue}>{formatGameNumber(nextValue)}{suffix}</Text>
+          <Text style={styles.gainValue}>{formatStat(nextValue)}{suffix}</Text>
         </View>
         {/* Short of gold looks just like a maxed-out stat: the same faded button (it stays
             pressable so a tap still gives the "can't afford" shake). */}

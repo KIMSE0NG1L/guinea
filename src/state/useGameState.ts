@@ -36,6 +36,8 @@ import { GROCERY, getSellPrice, getShortfall } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
 import { AD_RUSHES_PER_DAY, COOK_TIME_MS, applyDiscount, getCookingPots, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
+import { playHaptic } from "../haptics";
+import { cancelCookReadyNotification, scheduleCookReadyNotification } from "../notifications";
 import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./offline";
 import {
   BOSS_SKILL_CHECKPOINTS,
@@ -405,6 +407,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     if (state.level > previousLevelRef.current) {
       setLevelUpAnnouncement(state.level);
       playSfx("levelup");
+      playHaptic("claim");
       // Held longer when something unlocks, so its toast can actually be read. The plain
       // case holds a bit past when LevelUpBurst's own fade-out finishes (~1.25s in, see
       // its contentOpacity timeline) so the component unmounts only once it's already
@@ -1179,15 +1182,20 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // Spends the recipe's ingredients from the bag and adds one of the dish.
   // Puts a dish on to simmer in the first free pot — the ingredients go in now, the dish
   // comes out once its tier's cook time has passed (see collectDish).
-  // The state with `recipe` simmering in the first free pot, or `previous` unchanged when it
-  // can't start (not known, ingredients short, no free pot).
-  function startCookingIn(previous: GameState, recipe: (typeof RECIPES)[number]): GameState {
-    if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return previous;
+  // Null when it can't start (not known, ingredients short, no free pot); otherwise the
+  // updated state plus what the pot's readyAt actually came out to, for armCookNotification
+  // (`startedAt` is passed in rather than read with Date.now() here, so a caller's own preview
+  // call and its real setState call agree on the exact same readyAt down to the millisecond).
+  function startCookingIn(
+    previous: GameState,
+    recipe: (typeof RECIPES)[number],
+    startedAt: number,
+  ): { state: GameState; readyAt: number } | null {
+    if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return null;
     const pots = getCookingPots(previous.cookingPots);
     const potIndex = pots.findIndex((pot, index) => index < getPotsUnlocked(previous.potsUnlocked) && !pot);
-    if (potIndex < 0) return previous;
+    if (potIndex < 0) return null;
     const inTutorial = previous.tutorialDone && !previous.recipeTutorialDone && recipe.id === "green-jelly";
-    const startedAt = Date.now();
     // cookSpeed shortens it (never below a quarter); ingredientSave may spare one of each.
     const cookTime = COOK_TIME_MS[recipe.tier] * Math.max(0.25, 1 - foodBuffs.cookSpeed / 100);
     const readyAt = startedAt + (inTutorial ? TUTORIAL_COOK_MS : cookTime);
@@ -1199,16 +1207,41 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       })),
     };
     return {
-      ...previous,
-      inventory: consumeIngredients(previous.inventory, used),
-      cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt, fast: foodBuffs.cookSpeed > 0 } : pot)),
+      state: {
+        ...previous,
+        inventory: consumeIngredients(previous.inventory, used),
+        cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt, fast: foodBuffs.cookSpeed > 0 } : pot)),
+      },
+      readyAt,
     };
+  }
+
+  // Schedules the "다 됐어요!" local notification for a pot that just started, then — once
+  // that resolves — stamps the pot with the notification's id so a later rush can cancel it.
+  // Reads the pot back by recipeId+readyAt rather than potIndex: by the time this resolves,
+  // pots may have moved (another one collected/started), but that exact (recipeId, readyAt)
+  // pair only ever belongs to this one.
+  function armCookNotification(recipeId: string, readyAt: number) {
+    const recipe = RECIPES.find((item) => item.id === recipeId);
+    if (!recipe) return;
+    scheduleCookReadyNotification(recipe.name, readyAt).then((notificationId) => {
+      if (!notificationId) return;
+      setState((previous) => {
+        const pots = getCookingPots(previous.cookingPots);
+        const index = pots.findIndex((pot) => pot?.recipeId === recipeId && pot.readyAt === readyAt);
+        if (index < 0) return previous; // already collected/rushed before this resolved
+        return { ...previous, cookingPots: pots.map((pot, i) => (i === index ? { ...pot!, notificationId } : pot)) };
+      });
+    });
   }
 
   const cook = (recipeId: string) => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     if (!recipe) return;
-    setState((previous) => startCookingIn(previous, recipe));
+    const startedAt = Date.now();
+    const preview = startCookingIn(state, recipe, startedAt);
+    setState((previous) => startCookingIn(previous, recipe, startedAt)?.state ?? previous);
+    if (preview) armCookNotification(recipeId, preview.readyAt);
   };
 
   // "재료 사서 요리": pays the grocery for whatever the bag is short of (getShortfall) and
@@ -1220,6 +1253,19 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     const shortfall = getShortfall(state.inventory, recipe.ingredients, foodBuffs.groceryDiscount, priceStage);
     if (!shortfall) return "unavailable";
     if (state.gold < shortfall.cost) return "gold";
+    const startedAt = Date.now();
+    // Mirrors the setState updater below, but against the current `state` instead of
+    // `previous` — React may not actually run that updater until the next render, so a value
+    // can't be read back out of it (see the file's other eager-precheck + recheck-inside-
+    // setState pairs, e.g. unlockPot below, which never try to either, only ever reading
+    // `state` up front for anything the caller needs back right away).
+    const stockedPreview: GameState = {
+      ...state,
+      gold: state.gold - shortfall.cost,
+      inventory: addItems(state.inventory, shortfall.items),
+      discoveredItems: discover(state.discoveredItems, shortfall.items.map((item) => item.name)),
+    };
+    const preview = startCookingIn(stockedPreview, recipe, startedAt);
     setState((previous) => {
       const missing = getShortfall(
         previous.inventory,
@@ -1234,9 +1280,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         inventory: addItems(previous.inventory, missing.items),
         discoveredItems: discover(previous.discoveredItems, missing.items.map((item) => item.name)),
       };
-      const started = startCookingIn(stocked, recipe);
-      return started === stocked ? previous : started;
+      return startCookingIn(stocked, recipe, startedAt)?.state ?? previous;
     });
+    if (preview) armCookNotification(recipeId, preview.readyAt);
     return "ok";
   };
 
@@ -1260,6 +1306,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       Math.random() * 100 < foodBuffs.greatSuccess &&
       fitItems(state.inventory, [{ name: recipe.name, quantity: 2 }], getBagCapacity(state.bagExpansions)).overflow.length === 0;
     const count = great ? 2 : 1;
+    // Finishing early leaves its notification still pending for a dish that's about to be
+    // gone — cancel it. A natural (non-rush) collect never gets here before its own
+    // readyAt, so that notification's either already fired or is about to on its own.
+    if (rush && pot.notificationId) cancelCookReadyNotification(pot.notificationId);
     setState((previous) => {
       const pots = getCookingPots(previous.cookingPots);
       if (pots[potIndex]?.recipeId !== recipe.id || previous.gems < rushCost) return previous;
@@ -1419,6 +1469,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       };
     });
     playSfx("levelup");
+    playHaptic("claim");
   };
 
   const eatDish = (slotIndex: number, recipeId: string) => {
@@ -1461,6 +1512,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
 
   // Wipes the save and every piece of in-memory battle state, back to a brand-new game.
   const resetSave = async () => {
+    // Any pot still simmering has a notification waiting for a dish this save is about to
+    // lose — cancel every one of them rather than let them fire into whatever comes next.
+    getCookingPots(state.cookingPots).forEach((pot) => cancelCookReadyNotification(pot?.notificationId));
     await clearSave();
     lastSeenAtRef.current = undefined;
     setOfflineSummary(null);

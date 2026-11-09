@@ -14,6 +14,7 @@ import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
 import { colors, fonts } from "../theme";
 import { chef, icons } from "../assets";
 import { playSfx } from "../sound";
+import { playHaptic } from "../haptics";
 import { StrokedText } from "./StrokedText";
 
 const STAGE = 260; // square the burst radiates within, centered on the chef
@@ -74,6 +75,7 @@ export function CookCompleteBurst({
 
   useEffect(() => {
     playSfx("levelup");
+    playHaptic("claim");
     fade.value = withSequence(
       withTiming(1, { duration: 140 }),
       withDelay(SHOW_MS - 420, withTiming(0, { duration: 280, easing: Easing.in(Easing.quad) })),

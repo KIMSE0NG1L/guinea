@@ -13,6 +13,7 @@ import { FlightLayer, launchFlight } from "./FlightLayer";
 import { measureTarget, tutorialRef } from "./tutorialTargets";
 import { useBumpOnChange, useRollingNumber } from "./motion";
 import { playSfx } from "../sound";
+import { playHaptic } from "../haptics";
 
 export function QuestModal({
   state,
@@ -60,6 +61,7 @@ export function QuestModal({
           onClaim(quest.id);
           setClaiming(null);
           playSfx("levelup");
+          playHaptic("claim");
         }, 450);
       }),
     );
@@ -83,6 +85,7 @@ export function QuestModal({
           claimable.forEach((quest) => onClaim(quest.id));
           setClaiming(null);
           playSfx("levelup");
+          playHaptic("claim");
         }, 500);
       }),
     );

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import type { BattlePhase } from "../types";
 import { getGoldReward } from "./gameMath";
 import { playSfx } from "../sound";
+import { playHaptic } from "../haptics";
 import {
   APPRENTICE_ATTACK_HIT_MS,
   APPRENTICE_ATTACK_INTERVAL_MS,
@@ -319,6 +320,7 @@ export function useAutoBattle({
   const dealDamage = useCallback((damage: number, critical: boolean) => {
     pushDamageEvent(damage, critical);
     playSfx(critical ? "crit" : "hit");
+    playHaptic(critical ? "crit" : "hit");
     if (isSkillActive(skillTimersRef.current, "steal", Date.now())) {
       const killGold = getGoldReward(attackRef.current, goldBonusRef.current, rewardHpRef.current, bossRef.current);
       const stolen = Math.round(killGold * STEAL_GOLD_RATIO * skillPowerRef.current);

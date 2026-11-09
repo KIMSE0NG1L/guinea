@@ -17,6 +17,7 @@ import { BossFleeBanner } from "../components/BossFleeBanner";
 import { BossEntranceBanner } from "../components/BossEntranceBanner";
 import { WITCH_SPELL_LIFE_MS, WITCH_TRAVEL_MS, WitchSpell } from "../components/WitchSpell";
 import { playSfx } from "../sound";
+import { playHaptic } from "../haptics";
 import { formatGameNumber } from "../state/gameMath";
 import { LevelUpBurst } from "../components/LevelUpBurst";
 import { ProgressBar } from "../components/ProgressBar";
@@ -219,6 +220,17 @@ const SHOUT_DURATION = getSkill("shout").durationMs ?? 0;
 // mob only some of the time, or the fast auto-battle kill-chain would pop a bubble over
 // every single death.
 const MOB_SPEECH_CHANCE = 0.45;
+
+// 연속 처치: a running count of regular-mob kills (a boss or mid-boss resets it — those get
+// their own toast already) since this scene last mounted. A banner pops only at these
+// widening milestones, then every KILL_STREAK_REPEAT past the last one — showing it on every
+// single kill would just be noise during fast auto-battle.
+const KILL_STREAK_MILESTONES = [5, 10, 20, 35, 50, 75, 100, 150, 200, 300, 500];
+const KILL_STREAK_REPEAT = 250;
+function isKillStreakMilestone(count: number) {
+  const last = KILL_STREAK_MILESTONES[KILL_STREAK_MILESTONES.length - 1];
+  return KILL_STREAK_MILESTONES.includes(count) || (count > last && (count - last) % KILL_STREAK_REPEAT === 0);
+}
 
 // Turns a skill's ever-increasing cast counter into what the scene should play:
 // - `id` is 0 for casts from before this scene mounted (e.g. before visiting another
@@ -452,6 +464,24 @@ export function BattleScene({
   const bossTimeRemainingMs = !boss ? 0 : bossTimerStartedAt === null ? (bossEntranceKey ? bossTimeLimitMs : 0) : Math.max(0, bossTimeLimitMs - (now - bossTimerStartedAt));
   const bossTimeProgress = boss && bossTimeLimitMs > 0 ? (bossTimeRemainingMs / bossTimeLimitMs) * 100 : 0;
   const bossSecondsLeft = Math.ceil(bossTimeRemainingMs / 1000);
+
+  // 연속 처치: bumps on every fresh transition into "defeated" for a regular mob (not a
+  // boss/mid-boss — see KILL_STREAK_MILESTONES above), popping a banner only at a milestone.
+  const killStreakRef = useRef(0);
+  const wasDefeatedRef = useRef(phase === "defeated");
+  const [streakMilestone, setStreakMilestone] = useState<{ id: number; count: number } | null>(null);
+  useEffect(() => {
+    if (boss || miniBoss) {
+      killStreakRef.current = 0;
+    } else if (phase === "defeated" && !wasDefeatedRef.current) {
+      const count = (killStreakRef.current += 1);
+      if (isKillStreakMilestone(count)) {
+        setStreakMilestone({ id: count, count });
+        playHaptic("streak");
+      }
+    }
+    wasDefeatedRef.current = phase === "defeated";
+  }, [phase, boss, miniBoss]);
 
   const { id: executeId } = useSkillEvent(rawExecuteId, 0);
   const { id: firstStrikeId } = useSkillEvent(rawFirstStrikeId, 0);
@@ -716,6 +746,7 @@ export function BattleScene({
           {bossFledKey > 0 && <BossFleeBanner key={bossFledKey} />}
           {goldenReward && <GoldenRewardToast key={goldenReward.id} gold={goldenReward.gold} gems={goldenReward.gems} />}
           {bossReward && <BossRewardToast key={bossReward.id} stars={bossReward.stars} gems={bossReward.gems} companion={bossReward.companion} />}
+          {streakMilestone && <KillStreakBanner key={streakMilestone.id} count={streakMilestone.count} />}
           {levelUpAnnouncement !== null && <UnlockToast key={`unlock-${levelUpAnnouncement}`} level={levelUpAnnouncement} />}
           {/* Same camera layer as the backdrop, so the two zoom as one picture. */}
           <Animated.View style={[StyleSheet.absoluteFill, styles.camLayer, styles.camFighters, camStyle]} pointerEvents="box-none">
@@ -1145,7 +1176,6 @@ function ApprenticeFollower({ attackId, attackKind, attackHitMs }: { attackId: n
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const bob = useSharedValue(0);
-  const punch = useSharedValue(1);
   const flash = useSharedValue(0);
   // The attackId this component has already played the flight/impact for — starts at
   // whatever attackId already was on mount, so remounting mid-game doesn't replay an old hit.
@@ -1157,7 +1187,7 @@ function ApprenticeFollower({ attackId, attackKind, attackHitMs }: { attackId: n
   }, []);
 
   // The one place x/y ever get set: ambient wandering normally, or — the moment attackId
-  // bumps — a detour to the enemy, a punch/flash timed to attackHitMs (matching
+  // bumps — a detour to the enemy, a flash (beam only) timed to attackHitMs (matching
   // useAutoBattle's own scheduled dealDamage), then straight back into wandering from there —
   // no pause sitting next to the enemy first, which used to read as a second, separate hit.
   useEffect(() => {
@@ -1179,7 +1209,6 @@ function ApprenticeFollower({ attackId, attackKind, attackHitMs }: { attackId: n
       x.value = withTiming(size.width * 0.74, { duration: travel, easing: Easing.out(Easing.quad) });
       y.value = withTiming(size.height * 0.5, { duration: travel, easing: Easing.out(Easing.quad) });
       timer = setTimeout(() => {
-        punch.value = withSequence(withTiming(1.5, { duration: 90, easing: Easing.out(Easing.quad) }), withTiming(1, { duration: 200 }));
         if (attackKind === "beam") flash.value = withSequence(withTiming(1, { duration: 60 }), withTiming(0, { duration: 220 }));
         wander();
       }, attackHitMs);
@@ -1195,7 +1224,7 @@ function ApprenticeFollower({ attackId, attackKind, attackHitMs }: { attackId: n
   }, [size.width, size.height, attackId]);
 
   const style = useAnimatedStyle(() => ({
-    transform: [{ translateX: x.value }, { translateY: y.value - bob.value * 6 }, { scale: punch.value }],
+    transform: [{ translateX: x.value }, { translateY: y.value - bob.value * 6 }],
   }));
   const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value }));
 
@@ -1464,6 +1493,27 @@ function BossRewardToast({ stars, gems, companion }: { stars: number; gems: numb
   );
 }
 
+// 연속 처치 milestone pop — same slot as the golden/boss toasts above (they never overlap:
+// this one's regular mobs only), punchier color so it doesn't read as a reward.
+function KillStreakBanner({ count }: { count: number }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.quad) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity: t.value < 0.12 ? t.value / 0.12 : t.value > 0.7 ? (1 - t.value) / 0.3 : 1,
+    transform: [{ scale: t.value < 0.12 ? 0.6 + t.value * 3.3 : 1 }],
+  }));
+  return (
+    <Animated.View style={[styles.goldenToast, style]} pointerEvents="none">
+      <StrokedText style={styles.streakToastTitle} strokeColor="#7a1f00" strokeWidth={2.5}>
+        {`${formatGameNumber(count)} 연속 처치!`}
+      </StrokedText>
+    </Animated.View>
+  );
+}
+
 // A golden one is washed gold instead, with no rage aura.
 function MiniBossRage({ size, boss, enemyKind, animation, restartKey, golden }: { size: number; boss: boolean; enemyKind: EnemyKind; animation: EnemyAnimation; restartKey: string; golden: boolean }) {
   const pulse = useSharedValue(0);
@@ -1654,6 +1704,7 @@ const styles = StyleSheet.create({
   goldenToast: { position: "absolute", top: 70, left: 0, right: 0, alignItems: "center", zIndex: 9 },
   bossRewardToast: { top: 24, zIndex: 40, elevation: 40 },
   goldenToastTitle: { color: "#ffe27a", fontSize: 22, fontWeight: "900", fontFamily: fonts.bold },
+  streakToastTitle: { color: "#ffb24a", fontSize: 20, fontWeight: "900", fontFamily: fonts.bold },
   goldenToastRow: { marginTop: 2, flexDirection: "row", alignItems: "center", gap: 4 },
   goldenToastIcon: { width: 18, height: 18, resizeMode: "contain" },
   goldenToastValue: { color: "#fff4bd", fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, marginRight: 6 },
