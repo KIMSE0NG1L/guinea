@@ -18,7 +18,9 @@ export const colors = {
 // Light is for the rare unweighted body copy.
 export const fonts = {
   bold: "Maplestory-Bold",
-  light: "Maplestory-Light",
+  // Thin text (descriptions, hints, small notes): 빙그레체, set with letterSpacing −3% of
+  // its fontSize (e.g. −0.36 at 12pt).
+  light: "Binggrae",
 };
 
 export const spacing = {

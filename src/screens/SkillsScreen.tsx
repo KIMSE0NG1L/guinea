@@ -126,10 +126,10 @@ const styles = StyleSheet.create({
   dimmed: { opacity: 0.35 },
   cardSmallLocked: { color: colors.red },
   cardCopy: { flex: 1 },
-  cardSmall: { color: colors.green, fontSize: 8, fontWeight: "900", fontFamily: fonts.bold },
+  cardSmall: { color: colors.green, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
   cardStrong: { marginVertical: 2, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  cardSpan: { color: colors.muted, fontSize: 9 },
+  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12 },
   buttons: { gap: 4 },
   equipButton: { minWidth: 56 },
-  equipButtonText: { fontSize: 9 },
+  equipButtonText: { fontSize: 12 },
 });

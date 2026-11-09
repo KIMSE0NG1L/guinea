@@ -1609,7 +1609,7 @@ const styles = StyleSheet.create({
   unlockText: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
   // Red tag on the bag's corner while new kinds of drops are being turned away.
   bagFull: { position: "absolute", top: -4, right: -6, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 7, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.line },
-  bagFullText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  bagFullText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   questDot: { position: "absolute", right: 3, top: 2, width: 12, height: 12 },
   kitchenFloatDish: { position: "absolute", top: -26, left: "50%", marginLeft: -11, width: 22, height: 22 },
   kitchenDot: { position: "absolute", right: -2, top: -2, width: 12, height: 12 },

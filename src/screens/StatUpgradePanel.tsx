@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { frameKit, kit, statIcons } from "../assets";
+import { frameKit, kit, panelSlices, statIcons } from "../assets";
 import { GameButton } from "../components/GameButton";
 import { Panel } from "../components/NineSlice";
 import { FloatText, useFlash, useHoldRepeat, useShake } from "../components/motion";
@@ -30,7 +30,7 @@ export function StatUpgradePanel({
     upgradeMode === "max" ? "구매 가능한 만큼" : upgradeMode === "next" ? "다음 10레벨 단위까지" : `${upgradeMode}레벨`;
 
   return (
-    <Panel slice={kit.panelLarge} style={[styles.panel, compact && styles.panelCompact]}>
+    <Panel slice={panelSlices.woodBolts} scale={0.5} style={[styles.panel, compact && styles.panelCompact]}>
       <View style={[styles.heading, compact && styles.headingCompact]}>
         <View>
           <Text style={styles.kicker}>POWER UP</Text>
@@ -159,18 +159,19 @@ const styles = StyleSheet.create({
   panel: {
     margin: 8,
     marginHorizontal: 10,
-    paddingHorizontal: 13,
-    paddingTop: 12,
-    paddingBottom: 15,
+    // Clear of the thick wood frame and its corner bolts.
+    paddingHorizontal: 30,
+    paddingTop: 30,
+    paddingBottom: 32,
   },
   panelCompact: {},
   heading: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 9 },
   headingCompact: { marginBottom: 7 },
-  kicker: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
+  kicker: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
   title: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   modeButton: { minWidth: 84, minHeight: 42, paddingHorizontal: 12 },
-  modeButtonSmall: { color: "white", fontSize: 7, marginBottom: 2 },
-  modeButtonLabel: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 11 },
+  modeButtonSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: "white", fontSize: 12, marginBottom: 2 },
+  modeButtonLabel: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 12 },
   list: { gap: 6 },
   row: {
     minHeight: 49,
@@ -184,14 +185,14 @@ const styles = StyleSheet.create({
   mark: { width: 40, height: 40, paddingBottom: 2, alignItems: "center", justifyContent: "center" },
   markIcon: { width: 28, height: 28 },
   rowCopy: { flex: 1 },
-  rowSmall: { color: colors.brown, fontSize: 9 },
+  rowSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12 },
   rowValue: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   gain: { minWidth: 42, alignItems: "flex-end" },
-  gainSmall: { color: colors.muted, fontSize: 7, marginBottom: 2 },
-  gainValue: { color: colors.green, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10 },
+  gainSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, marginBottom: 2 },
+  gainValue: { color: colors.green, fontWeight: "900", fontFamily: fonts.bold, fontSize: 12 },
   upgradeButton: { minWidth: 70, paddingHorizontal: 8 },
-  upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10, textAlign: "center" },
-  upgradeButtonCost: { color: colors.brown, fontSize: 8, textAlign: "center" },
+  upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 12, textAlign: "center" },
+  upgradeButtonCost: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12, textAlign: "center" },
   upgradeButtonCostRow: { marginTop: 1, gap: 2 },
   // Matches GameButton's own disabled fade, which a maxed-out stat gets.
   upgradeButtonShort: { opacity: 0.55 },

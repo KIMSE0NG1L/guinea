@@ -38,5 +38,5 @@ export function CoinPopup({ amount }: { amount: number }) {
 
 const styles = StyleSheet.create({
   wrap: { position: "absolute", top: 26, flexDirection: "row", alignItems: "center", gap: 3 },
-  text: { color: "#7a5317", fontSize: 11, fontWeight: "900", fontFamily: fonts.bold },
+  text: { color: "#7a5317", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
 });

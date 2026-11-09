@@ -4,12 +4,12 @@ import { NineSlice } from "./NineSlice";
 import { kit, navIcons } from "../assets";
 import { tutorialRef } from "./tutorialTargets";
 import { playSfx } from "../sound";
-import { IconCaption } from "./IconCaption";
+import { StrokedText } from "./StrokedText";
 import type { Tab } from "../types";
 
 // Only these 4 tabs are reachable from the bottom bar; the rest of the screens open from
-// buttons elsewhere. The selected tab widens onto the raised green tab art and shows its
-// label next to the icon; the others are icon-only.
+// buttons elsewhere. The selected tab sits on the raised green tab art with its label next
+// to the icon; the others show a small caption under the icon.
 const navigation: { id: Tab; label: string; icon: number }[] = [
   { id: "battle", label: "전투", icon: navIcons.battle },
   { id: "companions", label: "동료", icon: navIcons.companions },
@@ -41,7 +41,13 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
           >
             {active && <NineSlice slice={kit.tabGreen} scale={0.4} />}
             <Image source={item.icon} style={[styles.icon, active && styles.iconActive]} />
-            {active ? <Text style={styles.label}>{item.label}</Text> : <IconCaption size={10} offset={2}>{item.label}</IconCaption>}
+            {active ? (
+              <Text style={styles.label}>{item.label}</Text>
+            ) : (
+              <StrokedText style={styles.caption} strokeColor={colors.line} strokeWidth={1.4}>
+                {item.label}
+              </StrokedText>
+            )}
           </Pressable>
         );
       })}
@@ -61,20 +67,21 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   background: { position: "absolute", top: 0, left: -16, right: -16, bottom: -18 },
+  // Idle tabs: icon over its caption, both kept inside the tab with some breathing room.
   item: {
     flex: 1,
     height: 56,
-    paddingBottom: 2,
-    flexDirection: "row",
+    paddingTop: 4,
+    paddingBottom: 5,
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    gap: 1,
   },
-  // Same quarter width as the other tabs; icon pinned left, label centred in what's left.
-  itemActive: { flex: 1, height: 52, alignSelf: "center", justifyContent: "flex-start", paddingBottom: 3, paddingLeft: 4, paddingRight: 6, gap: 0 },
+  // Selected tab: raised green art, icon and label side by side with padding on both ends.
+  itemActive: { height: 52, alignSelf: "center", flexDirection: "row", paddingHorizontal: 12, paddingBottom: 3, gap: 6 },
   pressed: { transform: [{ scale: 0.92 }] },
-  icon: { width: 40, height: 40 },
-  // Bigger than the idle icons (40) so the selected tab reads as the focus.
-  iconActive: { width: 42, height: 42 },
-  label: { flex: 1, textAlign: "center", fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  icon: { width: 32, height: 32 },
+  iconActive: { width: 34, height: 34 },
+  caption: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  label: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

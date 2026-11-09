@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
   autoToggle: { minHeight: 32, paddingHorizontal: 10 },
   autoContent: { flexDirection: "row", alignItems: "center", gap: 5 },
   autoIcon: { width: 16, height: 16 },
-  autoToggleText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: "#2a2316" },
+  autoToggleText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: "#2a2316" },
   adButton: { minHeight: 32, paddingHorizontal: 10 },
-  adButtonText: { color: "#4f463c", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, textAlign: "center" },
-  adButtonSmall: { marginTop: 1, fontSize: 7, textAlign: "center", color: "#4f463c" },
+  adButtonText: { color: "#4f463c", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, textAlign: "center" },
+  adButtonSmall: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, textAlign: "center", color: "#4f463c" },
 });

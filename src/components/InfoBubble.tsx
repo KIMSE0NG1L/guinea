@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#4a392d",
   },
-  title: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
-  line: { marginTop: 2, fontSize: 10, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  title: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
+  line: { marginTop: 2, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
   tail: {
     position: "absolute",
     bottom: -TAIL + 1,

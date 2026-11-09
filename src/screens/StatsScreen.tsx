@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
   heroSprite: { width: 100, height: 100, alignItems: "center", justifyContent: "flex-end" },
   heroCopy: { flex: 1, gap: 3 },
   heroName: { fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  heroStage: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
-  heroMeta: { fontSize: 9, color: colors.muted },
+  heroStage: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  heroMeta: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.muted },
   sectionRow: { marginTop: 18, marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 8 },
   sectionLine: { flex: 1, height: 2, borderRadius: 1, backgroundColor: "#c9a978" },
   sectionTitle: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
@@ -157,5 +157,5 @@ const styles = StyleSheet.create({
   card: { minHeight: 100, paddingHorizontal: 8, paddingTop: 12, paddingBottom: 10, alignItems: "center" },
   cardIcon: { width: 28, height: 28, marginBottom: 6 },
   cardValue: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  cardLabel: { marginTop: 3, fontSize: 9, color: colors.brown, textAlign: "center" },
+  cardLabel: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 3, fontSize: 12, color: colors.brown, textAlign: "center" },
 });

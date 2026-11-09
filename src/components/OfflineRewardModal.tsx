@@ -3,10 +3,13 @@ import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { useCountUp, useRollingNumber } from "./motion";
 import { colors, fonts } from "../theme";
-import { kit, icons, uiImages } from "../assets";
+import { creamSlices, icons, panelSlices, uiImages } from "../assets";
+import { StrokedText } from "./StrokedText";
+import { TitleRibbon } from "./TitleRibbon";
 import { NineSlice, Panel } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { RewardedAdModal } from "./RewardedAdModal";
+import { AdBadge } from "./AdBadge";
 import { formatGameNumber } from "../state/gameMath";
 import type { OfflineSummary } from "../state/offline";
 import { ITEM_IMAGES } from "../state/recipes";
@@ -17,14 +20,6 @@ const ITEMS_AT = 900;
 const ITEM_GAP = 110;
 // The most ingredient icons shown; the rest fold into a "+N종" chip.
 const MAX_ITEMS = 8;
-
-function formatTimeAway(ms: number) {
-  const totalMinutes = Math.round(ms / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (hours > 0) return `${hours}시간 ${minutes}분`;
-  return `${minutes}분`;
-}
 
 export function OfflineRewardModal({
   summary,
@@ -39,7 +34,6 @@ export function OfflineRewardModal({
   // Gold and kills count up from zero as the popup opens; "2배" rolls the gold up to double
   // (with a pop) before the claim goes through.
   const countedGold = useCountUp(summary.goldEarned, 1100, 250);
-  const countedKills = useCountUp(summary.mobsKilled, 900, 250);
   const [doubling, setDoubling] = useState(false);
   const doubledGold = useRollingNumber(doubling ? summary.goldEarned * 2 : summary.goldEarned, 600);
   const goldShown = doubling ? doubledGold : countedGold;
@@ -75,72 +69,71 @@ export function OfflineRewardModal({
     <Modal visible animationType="fade" transparent onRequestClose={onClaim}>
       <Pressable style={styles.backdrop} onPress={onClaim}>
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
-          <NineSlice slice={kit.panelLarge} />
-          <Image source={icons.compass} style={styles.heroIcon} />
-          <Text style={styles.eyebrow}>자리를 비운 동안</Text>
-          <Text style={styles.title}>기니가 혼자 사냥했어요!</Text>
-          <Text style={styles.timeAway}>{formatTimeAway(summary.timeAwayMs)} 동안 자동 전투</Text>
+          {/* Wood frame with brass corner bolts — a treasure-chest lid feel. */}
+          <NineSlice slice={panelSlices.woodBolts} scale={0.62} />
 
-          <Panel slice={kit.panelParchment} style={styles.statRow}>
-            <View style={styles.statItem}>
-              <Image source={uiImages.coin} style={styles.statIcon} />
-              <Animated.Text style={[styles.statValue, goldPopStyle, doubling && styles.statValueDouble]}>+{formatGameNumber(goldShown)}</Animated.Text>
-              <Text style={styles.statLabel}>골드</Text>
+          {/* Title on the same red ribbon the boss first-clear uses. */}
+          <TitleRibbon>기니가 혼자 사냥했어요!</TitleRibbon>
+          {/* The haul on plain cream plates (no frames inside the big wood frame): one cream card, gold / ingredients / level-up split by thin lines. */}
+          <Panel slice={creamSlices.card} scale={0.3} style={styles.card}>
+            <View style={styles.goldRow}>
+              <Image source={uiImages.coins} style={styles.goldPile} />
+              <Animated.View style={goldPopStyle}>
+                <StrokedText style={[styles.goldValue, doubling && styles.goldValueDouble]} strokeColor={colors.line} strokeWidth={2.5}>
+                  +{formatGameNumber(goldShown)}
+                </StrokedText>
+              </Animated.View>
             </View>
-            <View style={styles.statItem}>
-              <Image source={icons.scroll} style={styles.statIcon} />
-              <Text style={styles.statValue}>{formatGameNumber(countedKills)}마리</Text>
-              <Text style={styles.statLabel}>처치</Text>
-            </View>
+
+            {summary.items.length > 0 && (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.itemsRow}>
+                  {summary.items.slice(0, MAX_ITEMS).map((item, index) => (
+                    <PopIn key={item.name} delay={ITEMS_AT + index * ITEM_GAP}>
+                      <Panel slice={creamSlices.cell} scale={0.28} style={styles.itemCell}>
+                        {ITEM_IMAGES[item.name] !== undefined && <Image source={ITEM_IMAGES[item.name]} style={styles.itemIcon} />}
+                        <Text style={styles.itemCount}>×{formatGameNumber(item.quantity)}</Text>
+                      </Panel>
+                    </PopIn>
+                  ))}
+                  {summary.items.length > MAX_ITEMS && (
+                    <PopIn delay={ITEMS_AT + MAX_ITEMS * ITEM_GAP}>
+                      <Panel slice={creamSlices.cell} scale={0.28} style={[styles.itemCell, styles.moreCell]}>
+                        <Text style={styles.moreText}>+{summary.items.length - MAX_ITEMS}종</Text>
+                      </Panel>
+                    </PopIn>
+                  )}
+                </View>
+                {summary.bagFull && <Text style={styles.bagFull}>가방이 꽉 차서 일부 재료는 두고 왔어요</Text>}
+              </>
+            )}
+
+            {summary.levelsGained > 0 && (
+              <>
+                <View style={styles.divider} />
+                <Animated.View style={[styles.levelRow, levelPopStyle]}>
+                  <Image source={icons.star} style={styles.levelStar} />
+                  <Text style={styles.levelText}>
+                    Lv.{formatGameNumber(summary.levelFrom)} → <Text style={styles.levelTo}>Lv.{formatGameNumber(summary.levelTo)}</Text>
+                  </Text>
+                </Animated.View>
+              </>
+            )}
           </Panel>
-
-          {/* Ingredients picked up: icons pop in one at a time, each with its count. */}
-          {summary.items.length > 0 && (
-            <View style={styles.itemsBlock}>
-              <Text style={styles.sectionLabel}>주운 재료</Text>
-              <View style={styles.itemsRow}>
-                {summary.items.slice(0, MAX_ITEMS).map((item, index) => (
-                  <PopIn key={item.name} delay={ITEMS_AT + index * ITEM_GAP}>
-                    <View style={styles.itemCell}>
-                      {ITEM_IMAGES[item.name] !== undefined && <Image source={ITEM_IMAGES[item.name]} style={styles.itemIcon} />}
-                      <Text style={styles.itemCount}>×{formatGameNumber(item.quantity)}</Text>
-                    </View>
-                  </PopIn>
-                ))}
-                {summary.items.length > MAX_ITEMS && (
-                  <PopIn delay={ITEMS_AT + MAX_ITEMS * ITEM_GAP}>
-                    <View style={[styles.itemCell, styles.moreCell]}>
-                      <Text style={styles.moreText}>+{summary.items.length - MAX_ITEMS}종</Text>
-                    </View>
-                  </PopIn>
-                )}
-              </View>
-              {summary.bagFull && <Text style={styles.bagFull}>가방이 꽉 차서 일부 재료는 두고 왔어요</Text>}
-            </View>
-          )}
-
-          {/* Level-up: a gold banner that slams in last, with the old and new level. */}
-          {summary.levelsGained > 0 && (
-            <Animated.View style={[styles.levelBanner, levelPopStyle]}>
-              <Image source={icons.star} style={styles.levelStar} />
-              <Text style={styles.levelText}>
-                레벨업! Lv.{formatGameNumber(summary.levelFrom)} → <Text style={styles.levelTo}>Lv.{formatGameNumber(summary.levelTo)}</Text>
-              </Text>
-              <Image source={icons.star} style={styles.levelStar} />
-            </Animated.View>
-          )}
-
-          {summary.bossReady && <Text style={styles.bossNote}>보스가 기다리고 있어요 — 직접 잡으러 가볼까요?</Text>}
 
           <View style={styles.buttons}>
             <GameButton variant="beige" onPress={onClaim} style={styles.claimButton}>받기</GameButton>
             {summary.goldEarned > 0 && (
-              <GameButton variant="green" disabled={doubling} onPress={startDouble} accessibilityLabel="광고 보고 골드 2배 받기" style={styles.claimButton}>
-                <View style={styles.doubleContent}>
-                  <Text style={styles.doubleSmall}>광고 보고</Text>
-                  <Text style={styles.doubleLabel}>2배 받기</Text>
-                </View>
-              </GameButton>
+              <View>
+                <GameButton variant="green" disabled={doubling} onPress={startDouble} accessibilityLabel="광고 보고 골드 2배 받기" style={styles.claimButton}>
+                  <View style={styles.doubleContent}>
+                    <Text style={styles.doubleSmall}>광고 보고</Text>
+                    <Text style={styles.doubleLabel}>2배 받기</Text>
+                  </View>
+                </GameButton>
+                <AdBadge />
+              </View>
             )}
           </View>
         </Pressable>
@@ -161,40 +154,23 @@ function PopIn({ delay, children }: { delay: number; children: React.ReactNode }
 }
 
 const styles = StyleSheet.create({
-  itemsBlock: { marginTop: 12, width: "100%", alignItems: "center" },
-  sectionLabel: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown, letterSpacing: 1 },
-  itemsRow: { marginTop: 6, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 },
-  itemCell: {
-    width: 44,
-    paddingTop: 4,
-    paddingBottom: 3,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#c9a978",
-    backgroundColor: "#fff6e2",
-    alignItems: "center",
-  },
+  card: { marginTop: 12, width: "100%", paddingVertical: 16, paddingHorizontal: 16, alignItems: "center" },
+  goldRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  divider: { marginVertical: 12, alignSelf: "stretch", height: 2, borderRadius: 1, backgroundColor: "#ead3a4" },
+  goldPile: { width: 42, height: 42 },
+  goldValue: { fontSize: 28, fontWeight: "900", fontFamily: fonts.bold, color: "#ffd34d" },
+  goldValueDouble: { color: "#ff9a6a" },
+  itemsRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 },
+  itemCell: { width: 46, height: 50, paddingTop: 5, alignItems: "center" },
   itemIcon: { width: 26, height: 26, resizeMode: "contain" },
-  itemCount: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  moreCell: { height: 47, justifyContent: "center" },
-  moreText: { fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
-  bagFull: { marginTop: 6, fontSize: 9, fontWeight: "700", fontFamily: fonts.bold, color: colors.red },
-  levelBanner: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: colors.line,
-    backgroundColor: "#ffd84a",
-  },
-  levelStar: { width: 16, height: 16 },
-  levelText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  itemCount: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  moreCell: { justifyContent: "center", paddingTop: 0 },
+  moreText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
+  bagFull: { marginTop: 6, textAlign: "center", fontSize: 12, fontWeight: "700", fontFamily: fonts.bold, color: colors.red },
+  levelRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  levelStar: { width: 20, height: 20 },
+  levelText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   levelTo: { color: colors.red },
-  statValueDouble: { color: colors.red },
   backdrop: {
     flex: 1,
     padding: 22,
@@ -203,31 +179,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#263024cf",
   },
   panel: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 18,
+    paddingHorizontal: 34,
+    paddingTop: 34,
+    paddingBottom: 32,
     alignItems: "center",
   },
-  heroIcon: { width: 44, height: 44, marginBottom: 6 },
-  eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
-  title: { marginTop: 2, fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  timeAway: { marginTop: 4, fontSize: 10, color: colors.brown },
-  statRow: {
-    marginTop: 16,
-    width: "100%",
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  statItem: { alignItems: "center", gap: 2 },
-  statIcon: { width: 26, height: 26, marginBottom: 2 },
-  statValue: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  statLabel: { fontSize: 8, color: colors.muted, fontWeight: "700", fontFamily: fonts.bold },
-  bossNote: { marginTop: 12, fontSize: 10, fontWeight: "700", fontFamily: fonts.bold, color: colors.red, textAlign: "center" },
   buttons: { marginTop: 16, flexDirection: "row", gap: 8 },
   claimButton: { minWidth: 110, minHeight: 44 },
   doubleContent: { alignItems: "center" },
-  doubleSmall: { fontSize: 8, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
+  doubleSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
   doubleLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

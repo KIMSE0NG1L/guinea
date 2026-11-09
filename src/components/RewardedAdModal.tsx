@@ -108,10 +108,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   heroIcon: { width: 44, height: 44, marginBottom: 6 },
-  eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
+  eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
   title: { marginTop: 2, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { marginTop: 8, fontSize: 11, color: colors.brown, textAlign: "center", lineHeight: 16 },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
   spinner: { marginTop: 14, marginBottom: 4 },
   claimButton: { marginTop: 16, minWidth: 140 },
-  errorCode: { marginTop: 8, fontSize: 8, color: colors.muted, textAlign: "center" },
+  errorCode: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.muted, textAlign: "center" },
 });

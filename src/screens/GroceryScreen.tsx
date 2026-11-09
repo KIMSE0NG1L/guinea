@@ -182,10 +182,10 @@ const styles = StyleSheet.create({
   card: { width: "48.5%", alignItems: "center", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 16 },
   itemImage: { width: 54, height: 54 },
   itemName: { marginTop: 4, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  owned: { marginTop: 1, fontSize: 9, color: colors.muted },
+  owned: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, color: colors.muted },
   buyWrap: { marginTop: 8, alignSelf: "stretch" },
   buyButton: { minHeight: 34 },
-  buyText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  buyText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   buyTextOff: { color: "#4f463c" },
   buyTextShort: { color: colors.red },
 });

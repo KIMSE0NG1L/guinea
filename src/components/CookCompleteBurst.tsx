@@ -303,5 +303,5 @@ const styles = StyleSheet.create({
   stampNewText: { color: colors.cream, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
   title: { color: "#fff4bd", fontSize: 30, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
   name: { marginTop: 2, color: colors.gold, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
-  page: { marginTop: 4, color: "#fff4bd", fontSize: 11, fontWeight: "900", fontFamily: fonts.bold },
+  page: { marginTop: 4, color: "#fff4bd", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
 });

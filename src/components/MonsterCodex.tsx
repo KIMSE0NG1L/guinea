@@ -104,7 +104,7 @@ function CodexCard({
 }
 
 const styles = StyleSheet.create({
-  count: { marginBottom: 8, marginLeft: 4, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  count: { marginBottom: 8, marginLeft: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   cardWrap: { width: "48.5%" },
   pressed: { transform: [{ scale: 0.97 }] },
@@ -113,12 +113,12 @@ const styles = StyleSheet.create({
   tagMob: { backgroundColor: colors.green },
   tagBoss: { backgroundColor: colors.red },
   tagText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  stage: { position: "absolute", top: 9, right: 10, fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
+  stage: { position: "absolute", top: 9, right: 10, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
   portrait: { height: 88, marginTop: 8, alignItems: "center", justifyContent: "flex-end", overflow: "hidden" },
   name: { marginTop: 4, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  area: { marginTop: 1, fontSize: 9, color: colors.muted },
+  area: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, color: colors.muted },
   drops: { marginTop: 6, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 },
   drop: { alignItems: "center" },
   dropIcon: { width: 20, height: 20 },
-  dropChance: { fontSize: 8, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  dropChance: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
 });

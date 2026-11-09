@@ -300,7 +300,7 @@ const SPARKLE_SPOTS = [
   { x: 0.55, y: -0.12, size: 14, delay: 380 },
 ];
 
-function Sparkles({ box }: { box: { left: number; top: number; width: number; height: number } }) {
+export function Sparkles({ box }: { box: { left: number; top: number; width: number; height: number } }) {
   return (
     <>
       {SPARKLE_SPOTS.map((spot, index) => (
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   bubbleShadow: { position: "absolute", top: 7, left: 5, right: -5, bottom: -7, opacity: 0.5, filter: "blur(3px)" },
   body: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   copy: { flex: 1 },
-  speaker: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
+  speaker: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
   line: { marginTop: 5, fontSize: 14, lineHeight: 22, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   emphasis: { color: colors.red },
   iconSlot: { width: 54, height: 54, alignItems: "center", justifyContent: "center", marginTop: 4 },
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
   dots: { flexDirection: "row", gap: 5 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#d9c49e" },
   dotActive: { width: 16, backgroundColor: colors.gold },
-  hint: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
+  hint: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
   start: { minHeight: 34, paddingHorizontal: 18 },
   startText: { fontSize: 13 },
 });

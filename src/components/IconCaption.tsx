@@ -6,10 +6,10 @@ import { StrokedText } from "./StrokedText";
 // inside the button (which needs no overflow clipping); it hangs just below the icon.
 // Small captions get a thinner outline so the strokes don't smear the letters together.
 // `shift` nudges it sideways for icons drawn at a slant, whose visual centre isn't the box's.
-export function IconCaption({ children, size = 10, offset = -7, shift = 0 }: { children: string; size?: number; offset?: number; shift?: number }) {
+export function IconCaption({ children, size = 12, offset = -7, shift = 0 }: { children: string; size?: number; offset?: number; shift?: number }) {
   return (
     <View style={[styles.wrap, { bottom: offset, transform: [{ translateX: shift }] }]} pointerEvents="none">
-      <StrokedText style={[styles.text, { fontSize: size }]} strokeColor={colors.line} strokeWidth={size >= 11 ? 2 : 1.4}>
+      <StrokedText style={[styles.text, { fontSize: size }]} strokeColor={colors.line} strokeWidth={size >= 12 ? 2 : 1.4}>
         {children}
       </StrokedText>
     </View>

@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   // as numbers grow. The "+" sits inside the pill's right end.
   chip: { height: 28, paddingLeft: 4, paddingRight: 3, flexDirection: "row", alignItems: "center", gap: 3 },
   icon: { width: 18, height: 18, resizeMode: "contain" },
-  value: { flex: 1, color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 10 },
+  value: { flex: 1, color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 12 },
   spent: { color: colors.red },
   plus: {},
   pressed: { transform: [{ scale: 0.9 }] },

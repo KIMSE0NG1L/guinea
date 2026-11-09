@@ -104,12 +104,12 @@ function StepButton({ label, onPress, disabled, accessibilityLabel }: { label: s
 const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 22, paddingHorizontal: 14, justifyContent: "center", backgroundColor: "#263024cf" },
   panel: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 18, alignItems: "center" },
-  eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
+  eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
   image: { marginTop: 6, width: 56, height: 56 },
   material: { marginTop: 10, width: 46, height: 36, backgroundColor: "#9b9587", borderWidth: 3, borderColor: colors.line, borderRadius: 18 },
   name: { marginTop: 4, fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   infoRow: { marginTop: 4, flexDirection: "row", alignItems: "center", gap: 4 },
-  info: { fontSize: 10, fontWeight: "700", fontFamily: fonts.bold, color: colors.brown },
+  info: { fontSize: 12, fontWeight: "700", fontFamily: fonts.bold, color: colors.brown },
   stepper: { marginTop: 14, flexDirection: "row", alignItems: "center", gap: 18 },
   step: {
     width: 38,

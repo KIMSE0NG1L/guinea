@@ -57,6 +57,6 @@ const styles = StyleSheet.create({
   icon: { fontSize: 14, marginRight: 6 },
   input: { flex: 1, paddingVertical: 0, fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
   clear: { marginLeft: 6, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: colors.muted },
-  clearText: { fontSize: 11, fontWeight: "900", color: colors.cream },
-  result: { marginTop: 5, marginLeft: 4, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  clearText: { fontSize: 12, fontWeight: "900", color: colors.cream },
+  result: { marginTop: 5, marginLeft: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
 });

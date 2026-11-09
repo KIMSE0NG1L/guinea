@@ -90,7 +90,7 @@ export function GameHeader({
             style={({ pressed }) => [styles.iconButton, { width: 36 * fit }, pressed && styles.pressed]}
           >
             <Image source={icons.settingsGear} style={[styles.headerIcon, { width: 34 * fit, height: 34 * fit }]} />
-            <IconCaption size={9} offset={-9}>설정</IconCaption>
+            <IconCaption size={12} offset={-9}>설정</IconCaption>
           </Pressable>
         </View>
       </View>
@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
   avatarRing: { position: "absolute", width: 50, height: 50 },
   profileCopy: { flex: 1, minWidth: 0, marginLeft: 4, gap: 2 },
   nameRow: { flexDirection: "row", alignItems: "baseline", gap: 4 },
-  levelText: { fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
-  nickname: { flexShrink: 1, fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  levelText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
+  nickname: { flexShrink: 1, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
 });

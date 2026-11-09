@@ -26,8 +26,8 @@ import type { GameState } from "../types";
 
 export type KitchenLayout = "list" | "grid";
 
-const EFFECT_FONT = 9;
-const INGREDIENT_FONT = 8;
+const EFFECT_FONT = 12;
+const INGREDIENT_FONT = 12;
 const INGREDIENT_ICON = 16;
 
 // ["공격력 +10%", "3분", "세트: 디저트 타임"] — what eating the dish does, for how long
@@ -206,7 +206,7 @@ export function KitchenScreen({
               <View>
                 <LayoutIcon mode={mode} active={layout === mode} />
               </View>
-              <IconCaption size={10} offset={-12}>{mode === "list" ? "목록" : "카드"}</IconCaption>
+              <IconCaption size={12} offset={-12}>{mode === "list" ? "목록" : "카드"}</IconCaption>
             </Pressable>
           ))}
         </View>
@@ -354,15 +354,15 @@ const styles = StyleSheet.create({
   shopTextDark: { color: colors.brown },
   more: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
   moreImage: { width: 50, height: 50 },
-  moreText: { flex: 1, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  moreText: { flex: 1, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   cookbook: { marginBottom: 12 },
   cookbookCard: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 9 },
   cookbookImage: { width: 44, height: 44 },
   cookbookCopy: { flex: 1, gap: 4 },
-  cookbookTitle: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  cookbookTitle: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   cookbookCount: { color: colors.brown },
   toolbar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 18, paddingLeft: 4 },
-  toolbarText: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  toolbarText: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   layoutToggle: { flexDirection: "row", gap: 4 },
   layoutButton: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   pressed: { transform: [{ scale: 0.92 }] },
@@ -371,13 +371,13 @@ const styles = StyleSheet.create({
   gridCard: { width: "48.5%", alignItems: "center", paddingHorizontal: 10, paddingTop: 12, paddingBottom: 12 },
   gridDish: { width: 64, height: 64 },
   gridName: { marginTop: 4, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  gridDescription: { marginTop: 2, minHeight: 24, fontSize: 9, lineHeight: 12, color: colors.muted, textAlign: "center" },
+  gridDescription: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 2, minHeight: 34, fontSize: 12, lineHeight: 17, color: colors.muted, textAlign: "center" },
   gridIngredients: { justifyContent: "center", marginBottom: 8 },
   gridCookButton: { alignSelf: "stretch" },
   ownedTag: { position: "absolute", top: 8, right: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: colors.green, zIndex: 1 },
   ownedTagText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   effectBox: { marginTop: 3 },
-  effect: { fontSize: EFFECT_FONT, lineHeight: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#b0632a" },
+  effect: { fontSize: EFFECT_FONT, lineHeight: 17, fontWeight: "900", fontFamily: fonts.bold, color: "#b0632a" },
   card: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
   dish: { width: 54, height: 54 },
   // Missing ingredients: the dish goes black-and-white (faded too, where filters aren't supported).
@@ -385,17 +385,17 @@ const styles = StyleSheet.create({
   cardCopy: { flex: 1 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   cardStrong: { fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  owned: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
-  cardSpan: { marginTop: 2, color: colors.muted, fontSize: 9 },
+  owned: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
+  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 2, color: colors.muted, fontSize: 12 },
   ingredients: { marginTop: 5, alignSelf: "stretch" },
   ingredient: { flexDirection: "row", alignItems: "center", gap: 2 },
   ingredientImage: { width: INGREDIENT_ICON, height: INGREDIENT_ICON },
   ingredientText: { fontSize: INGREDIENT_FONT, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   ingredientShort: { color: colors.red },
   cookButton: { minWidth: 68 },
-  cookButtonText: { fontSize: 9 },
+  cookButtonText: { fontSize: 12 },
   buyCook: { alignItems: "center" },
   buyCookText: { fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
-  buyCookCost: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  buyCookCost: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   buyCookCostShort: { color: colors.red },
 });

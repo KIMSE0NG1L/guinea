@@ -231,9 +231,9 @@ const noCoin = () => ({ gold: 0, gems: 0 });
 const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 14, justifyContent: "center", backgroundColor: "#263024cf" },
   panel: { width: "100%", maxWidth: 430, alignSelf: "center", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 16, alignItems: "center" },
-  eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
+  eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
   title: { marginTop: 2, fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { marginTop: 4, paddingHorizontal: 8, fontSize: 10, color: colors.brown, textAlign: "center", lineHeight: 15 },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, paddingHorizontal: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
   sceneWrap: { alignSelf: "stretch" },
   closeButton: { marginTop: 4, minWidth: 120 },
 });

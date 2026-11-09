@@ -143,6 +143,9 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
   const [stealHint, setStealHint] = useState(false);
   // The attendance card shows once per launch while today's reward is unclaimed.
   const [attendanceClosed, setAttendanceClosed] = useState(false);
+  // Set on claiming, so the card stays up for its stamp and the ad bonus even though today's
+  // reward is no longer "ready" once taken.
+  const [attendanceClaimed, setAttendanceClaimed] = useState(false);
   // The update list reopened from the settings (its first, gift-bearing showing is automatic).
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
   const updateDue = Boolean(game.loaded && game.updateUnseen && state.tutorialDone && Boolean(state.recipeTutorialDone) && !game.offlineSummary && !game.firstClear);
@@ -469,11 +472,14 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             }}
           />
         )}
-        {game.loaded && game.attendanceReady && !attendanceClosed && !updateDue && !whatsNewOpen && state.tutorialDone && state.recipeTutorialDone && !game.offlineSummary && !game.firstClear && (
+        {game.loaded && (game.attendanceReady || attendanceClaimed) && !attendanceClosed && !updateDue && !whatsNewOpen && state.tutorialDone && state.recipeTutorialDone && !game.offlineSummary && !game.firstClear && (
           <AttendanceModal
             dayIndex={game.attendanceDay}
             goldFor={game.attendanceGold}
-            onClaim={game.claimAttendance}
+            onClaim={() => {
+              setAttendanceClaimed(true);
+              return game.claimAttendance();
+            }}
             onBonus={game.claimAttendanceBonus}
             onClose={() => setAttendanceClosed(true)}
           />

@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 3,
     paddingHorizontal: 11,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "900",
     fontFamily: fonts.bold,
     letterSpacing: 3,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 3,
     paddingHorizontal: 7,
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "900",
     fontFamily: fonts.bold,
     // Per-boss lines vary in length — wrap within the banner's column, centred.

@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   priceGem: { width: 18, height: 18, resizeMode: "contain" },
-  priceText: { marginTop: -1, fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  priceText: { marginTop: -1, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   active: {
     width: "100%",
     height: "100%",
@@ -251,8 +251,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gold,
     zIndex: 3,
   },
-  setBannerText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  setBannerText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   dish: { width: BUFF_SLOT_SIZE - 6, height: BUFF_SLOT_SIZE - 6 },
   timer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
-  timerText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  timerText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

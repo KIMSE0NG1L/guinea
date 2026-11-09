@@ -129,7 +129,7 @@ function ReadyFlash() {
 const styles = StyleSheet.create({
   readyFlash: { backgroundColor: "#fff3b0" },
   readyLabel: { position: "absolute", top: -18, left: -10, right: -10, alignItems: "center" },
-  readyText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.gold },
+  readyText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.gold },
   slot: { height: SKILL_SLOT_HEIGHT },
   empty: { width: SKILL_SLOT_HEIGHT, height: SKILL_SLOT_HEIGHT, alignItems: "center", justifyContent: "center" },
   slotArt: { width: "100%", height: "100%" },

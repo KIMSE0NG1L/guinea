@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25, gap: 12 },
   card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 },
   cardTitle: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  cardText: { marginTop: 4, fontSize: 10, color: colors.brown, lineHeight: 15 },
+  cardText: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, fontSize: 12, color: colors.brown, lineHeight: 17 },
   codeBox: {
     marginTop: 10,
     minHeight: 70,
@@ -119,11 +119,11 @@ const styles = StyleSheet.create({
     borderColor: "#c9a978",
     backgroundColor: "#fff8e6",
     color: colors.ink,
-    fontSize: 10,
+    fontSize: 12,
     textAlignVertical: "top",
   },
   codeBoxShown: { color: colors.brown },
   button: { marginTop: 10, alignSelf: "center", minWidth: 160 },
-  notice: { marginTop: 8, fontSize: 10, color: colors.green, textAlign: "center" },
-  error: { marginTop: 8, fontSize: 10, color: colors.red, textAlign: "center" },
+  notice: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.green, textAlign: "center" },
+  error: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.red, textAlign: "center" },
 });

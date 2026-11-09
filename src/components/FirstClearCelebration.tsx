@@ -12,7 +12,8 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 import { colors, fonts } from "../theme";
-import { uiImages } from "../assets";
+import { panelSlices, uiImages } from "../assets";
+import { NineSlice } from "./NineSlice";
 import { StrokedText } from "./StrokedText";
 import { GameButton } from "./GameButton";
 import { RewardedAdModal } from "./RewardedAdModal";
@@ -21,7 +22,7 @@ const CONFETTI_COLORS = ["#ffd34d", "#ff7a59", "#7ed957", "#5bc0ff", "#ff9ad5", 
 const RAY_COUNT = 14;
 
 // Sunburst behind the title: alternating gold wedges, slowly spinning.
-function Rays({ size }: { size: number }) {
+export function Rays({ size }: { size: number }) {
   const c = size / 2;
   const wedges = Array.from({ length: RAY_COUNT }, (_, index) => {
     const a0 = (index / RAY_COUNT) * Math.PI * 2;
@@ -74,12 +75,12 @@ function ConfettiPiece({ index, width, height }: { index: number; width: number;
   );
 }
 
-const RIBBON_W = 300;
-const BAND_W = 236;
-const RIBBON_H = 76;
+export const RIBBON_W = 300;
+export const BAND_W = 236;
+export const RIBBON_H = 76;
 
 // Red cloth band with gold trim, gently arched — the middle of the title ribbon.
-function RibbonBand() {
+export function RibbonBand() {
   return (
     <Svg width={BAND_W} height={RIBBON_H - 12} viewBox={`0 0 ${BAND_W} ${RIBBON_H - 12}`}>
       <Path d={`M2 10 Q${BAND_W / 2} -2 ${BAND_W - 2} 10 V54 Q${BAND_W / 2} 42 2 54 Z`} fill="#d64a3a" stroke={colors.line} strokeWidth={3} strokeLinejoin="round" />
@@ -91,7 +92,7 @@ function RibbonBand() {
 }
 
 // A notched ribbon end peeking out behind the band, with the darker fold where it tucks.
-function RibbonTail({ flip = false }: { flip?: boolean }) {
+export function RibbonTail({ flip = false }: { flip?: boolean }) {
   return (
     <Svg width={56} height={52} viewBox="0 0 56 52" style={flip ? { transform: [{ scaleX: -1 }] } : undefined}>
       <Path d="M2 6 H48 V46 H2 L16 26 Z" fill="#b23628" stroke={colors.line} strokeWidth={3} strokeLinejoin="round" />
@@ -177,8 +178,12 @@ export function FirstClearCelebration({
         </>
       )}
       <View style={styles.center} pointerEvents="none">
-        <Animated.Text style={[styles.kicker, kickerStyle]}>BOSS FIRST CLEAR</Animated.Text>
-        <View style={styles.ribbon}>
+        {/* Trophy frame around the title, the boss and the reward. */}
+        <Animated.View style={[styles.frame, kickerStyle]}>
+          {/* The frame art is open in the middle — back it so the game doesn't show through. */}
+          <View style={styles.frameBack} />
+          <NineSlice slice={panelSlices.bossTrophy} scale={FRAME_SCALE} />
+          <View style={styles.ribbon}>
           <Animated.View style={[styles.tailLeft, leftTailStyle]}>
             <RibbonTail />
           </Animated.View>
@@ -212,6 +217,7 @@ export function FirstClearCelebration({
             </StrokedText>
           </Animated.View>
         ))}
+        </Animated.View>
       </View>
       <Animated.View style={[styles.actions, rewardStyle]}>
         <GameButton variant="green" onPress={() => setAdOpen(true)} accessibilityLabel={`광고 보고 보석 ${gems}개 받기`} style={styles.adButton}>
@@ -243,15 +249,20 @@ export function FirstClearCelebration({
   );
 }
 
+const FRAME_SCALE = 0.34;
+
 const styles = StyleSheet.create({
   overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 45, overflow: "hidden", alignItems: "center", justifyContent: "center" },
   backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(20, 12, 6, 0.72)" },
   rays: { position: "absolute", left: "50%", top: "42%" },
   confetti: { position: "absolute", top: 0, borderRadius: 2 },
   center: { alignItems: "center", marginTop: -40 },
-  kicker: { textAlign: "center", fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3", letterSpacing: 3 },
+  // Padded to the frame art's opening (at FRAME_SCALE): 258px of top bar, 175px of bottom bar
+  // and 89px side posts in the 1000px-wide source.
+  frameBack: { position: "absolute", left: 26, right: 26, top: 84, bottom: 56, borderRadius: 6, backgroundColor: "#2e1a0ce6" },
+  frame: { width: 1000 * FRAME_SCALE, paddingTop: 92, paddingBottom: 70, paddingHorizontal: 34, alignItems: "center" },
   title: { fontSize: 30, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
-  ribbon: { marginTop: 6, width: RIBBON_W, height: RIBBON_H, alignItems: "center", justifyContent: "center" },
+  ribbon: { marginTop: 0, marginBottom: -4, width: RIBBON_W, height: RIBBON_H, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.86 }] },
   band: { position: "absolute", top: 0, left: (RIBBON_W - BAND_W) / 2 },
   tailLeft: { position: "absolute", left: 0, top: 18 },
   tailRight: { position: "absolute", right: 0, top: 18 },
@@ -270,9 +281,9 @@ const styles = StyleSheet.create({
   actions: { marginTop: 18, alignItems: "center", gap: 12 },
   adButton: { minWidth: 170 },
   adButtonFace: { alignItems: "center" },
-  adSmall: { fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  adSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
   adPrice: { flexDirection: "row", alignItems: "center", gap: 4 },
   adGem: { width: 13, height: 18, resizeMode: "contain" },
   adText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  hint: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: "#d8cdb8", textDecorationLine: "underline" },
+  hint: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#d8cdb8", textDecorationLine: "underline" },
 });
