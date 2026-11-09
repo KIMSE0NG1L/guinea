@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { Panel } from "../components/NineSlice";
@@ -116,13 +117,13 @@ export function GuideScreen() {
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   list: { gap: 8 },
-  card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
+  card: { paddingHorizontal: 18, paddingTop: 15, paddingBottom: 15 },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardTitle: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  cardTitle: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   chevron: { fontSize: 12, color: colors.brown },
   line: { marginTop: 8, flexDirection: "row", gap: 6 },
-  bullet: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.brown, lineHeight: 17 },
-  lineText: { fontFamily: fonts.light, letterSpacing: -0.36, flex: 1, fontSize: 12, color: colors.ink, lineHeight: 17 },
+  bullet: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.brown, lineHeight: 16 },
+  lineText: { fontFamily: fonts.light, letterSpacing: -0.36, flex: 1, fontSize: 12, color: colors.ink, lineHeight: 16 },
 });

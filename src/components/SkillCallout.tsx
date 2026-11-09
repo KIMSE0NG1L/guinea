@@ -46,5 +46,5 @@ export function SkillCallout({
 
 const styles = StyleSheet.create({
   callout: { position: "absolute", top: 58, left: 0, right: 0, alignItems: "center" },
-  text: { fontSize: 26, fontWeight: "900", fontFamily: fonts.bold },
+  text: { fontSize: 30, fontWeight: "900", fontFamily: fonts.bold },
 });

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Platform, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, type SharedValue } from "react-native-reanimated";
 import { APP_MAX_WIDTH, colors, fonts } from "../theme";
 import { StrokedText } from "./StrokedText";
@@ -244,28 +245,28 @@ const styles = StyleSheet.create({
   background: { width: "100%", height: "100%" },
   titleWrap: { position: "absolute", top: "13%", width: "100%", alignItems: "center" },
   title: {
-    fontSize: 40,
+    fontSize: 42,
     fontWeight: "900",
     fontFamily: fonts.bold,
     color: colors.cream,
     letterSpacing: 1,
   },
-  sparkle: { position: "absolute", top: 2, color: "#fff1c9", fontSize: 15, textShadowColor: "#f5dfaa", textShadowRadius: 5 },
+  sparkle: { position: "absolute", top: 2, color: "#fff1c9", fontSize: 18, textShadowColor: "#f5dfaa", textShadowRadius: 5 },
   sparkleLeft: { left: "50%", marginLeft: -132 },
-  sparkleRight: { left: "50%", marginLeft: 112, top: -6, fontSize: 12 },
+  sparkleRight: { left: "50%", marginLeft: 112, top: -6, fontSize: 14 },
   startWrap: { position: "absolute", bottom: "14%", width: "100%", alignItems: "center" },
   // Just under "터치하여 시작", plain outlined text like it.
   tipWrap: { position: "absolute", bottom: "8%", left: 24, right: 24, alignItems: "center" },
-  tipText: { color: "#f3e6c8", fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, textAlign: "center" },
+  tipText: { color: "#f3e6c8", fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, textAlign: "center" },
   flash: { backgroundColor: "#ffffff" },
   logo: { alignItems: "center", justifyContent: "center" },
   // The glint is clipped to roughly the title's box so it reads as light on the letters.
   glintClip: { position: "absolute", left: -10, right: -10, top: 0, bottom: 0, overflow: "hidden", alignItems: "center", justifyContent: "center" },
   glint: { width: 26, height: 90, backgroundColor: "#fffbe6" },
-  burstSpark: { position: "absolute", color: "#fff1c9", fontSize: 16, textShadowColor: "#ffd27a", textShadowRadius: 6 },
+  burstSpark: { position: "absolute", color: "#fff1c9", fontSize: 19, textShadowColor: "#ffd27a", textShadowRadius: 6 },
   // Bottom-right corner, out of the way of the tip and "터치하여 시작".
   footer: { position: "absolute", bottom: 10, right: 12, flexDirection: "row", alignItems: "center", gap: 10 },
   footerText: { color: "#f3e6c8b3", fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 3 },
   footerLink: { textDecorationLine: "underline" },
-  start: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  start: { fontSize: 22, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
 });

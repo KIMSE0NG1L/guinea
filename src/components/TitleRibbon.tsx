@@ -31,6 +31,8 @@ const styles = StyleSheet.create({
   band: { position: "absolute", top: 0, left: (RIBBON_W - BAND_W) / 2 },
   tailLeft: { position: "absolute", left: 0, top: 18 },
   tailRight: { position: "absolute", right: 0, top: 18 },
-  words: { position: "absolute", top: 6, left: 0, right: 0, height: RIBBON_H - 26, alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 19, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
+  // A little high in the band, which arches — its visual middle is above centre.
+  words: { position: "absolute", top: 1, left: 0, right: 0, height: RIBBON_H - 26, alignItems: "center", justifyContent: "center" },
+  // Small enough that a 12-character title stays inside the band.
+  title: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
 });

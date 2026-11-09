@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { useShake } from "../components/motion";
 import { colors, fonts } from "../theme";
@@ -99,7 +100,7 @@ function ProductCard({ product, index }: { product: (typeof products)[number]; i
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   adCard: {
     marginBottom: 10,
     paddingHorizontal: 13,
@@ -111,9 +112,9 @@ const styles = StyleSheet.create({
   },
   list: { gap: 10 },
   card: {
-    paddingHorizontal: 13,
-    paddingTop: 11,
-    paddingBottom: 13,
+    paddingHorizontal: 17,
+    paddingTop: 14,
+    paddingBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
@@ -122,11 +123,11 @@ const styles = StyleSheet.create({
   shineClip: { position: "absolute", top: 6, left: 6, right: 6, bottom: 6, overflow: "hidden", borderRadius: 8 },
   shine: { position: "absolute", top: 0, bottom: 0, width: "20%", backgroundColor: "#ffffff", transform: [{ skewX: "-20deg" }] },
   cardCopy: { flex: 1 },
-  cardSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12 },
-  cardStrong: { marginVertical: 2, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12 },
+  cardSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12, lineHeight: 16 },
+  cardStrong: { marginVertical: 2, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16 },
   buyButton: { minWidth: 70 },
   buyButtonText: { fontSize: 12 },
   note: { marginTop: 14, padding: 10, borderWidth: 2, borderColor: "#b6a78e", borderStyle: "dashed", borderRadius: 10 },
-  noteText: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, textAlign: "center" },
+  noteText: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16, textAlign: "center" },
 });

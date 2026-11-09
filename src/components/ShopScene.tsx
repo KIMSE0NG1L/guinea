@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { shopImages, shopKit, uiImages } from "../assets";
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: 0.94 }] },
   titleCopy: { flex: 1 },
   kicker: { color: colors.red, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
-  title: { fontSize: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
+  title: { fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
   // Text starts past the coin baked into the pill's left end.
   goldPill: { height: 36, minWidth: 92, paddingLeft: 38, paddingRight: 12, justifyContent: "center" },
   goldPillCoin: { position: "absolute", left: 3, top: 3, width: 30, height: 30 },
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
   // Pokes up out of the pill, like the other shopkeeper is peeking over it.
   otherKeeper: { width: 30, height: 30, marginTop: -10 },
   otherText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  goldText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "right" },
+  goldText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "right" },
   heroFrame: { padding: 11, marginBottom: 8 },
   hero: { height: 210, overflow: "hidden", borderRadius: 4 },
   // Full width, pinned to the bottom so the counter (lower half of the art) stays in view.
@@ -137,5 +138,5 @@ const styles = StyleSheet.create({
   keeperImage: { width: "100%", height: "100%" },
   bubble: { position: "absolute", top: 14, right: 12, width: "52%", paddingLeft: 16, paddingRight: 14, paddingTop: 11, paddingBottom: 24 },
   bubbleName: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
-  bubbleText: { marginTop: 3, fontSize: 12, lineHeight: 17, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
+  bubbleText: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
 });

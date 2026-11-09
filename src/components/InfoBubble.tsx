@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 
 const AUTO_HIDE_MS = 3000;
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     borderColor: "#4a392d",
   },
   title: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
-  line: { marginTop: 2, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  line: { marginTop: 2, fontSize: 12, lineHeight: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
   tail: {
     position: "absolute",
     bottom: -TAIL + 1,

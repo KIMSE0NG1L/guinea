@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, type GestureResponderEvent, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, type GestureResponderEvent, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit, shopKit } from "../assets";
 import { tutorialRef } from "./tutorialTargets";
@@ -92,6 +93,6 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: "900",
     fontFamily: fonts.bold,
-    fontSize: 12,
+    fontSize: 14,
   },
 });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
@@ -120,15 +121,15 @@ function EquipSlam({ equipped, children }: { equipped: boolean; children: React.
 
 const styles = StyleSheet.create({
   ring: { position: "absolute", top: -6, left: -6, right: -6, bottom: -6, borderRadius: 40, borderWidth: 4, borderColor: colors.gold },
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   list: { gap: 8 },
-  card: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12, flexDirection: "row", alignItems: "center", gap: 10 },
+  card: { paddingHorizontal: 16, paddingTop: 13, paddingBottom: 15, flexDirection: "row", alignItems: "center", gap: 10 },
   dimmed: { opacity: 0.35 },
   cardSmallLocked: { color: colors.red },
   cardCopy: { flex: 1 },
   cardSmall: { color: colors.green, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
-  cardStrong: { marginVertical: 2, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12 },
+  cardStrong: { marginVertical: 2, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16 },
   buttons: { gap: 4 },
   equipButton: { minWidth: 56 },
   equipButtonText: { fontSize: 12 },

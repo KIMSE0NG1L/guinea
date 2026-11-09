@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { shopKit } from "../assets";
@@ -75,5 +76,5 @@ const styles = StyleSheet.create({
   bubble: { paddingTop: 10, paddingRight: 19, paddingBottom: 14, paddingLeft: 10 },
   art: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: [{ scaleX: -1 }] },
   shadow: { position: "absolute", top: 3, left: -3, right: 3, bottom: -4, opacity: 0.5 },
-  line: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  line: { fontSize: 12, lineHeight: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
 });

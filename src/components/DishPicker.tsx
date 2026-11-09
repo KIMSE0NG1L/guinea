@@ -1,4 +1,5 @@
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { GameButton } from "./GameButton";
@@ -109,13 +110,13 @@ const styles = StyleSheet.create({
   // Points in from the left — the list scrolls, so anything above the row gets clipped.
   guideArrow: { right: "100%", marginRight: 2, top: "50%", marginTop: -ARROW_H / 2, width: ARROW_W },
   backdrop: { flex: 1, paddingHorizontal: 14, justifyContent: "center", backgroundColor: "#263024cf" },
-  panel: { maxHeight: "80%", width: "100%", maxWidth: 410, alignSelf: "center", paddingHorizontal: 18, paddingTop: 16, paddingBottom: 20 },
+  panel: { maxHeight: "80%", width: "100%", maxWidth: 410, alignSelf: "center", paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 },
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
-  title: { fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
+  title: { fontSize: 24, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
   closeButton: { paddingHorizontal: 12 },
   empty: { alignItems: "center", gap: 10, paddingVertical: 20, paddingHorizontal: 14 },
-  emptyText: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  emptyText: { fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   emptyButton: { paddingHorizontal: 16 },
   list: { flexGrow: 0 },
   listContent: { gap: 8 },
@@ -123,10 +124,10 @@ const styles = StyleSheet.create({
   dishWrap: { width: 46, height: 46, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.line, borderRadius: 9 },
   dish: { width: 40, height: 40 },
   info: { flex: 1 },
-  name: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  count: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.muted },
+  name: { fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  count: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 16, color: colors.muted },
   effect: { marginTop: 2, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.green },
-  duration: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, color: colors.muted },
+  duration: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 16, color: colors.muted },
   eatButton: { minWidth: 58 },
   eatText: { fontSize: 12 },
 });

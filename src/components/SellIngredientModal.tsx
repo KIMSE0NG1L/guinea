@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { NineSlice } from "./NineSlice";
@@ -103,11 +104,11 @@ function StepButton({ label, onPress, disabled, accessibilityLabel }: { label: s
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 22, paddingHorizontal: 14, justifyContent: "center", backgroundColor: "#263024cf" },
-  panel: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 18, alignItems: "center" },
+  panel: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, alignItems: "center" },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
   image: { marginTop: 6, width: 56, height: 56 },
   material: { marginTop: 10, width: 46, height: 36, backgroundColor: "#9b9587", borderWidth: 3, borderColor: colors.line, borderRadius: 18 },
-  name: { marginTop: 4, fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  name: { marginTop: 4, fontSize: 19, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   infoRow: { marginTop: 4, flexDirection: "row", alignItems: "center", gap: 4 },
   info: { fontSize: 12, fontWeight: "700", fontFamily: fonts.bold, color: colors.brown },
   stepper: { marginTop: 14, flexDirection: "row", alignItems: "center", gap: 18 },
@@ -123,14 +124,14 @@ const styles = StyleSheet.create({
   },
   stepDisabled: { backgroundColor: colors.muted },
   stepPressed: { transform: [{ scale: 0.92 }] },
-  stepText: { marginTop: -2, fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  count: { minWidth: 48, textAlign: "center", fontSize: 24, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  stepText: { marginTop: -2, fontSize: 24, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  count: { minWidth: 48, textAlign: "center", fontSize: 28, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   quickRow: { marginTop: 10, flexDirection: "row", gap: 8 },
   quick: { minWidth: 70 },
-  quickText: { fontSize: 12 },
+  quickText: { fontSize: 14 },
   totalRow: { marginTop: 14, flexDirection: "row", alignItems: "center", gap: 8 },
-  totalLabel: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
-  total: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  totalLabel: { fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  total: { fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   actions: { marginTop: 16, flexDirection: "row", gap: 10 },
   action: { minWidth: 110 },
 });

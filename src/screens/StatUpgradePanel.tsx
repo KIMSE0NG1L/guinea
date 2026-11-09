@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { frameKit, kit, panelSlices, statIcons } from "../assets";
@@ -170,35 +171,36 @@ const styles = StyleSheet.create({
   panelCompact: {},
   heading: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 9 },
   headingCompact: { marginBottom: 7 },
-  kicker: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
-  title: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  modeButton: { minWidth: 84, minHeight: 42, paddingHorizontal: 12 },
-  modeButtonSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: "white", fontSize: 12, marginBottom: 2 },
-  modeButtonLabel: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 12 },
+  kicker: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5, marginBottom: 4 },
+  title: { fontSize: 22, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  // Two-line buttons: a 12pt caption over a clearly bigger main label.
+  modeButton: { minWidth: 92, minHeight: 52, paddingHorizontal: 12 },
+  modeButtonSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: "white", fontSize: 12, lineHeight: 16, marginBottom: 2 },
+  modeButtonLabel: { color: "white", fontWeight: "900", fontFamily: fonts.bold, fontSize: 17 },
   list: { gap: 6 },
   row: {
     minHeight: 49,
     flexDirection: "row",
     alignItems: "center",
-    gap: 7,
+    gap: 6,
     paddingVertical: 7,
-    paddingLeft: 8,
-    paddingRight: 8,
+    paddingLeft: 6,
+    paddingRight: 6,
   },
   mark: { width: 40, height: 40, paddingBottom: 2, alignItems: "center", justifyContent: "center" },
   markIcon: { width: 28, height: 28 },
   rowCopy: { flex: 1 },
-  rowSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12 },
-  rowValue: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  gain: { minWidth: 42, alignItems: "flex-end" },
-  gainSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, marginBottom: 2 },
-  gainValue: { color: colors.green, fontWeight: "900", fontFamily: fonts.bold, fontSize: 12 },
-  upgradeButton: { minWidth: 70, paddingHorizontal: 8 },
-  upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 12, textAlign: "center" },
-  upgradeButtonCost: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12, textAlign: "center" },
+  rowSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12, lineHeight: 16 },
+  rowValue: { fontSize: 19, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  gain: { alignItems: "flex-end" },
+  gainSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16, marginBottom: 2 },
+  gainValue: { color: colors.green, fontWeight: "900", fontFamily: fonts.bold, fontSize: 15 },
+  upgradeButton: { minWidth: 74, minHeight: 50, paddingHorizontal: 7 },
+  upgradeButtonText: { color: colors.ink, fontWeight: "900", fontFamily: fonts.bold, fontSize: 15, textAlign: "center" },
+  upgradeButtonCost: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12, lineHeight: 16, textAlign: "center" },
   upgradeButtonCostRow: { marginTop: 1, gap: 2 },
   // Matches GameButton's own disabled fade, which a maxed-out stat gets.
   upgradeButtonShort: { opacity: 0.55 },
   markFlash: { position: "absolute", top: 4, left: 4, right: 4, bottom: 4, borderRadius: 6, backgroundColor: "#fff3b0" },
-  gainFloat: { left: 0, top: 4, fontSize: 13, fontFamily: fonts.bold, color: colors.green },
+  gainFloat: { left: 0, top: 4, fontSize: 15, fontFamily: fonts.bold, color: colors.green },
 });

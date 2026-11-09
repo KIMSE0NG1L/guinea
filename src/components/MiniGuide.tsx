@@ -124,5 +124,5 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     transform: [{ rotate: "45deg" }],
   },
-  line: { marginTop: 0, fontSize: 12, lineHeight: 17, fontFamily: fonts.bold },
+  line: { marginTop: 0, fontSize: 14, lineHeight: 18, fontFamily: fonts.bold },
 });

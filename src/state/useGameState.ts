@@ -67,8 +67,10 @@ export const LOOT_FLIGHT_MS = 1200;
 // The held gold goes up as this many coins, one every LOOT_COIN_GAP_MS.
 export const LOOT_COINS = 5;
 export const LOOT_COIN_GAP_MS = 280;
-// Gems for beating a stage's boss for the very first time.
-export const FIRST_CLEAR_GEMS = 50;
+// Gems for beating a stage's boss for the very first time — always paid — and the extra the
+// celebration's ad adds on top.
+export const FIRST_CLEAR_GEMS = 25;
+export const FIRST_CLEAR_AD_GEMS = 25;
 // A retry after the boss fled (watching an ad) gets this share of the usual time limit: the
 // boss keeps its remaining HP, so a near miss still has plenty, while one far off is better
 // served by getting stronger first.
@@ -348,7 +350,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         }
         battle.resetEnemy(getEnemyMaxHp(getDifficultyStage(loadedState.stageNumber, loadedState.loopsCompleted ?? 0), bossDue) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
         // A first-clear celebration that was still open when the game closed comes back.
-        if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, key: Date.now() });
+        // Always today's amount — a celebration saved before the reward changed still carries
+        // its old gem count.
+        if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, gems: FIRST_CLEAR_GEMS, key: Date.now() });
         setState(loadedState);
       }
       setLoaded(true);
@@ -582,8 +586,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       setTimeout(() => setDropEvents((current) => current.filter((event) => !ids.includes(event.id))), 2000 + events.length * 110);
     }
 
-    // First time this stage's boss goes down: a big celebration, whose gem bonus is only
-    // paid out by watching an ad there (claimFirstClearGems).
+    // First time this stage's boss goes down: a big celebration paying FIRST_CLEAR_GEMS on
+    // close, plus FIRST_CLEAR_AD_GEMS more for watching its ad (claimFirstClearGems).
     const firstClear = boss && !getClearedBosses({
       bossesCleared: state.bossesCleared,
       highestStageNumber: state.highestStageNumber,
@@ -1002,11 +1006,14 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
 
   // The first-clear celebration's "watch an ad" reward. Clears `firstClear` in the same
   // update so a second tap can't pay twice.
+  // Pays inside the updater off pendingFirstClear, so the ad claim and the close that
+  // follows it can't both pay: whichever runs first clears it.
   const claimFirstClearGems = () => {
     if (!firstClear) return;
-    const { gems } = firstClear;
     setFirstClear(null);
-    setState((previous) => ({ ...previous, gems: previous.gems + gems, pendingFirstClear: undefined }));
+    setState((previous) =>
+      previous.pendingFirstClear ? { ...previous, gems: previous.gems + FIRST_CLEAR_GEMS + FIRST_CLEAR_AD_GEMS, pendingFirstClear: undefined } : previous,
+    );
   };
 
   const retryBossAfterAd = useCallback(() => {
@@ -1017,6 +1024,17 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setBossTimeLimitMs(Math.round(getBossTimeLimitMs(state.stageNumber, bossPhase) * BOSS_RETRY_TIME_RATIO));
     setNow(Date.now());
   }, [bossRetryAvailable, state.stageNumber, bossPhase]);
+
+  // The retry prompt's no-ad option: the boss gets away — back to this stage's regular mobs
+  // from zero kills (the mid-bosses already beaten stay beaten), to earn the boss again.
+  const leaveBossFight = () => {
+    if (!bossRetryAvailable) return;
+    setBossRetryAvailable(false);
+    endBossFight();
+    setDefeatedBoss(false);
+    setState((previous) => ({ ...previous, stageKills: 0 }));
+    battle.resetEnemy(getEnemyMaxHp(difficultyStage, false));
+  };
 
   // Whether the boss sprite is actually on screen — lags `boss` by the death clip on both
   // ends. The 25th regular-mob kill flips `boss` true immediately (so the next spawn is
@@ -1489,6 +1507,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     bossFledKey,
     bossRetryAvailable,
     retryBossAfterAd,
+    leaveBossFight,
     bossIntroPending,
     beginBossFight,
     bossSkillCastId,
@@ -1500,9 +1519,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     firstClear,
     // What's been opened in the album and the recipe shop stays open.
     clearedStages: getClearedBosses(state),
+    // Closing without the ad still pays the base gems.
     dismissFirstClear: () => {
       setFirstClear(null);
-      setState((previous) => ({ ...previous, pendingFirstClear: undefined }));
+      setState((previous) => (previous.pendingFirstClear ? { ...previous, gems: previous.gems + FIRST_CLEAR_GEMS, pendingFirstClear: undefined } : previous));
     },
     bossEnraged: boss && bossPhase === 2 && battle.phase !== "defeated",
     // Held back while the first-clear celebration covers the screen.

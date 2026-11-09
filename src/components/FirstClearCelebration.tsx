@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -7,16 +8,16 @@ import Animated, {
   withDelay,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 import { colors, fonts } from "../theme";
-import { panelSlices, uiImages } from "../assets";
-import { NineSlice } from "./NineSlice";
+import { icons, panelSlices, shopKit, uiImages } from "../assets";
+import { NineSlice, Panel } from "./NineSlice";
 import { StrokedText } from "./StrokedText";
 import { GameButton } from "./GameButton";
 import { RewardedAdModal } from "./RewardedAdModal";
+import { AdBadge } from "./AdBadge";
 
 const CONFETTI_COLORS = ["#ffd34d", "#ff7a59", "#7ed957", "#5bc0ff", "#ff9ad5", "#fff3b8"];
 const RAY_COUNT = 14;
@@ -111,12 +112,15 @@ export function RibbonTail({ flip = false }: { flip?: boolean }) {
 export function FirstClearCelebration({
   bossName,
   gems,
+  adGems,
   companions = [],
   onClaimAd,
   onDone,
 }: {
   bossName: string;
+  // Paid on closing either way; `adGems` more if the ad is watched.
   gems: number;
+  adGems: number;
   companions?: string[];
   onClaimAd: () => void;
   onDone: () => void;
@@ -124,27 +128,22 @@ export function FirstClearCelebration({
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [adOpen, setAdOpen] = useState(false);
   const backdrop = useSharedValue(0);
-  const spin = useSharedValue(0);
   const title = useSharedValue(0);
   const unfurl = useSharedValue(0);
   const words = useSharedValue(0);
   const reward = useSharedValue(0);
-  const glow = useSharedValue(0);
 
   useEffect(() => {
     backdrop.value = withTiming(1, { duration: 200 });
-    spin.value = withRepeat(withTiming(360, { duration: 9000, easing: Easing.linear }), -1);
     title.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
     // The ribbon unrolls out from its middle, the tails tuck out after, then the words.
     unfurl.value = withDelay(120, withTiming(1, { duration: 520, easing: Easing.out(Easing.cubic) }));
     words.value = withDelay(560, withTiming(1, { duration: 280, easing: Easing.out(Easing.quad) }));
-    reward.value = withDelay(520, withSpring(1, { damping: 7, stiffness: 140 }));
-    glow.value = withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0, { duration: 500 })), -1);
+    reward.value = withDelay(520, withTiming(1, { duration: 320, easing: Easing.out(Easing.quad) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const backdropStyle = useAnimatedStyle(() => ({ opacity: backdrop.value }));
-  const raysStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${spin.value}deg` }, { scale: 0.6 + title.value * 0.4 }] }));
   const bandStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: Math.max(0.02, unfurl.value) }] }));
   const leftTailStyle = useAnimatedStyle(() => ({
     opacity: unfurl.value > 0.55 ? 1 : 0,
@@ -154,11 +153,9 @@ export function FirstClearCelebration({
     opacity: unfurl.value > 0.55 ? 1 : 0,
     transform: [{ translateX: -(1 - Math.min(1, Math.max(0, (unfurl.value - 0.55) / 0.45))) * 60 }],
   }));
-  const wordsStyle = useAnimatedStyle(() => ({ opacity: words.value, transform: [{ scale: 0.85 + words.value * 0.15 }] }));
+  const wordsStyle = useAnimatedStyle(() => ({ opacity: words.value }));
   const kickerStyle = useAnimatedStyle(() => ({ opacity: title.value }));
-  const rewardStyle = useAnimatedStyle(() => ({ opacity: Math.min(1, reward.value * 2), transform: [{ scale: reward.value }] }));
-  const glowStyle = useAnimatedStyle(() => ({ opacity: 0.35 + glow.value * 0.5, transform: [{ scale: 1 + glow.value * 0.15 }] }));
-  const raySize = Math.max(size.width, size.height) * 1.2;
+  const rewardStyle = useAnimatedStyle(() => ({ opacity: reward.value, transform: [{ translateY: (1 - reward.value) * 8 }] }));
 
   return (
     <View
@@ -169,9 +166,6 @@ export function FirstClearCelebration({
       <Animated.View style={[styles.backdrop, backdropStyle]} />
       {size.width > 0 && (
         <>
-          <Animated.View style={[styles.rays, { width: raySize, height: raySize, marginLeft: -raySize / 2, marginTop: -raySize / 2 }, raysStyle]} pointerEvents="none">
-            <Rays size={raySize} />
-          </Animated.View>
           {Array.from({ length: 36 }, (_, index) => (
             <ConfettiPiece key={index} index={index} width={size.width} height={size.height} />
           ))}
@@ -202,14 +196,31 @@ export function FirstClearCelebration({
         <StrokedText style={styles.boss} strokeColor={colors.line} strokeWidth={2}>
           {bossName} 격파!
         </StrokedText>
-        <Animated.View style={[styles.reward, rewardStyle]}>
-          <Animated.View style={[styles.gemGlow, glowStyle]} />
-          <Image source={uiImages.crystal} style={styles.gem} />
-          <StrokedText style={styles.rewardText} strokeColor={colors.line} strokeWidth={3}>
-            +{gems}
-          </StrokedText>
+        {/* The gems this clear pays, with a speech bubble offering the ad's extra — tapping
+            the bubble starts the ad. */}
+        <Animated.View style={[styles.rewardRow, rewardStyle]}>
+          <View style={styles.reward}>
+            <View>
+              <Image source={uiImages.crystal} style={styles.gem} />
+              <GemSparkles />
+            </View>
+            <StrokedText style={styles.rewardText} strokeColor={colors.line} strokeWidth={3}>
+              +{gems}
+            </StrokedText>
+            <Pressable
+              onPress={() => setAdOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={`광고 보고 보석 ${adGems}개 더 받기`}
+              style={({ pressed }) => [styles.bubbleWrap, pressed && styles.bubblePressed]}
+            >
+              <Panel slice={shopKit.bubble} scale={0.3} style={styles.bubble}>
+                <AdBadge inline />
+                <Image source={uiImages.crystal} style={styles.bubbleGem} />
+                <Text style={styles.bubbleText}>{`+${adGems}`}</Text>
+              </Panel>
+            </Pressable>
+          </View>
         </Animated.View>
-        <Text style={styles.rewardLabel}>광고 보고 보석 보너스 받기!</Text>
         {companions.map((name) => (
           <Animated.View key={name} style={[styles.companion, rewardStyle]}>
             <StrokedText style={styles.companionText} strokeColor={colors.line} strokeWidth={2}>
@@ -220,22 +231,13 @@ export function FirstClearCelebration({
         </Animated.View>
       </View>
       <Animated.View style={[styles.actions, rewardStyle]}>
-        <GameButton variant="green" onPress={() => setAdOpen(true)} accessibilityLabel={`광고 보고 보석 ${gems}개 받기`} style={styles.adButton}>
-          <View style={styles.adButtonFace}>
-            <Text style={styles.adSmall}>광고 보고</Text>
-            <View style={styles.adPrice}>
-              <Image source={uiImages.crystal} style={styles.adGem} />
-              <Text style={styles.adText}>{`${gems} 받기`}</Text>
-            </View>
-          </View>
+        <GameButton variant="green" onPress={onDone} accessibilityLabel={`보석 ${gems}개 받기`} style={styles.actionButton} textStyle={styles.actionLabel}>
+          받기
         </GameButton>
-        <Pressable onPress={onDone} hitSlop={10} accessibilityRole="button" accessibilityLabel="보석 받지 않고 닫기">
-          <Text style={styles.hint}>받지 않고 닫기</Text>
-        </Pressable>
       </Animated.View>
       {adOpen && (
         <RewardedAdModal
-          message={`대신 섭섭하지 않게 보석 ${gems}개는 그대로 챙겨드릴게요.`}
+          message={`대신 섭섭하지 않게 보석 ${adGems}개는 그대로 더 챙겨드릴게요.`}
           claimLabel="보석 받기"
           onClaim={() => {
             setAdOpen(false);
@@ -249,41 +251,75 @@ export function FirstClearCelebration({
   );
 }
 
+// Twinkles on the gem: a few little stars sitting around it that blink on and off in turn.
+const SPARKS = [
+  { x: -16, y: -24, size: 12, delay: 0 },
+  { x: 18, y: -12, size: 9, delay: 420 },
+  { x: -20, y: 14, size: 8, delay: 760 },
+  { x: 14, y: 22, size: 11, delay: 240 },
+];
+
+function GemSparkles() {
+  return (
+    <View style={styles.sparkles} pointerEvents="none">
+      {SPARKS.map((spark, index) => (
+        <Spark key={index} {...spark} />
+      ))}
+    </View>
+  );
+}
+
+function Spark({ x, y, size, delay }: { x: number; y: number; size: number; delay: number }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withDelay(delay, withRepeat(withSequence(withTiming(1, { duration: 450, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 650, easing: Easing.in(Easing.quad) })), -1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: t.value, transform: [{ scale: 0.5 + t.value * 0.5 }] }));
+  return (
+    <Animated.View style={[styles.spark, { left: x - size / 2, top: y - size / 2, width: size, height: size }, style]}>
+      <Image source={icons.star} style={{ width: size, height: size }} />
+    </Animated.View>
+  );
+}
+
 const FRAME_SCALE = 0.34;
 
 const styles = StyleSheet.create({
   overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 45, overflow: "hidden", alignItems: "center", justifyContent: "center" },
   backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(20, 12, 6, 0.72)" },
-  rays: { position: "absolute", left: "50%", top: "42%" },
   confetti: { position: "absolute", top: 0, borderRadius: 2 },
   center: { alignItems: "center", marginTop: -40 },
   // Padded to the frame art's opening (at FRAME_SCALE): 258px of top bar, 175px of bottom bar
   // and 89px side posts in the 1000px-wide source.
-  frameBack: { position: "absolute", left: 26, right: 26, top: 84, bottom: 56, borderRadius: 6, backgroundColor: "#2e1a0ce6" },
+  frameBack: { position: "absolute", left: 26, right: 26, top: 84, bottom: 56, borderRadius: 6, backgroundColor: "#2e1a0c" },
   frame: { width: 1000 * FRAME_SCALE, paddingTop: 92, paddingBottom: 70, paddingHorizontal: 34, alignItems: "center" },
-  title: { fontSize: 30, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
+  title: { fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
   ribbon: { marginTop: 0, marginBottom: -4, width: RIBBON_W, height: RIBBON_H, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.86 }] },
   band: { position: "absolute", top: 0, left: (RIBBON_W - BAND_W) / 2 },
   tailLeft: { position: "absolute", left: 0, top: 18 },
   tailRight: { position: "absolute", right: 0, top: 18 },
-  ribbonWords: { position: "absolute", top: 8, left: 0, right: 0, height: RIBBON_H - 26, alignItems: "center", justifyContent: "center" },
-  boss: { marginTop: 6, fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  // Sits a little high in the band: the band arches, so its visual middle is above centre.
+  ribbonWords: { position: "absolute", top: 1, left: 0, right: 0, height: RIBBON_H - 26, alignItems: "center", justifyContent: "center" },
+  boss: { marginTop: 6, fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   // Padded out to the glow's full 96px so it sits inside the row's own bounds — Android clips
   // children that overflow an animated (opacity/scale) parent, which cut the glow off.
-  reward: { marginTop: 4, paddingVertical: 18, paddingLeft: 26, paddingRight: 4, flexDirection: "row", alignItems: "center", gap: 8 },
-  gemGlow: { position: "absolute", left: 0, top: 0, width: 96, height: 96, borderRadius: 48, backgroundColor: "#7fd6ff" },
+  rewardRow: { marginTop: 26, marginBottom: 6, alignItems: "center" },
+  // Hangs off the gems' top-right, its tail (bottom-left of the art) pointing back at them.
+  bubbleWrap: { position: "absolute", left: "100%", bottom: 22, marginLeft: 8 },
+  bubblePressed: { transform: [{ scale: 0.95 }] },
+  bubble: { flexDirection: "row", alignItems: "center", gap: 5, paddingLeft: 12, paddingRight: 14, paddingTop: 8, paddingBottom: 16 },
+  bubbleGem: { width: 15, height: 20, resizeMode: "contain" },
+  bubbleText: { fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  reward: { flexDirection: "row", alignItems: "center", gap: 6 },
   // item-crystal.png is 109x149 — sized to that ratio so it isn't cropped square.
-  gem: { width: 44, height: 60, resizeMode: "contain" },
-  rewardText: { fontSize: 40, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
+  gem: { width: 33, height: 45, resizeMode: "contain" },
+  sparkles: { position: "absolute", left: "50%", top: "50%", width: 0, height: 0 },
+  spark: { position: "absolute", left: 0, top: 0 },
+  rewardText: { fontSize: 32, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   companion: { marginTop: 14, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 12, backgroundColor: "#c8553de6" },
-  companionText: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  rewardLabel: { marginTop: -14, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
-  actions: { marginTop: 18, alignItems: "center", gap: 12 },
-  adButton: { minWidth: 170 },
-  adButtonFace: { alignItems: "center" },
-  adSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
-  adPrice: { flexDirection: "row", alignItems: "center", gap: 4 },
-  adGem: { width: 13, height: 18, resizeMode: "contain" },
-  adText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  hint: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#d8cdb8", textDecorationLine: "underline" },
+  companionText: { fontSize: 19, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  actions: { marginTop: 18, alignItems: "center" },
+  actionButton: { minWidth: 160, minHeight: 50 },
+  actionLabel: { fontSize: 18 },
 });

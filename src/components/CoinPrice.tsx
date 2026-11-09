@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Image, StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Text } from "./GameText";
 import { uiImages } from "../assets";
 import { formatGameNumber } from "../state/gameMath";
 

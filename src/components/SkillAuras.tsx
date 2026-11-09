@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -598,11 +599,11 @@ const styles = StyleSheet.create({
   glintBar: { position: "absolute", width: GLINT, height: 3, borderRadius: 2 },
   glintBarCross: { transform: [{ rotate: "90deg" }] },
   arrow: { position: "absolute", bottom: 20 },
-  arrowText: { fontSize: 14, color: FOCUS_GOLD, textShadowColor: "#7a4b00", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
+  arrowText: { fontSize: 16, color: FOCUS_GOLD, textShadowColor: "#7a4b00", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
   coin: { position: "absolute", width: COIN, height: COIN },
   carrot: { position: "absolute", width: CARROT_SIZE, height: CARROT_SIZE, resizeMode: "contain" },
   sinkingArrow: { position: "absolute", bottom: 80 },
-  sinkingArrowText: { fontSize: 14, color: SHOUT_RED, textShadowColor: "#4a0a06", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
+  sinkingArrowText: { fontSize: 16, color: SHOUT_RED, textShadowColor: "#4a0a06", textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
 });
 
 // ---- 운석 낙하 ---------------------------------------------------------------------------

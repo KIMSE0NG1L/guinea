@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BackHandler, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { APP_MAX_WIDTH, colors } from "./theme";
-import { LOOT_COIN_GAP_MS, LOOT_COINS, LOOT_FLIGHT_MS, useGameState } from "./state/useGameState";
+import { FIRST_CLEAR_AD_GEMS, LOOT_COIN_GAP_MS, LOOT_COINS, LOOT_FLIGHT_MS, useGameState } from "./state/useGameState";
 import { GameHeader } from "./components/GameHeader";
 import { BottomNavigation } from "./components/BottomNavigation";
 import { QuestModal } from "./components/QuestModal";
@@ -459,6 +459,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             key={game.firstClear.key}
             bossName={game.firstClear.bossName}
             gems={game.firstClear.gems}
+            adGems={FIRST_CLEAR_AD_GEMS}
             companions={game.firstClear.companions}
             onClaimAd={game.claimFirstClearGems}
             onDone={() => {

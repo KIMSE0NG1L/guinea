@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
@@ -115,15 +116,15 @@ const styles = StyleSheet.create({
   ringDashed: { width: 210, height: 210, borderWidth: 2, borderColor: "#f3d993", borderStyle: "dashed" },
   ringSolid: { width: 155, height: 155, borderWidth: 2, borderColor: "#fff4bd88" },
   content: { alignItems: "center" },
-  title: { color: "#ffd84a", fontSize: 30, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 2 },
+  title: { color: "#ffd84a", fontSize: 32, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 2 },
   nameRow: { marginTop: 2, flexDirection: "row", alignItems: "center", gap: 8 },
   rule: { flexDirection: "row", alignItems: "center", width: 46 },
   ruleLeft: { transformOrigin: "100% 50%" },
   ruleRight: { transformOrigin: "0% 50%" },
   ruleLine: { flex: 1, height: 2, borderRadius: 1, backgroundColor: "#f3d993" },
   diamond: { width: 7, height: 7, backgroundColor: "#ffd84a", borderWidth: 1, borderColor: "#3a2410", transform: [{ rotate: "45deg" }] },
-  stageLabel: { color: "#fff4bd", fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
+  stageLabel: { color: "#fff4bd", fontSize: 24, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
   prompt: { marginTop: 14, backgroundColor: "#3d513a", borderWidth: 2, borderColor: colors.line, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 14 },
-  promptText: { color: "#fff4bd", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
+  promptText: { color: "#fff4bd", fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
   sub: { marginTop: 6, color: "#f3e6c8", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
 });

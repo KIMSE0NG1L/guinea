@@ -1,4 +1,5 @@
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { icons, kit } from "../assets";
 import { NineSlice } from "./NineSlice";
@@ -38,10 +39,10 @@ export function BagFullModal({ onOpenBag, onClose }: { onOpenBag: () => void; on
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 22, paddingHorizontal: 14, justifyContent: "center", backgroundColor: "#263024cf" },
-  panel: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18, alignItems: "center" },
+  panel: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, alignItems: "center" },
   icon: { width: 64, height: 64 },
-  title: { marginTop: 6, fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
+  title: { marginTop: 6, fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
   buttonRow: { marginTop: 18, flexDirection: "row", gap: 10 },
   button: { minWidth: 110 },
 });

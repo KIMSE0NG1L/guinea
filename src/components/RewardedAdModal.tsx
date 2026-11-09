@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit, icons } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
+import { AdBadge } from "./AdBadge";
 import { getLastAdError, showRewardedAd } from "../ads";
 
 type Phase = "prompt" | "loading" | "fallback";
@@ -21,12 +23,16 @@ export function RewardedAdModal({
   onClaim,
   onCancel,
   autoStart = true,
+  secondary,
 }: {
   message: string;
   claimLabel: string;
   onClaim: () => void;
   onCancel?: () => void;
   autoStart?: boolean;
+  // A no-ad alternative shown beside the ad button on the prompt (e.g. the boss retry's
+  // "그냥 다시 도전"), so skipping the ad is a clear choice rather than a hidden dismiss.
+  secondary?: { label: string; onPress: () => void };
 }) {
   const [phase, setPhase] = useState<Phase>(autoStart ? "loading" : "prompt");
   const mounted = useRef(true);
@@ -76,7 +82,24 @@ export function RewardedAdModal({
           {phase === "prompt" && (
             <>
               <Text style={styles.message}>{message}</Text>
-              <GameButton variant="green" onPress={play} style={styles.claimButton}>{claimLabel}</GameButton>
+              {secondary ? (
+                <View style={styles.choiceRow}>
+                  <GameButton variant="beige" onPress={secondary.onPress} style={styles.choiceButton} textStyle={styles.choiceLabel}>
+                    {secondary.label}
+                  </GameButton>
+                  <View>
+                    <GameButton variant="green" onPress={play} style={styles.choiceButton}>
+                      <View style={styles.choiceContent}>
+                        <Text style={styles.choiceSmall}>광고 보고</Text>
+                        <Text style={styles.choiceLabel}>{claimLabel}</Text>
+                      </View>
+                    </GameButton>
+                    <AdBadge />
+                  </View>
+                </View>
+              ) : (
+                <GameButton variant="green" onPress={play} style={styles.claimButton}>{claimLabel}</GameButton>
+              )}
             </>
           )}
           {phase === "fallback" && (
@@ -102,16 +125,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#263024cf",
   },
   panel: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 18,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
     alignItems: "center",
   },
   heroIcon: { width: 44, height: 44, marginBottom: 6 },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
-  title: { marginTop: 2, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  title: { marginTop: 2, fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
   spinner: { marginTop: 14, marginBottom: 4 },
   claimButton: { marginTop: 16, minWidth: 140 },
-  errorCode: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.muted, textAlign: "center" },
+  choiceRow: { marginTop: 16, flexDirection: "row", gap: 8 },
+  choiceButton: { minWidth: 124, minHeight: 50 },
+  choiceContent: { alignItems: "center" },
+  choiceSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
+  choiceLabel: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  errorCode: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, lineHeight: 16, color: colors.muted, textAlign: "center" },
 });

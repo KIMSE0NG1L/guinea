@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   copy: { marginTop: -10, alignItems: "center" },
   flash: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "#ffd34d" },
   stampDouble: { position: "absolute", top: CENTER - 120, right: STAGE / 2 - 96 },
-  stampDoubleText: { color: "#ffe066", fontSize: 30, fontWeight: "900", fontFamily: fonts.bold },
+  stampDoubleText: { color: "#ffe066", fontSize: 32, fontWeight: "900", fontFamily: fonts.bold },
   stampNew: {
     position: "absolute",
     top: CENTER - 110,
@@ -341,9 +341,9 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.red,
   },
-  stampNewText: { color: colors.cream, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
-  title: { color: "#fff4bd", fontSize: 30, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
-  name: { marginTop: 2, color: colors.gold, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
-  grade: { marginTop: 3, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
+  stampNewText: { color: colors.cream, fontSize: 16, fontWeight: "900", fontFamily: fonts.bold },
+  title: { color: "#fff4bd", fontSize: 32, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
+  name: { marginTop: 2, color: colors.gold, fontSize: 16, fontWeight: "900", fontFamily: fonts.bold },
+  grade: { marginTop: 3, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold },
   page: { marginTop: 4, color: "#fff4bd", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
 });

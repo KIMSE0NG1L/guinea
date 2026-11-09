@@ -1,4 +1,5 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { NineSlice, Panel } from "./NineSlice";
@@ -60,7 +61,7 @@ export function MonsterStoryModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, paddingHorizontal: 16, justifyContent: "center", backgroundColor: "#263024cf" },
-  panel: { width: "100%", maxWidth: 400, alignSelf: "center", alignItems: "center", paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20 },
+  panel: { width: "100%", maxWidth: 400, alignSelf: "center", alignItems: "center", paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 },
   top: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: 6 },
   tag: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
   tagMob: { backgroundColor: colors.green },
@@ -68,11 +69,11 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   where: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   portrait: { height: 130, justifyContent: "flex-end", alignItems: "center" },
-  name: { marginTop: 4, fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  name: { marginTop: 4, fontSize: 24, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   traits: { marginTop: 6, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 5 },
   trait: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, backgroundColor: "#e9d6ae" },
   traitText: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   storyBox: { marginTop: 12, alignSelf: "stretch", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14 },
-  story: { fontSize: 12, lineHeight: 19, color: colors.ink, fontFamily: fonts.bold },
+  story: { fontSize: 14, lineHeight: 18, color: colors.ink, fontFamily: fonts.bold },
   close: { marginTop: 14, minWidth: 120 },
 });

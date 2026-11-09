@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { uiImages } from "../assets";
@@ -172,8 +173,8 @@ const styles = StyleSheet.create({
   popup: { position: "absolute", width: 190, alignItems: "center", zIndex: 7 },
   popupRow: { flexDirection: "row", alignItems: "center", gap: 3 },
   popupIcon: { width: 18, height: 18, resizeMode: "contain" },
-  popupGold: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe066" },
-  popupGem: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
+  popupGold: { fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe066" },
+  popupGem: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   popupLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   adButton: { marginTop: 7, minHeight: 34, paddingHorizontal: 10, minWidth: 170 },
 });

@@ -338,6 +338,11 @@ const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
 
 const EFFECT_KEYS = Object.keys(EFFECT_LABELS) as (keyof BuffEffect)[];
 
+// The same, one entry per stat — for UI that pairs each with its own icon.
+export function describeEffectParts(effect: BuffEffect) {
+  return EFFECT_KEYS.filter((key) => effect[key] !== undefined).map((key) => ({ key, text: EFFECT_LABELS[key](effect[key] ?? 0) }));
+}
+
 export function describeEffect(effect: BuffEffect) {
   return EFFECT_KEYS.filter((key) => effect[key] !== undefined)
     .map((key) => EFFECT_LABELS[key](effect[key] ?? 0))

@@ -910,6 +910,8 @@ export const buttonKit = {
 
 export const buttonImages = {
   plusGreen: require("../assets/buttons/plus-green.png"),
+  // Round red X — a popup's close button, pinned to its top-right corner.
+  closeRed: require("../assets/buttons/close-red.png"),
 };
 
 export const navIcons = {

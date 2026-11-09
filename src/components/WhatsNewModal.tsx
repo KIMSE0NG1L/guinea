@@ -1,4 +1,5 @@
-import { Image, Modal, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit, uiImages } from "../assets";
 import { NineSlice } from "./NineSlice";
@@ -42,15 +43,15 @@ export function WhatsNewModal({ gift, onClose }: { gift: boolean; onClose: () =>
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 18, justifyContent: "center", backgroundColor: "#263024cf" },
-  panel: { width: "100%", maxWidth: 400, alignSelf: "center", paddingHorizontal: 18, paddingTop: 20, paddingBottom: 18, alignItems: "center" },
+  panel: { width: "100%", maxWidth: 400, alignSelf: "center", paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, alignItems: "center" },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 2 },
-  title: { marginTop: 2, fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  title: { marginTop: 2, fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   list: { marginTop: 14, alignSelf: "stretch", gap: 8 },
   item: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-  icon: { fontSize: 15, width: 22, textAlign: "center" },
+  icon: { fontSize: 18, width: 22, textAlign: "center" },
   text: { flex: 1, fontSize: 12, lineHeight: 16, color: colors.ink, fontWeight: "700", fontFamily: fonts.bold },
   button: { marginTop: 16, minWidth: 190 },
   gift: { flexDirection: "row", alignItems: "center", gap: 4 },
-  giftText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  giftText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   gem: { width: 13, height: 18, resizeMode: "contain" },
 });

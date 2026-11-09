@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-native";
+import { StyleSheet, View, type StyleProp, type TextStyle } from "react-native";
+import { Text } from "./GameText";
 
 // Fakes CSS `-webkit-text-stroke` (not supported by RN Text) by stacking 8 copies of the
 // same text offset by `strokeWidth` in every direction, with the real text painted on top.
