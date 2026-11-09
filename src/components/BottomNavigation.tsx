@@ -1,19 +1,22 @@
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import { NineSlice } from "./NineSlice";
-import { kit, navIcons } from "../assets";
+import { food, kit, navIcons } from "../assets";
 import { tutorialRef } from "./tutorialTargets";
 import { playSfx } from "../sound";
 import { StrokedText } from "./StrokedText";
 import type { Tab } from "../types";
 
-// Only these 4 tabs are reachable from the bottom bar; the rest of the screens open from
+// Only these 5 tabs are reachable from the bottom bar; the rest of the screens open from
 // buttons elsewhere. The selected tab sits on the raised green tab art with its label next
-// to the icon; the others show a small caption under the icon.
+// to the icon; the others show a small caption under the icon. 요리's icon isn't a custom
+// nav glyph — the existing cook-pot item icon already matches this set's thick-outline look
+// closely enough.
 const navigation: { id: Tab; label: string; icon: number }[] = [
-  { id: "battle", label: "전투", icon: navIcons.battle },
   { id: "companions", label: "동료", icon: navIcons.companions },
   { id: "skills", label: "스킬", icon: navIcons.skills },
+  { id: "battle", label: "전투", icon: navIcons.battle },
+  { id: "kitchen", label: "요리", icon: food.cookPot },
   { id: "shop", label: "상점", icon: navIcons.shop },
 ];
 

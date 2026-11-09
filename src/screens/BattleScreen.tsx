@@ -14,9 +14,7 @@ import { playSfx } from "../sound";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { BUFF_SLOT_PRICES } from "../state/buffs";
 import type { EnemyKind } from "../types";
-import { getCookingPots } from "../state/cooking";
 import { hasClaimableQuest } from "../state/quests";
-import { RECIPES } from "../state/recipes";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
   const {
@@ -45,9 +43,6 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   const stageLabel = getStageLabel(displayStageNumber);
   // Which empty buff slot the dish picker is filling, if it's open.
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
-  // The first finished dish waiting in a pot, shown floating over the kitchen button.
-  const readyPot = getCookingPots(state.cookingPots).find((pot) => pot && pot.readyAt <= game.now);
-  const readyDish = readyPot ? RECIPES.find((recipe) => recipe.id === readyPot.recipeId) : undefined;
   // A locked food slot that was tapped: confirm the gem price (slots open in order).
   const [unlockingSlot, setUnlockingSlot] = useState<number | null>(null);
   const [adModalOpen, setAdModalOpen] = useState(false);
@@ -96,7 +91,6 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
         onOpenKitchen={() => game.setState((previous) => ({ ...previous, selectedTab: "kitchen" }))}
-        kitchenReadyDish={readyDish?.image ?? null}
         onOpenBag={() => game.setState((previous) => ({ ...previous, selectedTab: "inventory" }))}
         bagFull={slotsUsed(state.inventory) >= getBagCapacity(state.bagExpansions)}
         onCatchFlyingCoin={game.catchFlyingCoin}
@@ -167,6 +161,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       {pickingSlot !== null && (
         <DishPicker
           inventory={state.inventory}
+          dishQuality={state.dishQuality}
           slots={game.buffSlots}
           now={game.now}
           outfit={state.equippedOutfit}

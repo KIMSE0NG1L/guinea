@@ -324,7 +324,6 @@ export function BattleScene({
   onManualAttack,
   onOpenMap,
   onOpenKitchen,
-  kitchenReadyDish,
   onOpenBag,
   bagFull,
   onCatchFlyingCoin,
@@ -402,8 +401,6 @@ export function BattleScene({
   onManualAttack: () => void;
   onOpenMap: () => void;
   onOpenKitchen: () => void;
-  // A dish is done in a kitchen pot and waiting to be taken out.
-  kitchenReadyDish: number | null;
   onOpenBag: () => void;
   bagFull: boolean;
   onCatchFlyingCoin: (kind: "coin" | "gem", watchAd?: boolean) => { gold: number; gems: number };
@@ -813,7 +810,6 @@ export function BattleScene({
             style={({ pressed }) => [styles.kitchenButton, pressed && styles.mapButtonPressed]}
           >
             <Image source={POT_ICON.source} style={fitInBox(POT_ICON)} />
-            {kitchenReadyDish !== null && <KitchenReadyBadge dish={kitchenReadyDish} />}
             <IconCaption>요리</IconCaption>
           </Pressable>
 
@@ -1562,26 +1558,6 @@ function WobblingMedal({ wobble }: { wobble: boolean }) {
   return <Animated.Image source={icons.questMedal} style={[styles.questIcon, style]} />;
 }
 
-// On the kitchen button while a dish waits in a pot: the red dot hops and the dish
-// floats above the button.
-function KitchenReadyBadge({ dish }: { dish: number }) {
-  const hop = useSharedValue(0);
-  const float = useSharedValue(0);
-  useEffect(() => {
-    hop.value = withRepeat(withSequence(withTiming(1, { duration: 180, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 180, easing: Easing.in(Easing.quad) }), withDelay(900, withTiming(0, { duration: 0 }))), -1);
-    float.value = withRepeat(withTiming(1, { duration: 900, easing: Easing.inOut(Easing.sin) }), -1, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const dotStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -hop.value * 6 }] }));
-  const dishStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -float.value * 5 }] }));
-  return (
-    <>
-      <Animated.Image source={dish} style={[styles.kitchenFloatDish, dishStyle]} />
-      <Animated.Image source={kitImages.dotRed} style={[styles.kitchenDot, dotStyle]} accessibilityLabel="완성된 요리 있음" />
-    </>
-  );
-}
-
 const styles = StyleSheet.create({
   scene: {
     marginHorizontal: 10,
@@ -1661,8 +1637,6 @@ const styles = StyleSheet.create({
   bagFull: { position: "absolute", top: -4, right: -6, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 7, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.line },
   bagFullText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   questDot: { position: "absolute", right: 3, top: 2, width: 12, height: 12 },
-  kitchenFloatDish: { position: "absolute", top: -26, left: "50%", marginLeft: -11, width: 22, height: 22 },
-  kitchenDot: { position: "absolute", right: -2, top: -2, width: 12, height: 12 },
   fighters: {
     position: "absolute",
     zIndex: 4,

@@ -187,7 +187,6 @@ export function SkillPreviewModal({ skillId, enemyKind, outfit, onClose }: { ski
               onManualAttack={noop}
               onOpenMap={noop}
               onOpenKitchen={noop}
-              kitchenReadyDish={null}
               onOpenBag={noop}
               bagFull={false}
               onCatchFlyingCoin={noCoin}

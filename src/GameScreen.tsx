@@ -35,7 +35,7 @@ import { ComicViewer } from "./components/ComicViewer";
 import { COMIC_ON_FIRST_CLEAR, type ComicId } from "./state/comics";
 import { ComicsScreen } from "./screens/ComicsScreen";
 import { measureTarget } from "./components/tutorialTargets";
-import { getCookingPots, getPotsUnlocked } from "./state/cooking";
+import type { CookGrade } from "./state/buffs";
 import { canCook, getKnownRecipes, RECIPES, ITEM_IMAGES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
 import { BGM_GROUP, getDifficultyStage, getEnemyKind, getPeakAreaStage } from "./state/stages";
@@ -56,10 +56,9 @@ const GIFT_PAUSE_MS = 2000;
 
 // Sub-screens reachable only from another screen (not the bottom bar): hardware back goes
 // to whichever tab opened them, mirroring each screen's own onBack button. Root tabs
-// (battle/companions/skills/shop, absent here) have no parent — back exits the app there.
+// (battle/companions/kitchen/skills/shop, absent here) have no parent — back exits the app there.
 const TAB_PARENT: Partial<Record<Tab, Tab>> = {
   milestone: "battle",
-  kitchen: "battle",
   inventory: "battle",
   comics: "milestone",
   cookbook: "kitchen",
@@ -115,12 +114,11 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     if (!recipeTutorialDue || recipeTutorialArmed) return;
     const timer = setTimeout(() => {
       setRecipeTutorialArmed(true);
-      // On the house: the first recipe's price in gold (there's no starting gold) and one
-      // gem to finish the dish on the spot.
+      // On the house: the first recipe's price in gold (there's no starting gold).
       setState((previous) => {
         if (previous.recipeGiftGiven) return previous;
         const price = RECIPES.find((recipe) => recipe.id === "green-jelly")?.price ?? 0;
-        return { ...previous, gold: previous.gold + price, gems: previous.gems + 1, recipeGiftGiven: true };
+        return { ...previous, gold: previous.gold + price, recipeGiftGiven: true };
       });
     }, 1600);
     return () => clearTimeout(timer);
@@ -160,9 +158,9 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     return () => clearTimeout(timer);
   }, [game.skillTutorialActive, skillTutorialArmed]);
 
-  // The dish whose "완성!" burst is playing (keyed so each collect replays it), and whether
-  // the last collect bounced off a full bag.
-  const [collected, setCollected] = useState<{ key: number; recipeId: string; great: boolean; isNew: boolean } | null>(null);
+  // The dish whose "완성!" burst is playing (keyed so each finish replays it), and whether
+  // the cook bounced off a full bag.
+  const [collected, setCollected] = useState<{ key: number; recipeId: string; great: boolean; grade: CookGrade; isNew: boolean } | null>(null);
   const [cookbookEndingOpen, setCookbookEndingOpen] = useState(false);
   // The opening comic plays once on a new game; story comics follow a boss's first clear
   // (COMIC_ON_FIRST_CLEAR); any reached one can be replayed from settings.
@@ -181,15 +179,16 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
   }, [openingComicShowing, playingComic]);
   const markComicSeen = (id: ComicId) =>
     setState((previous) => ({ ...previous, seenComics: [...new Set([...(previous.seenComics ?? []), id])] }));
-  const cookingPots = getCookingPots(state.cookingPots);
   const collectCount = useRef(0);
-  const onCollect = (potIndex: number, rush = false, viaAd = false) => {
-    const recipeId = cookingPots[potIndex]?.recipeId;
-    const result = game.collectDish(potIndex, rush, viaAd);
-    if ((result === "ok" || result === "great") && recipeId) {
-      const isNew = !(state.cookedRecipes ?? []).includes(recipeId);
+  // The cooking minigame resolved with `grade` (see CookingMinigame/KitchenScreen) — spends
+  // the ingredients/gold and grants the dish, then plays the same "완성!" burst the old
+  // pot-collect flow did.
+  const onFinishCook = (recipeId: string, grade: CookGrade, buyMissing: boolean) => {
+    const isNew = !(state.cookedRecipes ?? []).includes(recipeId);
+    const result = game.finishCook(recipeId, grade, buyMissing);
+    if (result === "ok" || result === "great") {
       collectCount.current += 1;
-      setCollected({ key: collectCount.current, recipeId, great: result === "great", isNew });
+      setCollected({ key: collectCount.current, recipeId, great: result === "great", grade, isNew });
     }
     if (result === "full") game.notifyBagFull();
   };
@@ -204,19 +203,6 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     if (!recipe) return;
     measureTarget(`cook-${recipe.id}`).then((to) => {
       if (to) launchFlight({ image: recipe.image, from: "center", to, size: 44, duration: 560, arc: 40 });
-    });
-  };
-
-  // Scrolls the page so a recipe card (tagged via tutorialRef) sits near the top.
-  const scrollRef = useRef<ScrollView>(null);
-  const scrollY = useRef(0);
-  const showRecipe = (recipeId: string) => {
-    const scroll = scrollRef.current;
-    Promise.all([
-      measureTarget(`cook-${recipeId}`),
-      new Promise<number>((resolve) => (scroll as unknown as View | null)?.measureInWindow((_x, y) => resolve(y)) ?? resolve(0)),
-    ]).then(([target, top]) => {
-      if (target) scroll?.scrollTo({ y: Math.max(0, scrollY.current + target.y - top - 90), animated: true });
     });
   };
 
@@ -328,22 +314,15 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
           <KitchenScreen
             inventory={state.inventory}
             knownRecipes={state.knownRecipes}
-            pots={cookingPots}
-            potsUnlocked={getPotsUnlocked(state.potsUnlocked)}
-            now={game.now}
-            gems={state.gems}
-            rushDiscount={game.foodBuffs.rushDiscount}
+            dishQuality={state.dishQuality}
+            cookSpeedPercent={game.foodBuffs.cookSpeed}
             gold={state.gold}
             groceryDiscount={game.foodBuffs.groceryDiscount}
             priceStage={priceStage}
-            onCook={game.cook}
-            onBuyAndCook={game.buyMissingAndCook}
-            onCollect={onCollect}
-            onRush={(potIndex) => onCollect(potIndex, true)}
-            adRushesLeft={game.adRushesLeft}
-            onRushAd={(potIndex) => onCollect(potIndex, true, true)}
-            onUnlockPot={game.unlockPot}
-            onShowRecipe={showRecipe}
+            onStartCook={game.startCook}
+            onBuyAndStartCook={game.buyMissingAndStartCook}
+            onFinishCook={onFinishCook}
+            guideRecipeId={state.tutorialDone && !state.recipeTutorialDone ? "green-jelly" : undefined}
             cookedRecipes={state.cookedRecipes}
             onOpenCookbook={() => onSelectTab("cookbook")}
             onOpenGrocery={() => onSelectTab("grocery")}
@@ -440,16 +419,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
           onOpenPage={onSelectTab}
           onOpenWhatsNew={() => setWhatsNewOpen(true)}
         />
-        <ScrollView
-          key={state.selectedTab}
-          ref={scrollRef}
-          onScroll={(event) => {
-            scrollY.current = event.nativeEvent.contentOffset.y;
-          }}
-          scrollEventThrottle={32}
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-        >
+        <ScrollView key={state.selectedTab} style={styles.content} contentContainerStyle={styles.contentContainer}>
           {renderContent()}
         </ScrollView>
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
@@ -568,8 +538,6 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
             canCookFirst={canCook(state.inventory, RECIPES.find((recipe) => recipe.id === "green-jelly")!)}
             dishesCooked={state.dishesCooked ?? 0}
-            firstDishPot={cookingPots.findIndex((pot) => pot?.recipeId === "green-jelly")}
-            firstDishReady={cookingPots.some((pot) => pot?.recipeId === "green-jelly" && pot.readyAt <= game.now)}
             dishesEaten={state.dishesEaten ?? 0}
             freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot, index) => index < (state.buffSlotsUnlocked ?? 1) && (!slot || slot.expiresAt <= game.now)))}
             onGoTo={onSelectTab}
@@ -602,6 +570,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             dishName={collectedRecipe.name}
             dishImage={collectedRecipe.image}
             great={collected.great}
+            grade={collected.grade}
             isNew={collected.isNew}
             // The page count after this dish — it's already in cookedRecipes by now.
             pageText={collected.isNew ? `요리책 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}` : undefined}

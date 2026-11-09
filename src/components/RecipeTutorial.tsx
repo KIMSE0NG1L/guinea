@@ -20,8 +20,6 @@ export function RecipeTutorial({
   knowsFirstRecipe,
   canCookFirst,
   dishesCooked,
-  firstDishPot,
-  firstDishReady,
   dishesEaten,
   freeSlotIndex,
   onGoTo,
@@ -31,10 +29,6 @@ export function RecipeTutorial({
   knowsFirstRecipe: boolean;
   canCookFirst: boolean;
   dishesCooked: number;
-  // Which kitchen pot the first dish is simmering in (-1 = none).
-  firstDishPot: number;
-  // Whether that dish is done and waiting to be taken out.
-  firstDishReady: boolean;
   dishesEaten: number;
   freeSlotIndex: number;
   onGoTo: (tab: Tab) => void;
@@ -69,22 +63,6 @@ export function RecipeTutorial({
       line: `빈 **음식 슬롯**을 눌러서\n**${recipe.name}**를 먹어 봐!`,
       icon: frameImages.slotPlus,
       targetId: `buff-slot-${freeSlotIndex}`,
-    });
-  }
-  // Checked before canCookFirst below — starting the dish used the jelly up, which would
-  // otherwise read as "not enough jelly".
-  if (firstDishPot >= 0) {
-    if (!firstDishReady) {
-      return scene(5, {
-        line: "보글보글 익는 중!\n선물로 준 **보석 1개**로\n바로 완성해 보자!",
-        icon: food.cookPotTrim,
-        targetId: `rush-pot-${firstDishPot}`,
-      });
-    }
-    return scene(5, {
-      line: "다 됐다! **냄비**를 눌러서\n완성된 요리를 받아.",
-      icon: food.cookPotTrim,
-      targetId: `cook-pot-${firstDishPot}`,
     });
   }
   if (knowsFirstRecipe) {

@@ -21,11 +21,10 @@ export type BuffEffect = {
   vegetableDrop?: number; // % more likely, vegetables only
   seafoodDrop?: number; // % more likely, seafood only
   bossDropSure?: number; // > 0: every boss drop is guaranteed
-  cookSpeed?: number; // % shorter cook time for dishes started while it runs
+  cookSpeed?: number; // % wider the cooking minigame's target zone for dishes started while it runs
   greatSuccess?: number; // % chance a collected dish comes out as two
   ingredientSave?: number; // % chance, per ingredient, to use one less when cooking
   groceryDiscount?: number; // % off grandma's grocery
-  rushDiscount?: number; // % off finishing a dish early with gems
   offlineGold?: number; // % more offline gold, if running when the app closes
   offlineBuffs?: number; // > 0: food buffs keep working through offline progress
   skillReset?: number; // > 0: eating it makes the equipped skill ready at once
@@ -41,23 +40,16 @@ export const BUFF_SLOT_PRICES = [0, 500, 1000];
 
 const MINUTE = 60_000;
 
-// How long a dish lasts, by tier — never longer than it takes to cook (COOK_TIME_MS in
-// cooking.ts: 1 / 5 / 15 / 60 / 120 min). The strongest tiers run well short of it, so they
-// can't be kept up around the clock.
-const BUFF_DURATION_MS: Record<RecipeTier, number> = {
-  common: 1 * MINUTE,
-  rare: 5 * MINUTE,
-  epic: 15 * MINUTE,
-  legendary: 45 * MINUTE,
-  hidden: 60 * MINUTE,
-};
+// How long a dish lasts no longer depends on its tier — it depends on how well the cooking
+// minigame went (src/state/cookingMinigame.ts): 대성공/보통/망함. See CookGrade/
+// GRADE_DURATION_MS below, which replaced the old tier-fixed BUFF_DURATION_MS.
 
 // Effects are sized to a per-tier budget — common ~12, rare ~25, epic ~40, legendary ~95,
 // hidden ~130 points. Per point: 1% attack, attack speed or extra-hit chance; 1 point of
 // crit chance; 0.3% crit damage; 0.6% gold; 0.5% boss damage, exp or miss reduction;
 // 2 points of execute; 0.4% drop rate; 0.6% double drops; 0.25% category drops; 0.3s skill
-// cooldown; 0.3% cook speed; 0.8% great success; 0.5% ingredient save; 0.4% grocery
-// discount; 0.2% rush discount; 0.3% offline gold; ~10–15 for each on/off perk.
+// cooldown; 0.3% wider minigame target zone (cookSpeed); 0.8% great success; 0.5% ingredient
+// save; 0.4% grocery discount; 0.3% offline gold; ~10–15 for each on/off perk.
 // Within a tier, dishes that unlock on later stages sit at the top of the budget.
 const EFFECTS: Record<string, { effect: BuffEffect; tint: string }> = {
   "green-jelly": { effect: { attack: 10 }, tint: "#bfe08a" },
@@ -68,7 +60,9 @@ const EFFECTS: Record<string, { effect: BuffEffect; tint: string }> = {
   "chopped-salad": { effect: { dropRate: 20, gold: 8 }, tint: "#e0ab7b" },
   "veggie-stew": { effect: { vegetableDrop: 40, attack: 15 }, tint: "#f8a37e" },
   pudding: { effect: { exp: 30, criticalDamage: 30 }, tint: "#efcf9d" },
-  "mushroom-soup": { effect: { cookSpeed: 30, rushDiscount: 30, attack: 10 }, tint: "#efc598" },
+  // rushDiscount's old 6-point share (30 × 0.2) folded into cookSpeed (30 → 50) when rushing
+  // went away with the pot system — same 25-point rare budget either way.
+  "mushroom-soup": { effect: { cookSpeed: 50, attack: 10 }, tint: "#efc598" },
   "pumpkin-roast": { effect: { gold: 30, offlineGold: 25 }, tint: "#f8b37c" },
   "chicken-grill": { effect: { bossDamage: 40, attack: 5 }, tint: "#f3c27a" },
   "pork-belly": { effect: {}, tint: "#f0a98f" },
@@ -130,12 +124,45 @@ export function hasOwnEffect(recipeId: string) {
 }
 
 // Every recipe has an entry, so lookups never come up empty.
-export const BUFFS: Record<string, { effect: BuffEffect; durationMs: number; tint: string }> = Object.fromEntries(
-  RECIPES.map((recipe) => [
-    recipe.id,
-    { ...(EFFECTS[recipe.id] ?? { effect: DEFAULT_EFFECT[recipe.tier], tint: "#e8d5b0" }), durationMs: BUFF_DURATION_MS[recipe.tier] },
-  ]),
+export const BUFFS: Record<string, { effect: BuffEffect; tint: string }> = Object.fromEntries(
+  RECIPES.map((recipe) => [recipe.id, EFFECTS[recipe.id] ?? { effect: DEFAULT_EFFECT[recipe.tier], tint: "#e8d5b0" }]),
 );
+
+// How the cooking minigame's result (src/state/cookingMinigame.ts) turns into what a dish
+// actually does once eaten — replaces the old tier-fixed BUFF_DURATION_MS entirely.
+export type CookGrade = "great" | "good" | "fail";
+export const GRADE_DURATION_MS: Record<CookGrade, number> = { great: 10 * MINUTE, good: 5 * MINUTE, fail: 1 * MINUTE };
+// INSTANT_DISHES never run in a buff slot — their grade scales the one-off gold payout instead.
+export const GRADE_GOLD_MULTIPLIER: Record<CookGrade, number> = { great: 1.5, good: 1, fail: 0.5 };
+export const GRADE_LABEL: Record<CookGrade, string> = { great: "대성공", good: "보통", fail: "망함" };
+
+// A FIFO queue per recipe of its uneaten units' grades — pushed once per unit in finishCook
+// (twice on a 대성공-quantity roll), shifted once per unit eaten in eatDish/eatSnack. This
+// lives apart from `inventory` on purpose: inventory only ever stacks dishes by name/quantity
+// (see types.ts), so there's nowhere on an inventory item itself to remember which specific
+// cook produced it. Missing/empty means "no record" (an older save, or desync) — callers
+// fall back to "good".
+export type DishQuality = Record<string, CookGrade[]>;
+
+export function peekGrade(quality: DishQuality | undefined, recipeId: string): CookGrade {
+  return quality?.[recipeId]?.[0] ?? "good";
+}
+
+export function pushGrade(quality: DishQuality | undefined, recipeId: string, grade: CookGrade, count: number): DishQuality {
+  const next = { ...(quality ?? {}) };
+  next[recipeId] = [...(next[recipeId] ?? []), ...Array.from({ length: count }, () => grade)];
+  return next;
+}
+
+export function shiftGrade(quality: DishQuality | undefined, recipeId: string): DishQuality | undefined {
+  if (!quality?.[recipeId]?.length) return quality;
+  const rest = quality[recipeId].slice(1);
+  if (rest.length === 0) {
+    const { [recipeId]: _dropped, ...withoutRecipe } = quality;
+    return withoutRecipe;
+  }
+  return { ...quality, [recipeId]: rest };
+}
 
 // Filling all three slots with dishes from one set adds its bonus on top.
 export const DISH_SETS: { id: string; name: string; recipes: string[]; bonus: BuffEffect }[] = [
@@ -224,8 +251,9 @@ export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
   assassinGini: { attack: -30 },
   // Draws slowly — the price of OUTFIT_FIRST_STRIKE's one huge opening cut.
   samuraiGini: { attackSpeed: -25 },
-  // The kitchen companion: halves cook time and lifts great-success odds, at a cost in
-  // the fight — the only companion that trades battle power for cooking.
+  // The kitchen companion: widens the cooking minigame's target zone a lot and lifts
+  // great-success odds, at a cost in the fight — the only companion that trades battle
+  // power for cooking.
   chefGini: { cookSpeed: 50, greatSuccess: 20, attack: -15 },
   witchGini: { criticalDamage: 20 },
 };
@@ -299,11 +327,10 @@ const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
   vegetableDrop: (value) => `채소 드롭 ${signed(value)}%`,
   seafoodDrop: (value) => `해산물 드롭 ${signed(value)}%`,
   bossDropSure: () => "보스 재료 확정",
-  cookSpeed: (value) => `요리 시간 -${value}%`,
+  cookSpeed: (value) => `요리 성공 범위 +${value}%`,
   greatSuccess: (value) => `요리 대성공 ${value}%`,
   ingredientSave: (value) => `재료 절약 ${value}%`,
   groceryDiscount: (value) => `재료 상점 -${value}%`,
-  rushDiscount: (value) => `즉시 완성 -${value}%`,
   offlineGold: (value) => `오프라인 골드 ${signed(value)}%`,
   offlineBuffs: () => "자는 동안 버프 유지",
   skillReset: () => "먹으면 스킬 즉시 충전",

@@ -10,7 +10,7 @@ import { ITEM_IMAGES, RECIPES } from "./recipes";
 // To add an ingredient: GROCERY's STOCK (grocery.ts, with its category — the codex and
 // the shop list come from there), its icon in ITEM_IMAGES (recipes.ts), and a drop in
 // drops.ts (that sets its shop price). To add a recipe: RECIPE_DEFS (recipes.ts) and its
-// effect in EFFECTS (buffs.ts). Prices, cook time, buff duration and the cookbook follow.
+// effect in EFFECTS (buffs.ts). Price, minigame difficulty (by tier) and the cookbook follow.
 export function checkContent() {
   const problems: string[] = [];
   const stocked = new Set(GROCERY.map((item) => item.name));

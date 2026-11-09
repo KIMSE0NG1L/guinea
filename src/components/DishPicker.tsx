@@ -4,13 +4,14 @@ import { kit } from "../assets";
 import { GameButton } from "./GameButton";
 import { ARROW_H, ARROW_W, GuideArrow } from "./GuideArrow";
 import { NineSlice, Panel } from "./NineSlice";
-import { BUFFS, DISH_PARTNERS, describeDish, describeDishLinks, formatDuration, INSTANT_DISHES, PARTNER_MULTIPLIER, type BuffSlot } from "../state/buffs";
+import { BUFFS, DISH_PARTNERS, GRADE_DURATION_MS, GRADE_LABEL, describeDish, describeDishLinks, formatDuration, INSTANT_DISHES, PARTNER_MULTIPLIER, peekGrade, type BuffSlot, type DishQuality } from "../state/buffs";
 import { getItemQuantity, RECIPES } from "../state/recipes";
 import type { GameState, Outfit } from "../types";
 
 // Choose a cooked dish from the bag to eat into a buff slot.
 export function DishPicker({
   inventory,
+  dishQuality,
   slots,
   now,
   outfit,
@@ -20,6 +21,9 @@ export function DishPicker({
   guideRecipeId,
 }: {
   inventory: GameState["inventory"];
+  // The cooking minigame's grade for each dish's uneaten units (FIFO) — see buffs.ts.
+  // Decides the duration shown below, which varies per cook, not per recipe.
+  dishQuality: DishQuality | undefined;
   slots: BuffSlot[];
   now: number;
   // Equipped companion — a dish partnered with it shows its boosted strength.
@@ -59,6 +63,7 @@ export function DishPicker({
               {dishes.map((recipe) => {
                 const buff = BUFFS[recipe.id];
                 const busy = running.has(recipe.id);
+                const grade = peekGrade(dishQuality, recipe.id);
                 return (
                   <Panel slice={kit.panel} scale={0.4} style={styles.item} key={recipe.id}>
                     <View style={[styles.dishWrap, { backgroundColor: buff.tint }]}>
@@ -71,7 +76,7 @@ export function DishPicker({
                       <Text style={styles.effect}>{describeDish(recipe.id)}</Text>
                       <Text style={styles.duration}>
                         {[
-                          INSTANT_DISHES[recipe.id] ? "즉시 효과" : `${formatDuration(buff.durationMs)} 지속`,
+                          INSTANT_DISHES[recipe.id] ? `즉시 효과 · ${GRADE_LABEL[grade]}` : `${GRADE_LABEL[grade]} · ${formatDuration(GRADE_DURATION_MS[grade])} 지속`,
                           ...describeDishLinks(recipe.id),
                           ...(DISH_PARTNERS[recipe.id] === outfit ? [`효과 ×${PARTNER_MULTIPLIER}`] : []),
                         ].join(" · ")}

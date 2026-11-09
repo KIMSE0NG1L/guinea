@@ -16,6 +16,12 @@ import { chef, icons } from "../assets";
 import { playSfx } from "../sound";
 import { playHaptic } from "../haptics";
 import { StrokedText } from "./StrokedText";
+import { GRADE_LABEL, type CookGrade } from "../state/buffs";
+
+// Badge color per cook-minigame grade — kept entirely separate from `great` below (the
+// pre-existing, orthogonal quantity-double roll): a dish can be 망함-graded and still double,
+// or 대성공-graded and still come out as one.
+const GRADE_COLOR: Record<CookGrade, string> = { great: "#ffd34d", good: "#bfe08a", fail: "#9a8f80" };
 
 const STAGE = 260; // square the burst radiates within, centered on the chef
 const CENTER = STAGE / 2;
@@ -42,6 +48,15 @@ const STARS = [
   { angle: 160, distance: 96, delay: 420, size: 14 },
 ];
 
+// Extra sparkle, only on a 대성공-grade cook (the minigame result, not the `great` ×2 roll
+// above) — a few more, bigger and later-timed stars layered over the regular STARS burst.
+const GOLD_STARS = [
+  { angle: -110, distance: 128, delay: 520, size: 22 },
+  { angle: 40, distance: 134, delay: 600, size: 18 },
+  { angle: 150, distance: 122, delay: 680, size: 20 },
+  { angle: -20, distance: 118, delay: 760, size: 16 },
+];
+
 // "완성!" — the head chef bounces in cheering while the finished dish floats up over their
 // head, inside the same glow + sunburst + sparks + stars recipe LevelUpBurst uses. Mount it
 // fresh (via `key`) for every dish collected.
@@ -51,6 +66,7 @@ export function CookCompleteBurst({
   dishName,
   dishImage,
   great = false,
+  grade,
   isNew = false,
   pageText,
   onDone,
@@ -58,6 +74,9 @@ export function CookCompleteBurst({
   dishName: string;
   dishImage: number;
   great?: boolean;
+  // The cooking minigame's result for this dish — shown as its own badge, separate from
+  // "great" (see GRADE_COLOR above).
+  grade?: CookGrade;
   isNew?: boolean;
   // "요리책 13 / 26" — shown under the name when this dish filled a new cookbook page.
   pageText?: string;
@@ -149,6 +168,7 @@ export function CookCompleteBurst({
         {STARS.map((star, index) => (
           <Twinkle key={index} {...star} />
         ))}
+        {grade === "great" && GOLD_STARS.map((star, index) => <Twinkle key={`gold-${index}`} {...star} gold />)}
         <Animated.Image source={chef.cheer} style={[styles.chef, chefStyle]} />
         {great ? (
           <>
@@ -178,6 +198,11 @@ export function CookCompleteBurst({
         <StrokedText style={styles.name} strokeColor={colors.line} strokeWidth={1.5}>
           {great ? `${dishName} ×2` : dishName}
         </StrokedText>
+        {grade && (
+          <StrokedText style={[styles.grade, { color: GRADE_COLOR[grade] }]} strokeColor={colors.line} strokeWidth={1.5}>
+            {GRADE_LABEL[grade]}
+          </StrokedText>
+        )}
         {pageText && (
           <StrokedText style={styles.page} strokeColor={colors.line} strokeWidth={1.5}>
             {pageText}
@@ -230,12 +255,20 @@ function Spark({ angle, distance, delay }: { angle: number; distance: number; de
   return <Animated.View style={[styles.spark, style]} />;
 }
 
-function Twinkle({ angle, distance, delay, size }: { angle: number; distance: number; delay: number; size: number }) {
+function Twinkle({ angle, distance, delay, size, gold = false }: { angle: number; distance: number; delay: number; size: number; gold?: boolean }) {
   const t = useSharedValue(0);
   useEffect(() => {
     t.value = withDelay(
       delay,
-      withSequence(withTiming(1, { duration: 200, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 300 })),
+      // gold stars linger and pulse once more instead of firing-and-fading like the regular ones.
+      gold
+        ? withSequence(
+            withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) }),
+            withTiming(0.6, { duration: 260 }),
+            withTiming(1, { duration: 220 }),
+            withTiming(0, { duration: 340 }),
+          )
+        : withSequence(withTiming(1, { duration: 200, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 300 })),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -246,7 +279,12 @@ function Twinkle({ angle, distance, delay, size }: { angle: number; distance: nu
     opacity: t.value,
     transform: [{ scale: 0.3 + t.value * 0.9 }, { rotate: `${t.value * 90}deg` }],
   }));
-  return <Animated.Image source={icons.star} style={[styles.twinkle, { left, top, width: size, height: size }, style]} />;
+  return (
+    <Animated.Image
+      source={icons.star}
+      style={[styles.twinkle, { left, top, width: size, height: size }, gold && styles.twinkleGold, style]}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -285,6 +323,7 @@ const styles = StyleSheet.create({
   },
   spark: { position: "absolute", width: 22, height: 5, borderRadius: 2.5, backgroundColor: "#ff9f1c", borderWidth: 0.5, borderColor: "#c4660c" },
   twinkle: { position: "absolute" },
+  twinkleGold: { tintColor: "#ffd34d" },
   chef: { position: "absolute", width: 150, height: 150, top: CENTER - 50 },
   dish: { position: "absolute", width: 84, height: 84, top: CENTER - 92 },
   copy: { marginTop: -10, alignItems: "center" },
@@ -305,5 +344,6 @@ const styles = StyleSheet.create({
   stampNewText: { color: colors.cream, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
   title: { color: "#fff4bd", fontSize: 30, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
   name: { marginTop: 2, color: colors.gold, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
+  grade: { marginTop: 3, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
   page: { marginTop: 4, color: "#fff4bd", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
 });

@@ -1,4 +1,5 @@
 import type { SkillTimers } from "./state/skills";
+import type { CookGrade } from "./state/buffs";
 export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats" | "guide" | "credits" | "backup";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
@@ -77,7 +78,7 @@ export interface GameState {
   giftLootExplained?: boolean;
   // The stat-upgrade tutorial that runs between the gift and the recipe tutorial.
   upgradeTutorialDone?: boolean;
-  // The recipe tutorial's free gold (for the recipe) and gem (to rush the dish) were paid.
+  // The recipe tutorial's free gold (for the recipe) was paid.
   recipeGiftGiven?: boolean;
   // How many food slots are open (1–3); missing on older saves = 1.
   buffSlotsUnlocked?: number;
@@ -95,10 +96,16 @@ export interface GameState {
   kitchenLayout?: "list" | "grid";
   // Bought bag expansions (see state/bag.ts); missing on older saves = none.
   bagExpansions?: number;
-  // Dishes simmering in the kitchen (null = empty pot), and how many pots are open; see
-  // state/cooking.ts. Missing on older saves = one empty pot.
+  // Migration-only: a dish still simmering in the old real-time pot system, from before
+  // cooking became an instant timing minigame. Read exactly once on load (useGameState's
+  // load effect grants it outright) and never written to again.
   cookingPots?: ({ recipeId: string; startedAt: number; readyAt: number; fast?: boolean } | null)[];
-  potsUnlocked?: number;
+  // A FIFO queue per recipe of its uneaten units' cook-minigame grades ("great"/"good"/
+  // "fail" — state/buffs.ts's CookGrade) — pushed on finishCook, shifted on eatDish/eatSnack.
+  // Decides that specific unit's buff duration (or, for an instant dish, its gold payout)
+  // when eaten. Missing/empty means no record (an older save, or a desynced unit); callers
+  // fall back to "good".
+  dishQuality?: Record<string, CookGrade[]>;
   // What the bag and the ingredient codex held when last looked at — anything newer gets a
   // "NEW"/"발견!" mark on the next visit. Missing on older saves (= nothing marked).
   bagSeen?: string[];
@@ -153,8 +160,6 @@ export interface GameState {
   flyingGemAds?: { day: string; count: number };
   // Interstitials shown today and when the last one was (see maybeShowInterstitial).
   interstitialAds?: { day: string; count: number; lastAt: number };
-  // Pots finished instantly by watching an ad today (AD_RUSHES_PER_DAY).
-  adRushes?: { day: string; count: number };
   // The day the attendance reward was doubled by an ad (once a day).
   attendanceBonusDay?: string;
   // Quirk counters behind the hidden quests; all missing on older saves.

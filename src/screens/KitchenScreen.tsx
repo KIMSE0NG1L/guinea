@@ -7,13 +7,11 @@ import { colors, fonts } from "../theme";
 import { chef, frameKit, grandma, kit } from "../assets";
 import { ProgressBar } from "../components/ProgressBar";
 import { getCookbookProgress } from "../state/cookbook";
-import { COOK_TIME_MS, formatCookTime, type CookingPot } from "../state/cooking";
-import { CookingPots } from "../components/CookingPots";
+import { MINIGAME_DIFFICULTY } from "../state/cookingMinigame";
+import { CookingMinigame } from "../components/CookingMinigame";
 import { DishSetGuide } from "../components/DishSetGuide";
-import { launchFlight } from "../components/FlightLayer";
-import { measureTarget } from "../components/tutorialTargets";
 import { SEALED_RECIPE } from "../state/recipeTiers";
-import { BUFFS, describeDish, describeDishLinks, INSTANT_DISHES } from "../state/buffs";
+import { BUFFS, describeDish, describeDishLinks, type CookGrade } from "../state/buffs";
 import { BalancedRows, estimateTextWidth } from "../components/BalancedLines";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
@@ -30,14 +28,13 @@ const EFFECT_FONT = 12;
 const INGREDIENT_FONT = 12;
 const INGREDIENT_ICON = 16;
 
-// ["공격력 +10%", "3분", "세트: 디저트 타임"] — what eating the dish does, for how long
-// (snacks are eaten on the spot), and its set/partner, as separate parts so a long list
-// can break between them.
+// ["공격력 +10%", "세트: 디저트 타임"] — what eating the dish does and its set/partner, as
+// separate parts so a long list can break between them. How long it lasts depends on the
+// cooking minigame's grade, not the recipe — see DishPicker, which shows that per-unit.
 function describeBuffParts(recipeId: string) {
   const buff = BUFFS[recipeId];
   if (!buff) return [];
-  const duration = INSTANT_DISHES[recipeId] ? [] : [formatCookTime(buff.durationMs)];
-  return [...describeDish(recipeId).split(" · "), ...duration, ...describeDishLinks(recipeId)];
+  return [...describeDish(recipeId).split(" · "), ...describeDishLinks(recipeId)];
 }
 
 // Toggle glyphs: three bars for the list, a 2×2 of squares for the cards.
@@ -57,22 +54,15 @@ function LayoutIcon({ mode, active }: { mode: KitchenLayout; active: boolean }) 
 export function KitchenScreen({
   inventory,
   knownRecipes,
-  pots,
-  potsUnlocked,
-  now,
-  gems,
-  rushDiscount,
+  dishQuality,
+  cookSpeedPercent,
   gold,
   groceryDiscount,
   priceStage,
-  onCook,
-  onBuyAndCook,
-  onCollect,
-  onRush,
-  adRushesLeft,
-  onRushAd,
-  onUnlockPot,
-  onShowRecipe,
+  onStartCook,
+  onBuyAndStartCook,
+  onFinishCook,
+  guideRecipeId,
   cookedRecipes,
   onOpenCookbook,
   onOpenGrocery,
@@ -82,26 +72,20 @@ export function KitchenScreen({
 }: {
   inventory: GameState["inventory"];
   knownRecipes: string[] | undefined;
-  pots: CookingPot[];
-  potsUnlocked: number;
-  now: number;
-  gems: number;
-  rushDiscount: number;
+  dishQuality: GameState["dishQuality"];
+  // Widens the cooking minigame's target zone — see state/cookingMinigame.ts's getZoneWidth.
+  cookSpeedPercent: number;
   gold: number;
   // Food-buff % off grocery prices, for the "buy what's missing" cost.
   groceryDiscount: number;
   // The stage grocery prices are set by (see getGroceryPrice).
   priceStage: number;
-  onCook: (recipeId: string) => void;
-  // Buys the missing ingredients from the grocery and starts the dish (see buyMissingAndCook).
-  onBuyAndCook: (recipeId: string) => void;
-  onCollect: (potIndex: number) => void;
-  onRush: (potIndex: number) => void;
-  adRushesLeft: number;
-  onRushAd: (potIndex: number) => void;
-  onUnlockPot: () => boolean;
-  // Scroll the page to a recipe's card.
-  onShowRecipe: (recipeId: string) => void;
+  // Precondition checks only — nothing is spent until the minigame finishes (onFinishCook).
+  onStartCook: (recipeId: string) => "ok" | "unavailable";
+  onBuyAndStartCook: (recipeId: string) => "ok" | "gold" | "unavailable";
+  onFinishCook: (recipeId: string, grade: CookGrade, buyMissing: boolean) => void;
+  // During the recipe tutorial: the dish whose minigame gets the first-round guide arrow.
+  guideRecipeId?: string;
   cookedRecipes: string[] | undefined;
   onOpenCookbook: () => void;
   onOpenGrocery: () => void;
@@ -110,20 +94,14 @@ export function KitchenScreen({
   onLayoutChange: (layout: KitchenLayout) => void;
 }) {
   const known = getKnownRecipes(knownRecipes);
-  const freePotIndex = pots.findIndex((pot, index) => index < potsUnlocked && !pot);
-  const freePot = freePotIndex >= 0;
-  // Ingredients hop from the recipe card into the pot the dish is going into.
+  // The recipe currently playing its cooking minigame (null = none) — one at a time, and its
+  // ingredients/gold aren't spent until the minigame actually finishes (onFinishCook).
+  const [cooking, setCooking] = useState<{ recipeId: string; buyMissing: boolean } | null>(null);
   const startCooking = (recipe: (typeof RECIPES)[number], buyMissing = false) => {
-    if (buyMissing) onBuyAndCook(recipe.id);
-    else onCook(recipe.id);
-    Promise.all([measureTarget(`cook-${recipe.id}`), measureTarget(`cook-pot-${freePotIndex}`)]).then(([from, to]) => {
-      if (!from || !to) return;
-      recipe.ingredients.forEach((ingredient, index) => {
-        const image = ITEM_IMAGES[ingredient.name];
-        if (image !== undefined) launchFlight({ image, from, to, delay: index * 90, duration: 480, arc: 60 });
-      });
-    });
+    const result = buyMissing ? onBuyAndStartCook(recipe.id) : onStartCook(recipe.id);
+    if (result === "ok") setCooking({ recipeId: recipe.id, buyMissing });
   };
+  const cookingRecipe = cooking && RECIPES.find((recipe) => recipe.id === cooking.recipeId);
   // What can be cooked right now floats to the top; otherwise recipe order is kept.
   const recipes = RECIPES.filter((recipe) => known.includes(recipe.id))
     .map((recipe) => ({ recipe, cookable: canCook(inventory, recipe) }))
@@ -156,20 +134,6 @@ export function KitchenScreen({
         </View>
       </View>
 
-      <CookingPots
-        pots={pots}
-        potsUnlocked={potsUnlocked}
-        now={now}
-        gems={gems}
-        rushDiscount={rushDiscount}
-        suggestion={recipes.find((recipe) => canCook(inventory, recipe)) ?? null}
-        onCollect={onCollect}
-        onRush={onRush}
-        adRushesLeft={adRushesLeft}
-        onRushAd={onRushAd}
-        onUnlock={onUnlockPot}
-        onShowRecipe={onShowRecipe}
-      />
       <Pressable
         onPress={onOpenCookbook}
         accessibilityRole="button"
@@ -217,8 +181,8 @@ export function KitchenScreen({
         {shown.map((recipe) => {
           const ready = canCook(inventory, recipe);
           const owned = getItemQuantity(inventory, recipe.name);
-          // Bag room is checked when the dish comes out of the pot, not when it goes in.
-          const cookable = ready && freePot;
+          // Bag room is checked once the minigame actually resolves (finishCook), not here.
+          const cookable = ready;
           const ingredientLabels = recipe.ingredients.map(
             (ingredient) => `${layout === "grid" ? "" : `${ingredient.name} `}${getItemQuantity(inventory, ingredient.name)}/${ingredient.quantity}`,
           );
@@ -243,7 +207,7 @@ export function KitchenScreen({
             />
           );
           // Short on ingredients the grocery sells: one button buys the rest and starts it.
-          const shortfall = !ready && freePot ? getShortfall(inventory, recipe.ingredients, groceryDiscount, priceStage) : null;
+          const shortfall = !ready ? getShortfall(inventory, recipe.ingredients, groceryDiscount, priceStage) : null;
           const affordable = shortfall !== null && gold >= shortfall.cost;
           const cookButton = shortfall ? (
             <GameButton
@@ -268,10 +232,10 @@ export function KitchenScreen({
               style={layout === "grid" ? styles.gridCookButton : styles.cookButton}
               textStyle={styles.cookButtonText}
             >
-              {!ready ? "재료 부족" : freePot ? "요리하기" : "냄비 가득"}
+              {!ready ? "재료 부족" : "요리하기"}
             </GameButton>
           );
-          const effectParts = [...describeBuffParts(recipe.id), `⏱${formatCookTime(COOK_TIME_MS[recipe.tier])}`];
+          const effectParts = [...describeBuffParts(recipe.id), `🎯${MINIGAME_DIFFICULTY[recipe.tier].label}`];
           const effect = (
             <BalancedRows
               items={effectParts}
@@ -337,6 +301,18 @@ export function KitchenScreen({
             </Panel>
           ))}
       </View>
+      {cooking && cookingRecipe && (
+        <CookingMinigame
+          recipe={cookingRecipe}
+          cookSpeedPercent={cookSpeedPercent}
+          guideActive={cookingRecipe.id === guideRecipeId}
+          onCancel={() => setCooking(null)}
+          onFinish={(grade) => {
+            onFinishCook(cooking.recipeId, grade, cooking.buyMissing);
+            setCooking(null);
+          }}
+        />
+      )}
     </View>
   );
 }

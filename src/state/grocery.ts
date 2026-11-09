@@ -1,7 +1,11 @@
 import { getDropSources } from "./drops";
 import { STAGE_KILL_TARGET, STAGES } from "./stages";
 import { getReferenceMobGold, roundPrice } from "./gameMath";
-import { applyDiscount } from "./cooking";
+
+// A gem or gold price with a food-buff discount (percent) taken off — never below 1.
+export function applyDiscount(price: number, percent: number) {
+  return Math.max(1, Math.round(price * (1 - Math.min(90, percent) / 100)));
+}
 
 // Grandma's grocery stock. Prices are in gold, one item per purchase.
 export type GroceryCategory = "vegetable" | "fruit" | "grain" | "nut" | "farm" | "meat" | "seafood" | "special";
