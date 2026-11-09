@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { fonts } from "../theme";
 import { icons, uiImages } from "../assets";
 import { GameButton } from "./GameButton";
+import { AdBadge } from "./AdBadge";
 import { formatDuration } from "../state/buffs";
 
 export function BattleActionsPanel({
@@ -28,39 +30,44 @@ export function BattleActionsPanel({
     <View style={styles.wrap}>
       {left}
       <View style={styles.spacer} />
-      <GameButton variant={isAutoBattle ? "green" : "beige"} style={styles.autoToggle} textStyle={styles.autoToggleText}>
+      {/* Both buttons share one fixed width (ACTION_WIDTH), sized for the longest label
+          either can show, and the same caption-over-label layout — so the row never shifts
+          as the status text changes. */}
+      <GameButton variant={isAutoBattle ? "green" : "beige"} style={styles.action} textStyle={styles.actionLabel}>
         <View style={styles.autoContent}>
           <Image source={isAutoBattle ? icons.energy : uiImages.swords} style={styles.autoIcon} />
-          <Text style={styles.autoToggleText}>
-            {autoLocked ? "자동 전투 고정" : isAutoBattle ? "자동 전투 중" : "난타 중 · 직접 공격"}
-          </Text>
+          <View style={styles.stack}>
+            <Text style={[styles.actionSmall, isAutoBattle && styles.actionSmallOnGreen]}>{isAutoBattle ? "자동 전투" : "난타 중"}</Text>
+            <Text style={[styles.actionLabel, isAutoBattle && styles.actionLabelOnGreen]}>{autoLocked ? "고정" : isAutoBattle ? "진행 중" : "직접 공격"}</Text>
+          </View>
         </View>
       </GameButton>
 
-      <GameButton
-        variant={speedBoostActive ? "gray" : "beige"}
-        disabled={speedBoostActive}
-        onPress={onWatchAd}
-        style={styles.adButton}
-      >
-        <View>
-          <Text style={styles.adButtonText}>{speedBoostActive ? "2배속 중" : "광고 보고 2배속"}</Text>
-          <Text style={styles.adButtonSmall}>{speedBoostActive ? `${formatDuration(speedBoostRemainingMs)} 남음` : "전투 속도 2배"}</Text>
-        </View>
-      </GameButton>
+      <View>
+        <GameButton variant={speedBoostActive ? "gray" : "beige"} disabled={speedBoostActive} onPress={onWatchAd} style={styles.action}>
+          <View style={styles.stack}>
+            <Text style={styles.actionSmall}>{speedBoostActive ? "2배속 중" : "광고 보고"}</Text>
+            <Text style={styles.actionLabel}>{speedBoostActive ? formatDuration(speedBoostRemainingMs) : "2배속"}</Text>
+          </View>
+        </GameButton>
+        {!speedBoostActive && <AdBadge />}
+      </View>
     </View>
   );
 }
 
+// Fits "직접 공격" beside its icon (the longest label either button shows) with padding.
+const ACTION_WIDTH = 104;
+
 const styles = StyleSheet.create({
   wrap: { marginTop: 8, marginBottom: 2, marginHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 6 },
   spacer: { flex: 1 },
-  // Same height as the two-line ad button beside it.
-  autoToggle: { minHeight: 46, paddingHorizontal: 12 },
-  autoContent: { flexDirection: "row", alignItems: "center", gap: 5 },
+  action: { width: ACTION_WIDTH, minHeight: 50, paddingHorizontal: 8 },
+  autoContent: { flexDirection: "row", alignItems: "center", gap: 4 },
   autoIcon: { width: 16, height: 16 },
-  autoToggleText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: "#2a2316" },
-  adButton: { minHeight: 46, paddingHorizontal: 12 },
-  adButtonText: { color: "#4f463c", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, textAlign: "center" },
-  adButtonSmall: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 17, textAlign: "center", color: "#4f463c" },
+  stack: { alignItems: "center" },
+  actionSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#4f463c" },
+  actionSmallOnGreen: { color: "#2f4a16" },
+  actionLabel: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: "#2a2316" },
+  actionLabelOnGreen: { color: "#2a2316" },
 });

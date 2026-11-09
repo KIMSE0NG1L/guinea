@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
+import { Text } from "./GameText";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { formatGameNumber } from "../state/gameMath";
 import { fonts } from "../theme";

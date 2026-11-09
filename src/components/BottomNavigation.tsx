@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { NineSlice } from "./NineSlice";
 import { kit, navIcons } from "../assets";
@@ -82,6 +83,6 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: 0.92 }] },
   icon: { width: 32, height: 32 },
   iconActive: { width: 34, height: 34 },
-  caption: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  label: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  caption: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  label: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Image, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { frameImages, headerKit, icons, navIcons } from "../assets";
 import { Panel } from "./NineSlice";

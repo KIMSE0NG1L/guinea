@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import { SearchBox } from "../components/SearchBox";
 import { matchesSearch } from "../state/search";
 import Svg, { Rect } from "react-native-svg";
@@ -342,7 +343,7 @@ export function KitchenScreen({
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   headingRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   heading: { flex: 1 },
   shopButtons: { marginTop: 8, flexDirection: "row", gap: 5 },
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   shopContent: { flexDirection: "row", alignItems: "center", gap: 3 },
   // Pokes up out of the pill a little, like the shopkeeper is peeking over it.
   shopImage: { width: 34, height: 34, marginTop: -10 },
-  shopText: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  shopText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   shopTextDark: { color: colors.brown },
   more: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
   moreImage: { width: 50, height: 50 },
@@ -370,23 +371,23 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   gridCard: { width: "48.5%", alignItems: "center", paddingHorizontal: 10, paddingTop: 12, paddingBottom: 12 },
   gridDish: { width: 64, height: 64 },
-  gridName: { marginTop: 4, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  gridDescription: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 2, minHeight: 34, fontSize: 12, lineHeight: 17, color: colors.muted, textAlign: "center" },
+  gridName: { marginTop: 4, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  gridDescription: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 2, minHeight: 34, fontSize: 12, lineHeight: 16, color: colors.muted, textAlign: "center" },
   gridIngredients: { justifyContent: "center", marginBottom: 8 },
   gridCookButton: { alignSelf: "stretch" },
   ownedTag: { position: "absolute", top: 8, right: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: colors.green, zIndex: 1 },
   ownedTagText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   effectBox: { marginTop: 3 },
   effect: { fontSize: EFFECT_FONT, lineHeight: 17, fontWeight: "900", fontFamily: fonts.bold, color: "#b0632a" },
-  card: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, flexDirection: "row", alignItems: "center", gap: 10 },
+  card: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16, flexDirection: "row", alignItems: "center", gap: 10 },
   dish: { width: 54, height: 54 },
   // Missing ingredients: the dish goes black-and-white (faded too, where filters aren't supported).
   dishShort: { filter: "grayscale(1)", opacity: 0.6 },
   cardCopy: { flex: 1 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  cardStrong: { fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  cardStrong: { fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
   owned: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
-  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 2, color: colors.muted, fontSize: 12, lineHeight: 17 },
+  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 2, color: colors.muted, fontSize: 12, lineHeight: 16 },
   ingredients: { marginTop: 5, alignSelf: "stretch" },
   ingredient: { flexDirection: "row", alignItems: "center", gap: 2 },
   ingredientImage: { width: INGREDIENT_ICON, height: INGREDIENT_ICON },

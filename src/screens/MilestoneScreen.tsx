@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { frameImages, icons, kit } from "../assets";
@@ -195,14 +196,14 @@ const styles = StyleSheet.create({
   toggle: {},
   togglePressed: { transform: [{ scale: 0.92 }] },
   toggleIcon: { width: 46, height: 46 },
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   list: {},
-  starGuide: { marginBottom: 8, fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 17, color: colors.brown, textAlign: "center" },
+  starGuide: { marginBottom: 8, fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 16, color: colors.brown, textAlign: "center" },
   stars: { fontSize: 12, color: colors.gold },
   card: {
-    paddingHorizontal: 13,
-    paddingTop: 11,
-    paddingBottom: 13,
+    paddingHorizontal: 17,
+    paddingTop: 14,
+    paddingBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
@@ -215,12 +216,12 @@ const styles = StyleSheet.create({
   },
   badgeRing: { position: "absolute", width: 54, height: 54 },
   badgeLocked: { opacity: 0.5 },
-  badgeText: { color: "#71491b", fontSize: 17, fontWeight: "900", fontFamily: fonts.bold },
+  badgeText: { color: "#71491b", fontSize: 18, fontWeight: "900", fontFamily: fonts.bold },
   badgeTextCurrent: { color: colors.red },
   cardCopy: { flex: 1 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  cardStrong: { marginVertical: 2, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 17 },
+  cardStrong: { marginVertical: 2, fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16 },
   cardMonsters: { marginTop: 3, color: colors.brown, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold },
   statusIcon: { width: 16, height: 16 },
   lockIcon: { width: 34, height: 34, marginRight: 18, opacity: 0.6 },

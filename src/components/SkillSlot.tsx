@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { frameImages } from "../assets";
 import { getSkill, SKILL_SUMMARY, type SkillId, type SkillTimers } from "../state/skills";
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   },
   cooling: { backgroundColor: "#1c120bA6" },
   running: { borderWidth: 2, borderColor: colors.gold },
-  seconds: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  seconds: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   passiveTag: {
     position: "absolute",
     right: -4,

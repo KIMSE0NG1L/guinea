@@ -1,4 +1,5 @@
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { Panel } from "../components/NineSlice";
@@ -66,13 +67,13 @@ export function CreditsScreen() {
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   list: { gap: 10 },
-  card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
+  card: { paddingHorizontal: 18, paddingTop: 15, paddingBottom: 15 },
   sectionTitle: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green, letterSpacing: 1 },
   entry: { marginTop: 8 },
-  entryName: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  entryName: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   entryLink: { textDecorationLine: "underline" },
-  entryDetail: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 17, color: colors.brown },
-  version: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 16, textAlign: "center", fontSize: 12, lineHeight: 17, color: colors.muted },
+  entryDetail: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 16, color: colors.brown },
+  version: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 16, textAlign: "center", fontSize: 12, lineHeight: 16, color: colors.muted },
 });

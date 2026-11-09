@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { frameKit, icons, kit, uiImages } from "../assets";
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
   toggle: { marginTop: 4 },
   togglePressed: { transform: [{ scale: 0.92 }] },
   toggleIcon: { width: 46, height: 46 },
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   summary: {
     marginTop: -7,
     marginBottom: 11,
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
   fullText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.red },
   expand: { minHeight: 52, paddingHorizontal: 10 },
   expandContent: { alignItems: "center" },
-  expandTitle: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  expandTitle: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   expandTitleDim: { color: "#4f463c" },
   expandCost: { flexDirection: "row", alignItems: "center", gap: 2, marginTop: 1 },
   expandCostText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },

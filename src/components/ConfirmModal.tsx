@@ -1,4 +1,5 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { NineSlice } from "./NineSlice";
@@ -47,13 +48,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#263024cf",
   },
   panel: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 18,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
     alignItems: "center",
   },
-  title: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
+  title: { fontSize: 19, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
   buttonRow: { marginTop: 18, flexDirection: "row", gap: 10 },
   button: { minWidth: 96 },
 });

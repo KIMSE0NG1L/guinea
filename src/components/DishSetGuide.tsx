@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { DISH_SETS, describeEffect } from "../state/buffs";
@@ -51,9 +52,9 @@ export function DishSetGuide({ known }: { known: string[] }) {
 }
 
 const styles = StyleSheet.create({
-  panel: { marginBottom: 12, paddingHorizontal: 12, paddingTop: 9, paddingBottom: 10 },
+  panel: { marginBottom: 12, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 13 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-  title: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  title: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   hint: { flexShrink: 1, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown, textAlign: "right" },
   set: { marginTop: 10 },
   setTop: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 6 },

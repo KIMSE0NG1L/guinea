@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 
 // A one-line search field for ingredient / dish lists, with a clear button once typed in.
@@ -54,8 +55,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.cream,
   },
-  icon: { fontSize: 15, marginRight: 6 },
-  input: { flex: 1, paddingVertical: 0, fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+  icon: { fontSize: 16, marginRight: 6 },
+  input: { flex: 1, paddingVertical: 0, fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
   clear: { marginLeft: 6, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: colors.muted },
   clearText: { fontSize: 12, fontWeight: "900", color: colors.cream },
   result: { marginTop: 5, marginLeft: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },

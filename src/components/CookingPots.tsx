@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
+import { Image, Pressable, StyleSheet, View, type DimensionValue } from "react-native";
+import { Text } from "./GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { chef, food, icons, kit, uiImages } from "../assets";
@@ -552,7 +553,7 @@ const styles = StyleSheet.create({
   locked: { opacity: 0.45, filter: "grayscale(1)" },
   suggestion: { position: "absolute", top: 22, width: 26, height: 26, opacity: 0.45 },
   caption: { marginTop: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
-  ready: { marginTop: 2, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.red },
+  ready: { marginTop: 2, fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.red },
   time: { marginTop: 2, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   figure: { width: FIGURE, height: FIGURE },
   chef: { width: FIGURE, height: FIGURE },

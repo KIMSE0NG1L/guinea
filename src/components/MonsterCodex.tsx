@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { Panel } from "./NineSlice";
@@ -108,15 +109,15 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   cardWrap: { width: "48.5%" },
   pressed: { transform: [{ scale: 0.97 }] },
-  card: { alignItems: "center", paddingHorizontal: 10, paddingTop: 10, paddingBottom: 12 },
+  card: { alignItems: "center", paddingHorizontal: 14, paddingTop: 13, paddingBottom: 15 },
   tag: { position: "absolute", top: 8, left: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, zIndex: 1 },
   tagMob: { backgroundColor: colors.green },
   tagBoss: { backgroundColor: colors.red },
   tagText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   stage: { position: "absolute", top: 9, right: 10, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
   portrait: { height: 88, marginTop: 8, alignItems: "center", justifyContent: "flex-end", overflow: "hidden" },
-  name: { marginTop: 4, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  area: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 17, color: colors.muted },
+  name: { marginTop: 4, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  area: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 16, color: colors.muted },
   drops: { marginTop: 6, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 },
   drop: { alignItems: "center" },
   dropIcon: { width: 20, height: 20 },

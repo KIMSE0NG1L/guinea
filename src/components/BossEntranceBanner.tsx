@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
@@ -103,12 +104,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 3,
     paddingHorizontal: 11,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "900",
     fontFamily: fonts.bold,
     letterSpacing: 3,
   },
-  name: { marginTop: 7, color: "#ffe3d4", fontSize: 26, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -1 },
+  name: { marginTop: 7, color: "#ffe3d4", fontSize: 28, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -1 },
   sub: {
     marginTop: 7,
     color: colors.cream,
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 3,
     paddingHorizontal: 7,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "900",
     fontFamily: fonts.bold,
     // Per-boss lines vary in length — wrap within the banner's column, centred.
@@ -132,5 +133,5 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 14,
   },
-  promptText: { color: colors.cream, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold },
+  promptText: { color: colors.cream, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold },
 });

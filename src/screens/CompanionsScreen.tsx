@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts } from "../theme";
-import { images, kit, shopKit, uiImages } from "../assets";
+import { creamSlices, food, frameImages, icons, images, kit, shopKit, skillImages, statIcons, uiImages } from "../assets";
+import { EnemySprite } from "../components/EnemySprite";
 import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
@@ -22,7 +24,9 @@ import {
   DISH_PARTNERS,
   PARTNER_MULTIPLIER,
   describeEffect,
+  describeEffectParts,
 } from "../state/buffs";
+import type { BuffEffect } from "../state/buffs";
 import { RECIPES } from "../state/recipes";
 import { LockBadge } from "../components/LockBadge";
 import { getOutfitGemPrice, isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
@@ -54,6 +58,51 @@ function companionDetail(outfit: Outfit) {
   if (OUTFIT_FORCED_MANUAL[outfit]) parts.push("항상 수동 전투 (탭해서 공격)");
   if (OUTFIT_NO_OFFLINE[outfit]) parts.push("휴식(오프라인) 중에는 사냥 안 함");
   return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
+}
+
+// The same quirks as companionDetail, each with an icon — the companion cards lead with the
+// icon and keep the words as a caption.
+const EFFECT_ICONS: Partial<Record<keyof BuffEffect, number>> = {
+  attack: statIcons.attack,
+  criticalDamage: statIcons.criticalDamage,
+  criticalChance: statIcons.criticalChance,
+  gold: statIcons.goldBonus,
+  attackSpeed: icons.energy,
+  cookSpeed: food.cookPotTrim,
+  greatSuccess: icons.star,
+};
+
+function companionEffects(outfit: Outfit): { icon: number; text: string }[] {
+  const parts: { icon: number; text: string }[] = [];
+  const buff = OUTFIT_BUFFS[outfit];
+  if (buff) for (const part of describeEffectParts(buff)) parts.push({ icon: EFFECT_ICONS[part.key] ?? icons.star, text: part.text });
+  const missChance = OUTFIT_MISS_CHANCE[outfit];
+  if (missChance) parts.push({ icon: statIcons.criticalChance, text: `${missChance}% 빗나감` });
+  const hitCount = OUTFIT_HIT_COUNT[outfit];
+  if (hitCount) parts.push({ icon: uiImages.swords, text: `${hitCount}연타` });
+  const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
+  if (foodDurationBonus) parts.push({ icon: food.cookPotTrim, text: `음식 시간 +${foodDurationBonus}초` });
+  const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
+  if (firstStrike) parts.push({ icon: skillImages.execute, text: `첫 공격 ×${firstStrike}` }, { icon: skillImages.barrage, text: "수동 공격 불가" });
+  if (OUTFIT_SURE_DROPS[outfit]) parts.push({ icon: icons.chest, text: "재료 드랍 100%" });
+  const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
+  if (cooldownReduction) parts.push({ icon: icons.energy, text: `쿨타임 -${cooldownReduction / 60}분` });
+  const skillPower = OUTFIT_SKILL_POWER[outfit];
+  if (skillPower) parts.push({ icon: skillImages.beam, text: `스킬 효과 ×${skillPower}` });
+  if (OUTFIT_FORCED_MANUAL[outfit]) parts.push({ icon: skillImages.barrage, text: "항상 수동 전투" });
+  if (OUTFIT_NO_OFFLINE[outfit]) parts.push({ icon: icons.home, text: "휴식 중 사냥 안 함" });
+  if (outfit === "witchGini") parts.push({ icon: icons.potionBlue, text: "모든 공격이 마법" });
+  return parts.length > 0 ? parts : [{ icon: icons.heart, text: "동료 없이" }];
+}
+
+// A big icon with a small caption beside it.
+function IconFact({ icon, caption, children }: { icon?: number; caption: string; children?: React.ReactNode }) {
+  return (
+    <View style={styles.fact}>
+      {children ?? <Image source={icon} style={styles.factIcon} />}
+      <Text style={styles.factCaption}>{caption}</Text>
+    </View>
+  );
 }
 
 export const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string }[] = [
@@ -122,6 +171,20 @@ function PartnerDishes({ outfit, light = false }: { outfit: Outfit; light?: bool
         </View>
       ))}
     </View>
+  );
+}
+
+function partnerDishes(outfit: Outfit) {
+  return RECIPES.filter((recipe) => DISH_PARTNERS[recipe.id] === outfit);
+}
+
+// One fact about a companion on a soft cream plate: a small label over its value.
+function InfoTile({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <Panel slice={creamSlices.cell} scale={0.2} style={styles.tile}>
+      <Text style={styles.tileLabel}>{label}</Text>
+      <View style={styles.tileFacts}>{children}</View>
+    </Panel>
   );
 }
 
@@ -300,55 +363,46 @@ export function CompanionsScreen({
           const canUpgrade = !locked && !maxed && shards >= shardCost;
           return (
             <Panel slice={equipped ? kit.panel : kit.inset} style={styles.card} key={item.outfit}>
+              <View style={styles.cardHead}>
               <View>
-                <View style={[styles.avatar, locked && styles.avatarLocked]}>
-                  <View style={locked && styles.dimmed}>
-                    <CharacterSprite outfit={item.outfit} animation="idle" size={46} restartKey={item.outfit} />
+                {/* Portrait in a wood ring (gold for the one along now). A locked companion
+                    shows, in place of its face, the stage it joins at (or a gem if gem-only). */}
+                <View style={styles.avatar}>
+                  <Image source={equipped ? frameImages.ringGold : frameImages.ringWood} style={styles.avatarRing} />
+                  <View style={styles.avatarInner}>
+                    {!locked ? (
+                      <CharacterSprite outfit={item.outfit} animation="idle" size={46} restartKey={item.outfit} />
+                    ) : gemOnly ? (
+                      <Image source={uiImages.crystal} style={styles.avatarGem} />
+                    ) : (
+                      <>
+                        <Text style={styles.avatarStage}>{unlockStage}</Text>
+                        <Text style={styles.avatarStageLabel}>스테이지</Text>
+                      </>
+                    )}
                   </View>
                 </View>
-                {locked && <LockBadge />}
                 {freshlyUnlocked.includes(item.outfit) && <BreakingLock />}
               </View>
               <View style={styles.cardCopy}>
-                <Text style={[styles.cardSmall, locked && styles.cardSmallLocked]}>
-                  {equipped
-                    ? "함께하는 중"
-                    : !locked
-                      ? "같이 다닐 수 있음"
-                      : gemOnly
-                        ? `보석 ${gemPrice}개로 데려올 수 있음`
-                        : `${unlockStage}스테이지 도착 또는 보석 ${gemPrice}개로 합류`}
-                </Text>
+                {/* Locked ones say when they join in the ring itself, so no status line here. */}
+                {!locked && <Text style={styles.cardSmall}>{equipped ? "함께하는 중" : "같이 다닐 수 있음"}</Text>}
                 <Text style={styles.cardStrong}>{item.name}</Text>
                 <Text style={styles.cardBlurb}>{item.blurb}</Text>
-                <Text style={styles.cardSpan}>{item.detail}</Text>
-                <PartnerDishes outfit={item.outfit} />
-                <Text style={styles.shardSource}>
-                  {`조각: ${BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])]} (${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}스테이지 보스)`}
-                </Text>
-                {!locked && (
-                  <View style={styles.upgradeRow}>
-                    <Text style={styles.upgradeText}>
-                      {`Lv.${level} · 공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? " · 최고 레벨" : ` · 조각 ${shards}/${shardCost}`}`}
-                    </Text>
-                    {canUpgrade && (
-                      <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={`${item.name} 승급`}>
-                        승급
-                      </GameButton>
-                    )}
-                  </View>
-                )}
               </View>
               {locked && gemPrice !== undefined ? (
+                // Short of gems: just greyed out (no detour to the shop).
                 <GameButton
                   variant={affordable ? "beige" : "gray"}
-                  onPress={() => (affordable ? setBuying(item.outfit) : onOpenShop())}
+                  disabled={!affordable}
+                  onPress={() => setBuying(item.outfit)}
                   style={styles.equipButton}
                   textStyle={styles.equipButtonText}
+                  accessibilityLabel={`보석 ${gemPrice}개로 ${item.name} 열기`}
                 >
                   <View style={styles.gemCost}>
                     <Image source={uiImages.crystal} style={styles.gemIcon} />
-                    <Text style={styles.equipButtonText}>{affordable ? gemPrice : `${gemPrice - gems} 모자람`}</Text>
+                    <Text style={[styles.gemButtonText, !affordable && styles.gemButtonTextOff]}>{`${gemPrice}개로 열기`}</Text>
                   </View>
                 </GameButton>
               ) : (
@@ -362,6 +416,39 @@ export function CompanionsScreen({
                   {equipped ? "함께 중" : locked ? `${unlockStage}스테이지` : "함께하기"}
                 </GameButton>
               )}
+              </View>
+              {/* What the companion does, as little cards rather than lines of text. */}
+              <View style={styles.tiles}>
+                <InfoTile label="적용 효과">
+                  {companionEffects(item.outfit).map((effect) => (
+                    <IconFact key={effect.text} icon={effect.icon} caption={effect.text} />
+                  ))}
+                </InfoTile>
+                {partnerDishes(item.outfit).length > 0 && (
+                  <InfoTile label={`궁합 요리 ×${PARTNER_MULTIPLIER}`}>
+                    {partnerDishes(item.outfit).map((recipe) => (
+                      <IconFact key={recipe.id} icon={recipe.image} caption={recipe.name} />
+                    ))}
+                  </InfoTile>
+                )}
+                <InfoTile label="조각 획득">
+                  <IconFact caption={`${BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])]}\n${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}스테이지 보스`}>
+                    <View style={styles.factSprite}>
+                      <EnemySprite boss kind={getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])} animation="idle" size={44} restartKey={`shard-${item.outfit}`} />
+                    </View>
+                  </IconFact>
+                </InfoTile>
+                {!locked && (
+                  <InfoTile label={`레벨 ${level}${maxed ? " · 최고" : ""}`}>
+                    <IconFact icon={statIcons.attack} caption={`공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n조각 ${shards}/${shardCost}`}`} />
+                    {canUpgrade && (
+                      <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={`${item.name} 승급`}>
+                        승급
+                      </GameButton>
+                    )}
+                  </InfoTile>
+                )}
+              </View>
             </Panel>
           );
         })}
@@ -403,7 +490,7 @@ export function CompanionsScreen({
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   previewFrame: { padding: 11, marginBottom: 12 },
   preview: { height: 170, flexDirection: "row", alignItems: "center", overflow: "hidden", borderRadius: 4 },
   // Pinned to the bottom so the forest floor sits under the companion's feet.
@@ -412,17 +499,14 @@ const styles = StyleSheet.create({
   // Copy takes the left part; the companion gets the rest and is centred inside it.
   previewCopy: { width: "58%", paddingLeft: 16, paddingRight: 4 },
   previewLabel: { color: "#d7dfab", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1.5 },
-  previewTitle: { marginTop: 4, fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
-  previewBlurb: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, color: "#efe7d4", fontSize: 12, fontStyle: "italic", lineHeight: 17 },
+  previewTitle: { marginTop: 4, fontSize: 22, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  previewBlurb: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, color: "#efe7d4", fontSize: 12, fontStyle: "italic", lineHeight: 16 },
   previewSub: { marginTop: 5, color: "#f3d993", fontSize: 12, fontWeight: "800", fontFamily: fonts.bold },
   previewSprite: { flex: 1, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
   list: { gap: 8 },
-  shardHint: { marginBottom: 6, fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 17, color: colors.brown, textAlign: "center" },
+  shardHint: { marginBottom: 6, fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 16, color: colors.brown, textAlign: "center" },
   shardAdButton: { marginBottom: 12 },
-  shardSource: { marginTop: 3, fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 17, color: colors.muted },
-  upgradeRow: { marginTop: 5, flexDirection: "row", alignItems: "center", gap: 6 },
-  upgradeText: { flexShrink: 1, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
-  upgradeButton: { minWidth: 48 },
+  upgradeButton: { alignSelf: "flex-start", minWidth: 56 },
   swap: { alignItems: "center", justifyContent: "center" },
   puff: { position: "absolute", width: 36, height: 36, borderRadius: 18, backgroundColor: "#f3eee2" },
   breaking: { position: "absolute", right: 0, bottom: 0, width: 24, height: 24 },
@@ -433,35 +517,34 @@ const styles = StyleSheet.create({
   partnerImage: { width: 16, height: 16 },
   partnerName: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   partnerNameLight: { color: "#efe7d4" },
-  card: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f3ead3",
-    borderWidth: 3,
-    borderColor: colors.line,
-    borderRadius: 28,
-    overflow: "hidden",
-  },
-  avatarLocked: { backgroundColor: "#d9cfb9" },
-  dimmed: { opacity: 0.35 },
-  cardSmallLocked: { color: colors.red },
+  card: { paddingHorizontal: 16, paddingTop: 15, paddingBottom: 15, gap: 10 },
+  cardHead: { flexDirection: "row", alignItems: "center", gap: 10 },
+  tiles: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  // Two per row; an odd one out stretches across.
+  tile: { flexBasis: "45%", flexGrow: 1, paddingHorizontal: 10, paddingTop: 7, paddingBottom: 9 },
+  tileLabel: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#b0632a" },
+  tileFacts: { marginTop: 5, gap: 6 },
+  // Icon first, its caption to the right.
+  fact: { flexDirection: "row", alignItems: "center", gap: 6 },
+  factIcon: { width: 34, height: 34, resizeMode: "contain" },
+  factSprite: { width: 40, height: 40, alignItems: "center", justifyContent: "flex-end", overflow: "hidden" },
+  factCaption: { flexShrink: 1, fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 15, color: colors.brown },
+  // ring-wood.png's opening is ~55% of its width; the face is clipped to that circle.
+  avatar: { width: 66, height: 66, alignItems: "center", justifyContent: "center" },
+  avatarRing: { position: "absolute", left: 0, top: 0, width: 66, height: 66 },
+  avatarInner: { width: 37, height: 37, borderRadius: 18.5, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  avatarGem: { width: 18, height: 24, resizeMode: "contain" },
+  avatarStage: { fontSize: 16, lineHeight: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
+  // Squeezed inside the ring's opening — one of the few labels kept under 12pt.
+  avatarStageLabel: { fontSize: 8, lineHeight: 9, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
   cardCopy: { flex: 1 },
   cardSmall: { color: colors.green, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
-  cardStrong: { marginVertical: 2, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  cardBlurb: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 17, fontStyle: "italic", marginBottom: 2 },
-  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 17 },
+  cardStrong: { marginVertical: 2, fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  cardBlurb: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16, fontStyle: "italic", marginBottom: 2 },
   equipButton: { minWidth: 70 },
   equipButtonText: { fontSize: 12 },
+  gemButtonText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  gemButtonTextOff: { color: "#4f463c" },
   gemCost: { flexDirection: "row", alignItems: "center", gap: 3 },
   gemIcon: { width: 12, height: 12, resizeMode: "contain" },
 });

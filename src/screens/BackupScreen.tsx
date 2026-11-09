@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Platform, Share, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, Share, StyleSheet, TextInput, View } from "react-native";
+import { Text } from "../components/GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { Panel } from "../components/NineSlice";
@@ -105,10 +106,10 @@ export function BackupScreen({ state, onRestore }: { state: GameState; onRestore
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25, gap: 12 },
-  card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 },
-  cardTitle: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  cardText: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, fontSize: 12, color: colors.brown, lineHeight: 17 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25, gap: 12 },
+  card: { paddingHorizontal: 18, paddingTop: 15, paddingBottom: 17 },
+  cardTitle: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  cardText: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, fontSize: 12, color: colors.brown, lineHeight: 16 },
   codeBox: {
     marginTop: 10,
     minHeight: 70,
@@ -119,11 +120,11 @@ const styles = StyleSheet.create({
     borderColor: "#c9a978",
     backgroundColor: "#fff8e6",
     color: colors.ink,
-    fontSize: 13,
+    fontSize: 14,
     textAlignVertical: "top",
   },
   codeBoxShown: { color: colors.brown },
   button: { marginTop: 10, alignSelf: "center", minWidth: 160 },
-  notice: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, lineHeight: 17, color: colors.green, textAlign: "center" },
-  error: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, lineHeight: 17, color: colors.red, textAlign: "center" },
+  notice: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, lineHeight: 16, color: colors.green, textAlign: "center" },
+  error: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, lineHeight: 16, color: colors.red, textAlign: "center" },
 });

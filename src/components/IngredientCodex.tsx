@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { SearchBox } from "./SearchBox";
 import { matchesSearch } from "../state/search";
@@ -151,14 +152,14 @@ const styles = StyleSheet.create({
   foundText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   count: { marginBottom: 8, marginLeft: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
-  card: { width: "48.5%", alignItems: "center", paddingHorizontal: 10, paddingTop: 10, paddingBottom: 12 },
+  card: { width: "48.5%", alignItems: "center", paddingHorizontal: 14, paddingTop: 13, paddingBottom: 15 },
   tag: { position: "absolute", top: 8, left: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, zIndex: 1 },
   tagText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   price: { position: "absolute", top: 8, right: 9, gap: 2 },
   priceText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
   icon: { marginTop: 14, width: 54, height: 54 },
   iconUnknown: { tintColor: "#3d3128", opacity: 0.85 },
-  name: { marginTop: 4, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  name: { marginTop: 4, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   section: { marginTop: 6, alignSelf: "stretch", alignItems: "center" },
   sectionLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green, marginBottom: 1 },
   pills: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 4 },
@@ -174,5 +175,5 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   dishes: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 3 },
   dish: { width: 22, height: 22 },
-  hint: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, fontSize: 12, color: colors.muted, textAlign: "center", lineHeight: 17 },
+  hint: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, fontSize: 12, color: colors.muted, textAlign: "center", lineHeight: 16 },
 });

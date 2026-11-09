@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import { SearchBox } from "../components/SearchBox";
 import { matchesSearch } from "../state/search";
 import { colors, fonts } from "../theme";
@@ -171,18 +172,18 @@ function GroceryCard({ name, price, owned, gold, onBuy }: { name: string; price:
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   tabScroll: { marginBottom: 6, marginHorizontal: -12 },
   tabs: { gap: 4, paddingHorizontal: 14 },
   // Matches the tab art's ~3:2 shape; the label sits on the upper flap, above the fold.
   tab: { width: 75, height: 50, alignItems: "center", justifyContent: "center", paddingBottom: 14 },
-  tabText: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
+  tabText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
   tabTextActive: { color: colors.cream },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
-  card: { width: "48.5%", alignItems: "center", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 16 },
+  card: { width: "48.5%", alignItems: "center", paddingHorizontal: 16, paddingTop: 17, paddingBottom: 16 },
   itemImage: { width: 54, height: 54 },
-  itemName: { marginTop: 4, fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  owned: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 17, color: colors.muted },
+  itemName: { marginTop: 4, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  owned: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 16, color: colors.muted },
   buyWrap: { marginTop: 8, alignSelf: "stretch" },
   buyButton: { minHeight: 34 },
   buyText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },

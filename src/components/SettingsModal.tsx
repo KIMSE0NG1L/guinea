@@ -1,6 +1,7 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
-import { kit } from "../assets";
+import { buttonImages, kit } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { VolumeSlider } from "./VolumeSlider";
@@ -48,6 +49,18 @@ export function SettingsModal({
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
           <NineSlice slice={kit.panelLarge} />
           <Text style={styles.title}>설정</Text>
+          <Pressable
+            onPress={() => {
+              playSfx("uiClick");
+              onClose();
+            }}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="설정 닫기"
+            style={({ pressed }) => [styles.close, pressed && styles.closePressed]}
+          >
+            <Image source={buttonImages.closeRed} style={styles.closeIcon} />
+          </Pressable>
           <View style={styles.sfxRow}>
             <Text style={styles.sfxLabel}>효과음</Text>
             <View style={styles.sliderWrap}>
@@ -231,13 +244,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#263024cf",
   },
+  // Hangs off the panel's top-right corner.
+  close: { position: "absolute", top: -10, right: -8, zIndex: 2 },
+  closePressed: { transform: [{ scale: 0.9 }] },
+  closeIcon: { width: 36, height: 36 },
   panel: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 18,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
     alignItems: "center",
   },
-  title: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  title: { fontSize: 19, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   sfxRow: {
     marginTop: 14,
     width: "100%",
@@ -247,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   bgmRow: { marginTop: 10 },
-  sfxLabel: { fontSize: 14, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
+  sfxLabel: { fontSize: 15, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   sliderWrap: { width: 140 },
   hapticButton: { minHeight: 28, paddingHorizontal: 16 },
   hapticButtonText: { fontSize: 11 },

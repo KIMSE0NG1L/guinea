@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { NineSlice } from "./NineSlice";
@@ -230,10 +231,10 @@ const noCoin = () => ({ gold: 0, gems: 0 });
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 14, justifyContent: "center", backgroundColor: "#263024cf" },
-  panel: { width: "100%", maxWidth: 430, alignSelf: "center", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 16, alignItems: "center" },
+  panel: { width: "100%", maxWidth: 430, alignSelf: "center", paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, alignItems: "center" },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
-  title: { marginTop: 2, fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, paddingHorizontal: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
+  title: { marginTop: 2, fontSize: 19, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, paddingHorizontal: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
   sceneWrap: { alignSelf: "stretch" },
   closeButton: { marginTop: 4, minWidth: 120 },
 });

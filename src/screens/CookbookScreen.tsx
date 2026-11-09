@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import { SearchBox } from "../components/SearchBox";
 import { matchesSearch } from "../state/search";
 import { colors, fonts } from "../theme";
@@ -112,19 +113,19 @@ export function CookbookScreen({
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   hero: { marginBottom: 10, paddingHorizontal: 14, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12 },
   heroImage: { width: 76, height: 76 },
   heroCopy: { flex: 1, gap: 4 },
   heroLabel: { color: colors.brown, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
-  heroCount: { fontSize: 26, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  heroTotal: { fontFamily: fonts.light, letterSpacing: -0.42, fontSize: 14, lineHeight: 20, color: colors.muted },
-  heroLine: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 17, color: colors.brown },
+  heroCount: { fontSize: 28, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  heroTotal: { fontFamily: fonts.light, letterSpacing: -0.45, fontSize: 15, lineHeight: 20, color: colors.muted },
+  heroLine: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 16, color: colors.brown },
   // Wraps three to a row, so the list can grow as the book does.
   rereadButton: { alignSelf: "center", marginBottom: 10, paddingHorizontal: 14 },
   rereadText: { fontSize: 12 },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 8 },
-  pageCard: { width: "32%", alignItems: "center", paddingHorizontal: 6, paddingTop: 10, paddingBottom: 9 },
+  pageCard: { width: "32%", alignItems: "center", paddingHorizontal: 10, paddingTop: 13, paddingBottom: 12 },
   tierBadge: { position: "absolute", top: 6, left: 6, paddingHorizontal: 4, paddingVertical: 1, borderRadius: 5, zIndex: 1 },
   tierText: { fontSize: 7, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   untasted: { opacity: 0.45, filter: "grayscale(1)" },

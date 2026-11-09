@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { SearchBox } from "../components/SearchBox";
 import { matchesSearch } from "../state/search";
@@ -174,15 +175,15 @@ function RecipeCard({
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   count: { marginBottom: 8, marginLeft: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
-  card: { width: "48.5%", alignItems: "center", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 16 },
+  card: { width: "48.5%", alignItems: "center", paddingHorizontal: 16, paddingTop: 17, paddingBottom: 16 },
   artLearned: { opacity: 0.75 },
   tierBadge: { position: "absolute", top: 10, left: 10, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, zIndex: 1 },
   tierText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   secret: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
-  name: { marginTop: 4, fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  name: { marginTop: 4, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   ingredients: { marginTop: 4, flexDirection: "row", gap: 3, minHeight: 18 },
   ingredient: { width: 18, height: 18 },
   buttonWrap: { marginTop: 8, alignSelf: "stretch" },

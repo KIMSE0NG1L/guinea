@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { useCountUp, useRollingNumber } from "./motion";
 import { colors, fonts } from "../theme";
@@ -123,7 +124,7 @@ export function OfflineRewardModal({
           </Panel>
 
           <View style={styles.buttons}>
-            <GameButton variant="beige" onPress={onClaim} style={styles.claimButton}>받기</GameButton>
+            <GameButton variant="beige" onPress={onClaim} style={styles.claimButton} textStyle={styles.claimLabel}>받기</GameButton>
             {summary.goldEarned > 0 && (
               <View>
                 <GameButton variant="green" disabled={doubling} onPress={startDouble} accessibilityLabel="광고 보고 골드 2배 받기" style={styles.claimButton}>
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
   goldRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   divider: { marginVertical: 12, alignSelf: "stretch", height: 2, borderRadius: 1, backgroundColor: "#ead3a4" },
   goldPile: { width: 42, height: 42 },
-  goldValue: { fontSize: 28, fontWeight: "900", fontFamily: fonts.bold, color: "#ffd34d" },
+  goldValue: { fontSize: 30, fontWeight: "900", fontFamily: fonts.bold, color: "#ffd34d" },
   goldValueDouble: { color: "#ff9a6a" },
   itemsRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 },
   itemCell: { width: 46, height: 50, paddingTop: 5, alignItems: "center" },
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   bagFull: { marginTop: 6, textAlign: "center", fontSize: 12, fontWeight: "700", fontFamily: fonts.bold, color: colors.red },
   levelRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   levelStar: { width: 20, height: 20 },
-  levelText: { fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  levelText: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   levelTo: { color: colors.red },
   backdrop: {
     flex: 1,
@@ -185,8 +186,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttons: { marginTop: 16, flexDirection: "row", gap: 8 },
-  claimButton: { minWidth: 110, minHeight: 44 },
+  claimButton: { minWidth: 116, minHeight: 50 },
+  // Same size as the 2배 button's main line beside it.
+  claimLabel: { fontSize: 17 },
   doubleContent: { alignItems: "center" },
   doubleSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
-  doubleLabel: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  doubleLabel: { fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

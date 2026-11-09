@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "./GameText";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
@@ -43,12 +44,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 3,
     paddingHorizontal: 9,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "900",
     fontFamily: fonts.bold,
     letterSpacing: 2,
   },
-  title: { marginTop: 7, color: "#ffd9d9", fontSize: 28, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -1 },
+  title: { marginTop: 7, color: "#ffd9d9", fontSize: 30, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -1 },
   sub: {
     marginTop: 7,
     color: colors.cream,
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 3,
     paddingHorizontal: 7,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "900",
     fontFamily: fonts.bold,
   },

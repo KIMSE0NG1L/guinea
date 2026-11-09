@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import { colors, fonts } from "../theme";
 import { icons, kit } from "../assets";
 import { Panel } from "../components/NineSlice";
@@ -84,7 +85,7 @@ export function ComicsScreen({
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   headingRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   heading: { flex: 1 },
   back: { marginTop: 4 },
@@ -92,17 +93,17 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: 0.97 }] },
   count: { marginBottom: 8, marginLeft: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   list: { gap: 10 },
-  card: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 10, paddingVertical: 10 },
+  card: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 13 },
   cover: { width: 120, borderRadius: 6, borderWidth: 2, borderColor: colors.line, overflow: "hidden" },
   coverImage: { width: "100%", height: "100%" },
   coverLocked: { opacity: 0.25, filter: "grayscale(1) blur(2px)" },
   lockVeil: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", backgroundColor: "#2b1f1799" },
-  lockText: { fontSize: 24 },
+  lockText: { fontSize: 26 },
   newTag: { position: "absolute", top: 4, left: 4, paddingHorizontal: 5, borderRadius: 5, backgroundColor: colors.red },
   newText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   copy: { flex: 1 },
   episode: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green },
-  title: { marginTop: 2, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  title: { marginTop: 2, fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   titleLocked: { color: colors.muted },
   condition: { marginTop: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
 });

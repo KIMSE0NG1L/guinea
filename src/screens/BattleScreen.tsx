@@ -195,10 +195,11 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       )}
       {game.bossRetryAvailable && (
         <RewardedAdModal
-          message={`광고를 보고 보스에 다시 도전할 수 있어요. 보스의 남은 체력은 그대로이고, 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber, game.bossEnraged ? 2 : 1) * BOSS_RETRY_TIME_RATIO) / 1000)}초)으로 다시 시작해요.`}
-          claimLabel="보스 다시 도전하기"
+          message={`광고를 보면 보스의 남은 체력 그대로 이어서 싸워요. 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber, game.bossEnraged ? 2 : 1) * BOSS_RETRY_TIME_RATIO) / 1000)}초)이에요. 필드로 가면 보스는 도망가고 처음부터 다시 몹을 잡아야 해요.`}
+          claimLabel="이어서 도전"
           onClaim={game.retryBossAfterAd}
           autoStart={false}
+          secondary={{ label: "필드로 가기", onPress: game.leaveBossFight }}
         />
       )}
       <BattleActionsPanel

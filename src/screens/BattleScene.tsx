@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
@@ -1428,6 +1429,7 @@ function EnemyFighter({
       )}
       <EnemySpeech
         key={`${enemyId}-${boss}-${enemyKind}`}
+        speechKey={`${enemyId}-${boss}-${enemyKind}`}
         boss={boss}
         stray={stray}
         enemyKind={enemyKind}
@@ -1541,8 +1543,15 @@ function MiniBossRage({ size, boss, enemyKind, animation, restartKey, golden }: 
 // What a stray says — always, so it's clear it isn't from around here.
 const STRAY_LINES = ["여기 어디지...?", "우리 동네가 아니잖아?", "길을 잃었나 봐...", "집에 가고 싶어...", "어라, 풍경이 달라졌네?"];
 
-function EnemySpeech({ boss, stray, enemyKind, anchor }: { boss: boolean; stray: boolean; enemyKind: EnemyKind; anchor: { right: number; bottom: number } }) {
+// The enemy that last got its line. The battle page unmounts while another tab is open, and
+// coming back must not replay the greeting — that made a half-beaten boss look freshly
+// respawned. Module-level so it outlives the page.
+let lastSpokenKey: string | null = null;
+
+function EnemySpeech({ speechKey, boss, stray, enemyKind, anchor }: { speechKey: string; boss: boolean; stray: boolean; enemyKind: EnemyKind; anchor: { right: number; bottom: number } }) {
   const [line, setLine] = useState<string | null>(() => {
+    if (speechKey === lastSpokenKey) return null;
+    lastSpokenKey = speechKey;
     const pool = boss ? BOSS_LINES[enemyKind] : stray ? STRAY_LINES : MOB_LINES[enemyKind];
     return boss || stray || Math.random() < MOB_SPEECH_CHANCE ? pool[Math.floor(Math.random() * pool.length)] : null;
   });
@@ -1615,7 +1624,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   stageBarInfo: { flex: 1, alignItems: "center" },
-  stageBarTitle: { color: colors.cream, fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: -0.3 },
+  stageBarTitle: { color: colors.cream, fontSize: 19, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: -0.3 },
   stageBarTrack: { width: "100%", marginTop: 4 },
   questButton: { width: 42, height: 42, alignItems: "center", justifyContent: "center" },
   questPressed: { transform: [{ scale: 0.92 }] },
@@ -1640,7 +1649,7 @@ const styles = StyleSheet.create({
     borderColor: "#ffd34d",
     zIndex: 12,
   },
-  giftText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
+  giftText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
   unlockToast: {
     position: "absolute",
     top: 62,
@@ -1656,7 +1665,7 @@ const styles = StyleSheet.create({
     borderColor: "#ffd34d",
     zIndex: 12,
   },
-  unlockText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
+  unlockText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
   // Red tag on the bag's corner while new kinds of drops are being turned away.
   bagFull: { position: "absolute", top: -4, right: -6, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 7, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.line },
   bagFullText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
@@ -1703,11 +1712,11 @@ const styles = StyleSheet.create({
   enemyNameplateGolden: { backgroundColor: "#7a5a0acc", borderWidth: 1.5, borderColor: "#ffe27a" },
   goldenToast: { position: "absolute", top: 70, left: 0, right: 0, alignItems: "center", zIndex: 9 },
   bossRewardToast: { top: 24, zIndex: 40, elevation: 40 },
-  goldenToastTitle: { color: "#ffe27a", fontSize: 24, fontWeight: "900", fontFamily: fonts.bold },
-  streakToastTitle: { color: "#ffb24a", fontSize: 22, fontWeight: "900", fontFamily: fonts.bold },
+  goldenToastTitle: { color: "#ffe27a", fontSize: 26, fontWeight: "900", fontFamily: fonts.bold },
+  streakToastTitle: { color: "#ffb24a", fontSize: 24, fontWeight: "900", fontFamily: fonts.bold },
   goldenToastRow: { marginTop: 2, flexDirection: "row", alignItems: "center", gap: 4 },
   goldenToastIcon: { width: 18, height: 18, resizeMode: "contain" },
-  goldenToastValue: { color: "#fff4bd", fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, marginRight: 6 },
+  goldenToastValue: { color: "#fff4bd", fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, marginRight: 6 },
   enemyNameplateMini: { backgroundColor: "#6a120ccc", borderWidth: 1.5, borderColor: "#ffb020" },
   unitLabelClear: { backgroundColor: "#2b1d1259" },
   unitLabelText: { color: colors.cream, fontSize: 8, fontWeight: "800", fontFamily: fonts.bold },

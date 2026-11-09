@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { Text } from "../components/GameText";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { icons, kit, uiImages } from "../assets";
@@ -142,20 +143,20 @@ export function StatsScreen({ state }: { state: GameState }) {
 
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
+  page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
   hero: { flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingVertical: 12, gap: 10 },
   heroSprite: { width: 100, height: 100, alignItems: "center", justifyContent: "flex-end" },
   heroCopy: { flex: 1, gap: 3 },
-  heroName: { fontSize: 19, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  heroName: { fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   heroStage: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
-  heroMeta: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 17, color: colors.muted },
+  heroMeta: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 16, color: colors.muted },
   sectionRow: { marginTop: 18, marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 8 },
   sectionLine: { flex: 1, height: 2, borderRadius: 1, backgroundColor: "#c9a978" },
-  sectionTitle: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  sectionTitle: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   cardSlot: { width: "31.5%" },
-  card: { minHeight: 100, paddingHorizontal: 8, paddingTop: 12, paddingBottom: 10, alignItems: "center" },
+  card: { minHeight: 100, paddingHorizontal: 12, paddingTop: 15, paddingBottom: 13, alignItems: "center" },
   cardIcon: { width: 28, height: 28, marginBottom: 6 },
-  cardValue: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  cardLabel: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 3, fontSize: 12, lineHeight: 17, color: colors.brown, textAlign: "center" },
+  cardValue: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  cardLabel: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 3, fontSize: 12, lineHeight: 16, color: colors.brown, textAlign: "center" },
 });
