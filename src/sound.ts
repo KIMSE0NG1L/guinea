@@ -16,9 +16,32 @@ export type SfxKey = keyof typeof sfx;
 
 setAudioModeAsync({ playsInSilentMode: true, interruptionMode: "mixWithOthers" }).catch(() => {});
 
+// This module can run more than once in the same app: in a dev build, editing it (or
+// assets.ts, which it imports) re-runs it in place, and each run used to make a fresh music
+// player while the previous one kept playing — two tracks on top of each other. Every player
+// made here is recorded on globalThis, and the ones left over from an earlier run are
+// stopped and released before new ones are made.
+type AudioRegistry = { players: AudioPlayer[]; appState?: { remove: () => void } };
+const registry = ((globalThis as { __giniAudio?: AudioRegistry }).__giniAudio ??= { players: [] });
+// The earlier run's app-state listener would otherwise try to resume its released player.
+registry.appState?.remove();
+for (const stale of registry.players.splice(0)) {
+  try {
+    stale.pause();
+    stale.release();
+  } catch {
+    // Already gone — nothing to stop.
+  }
+}
+function makePlayer(source: Parameters<typeof createAudioPlayer>[0]) {
+  const player = createAudioPlayer(source);
+  registry.players.push(player);
+  return player;
+}
+
 const pools = (Object.keys(sfx) as SfxKey[]).reduce((acc, key) => {
   const poolSize = OVERLAPPING_SFX.includes(key) ? OVERLAPPING_SFX_POOL_SIZE : 1;
-  acc[key] = { players: Array.from({ length: poolSize }, () => createAudioPlayer(sfx[key])), next: 0 };
+  acc[key] = { players: Array.from({ length: poolSize }, () => makePlayer(sfx[key])), next: 0 };
   return acc;
 }, {} as Record<SfxKey, { players: AudioPlayer[]; next: number }>);
 
@@ -93,7 +116,7 @@ const FALLBACK_GROUP: LoadedBgmGroup = "countryside";
 // One player for all music, swapping its source when the track changes. A player per track
 // (21 of them, on top of the sfx pools) left the last ones created silent on Android: each
 // player holds on to device audio resources from the moment it's created, even paused.
-const bgmPlayer = createAudioPlayer(bgmTitle);
+const bgmPlayer = makePlayer(bgmTitle);
 bgmPlayer.loop = true;
 let loadedBgmSource = bgmTitle;
 // A track that can't play is otherwise just silence.
@@ -153,7 +176,7 @@ AsyncStorage.getItem(BGM_VOLUME_KEY)
   })
   .catch(() => {});
 
-AppState.addEventListener("change", (status) => {
+registry.appState = AppState.addEventListener("change", (status) => {
   appActive = status === "active";
   syncBgm();
 });

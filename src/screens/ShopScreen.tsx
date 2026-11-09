@@ -1,133 +1,115 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Text } from "../components/GameText";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
-import { useShake } from "../components/motion";
 import { colors, fonts } from "../theme";
 import { PageHeading } from "../components/PageHeading";
 import { GameButton } from "../components/GameButton";
+import { AdBadge } from "../components/AdBadge";
 import { RewardedAdModal } from "../components/RewardedAdModal";
-import { kit, uiImages } from "../assets";
+import { creamSlices, currencyImages, kit } from "../assets";
 import { Panel } from "../components/NineSlice";
-import { CoinPrice } from "../components/CoinPrice";
 import { formatGameNumber } from "../state/gameMath";
-import { formatDuration } from "../state/buffs";
-import { AD_GEMS_REWARD, type UseGameState } from "../state/useGameState";
+import { AD_GEMS_REWARD, SHOP_ADS_PER_DAY, type UseGameState } from "../state/useGameState";
 
-const products = [
-  { group: "골드 상품", name: "주머니 골드", detail: `골드 ${formatGameNumber(1000)}`, price: "보석 10", tone: "gold" as const },
-  { group: "보석 상품", name: "반짝 보석", detail: "보석 50", price: "준비 중", tone: "gem" as const },
+type AdKind = "gems" | "gold";
+
+// What the store will sell once payments open. Shown now so the shop isn't empty, but every
+// one is locked behind the "추후 오픈" notice — nothing here can be bought yet.
+const PACKS: { kind: "gem" | "gold"; tier: number; name: string; amount: string }[] = [
+  { kind: "gem", tier: 2, name: "보석 한 줌", amount: "보석 300" },
+  { kind: "gem", tier: 3, name: "보석 주머니", amount: "보석 1,000" },
+  { kind: "gem", tier: 4, name: "보석 자루", amount: "보석 3,000" },
+  { kind: "gem", tier: 5, name: "보석 수레", amount: "보석 10,000" },
+  { kind: "gold", tier: 2, name: "골드 한 줌", amount: "몹 500마리분" },
+  { kind: "gold", tier: 3, name: "골드 주머니", amount: "몹 2,000마리분" },
+  { kind: "gold", tier: 4, name: "골드 자루", amount: "몹 6,000마리분" },
+  { kind: "gold", tier: 5, name: "골드 수레", amount: "몹 20,000마리분" },
 ];
 
 export function ShopScreen({ game }: { game: UseGameState }) {
-  const [adModalOpen, setAdModalOpen] = useState(false);
-  const adReady = game.adGemsRemainingMs <= 0;
+  const [watching, setWatching] = useState<AdKind | null>(null);
+  const reward = (kind: AdKind) => (kind === "gems" ? `보석 ${AD_GEMS_REWARD}개` : `골드 ${formatGameNumber(game.adGoldReward)}`);
   return (
     <View style={styles.page}>
-      <PageHeading kicker="SHOP" title="골목 상점" description="없는 것 빼고 다 준비 중입니다." />
-      <Panel slice={kit.panel} style={styles.adCard}>
-        <Image source={uiImages.crystal} style={styles.productIcon} />
-        <View style={styles.cardCopy}>
-          <Text style={styles.cardSmall}>15분마다 한 번</Text>
-          <Text style={styles.cardStrong}>광고 보고 보석 받기</Text>
-          <Text style={styles.cardSpan}>{`보석 ${AD_GEMS_REWARD}개 즉시 지급`}</Text>
-        </View>
-        <GameButton
-          variant={adReady ? "green" : "beige"}
-          disabled={!adReady}
-          onPress={() => setAdModalOpen(true)}
-          style={styles.buyButton}
-          textStyle={styles.buyButtonText}
-        >
-          {adReady ? "광고 보기" : formatDuration(game.adGemsRemainingMs)}
-        </GameButton>
+      <PageHeading kicker="SHOP" title="골목 상점" description="광고를 보면 하루에 보석과 골드를 5번씩 받을 수 있어요." />
+
+      <Text style={styles.section}>무료 보상</Text>
+      <View style={styles.adRow}>
+        {(["gems", "gold"] as const).map((kind) => {
+          const left = game.shopAdsLeft[kind];
+          return (
+            <Panel key={kind} slice={kit.panel} style={styles.adCard}>
+              <Image source={kind === "gems" ? currencyImages.gem[1] : currencyImages.gold[1]} style={styles.adIcon} />
+              <Text style={styles.adAmount}>{reward(kind)}</Text>
+              <Text style={styles.adLeft}>{`오늘 ${left}/${SHOP_ADS_PER_DAY}`}</Text>
+              <View>
+                <GameButton
+                  variant={left > 0 ? "green" : "gray"}
+                  disabled={left === 0}
+                  onPress={() => setWatching(kind)}
+                  style={styles.adButton}
+                  textStyle={styles.adButtonText}
+                  accessibilityLabel={`광고 보고 ${reward(kind)} 받기`}
+                >
+                  {left > 0 ? "광고 보기" : "내일 다시"}
+                </GameButton>
+                {left > 0 && <AdBadge />}
+              </View>
+            </Panel>
+          );
+        })}
+      </View>
+
+      <Text style={styles.section}>보석 · 골드 상품</Text>
+      {/* Payments aren't wired up yet: one clear notice, and every pack greyed out. */}
+      <Panel slice={creamSlices.row} scale={0.4} style={styles.notice}>
+        <Text style={styles.noticeText}>결제 시스템은 추후 오픈할 예정이에요.</Text>
       </Panel>
-      <View style={styles.list}>
-        {products.map((product, index) => (
-          <ProductCard key={product.group} product={product} index={index} />
+      <View style={styles.grid}>
+        {PACKS.map((pack) => (
+          <Panel key={`${pack.kind}-${pack.tier}`} slice={kit.inset} style={styles.pack}>
+            <Image source={(pack.kind === "gem" ? currencyImages.gem : currencyImages.gold)[pack.tier - 1]} style={styles.packIcon} />
+            <Text style={styles.packName}>{pack.name}</Text>
+            <Text style={styles.packAmount}>{pack.amount}</Text>
+            <GameButton variant="gray" disabled style={styles.packButton} textStyle={styles.packButtonText}>
+              추후 오픈
+            </GameButton>
+          </Panel>
         ))}
       </View>
-      <View style={styles.note}>
-        <Text style={styles.noteText}>실제 결제 기능은 아직 연결되지 않았어요.</Text>
-      </View>
-      {adModalOpen && (
+
+      {watching && (
         <RewardedAdModal
-          message={`대신 섭섭하지 않게 보석 ${AD_GEMS_REWARD}개는 그대로 챙겨드릴게요.`}
-          claimLabel="보석 받기"
+          message={`대신 섭섭하지 않게 ${reward(watching)}는 그대로 챙겨드릴게요.`}
+          claimLabel={`${reward(watching)} 받기`}
           onClaim={() => {
-            game.watchAdForGems();
-            setAdModalOpen(false);
+            game.watchShopAd(watching);
+            setWatching(null);
           }}
-          onCancel={() => setAdModalOpen(false)}
+          onCancel={() => setWatching(null)}
         />
       )}
     </View>
   );
 }
 
-// A product: its icon floats gently with a light sweeping the card now and then. Purchases
-// aren't wired up yet, so pressing just rattles the button.
-function ProductCard({ product, index }: { product: (typeof products)[number]; index: number }) {
-  const float = useSharedValue(0);
-  const shine = useSharedValue(0);
-  const { style: shakeStyle, shake } = useShake();
-  useEffect(() => {
-    float.value = withDelay(index * 300, withRepeat(withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.sin) }), -1, true));
-    shine.value = withDelay(index * 500, withRepeat(withSequence(withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }), withDelay(2400, withTiming(0, { duration: 0 }))), -1));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const floatStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -float.value * 5 }, { rotate: `${(float.value - 0.5) * 6}deg` }] }));
-  const shineStyle = useAnimatedStyle(() => ({ left: `${-30 + shine.value * 140}%`, opacity: shine.value === 0 ? 0 : 0.35 }));
-  const icon = product.tone === "gem" ? uiImages.crystal : uiImages.coins;
-  return (
-    <Panel slice={kit.panel} style={styles.card}>
-      <View style={styles.shineClip} pointerEvents="none">
-        <Animated.View style={[styles.shine, shineStyle]} />
-      </View>
-      <Animated.Image source={icon} style={[styles.productIcon, floatStyle]} />
-      <View style={styles.cardCopy}>
-        <Text style={styles.cardSmall}>{product.group}</Text>
-        <Text style={styles.cardStrong}>{product.name}</Text>
-        <Text style={styles.cardSpan}>{product.detail}</Text>
-      </View>
-      <Animated.View style={shakeStyle}>
-        <GameButton variant="beige" onPress={shake} style={styles.buyButton} textStyle={styles.buyButtonText}>
-          {typeof product.price === "number" ? <CoinPrice amount={product.price} textStyle={styles.buyButtonText} /> : product.price}
-        </GameButton>
-      </Animated.View>
-    </Panel>
-  );
-}
-
 const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 25 },
-  adCard: {
-    marginBottom: 10,
-    paddingHorizontal: 13,
-    paddingTop: 11,
-    paddingBottom: 13,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-  },
-  list: { gap: 10 },
-  card: {
-    paddingHorizontal: 17,
-    paddingTop: 14,
-    paddingBottom: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-  },
-  productIcon: { width: 58, height: 58, resizeMode: "contain" },
-  shineClip: { position: "absolute", top: 6, left: 6, right: 6, bottom: 6, overflow: "hidden", borderRadius: 8 },
-  shine: { position: "absolute", top: 0, bottom: 0, width: "20%", backgroundColor: "#ffffff", transform: [{ skewX: "-20deg" }] },
-  cardCopy: { flex: 1 },
-  cardSmall: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.brown, fontSize: 12, lineHeight: 16 },
-  cardStrong: { marginVertical: 2, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
-  cardSpan: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16 },
-  buyButton: { minWidth: 70 },
-  buyButtonText: { fontSize: 12 },
-  note: { marginTop: 14, padding: 10, borderWidth: 2, borderColor: "#b6a78e", borderStyle: "dashed", borderRadius: 10 },
-  noteText: { fontFamily: fonts.light, letterSpacing: -0.36, color: colors.muted, fontSize: 12, lineHeight: 16, textAlign: "center" },
+  section: { marginTop: 4, marginBottom: 8, fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  adRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
+  adCard: { flex: 1, alignItems: "center", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 16, gap: 2 },
+  adIcon: { width: 72, height: 64, resizeMode: "contain", marginBottom: 4 },
+  adAmount: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  adLeft: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.muted },
+  adButton: { marginTop: 8, minWidth: 110, minHeight: 44 },
+  adButtonText: { fontSize: 15 },
+  notice: { marginBottom: 10, paddingVertical: 10, paddingHorizontal: 14, alignItems: "center" },
+  noticeText: { fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown, textAlign: "center" },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  pack: { flexBasis: "47%", flexGrow: 1, alignItems: "center", paddingHorizontal: 10, paddingTop: 12, paddingBottom: 14, gap: 2 },
+  packIcon: { width: 64, height: 60, resizeMode: "contain", marginBottom: 4, opacity: 0.85 },
+  packName: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  packAmount: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.muted },
+  packButton: { marginTop: 8, minWidth: 96 },
+  packButtonText: { fontSize: 13 },
 });

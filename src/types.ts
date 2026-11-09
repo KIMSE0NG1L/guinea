@@ -60,6 +60,8 @@ export interface GameState {
   // When the shop's ad-for-25-gems button is ready again (epoch ms); same shape as
   // speedBoostUntil, saved so the cooldown survives a restart.
   adGemsReadyAt?: number;
+  // The shop's rewarded ads watched today (SHOP_ADS_PER_DAY of each kind a day).
+  shopAds?: { day: string; gems: number; gold: number };
   // Shown on the header profile; missing on older saves (falls back to DEFAULT_NICKNAME).
   nickname?: string;
   // Set once the first-run tutorial is finished or skipped; missing on older saves.

@@ -618,6 +618,25 @@ export const icons = {
   codexIngredient: require("../assets/icons/icon-codex-ingredient.png"),
 };
 
+// 재화 그림: one gem / one coin, then growing hauls (pile, small sack, big sack, cart) — for
+// shop products and rewards whose size should read at a glance.
+export const currencyImages = {
+  gem: [
+    require("../assets/currency/gem-1.webp"),
+    require("../assets/currency/gem-2.webp"),
+    require("../assets/currency/gem-3.webp"),
+    require("../assets/currency/gem-4.webp"),
+    require("../assets/currency/gem-5.webp"),
+  ],
+  gold: [
+    require("../assets/currency/gold-1.webp"),
+    require("../assets/currency/gold-2.webp"),
+    require("../assets/currency/gold-3.webp"),
+    require("../assets/currency/gold-4.webp"),
+    require("../assets/currency/gold-5.webp"),
+  ],
+};
+
 export const uiImages = {
   coin: require("../assets/ui/coin.png"),
   // Winged coin that flutters across the battle scene to be tapped.
@@ -625,7 +644,8 @@ export const uiImages = {
   // Winged gem that occasionally replaces the flying coin in battle.
   gemWinged: require("../assets/ui/gem-winged.png"),
   coins: require("../assets/ui/item-coins.png"),
-  crystal: require("../assets/ui/item-crystal.png"),
+  // The single faceted gem (assets/currency/gem-1), about square — size its slots square.
+  crystal: require("../assets/currency/gem-1.webp"),
   gear: require("../assets/ui/item-gear.png"),
   badgeAlert: require("../assets/ui/badge-alert.png"),
   carrot: require("../assets/ui/item-carrot.png"),

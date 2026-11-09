@@ -54,7 +54,10 @@ export type DropEvent = { id: number; name: string; delay: number };
 const SPEED_BOOST_DURATION_MS = 5 * 60_000; // 5 minutes
 // The shop's "광고 보고 보석 받기" button.
 export const AD_GEMS_REWARD = 25;
-const AD_GEMS_COOLDOWN_MS = 15 * 60_000; // 15 minutes
+// The shop's other ad pays gold worth this many of the current stage's mobs.
+export const AD_GOLD_MOBS = 100;
+// Each of the shop's two ads (gems, gold) can be watched this many times a day.
+export const SHOP_ADS_PER_DAY = 5;
 // The winged gem's "watch an ad" offer: gems per ad, and ads a day before only coins fly.
 export const FLYING_GEM_AD_REWARD = 5;
 export const FLYING_GEM_ADS_PER_DAY = 8;
@@ -218,15 +221,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setNow(startedAt);
   };
 
-  // The shop's "광고 보고 보석 받기" button — same shape as the speed boost above (wall-clock
-  // cooldown, saved with the game), just a flat gem payout instead of a timed buff.
-  const adGemsRemainingMs = state.adGemsReadyAt ? Math.max(0, state.adGemsReadyAt - now) : 0;
-  const watchAdForGems = () => {
-    if (adGemsRemainingMs > 0) return;
-    const startedAt = Date.now();
-    setState((previous) => ({ ...previous, gems: previous.gems + AD_GEMS_REWARD, adGemsReadyAt: startedAt + AD_GEMS_COOLDOWN_MS }));
-    setNow(startedAt);
-  };
+  // The shop's rewarded ads: gems or gold, SHOP_ADS_PER_DAY of each a day (counted by local
+  // day, reset at midnight). The count is checked again inside the update so a double tap
+  // can't go over.
+  const shopAdsUsed = (kind: "gems" | "gold") => (state.shopAds?.day === todayKey() ? state.shopAds[kind] : 0);
 
   // Gates the autosave effect below until the saved-game load (or its absence) has
   // resolved — otherwise the fresh `initialState` would autosave over a real save
@@ -1643,8 +1641,18 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     battleSpeed,
     speedBoostRemainingMs,
     watchAdForSpeedBoost,
-    adGemsRemainingMs,
-    watchAdForGems,
+    shopAdsLeft: { gems: Math.max(0, SHOP_ADS_PER_DAY - shopAdsUsed("gems")), gold: Math.max(0, SHOP_ADS_PER_DAY - shopAdsUsed("gold")) },
+    adGoldReward: Math.max(1, Math.round(currentMobGold() * AD_GOLD_MOBS)),
+    watchShopAd: (kind: "gems" | "gold") => {
+      const gold = Math.max(1, Math.round(currentMobGold() * AD_GOLD_MOBS));
+      setState((previous) => {
+        const day = todayKey();
+        const used = previous.shopAds?.day === day ? previous.shopAds : { day, gems: 0, gold: 0 };
+        if (used[kind] >= SHOP_ADS_PER_DAY) return previous;
+        const paid = kind === "gems" ? { gems: previous.gems + AD_GEMS_REWARD } : { gold: previous.gold + gold, totalGoldEarned: (previous.totalGoldEarned ?? 0) + gold };
+        return { ...previous, ...paid, shopAds: { ...used, [kind]: used[kind] + 1 } };
+      });
+    },
   };
 }
 
