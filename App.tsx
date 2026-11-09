@@ -18,6 +18,7 @@ export default function App() {
   const [fontsLoaded] = useFonts({
     "Maplestory-Bold": require("./assets/fonts/Maplestory-Bold.ttf"),
     "Maplestory-Light": require("./assets/fonts/Maplestory-Light.ttf"),
+    Binggrae: require("./assets/fonts/Binggrae.otf"),
   });
   // Not persisted — the title screen is meant to greet every cold launch, not just the
   // very first one ever.

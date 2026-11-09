@@ -223,7 +223,7 @@ export function SettingsModal({
 }
 
 const styles = StyleSheet.create({
-  devLabel: { marginTop: 6, textAlign: "center", fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted, letterSpacing: 2 },
+  devLabel: { marginTop: 6, textAlign: "center", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted, letterSpacing: 2 },
   backdrop: {
     flex: 1,
     padding: 22,

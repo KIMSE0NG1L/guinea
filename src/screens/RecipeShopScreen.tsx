@@ -175,20 +175,20 @@ function RecipeCard({
 
 const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 25 },
-  count: { marginBottom: 8, marginLeft: 4, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
+  count: { marginBottom: 8, marginLeft: 4, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   card: { width: "48.5%", alignItems: "center", paddingHorizontal: 12, paddingTop: 14, paddingBottom: 16 },
   artLearned: { opacity: 0.75 },
   tierBadge: { position: "absolute", top: 10, left: 10, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, zIndex: 1 },
   tierText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  secret: { fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
+  secret: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
   name: { marginTop: 4, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   ingredients: { marginTop: 4, flexDirection: "row", gap: 3, minHeight: 18 },
   ingredient: { width: 18, height: 18 },
   buttonWrap: { marginTop: 8, alignSelf: "stretch" },
   button: { minHeight: 34 },
   sealGlow: { position: "absolute", top: -6, left: -6, right: -6, bottom: -6, borderRadius: 40, backgroundColor: "#ffe27a" },
-  buttonText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  buttonText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   buttonTextLearned: { color: colors.green },
   buttonTextOff: { color: "#4f463c" },
 });

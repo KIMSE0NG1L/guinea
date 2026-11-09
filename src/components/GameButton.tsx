@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: "900",
     fontFamily: fonts.bold,
-    fontSize: 11,
+    fontSize: 12,
   },
 });

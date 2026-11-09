@@ -174,6 +174,6 @@ const styles = StyleSheet.create({
   popupIcon: { width: 18, height: 18, resizeMode: "contain" },
   popupGold: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe066" },
   popupGem: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
-  popupLabel: { fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  popupLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   adButton: { marginTop: 7, minHeight: 34, paddingHorizontal: 10, minWidth: 170 },
 });

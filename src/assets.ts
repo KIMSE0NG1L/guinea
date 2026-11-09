@@ -1183,3 +1183,87 @@ export const bgmTitle = require("../assets/bgm/title-village.mp3");
 
 // Every strip frame is 160x160px, in a 5-frame row (guinea/slime) or 4-frame row (boss).
 export const FRAME_SIZE = 160;
+
+// Wood / gold / ribbon panel frames (sheet order, left→right, top→bottom). Drawn whole at
+// their own aspect, or as 9-slices through panelSlices below.
+export const panelArt = [
+  require("../assets/panels/panel-00.webp"),
+  require("../assets/panels/panel-01.webp"),
+  require("../assets/panels/panel-02.webp"),
+  require("../assets/panels/panel-03.webp"),
+  require("../assets/panels/panel-04.webp"),
+  require("../assets/panels/panel-05.webp"),
+  require("../assets/panels/panel-06.webp"),
+  require("../assets/panels/panel-07.webp"),
+  require("../assets/panels/panel-08.webp"),
+  require("../assets/panels/panel-09.webp"),
+  require("../assets/panels/panel-10.webp"),
+  require("../assets/panels/panel-11.webp"),
+  require("../assets/panels/panel-12.webp"),
+  require("../assets/panels/panel-13.webp"),
+  require("../assets/panels/panel-14.webp"),
+  require("../assets/panels/panel-15.webp"),
+  require("../assets/panels/panel-16.webp"),
+  require("../assets/panels/panel-17.webp"),
+  require("../assets/panels/panel-18.webp"),
+  require("../assets/panels/panel-19.webp"),
+  require("../assets/panels/panel-20.webp"),
+  require("../assets/panels/panel-21.webp"),
+  require("../assets/panels/panel-22.webp"),
+  require("../assets/panels/panel-23.webp"),
+  require("../assets/panels/panel-24.webp"),
+  require("../assets/panels/panel-25.webp"),
+  require("../assets/panels/panel-26.webp"),
+  require("../assets/panels/panel-27.webp"),
+  require("../assets/panels/panel-28.webp"),
+];
+
+// The ones used as stretchy frames, with insets that keep their corners and trim intact.
+export const panelSlices = {
+  // Big wood frame with brass bolts in each corner.
+  woodBolts: slice(panelArt[0], 480, 212, [44, 50, 44, 50], "#f6e2b8"),
+  goldPill: slice(panelArt[16], 393, 109, [48, 52, 48, 52], "#fce6a8"),
+  // Wood frame with a leafy plank sign across the top — the title goes on the plank.
+  leafPlank: slice(panelArt[1], 480, 257, [106, 66, 42, 66]),
+  // Ornate boss-trophy frame (crown, crossed swords, wings up top; star medallion below).
+  // Left/right insets meet in the middle so the ornaments never stretch sideways — draw it
+  // at width = 1000 × scale; only the plain side posts stretch to fit taller content.
+  bossTrophy: slice(require("../assets/panels/boss-frame.webp"), 1000, 749, [300, 499, 259, 499]),
+};
+
+// Soft cream inner panels (the second panel sheet): plain rounded plates for rows, chips and
+// cells that sit inside a bigger frame. 0 big card, 3 square, 6 long pill, 7 speech bubble,
+// 8 inset well, 9/14 gray (disabled), 10 dashed, 13/16/18/21 tan, 15/16 tall.
+export const creamArt = [
+  require("../assets/panels-cream/cream-00.webp"),
+  require("../assets/panels-cream/cream-01.webp"),
+  require("../assets/panels-cream/cream-02.webp"),
+  require("../assets/panels-cream/cream-03.webp"),
+  require("../assets/panels-cream/cream-04.webp"),
+  require("../assets/panels-cream/cream-05.webp"),
+  require("../assets/panels-cream/cream-06.webp"),
+  require("../assets/panels-cream/cream-07.webp"),
+  require("../assets/panels-cream/cream-08.webp"),
+  require("../assets/panels-cream/cream-09.webp"),
+  require("../assets/panels-cream/cream-10.webp"),
+  require("../assets/panels-cream/cream-11.webp"),
+  require("../assets/panels-cream/cream-12.webp"),
+  require("../assets/panels-cream/cream-13.webp"),
+  require("../assets/panels-cream/cream-14.webp"),
+  require("../assets/panels-cream/cream-15.webp"),
+  require("../assets/panels-cream/cream-16.webp"),
+  require("../assets/panels-cream/cream-17.webp"),
+  require("../assets/panels-cream/cream-18.webp"),
+  require("../assets/panels-cream/cream-19.webp"),
+  require("../assets/panels-cream/cream-20.webp"),
+  require("../assets/panels-cream/cream-21.webp"),
+];
+
+export const creamSlices = {
+  // A big card that groups several rows.
+  card: slice(creamArt[0], 1114, 339, [96, 100, 100, 100], "#feecc3"),
+  // A full-width row plate.
+  row: slice(creamArt[6], 1105, 139, [64, 72, 68, 72], "#fdedc7"),
+  // A square cell for an item or icon.
+  cell: slice(creamArt[3], 224, 217, [56, 58, 60, 58], "#fdecc4"),
+};

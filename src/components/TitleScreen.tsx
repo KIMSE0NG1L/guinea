@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   burstSpark: { position: "absolute", color: "#fff1c9", fontSize: 16, textShadowColor: "#ffd27a", textShadowRadius: 6 },
   // Bottom-right corner, out of the way of the tip and "터치하여 시작".
   footer: { position: "absolute", bottom: 10, right: 12, flexDirection: "row", alignItems: "center", gap: 10 },
-  footerText: { color: "#f3e6c8b3", fontSize: 9, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 3 },
+  footerText: { color: "#f3e6c8b3", fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, textShadowColor: "#1c1613", textShadowRadius: 3 },
   footerLink: { textDecorationLine: "underline" },
   start: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
 });

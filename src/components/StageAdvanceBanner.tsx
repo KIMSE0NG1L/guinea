@@ -125,5 +125,5 @@ const styles = StyleSheet.create({
   stageLabel: { color: "#fff4bd", fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
   prompt: { marginTop: 14, backgroundColor: "#3d513a", borderWidth: 2, borderColor: colors.line, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 14 },
   promptText: { color: "#fff4bd", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
-  sub: { marginTop: 6, color: "#f3e6c8", fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
+  sub: { marginTop: 6, color: "#f3e6c8", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
 });

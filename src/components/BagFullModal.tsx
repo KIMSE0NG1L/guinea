@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   panel: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18, alignItems: "center" },
   icon: { width: 64, height: 64 },
   title: { marginTop: 6, fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { marginTop: 8, fontSize: 11, color: colors.brown, textAlign: "center", lineHeight: 17 },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
   buttonRow: { marginTop: 18, flexDirection: "row", gap: 10 },
   button: { minWidth: 110 },
 });

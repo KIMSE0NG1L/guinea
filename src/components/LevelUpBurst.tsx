@@ -204,6 +204,6 @@ const styles = StyleSheet.create({
   spark: { position: "absolute", width: 16, height: 4, borderRadius: 2, backgroundColor: "#ff9f1c", borderWidth: 0.5, borderColor: "#c4660c" },
   twinkle: { position: "absolute" },
   content: { marginTop: 34, alignItems: "center" },
-  label: { color: colors.gold, fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 2 },
+  label: { color: colors.gold, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 2 },
   level: { marginTop: 1, color: "#fff4bd", fontSize: 24, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
 });

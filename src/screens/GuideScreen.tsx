@@ -121,8 +121,8 @@ const styles = StyleSheet.create({
   card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   cardTitle: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  chevron: { fontSize: 10, color: colors.brown },
+  chevron: { fontSize: 12, color: colors.brown },
   line: { marginTop: 8, flexDirection: "row", gap: 6 },
-  bullet: { fontSize: 11, color: colors.brown, lineHeight: 17 },
-  lineText: { flex: 1, fontSize: 11, color: colors.ink, lineHeight: 17 },
+  bullet: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.brown, lineHeight: 17 },
+  lineText: { fontFamily: fonts.light, letterSpacing: -0.36, flex: 1, fontSize: 12, color: colors.ink, lineHeight: 17 },
 });

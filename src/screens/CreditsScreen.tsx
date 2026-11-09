@@ -30,7 +30,10 @@ const SECTIONS: { title: string; entries: { name: string; detail: string; url?: 
   },
   {
     title: "글꼴",
-    entries: [{ name: "메이플스토리체", detail: "© NEXON Korea" }],
+    entries: [
+      { name: "메이플스토리체", detail: "© NEXON Korea" },
+      { name: "빙그레체", detail: "© Binggrae Co., Ltd." },
+    ],
   },
 ];
 
@@ -66,10 +69,10 @@ const styles = StyleSheet.create({
   page: { backgroundColor: "#e8dcc4", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 25 },
   list: { gap: 10 },
   card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
-  sectionTitle: { fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, color: colors.green, letterSpacing: 1 },
+  sectionTitle: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green, letterSpacing: 1 },
   entry: { marginTop: 8 },
   entryName: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   entryLink: { textDecorationLine: "underline" },
-  entryDetail: { marginTop: 1, fontSize: 10, color: colors.brown },
-  version: { marginTop: 16, textAlign: "center", fontSize: 10, color: colors.muted },
+  entryDetail: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, color: colors.brown },
+  version: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 16, textAlign: "center", fontSize: 12, color: colors.muted },
 });

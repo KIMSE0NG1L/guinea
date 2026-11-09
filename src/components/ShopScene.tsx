@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   back: { width: 50, height: 32 },
   pressed: { transform: [{ scale: 0.94 }] },
   titleCopy: { flex: 1 },
-  kicker: { color: colors.red, fontWeight: "800", fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.5 },
+  kicker: { color: colors.red, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
   title: { fontSize: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.5 },
   // Text starts past the coin baked into the pill's left end.
   goldPill: { height: 36, minWidth: 92, paddingLeft: 38, paddingRight: 12, justifyContent: "center" },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   otherContent: { flexDirection: "row", alignItems: "center", gap: 2 },
   // Pokes up out of the pill, like the other shopkeeper is peeking over it.
   otherKeeper: { width: 30, height: 30, marginTop: -10 },
-  otherText: { fontSize: 11, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  otherText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   goldText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "right" },
   heroFrame: { padding: 11, marginBottom: 8 },
   hero: { height: 210, overflow: "hidden", borderRadius: 4 },
@@ -136,6 +136,6 @@ const styles = StyleSheet.create({
   keeper: { position: "absolute", left: 10, bottom: 4, width: 140, height: 140 },
   keeperImage: { width: "100%", height: "100%" },
   bubble: { position: "absolute", top: 14, right: 12, width: "52%", paddingLeft: 16, paddingRight: 14, paddingTop: 11, paddingBottom: 24 },
-  bubbleName: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
-  bubbleText: { marginTop: 3, fontSize: 11, lineHeight: 15, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
+  bubbleName: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
+  bubbleText: { marginTop: 3, fontSize: 12, lineHeight: 17, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
 });

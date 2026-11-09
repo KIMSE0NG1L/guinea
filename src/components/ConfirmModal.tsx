@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: { fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { marginTop: 8, fontSize: 11, color: colors.brown, textAlign: "center", lineHeight: 16 },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
   buttonRow: { marginTop: 18, flexDirection: "row", gap: 10 },
   button: { minWidth: 96 },
 });
