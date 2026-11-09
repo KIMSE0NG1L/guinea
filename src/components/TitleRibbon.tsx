@@ -32,5 +32,5 @@ const styles = StyleSheet.create({
   tailLeft: { position: "absolute", left: 0, top: 18 },
   tailRight: { position: "absolute", right: 0, top: 18 },
   words: { position: "absolute", top: 6, left: 0, right: 0, height: RIBBON_H - 26, alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 19, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
+  title: { fontSize: 21, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
 });

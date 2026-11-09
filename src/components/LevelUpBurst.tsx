@@ -205,5 +205,5 @@ const styles = StyleSheet.create({
   twinkle: { position: "absolute" },
   content: { marginTop: 34, alignItems: "center" },
   label: { color: colors.gold, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 2 },
-  level: { marginTop: 1, color: "#fff4bd", fontSize: 24, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
+  level: { marginTop: 1, color: "#fff4bd", fontSize: 26, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
 });

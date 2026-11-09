@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
   ruleRight: { transformOrigin: "0% 50%" },
   ruleLine: { flex: 1, height: 2, borderRadius: 1, backgroundColor: "#f3d993" },
   diamond: { width: 7, height: 7, backgroundColor: "#ffd84a", borderWidth: 1, borderColor: "#3a2410", transform: [{ rotate: "45deg" }] },
-  stageLabel: { color: "#fff4bd", fontSize: 20, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
+  stageLabel: { color: "#fff4bd", fontSize: 22, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
   prompt: { marginTop: 14, backgroundColor: "#3d513a", borderWidth: 2, borderColor: colors.line, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 14 },
-  promptText: { color: "#fff4bd", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
+  promptText: { color: "#fff4bd", fontSize: 13, fontWeight: "900", fontFamily: fonts.bold },
   sub: { marginTop: 6, color: "#f3e6c8", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
 });

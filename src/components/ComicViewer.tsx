@@ -127,7 +127,7 @@ function Bubble({ bubble, width, height }: { bubble: ComicBubble; width: number;
 const styles = StyleSheet.create({
   backdrop: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#14100cf2", paddingHorizontal: 12 },
   top: { position: "absolute", left: 16, right: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { color: colors.gold, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 0.5 },
+  title: { color: colors.gold, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 0.5 },
   skip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "#ffffff22" },
   skipText: { color: colors.cream, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
   panel: { borderRadius: 6, borderWidth: 3, borderColor: colors.line, overflow: "hidden" },
@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "45deg" }],
   },
   bubble: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 2.5, borderColor: colors.line, backgroundColor: "#ffffff" },
-  bubbleText: { fontSize: 12, lineHeight: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  bubbleText: { fontSize: 13, lineHeight: 19, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   shout: { backgroundColor: "#fff3c4", borderWidth: 3 },
   shoutBorder: { backgroundColor: "#fff3c4", borderWidth: 3 },
-  shoutText: { fontSize: 14, color: colors.red },
+  shoutText: { fontSize: 15, color: colors.red },
 });

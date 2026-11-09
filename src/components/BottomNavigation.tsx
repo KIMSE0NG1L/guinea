@@ -82,6 +82,6 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: 0.92 }] },
   icon: { width: 32, height: 32 },
   iconActive: { width: 34, height: 34 },
-  caption: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  label: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  caption: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  label: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

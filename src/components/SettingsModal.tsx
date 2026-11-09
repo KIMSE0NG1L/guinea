@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     alignItems: "center",
   },
-  title: { fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  title: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   sfxRow: {
     marginTop: 14,
     width: "100%",
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   bgmRow: { marginTop: 10 },
-  sfxLabel: { fontSize: 13, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
+  sfxLabel: { fontSize: 14, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   sliderWrap: { width: 140 },
   hapticButton: { minHeight: 28, paddingHorizontal: 16 },
   hapticButtonText: { fontSize: 11 },

@@ -103,12 +103,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 3,
     paddingHorizontal: 11,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "900",
     fontFamily: fonts.bold,
     letterSpacing: 3,
   },
-  name: { marginTop: 7, color: "#ffe3d4", fontSize: 24, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -1 },
+  name: { marginTop: 7, color: "#ffe3d4", fontSize: 26, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -1 },
   sub: {
     marginTop: 7,
     color: colors.cream,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 3,
     paddingHorizontal: 7,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "900",
     fontFamily: fonts.bold,
     // Per-boss lines vary in length — wrap within the banner's column, centred.
@@ -132,5 +132,5 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 14,
   },
-  promptText: { color: colors.cream, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
+  promptText: { color: colors.cream, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold },
 });

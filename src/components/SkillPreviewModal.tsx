@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 14, justifyContent: "center", backgroundColor: "#263024cf" },
   panel: { width: "100%", maxWidth: 430, alignSelf: "center", paddingHorizontal: 12, paddingTop: 18, paddingBottom: 16, alignItems: "center" },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
-  title: { marginTop: 2, fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  title: { marginTop: 2, fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 4, paddingHorizontal: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
   sceneWrap: { alignSelf: "stretch" },
   closeButton: { marginTop: 4, minWidth: 120 },

@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   fullText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.red },
   expand: { minHeight: 52, paddingHorizontal: 10 },
   expandContent: { alignItems: "center" },
-  expandTitle: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  expandTitle: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   expandTitleDim: { color: "#4f463c" },
   expandCost: { flexDirection: "row", alignItems: "center", gap: 2, marginTop: 1 },
   expandCostText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },

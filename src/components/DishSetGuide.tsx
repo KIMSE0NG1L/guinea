@@ -53,7 +53,7 @@ export function DishSetGuide({ known }: { known: string[] }) {
 const styles = StyleSheet.create({
   panel: { marginBottom: 12, paddingHorizontal: 12, paddingTop: 9, paddingBottom: 10 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-  title: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  title: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   hint: { flexShrink: 1, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown, textAlign: "right" },
   set: { marginTop: 10 },
   setTop: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 6 },

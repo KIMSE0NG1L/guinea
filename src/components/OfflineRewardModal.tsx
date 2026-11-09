@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   bagFull: { marginTop: 6, textAlign: "center", fontSize: 12, fontWeight: "700", fontFamily: fonts.bold, color: colors.red },
   levelRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   levelStar: { width: 20, height: 20 },
-  levelText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  levelText: { fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   levelTo: { color: colors.red },
   backdrop: {
     flex: 1,
@@ -188,5 +188,5 @@ const styles = StyleSheet.create({
   claimButton: { minWidth: 110, minHeight: 44 },
   doubleContent: { alignItems: "center" },
   doubleSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
-  doubleLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  doubleLabel: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

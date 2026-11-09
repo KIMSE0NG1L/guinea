@@ -117,9 +117,9 @@ const styles = StyleSheet.create({
   heroImage: { width: 76, height: 76 },
   heroCopy: { flex: 1, gap: 4 },
   heroLabel: { color: colors.brown, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1 },
-  heroCount: { fontSize: 24, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
-  heroTotal: { fontFamily: fonts.light, letterSpacing: -0.39, fontSize: 13, color: colors.muted },
-  heroLine: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.brown },
+  heroCount: { fontSize: 26, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  heroTotal: { fontFamily: fonts.light, letterSpacing: -0.42, fontSize: 14, lineHeight: 20, color: colors.muted },
+  heroLine: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, lineHeight: 17, color: colors.brown },
   // Wraps three to a row, so the list can grow as the book does.
   rereadButton: { alignSelf: "center", marginBottom: 10, paddingHorizontal: 14 },
   rereadText: { fontSize: 12 },

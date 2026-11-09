@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   tierBadge: { position: "absolute", top: 10, left: 10, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, zIndex: 1 },
   tierText: { fontSize: 8, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   secret: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
-  name: { marginTop: 4, fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  name: { marginTop: 4, fontSize: 14, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   ingredients: { marginTop: 4, flexDirection: "row", gap: 3, minHeight: 18 },
   ingredient: { width: 18, height: 18 },
   buttonWrap: { marginTop: 8, alignSelf: "stretch" },

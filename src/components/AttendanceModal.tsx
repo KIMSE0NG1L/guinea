@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   panel: { width: "100%", maxWidth: 400, alignSelf: "center", paddingHorizontal: 32, paddingTop: 88, paddingBottom: 32, alignItems: "center" },
   // Sits over the plank sign at the top of the frame (94px of art at scale 0.7).
   plank: { position: "absolute", top: 10, left: 0, right: 0, height: 52, alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
+  title: { fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: "#fff1c4" },
   grid: { marginTop: 4, width: TILE * 4 + GAP * 3, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: GAP },
   tile: { width: TILE, height: 80 },
   tileWide: { width: TILE * 2 + GAP },
@@ -195,11 +195,11 @@ const styles = StyleSheet.create({
     borderColor: colors.red,
     backgroundColor: "#ffffffd9",
   },
-  stampText: { color: colors.red, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold },
+  stampText: { color: colors.red, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold },
   buttons: { marginTop: 16, flexDirection: "row", gap: 8 },
   button: { minWidth: 110, minHeight: 44 },
   claimButton: { minWidth: 150, minHeight: 44 },
   adContent: { alignItems: "center" },
-  adSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
-  adLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  adSmall: { fontSize: 13, fontWeight: "800", fontFamily: fonts.bold, color: "#e9f2d4" },
+  adLabel: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
 });

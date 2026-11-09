@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   endingPanel: { alignItems: "center", paddingHorizontal: 22, paddingTop: 20, paddingBottom: 20 },
   endingImage: { width: 110, height: 110 },
   endingEyebrow: { marginTop: 4, color: colors.green, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 1.5 },
-  endingTitle: { marginTop: 2, fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  endingTitle: { marginTop: 2, fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   endingText: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 10, fontSize: 12, lineHeight: 17, color: colors.ink, textAlign: "center" },
   endingButton: { marginTop: 16, minWidth: 140 },
 });

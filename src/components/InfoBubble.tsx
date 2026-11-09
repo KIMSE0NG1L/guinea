@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     borderColor: "#4a392d",
   },
   title: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe9a3" },
-  line: { marginTop: 2, fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
+  line: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
   tail: {
     position: "absolute",
     bottom: -TAIL + 1,

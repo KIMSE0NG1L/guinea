@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   tailLeft: { position: "absolute", left: 0, top: 18 },
   tailRight: { position: "absolute", right: 0, top: 18 },
   ribbonWords: { position: "absolute", top: 8, left: 0, right: 0, height: RIBBON_H - 26, alignItems: "center", justifyContent: "center" },
-  boss: { marginTop: 6, fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  boss: { marginTop: 6, fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   // Padded out to the glow's full 96px so it sits inside the row's own bounds — Android clips
   // children that overflow an animated (opacity/scale) parent, which cut the glow off.
   reward: { marginTop: 4, paddingVertical: 18, paddingLeft: 26, paddingRight: 4, flexDirection: "row", alignItems: "center", gap: 8 },
@@ -276,14 +276,14 @@ const styles = StyleSheet.create({
   gem: { width: 44, height: 60, resizeMode: "contain" },
   rewardText: { fontSize: 40, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   companion: { marginTop: 14, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 12, backgroundColor: "#c8553de6" },
-  companionText: { fontSize: 16, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  rewardLabel: { marginTop: -14, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
+  companionText: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  rewardLabel: { marginTop: -14, fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   actions: { marginTop: 18, alignItems: "center", gap: 12 },
   adButton: { minWidth: 170 },
   adButtonFace: { alignItems: "center" },
   adSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.cream },
   adPrice: { flexDirection: "row", alignItems: "center", gap: 4 },
   adGem: { width: 13, height: 18, resizeMode: "contain" },
-  adText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  adText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   hint: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#d8cdb8", textDecorationLine: "underline" },
 });

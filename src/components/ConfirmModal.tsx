@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     alignItems: "center",
   },
-  title: { fontSize: 16, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
+  title: { fontSize: 18, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
   buttonRow: { marginTop: 18, flexDirection: "row", gap: 10 },
   button: { minWidth: 96 },
 });

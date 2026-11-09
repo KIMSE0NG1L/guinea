@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   scrim: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(20, 16, 12, 0.55)" },
   scrimFade: { position: "absolute", left: 0, right: 0, bottom: 0, height: "55%" },
   skip: { alignSelf: "flex-end", minHeight: 30, paddingHorizontal: 14, marginBottom: 10 },
-  skipText: { fontSize: 12 },
+  skipText: { fontSize: 13 },
   // Bubble above, guinea below it; the whole group parks at the bottom or the top.
   group: { position: "absolute", left: 0, right: 0 },
   groupBottom: { bottom: 26 },
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   body: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   copy: { flex: 1 },
   speaker: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
-  line: { marginTop: 5, fontSize: 14, lineHeight: 22, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
+  line: { marginTop: 5, fontSize: 15, lineHeight: 22, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   emphasis: { color: colors.red },
   iconSlot: { width: 54, height: 54, alignItems: "center", justifyContent: "center", marginTop: 4 },
   icon: { width: 38, height: 38 },
@@ -367,5 +367,5 @@ const styles = StyleSheet.create({
   dotActive: { width: 16, backgroundColor: colors.gold },
   hint: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },
   start: { minHeight: 34, paddingHorizontal: 18 },
-  startText: { fontSize: 13 },
+  startText: { fontSize: 14 },
 });

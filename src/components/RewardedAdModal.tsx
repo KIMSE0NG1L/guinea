@@ -109,9 +109,9 @@ const styles = StyleSheet.create({
   },
   heroIcon: { width: 44, height: 44, marginBottom: 6 },
   eyebrow: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5 },
-  title: { marginTop: 2, fontSize: 15, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
-  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 16 },
+  title: { marginTop: 2, fontSize: 17, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
   spinner: { marginTop: 14, marginBottom: 4 },
   claimButton: { marginTop: 16, minWidth: 140 },
-  errorCode: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.muted, textAlign: "center" },
+  errorCode: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, lineHeight: 17, color: colors.muted, textAlign: "center" },
 });

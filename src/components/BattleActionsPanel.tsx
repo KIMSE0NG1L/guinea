@@ -55,11 +55,12 @@ export function BattleActionsPanel({
 const styles = StyleSheet.create({
   wrap: { marginTop: 8, marginBottom: 2, marginHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 6 },
   spacer: { flex: 1 },
-  autoToggle: { minHeight: 32, paddingHorizontal: 10 },
+  // Same height as the two-line ad button beside it.
+  autoToggle: { minHeight: 46, paddingHorizontal: 12 },
   autoContent: { flexDirection: "row", alignItems: "center", gap: 5 },
   autoIcon: { width: 16, height: 16 },
   autoToggleText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: "#2a2316" },
-  adButton: { minHeight: 32, paddingHorizontal: 10 },
+  adButton: { minHeight: 46, paddingHorizontal: 12 },
   adButtonText: { color: "#4f463c", fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, textAlign: "center" },
-  adButtonSmall: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, textAlign: "center", color: "#4f463c" },
+  adButtonSmall: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 17, textAlign: "center", color: "#4f463c" },
 });

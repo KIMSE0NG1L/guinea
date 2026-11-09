@@ -68,11 +68,11 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 9, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   where: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   portrait: { height: 130, justifyContent: "flex-end", alignItems: "center" },
-  name: { marginTop: 4, fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  name: { marginTop: 4, fontSize: 22, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   traits: { marginTop: 6, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 5 },
   trait: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, backgroundColor: "#e9d6ae" },
   traitText: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: colors.brown },
   storyBox: { marginTop: 12, alignSelf: "stretch", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14 },
-  story: { fontSize: 12, lineHeight: 19, color: colors.ink, fontFamily: fonts.bold },
+  story: { fontSize: 13, lineHeight: 19, color: colors.ink, fontFamily: fonts.bold },
   close: { marginTop: 14, minWidth: 120 },
 });

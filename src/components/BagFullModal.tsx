@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, padding: 22, paddingHorizontal: 14, justifyContent: "center", backgroundColor: "#263024cf" },
   panel: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18, alignItems: "center" },
   icon: { width: 64, height: 64 },
-  title: { marginTop: 6, fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
+  title: { marginTop: 6, fontSize: 19, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink, textAlign: "center" },
   message: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 8, fontSize: 12, color: colors.brown, textAlign: "center", lineHeight: 17 },
   buttonRow: { marginTop: 18, flexDirection: "row", gap: 10 },
   button: { minWidth: 110 },

@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   list: { gap: 8 },
   card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardTitle: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  cardTitle: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   chevron: { fontSize: 12, color: colors.brown },
   line: { marginTop: 8, flexDirection: "row", gap: 6 },
   bullet: { fontFamily: fonts.light, letterSpacing: -0.36, fontSize: 12, color: colors.brown, lineHeight: 17 },

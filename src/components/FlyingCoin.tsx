@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
   popup: { position: "absolute", width: 190, alignItems: "center", zIndex: 7 },
   popupRow: { flexDirection: "row", alignItems: "center", gap: 3 },
   popupIcon: { width: 18, height: 18, resizeMode: "contain" },
-  popupGold: { fontSize: 18, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe066" },
-  popupGem: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
+  popupGold: { fontSize: 20, fontWeight: "900", fontFamily: fonts.bold, color: "#ffe066" },
+  popupGem: { fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },
   popupLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
   adButton: { marginTop: 7, minHeight: 34, paddingHorizontal: 10, minWidth: 170 },
 });

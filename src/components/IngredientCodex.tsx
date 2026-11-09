@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   priceText: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.muted },
   icon: { marginTop: 14, width: 54, height: 54 },
   iconUnknown: { tintColor: "#3d3128", opacity: 0.85 },
-  name: { marginTop: 4, fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  name: { marginTop: 4, fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   section: { marginTop: 6, alignSelf: "stretch", alignItems: "center" },
   sectionLabel: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green, marginBottom: 1 },
   pills: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 4 },

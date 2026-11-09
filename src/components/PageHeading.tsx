@@ -14,6 +14,6 @@ export function PageHeading({ kicker, title, description }: { kicker: string; ti
 const styles = StyleSheet.create({
   wrap: { marginHorizontal: 2, marginTop: 2, marginBottom: 18 },
   kicker: { color: colors.green, fontWeight: "800", fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1.5, marginBottom: 1 },
-  title: { fontSize: 27, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -1 },
-  description: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 3, color: colors.brown, fontSize: 12 },
+  title: { fontSize: 29, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink, letterSpacing: -1 },
+  description: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 3, color: colors.brown, fontSize: 12, lineHeight: 17 },
 });

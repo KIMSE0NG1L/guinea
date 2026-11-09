@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
   card: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
   sectionTitle: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.green, letterSpacing: 1 },
   entry: { marginTop: 8 },
-  entryName: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
+  entryName: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   entryLink: { textDecorationLine: "underline" },
-  entryDetail: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, color: colors.brown },
-  version: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 16, textAlign: "center", fontSize: 12, color: colors.muted },
+  entryDetail: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 1, fontSize: 12, lineHeight: 17, color: colors.brown },
+  version: { fontFamily: fonts.light, letterSpacing: -0.36, marginTop: 16, textAlign: "center", fontSize: 12, lineHeight: 17, color: colors.muted },
 });
