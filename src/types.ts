@@ -1,5 +1,5 @@
 import type { SkillTimers } from "./state/skills";
-export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats" | "rebirth" | "guide" | "credits" | "backup";
+export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats" | "guide" | "credits" | "backup";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
@@ -35,15 +35,14 @@ export interface GameState {
   // Stage indices whose boss has been beaten at least once (first-clear gem bonus);
   // missing on older saves.
   bossesCleared?: number[];
-  // Furthest stage reached — every stage up to it can be revisited from the milestone map.
+  // Furthest stage reached this loop — every stage up to it can be revisited from the
+  // milestone map. Resets to 0 each time stageNumber wraps back to stage 1 (see
+  // state/stages.ts's getDifficultyStage/getPeakAreaStage for what stays permanent instead).
   highestStageNumber?: number;
-  // 환생 (state/rebirth.ts), all missing before the first one: runs started over, and what
-  // bossesCleared/highestStageNumber held across all runs (those two restart each run; the
-  // album, codex and quests go by these).
-  rebirths?: number;
-  peakStageNumber?: number;
-  everClearedBosses?: number[];
-  // state/progression.ts, all missing on older saves and kept through 환생: each companion's
+  // Times stageNumber has wrapped back to stage 1 after the last stage's boss. Missing means
+  // never yet (stage difficulty and highestStageNumber's lock both key off this).
+  loopsCompleted?: number;
+  // state/progression.ts, all missing on older saves: each companion's
   // unspent shards and level, today's shard ads, and each stage's stars (STAR_* bits).
   companionShards?: Partial<Record<Outfit, number>>;
   companionLevels?: Partial<Record<Outfit, number>>;

@@ -1,7 +1,7 @@
 import type { GameState, Outfit, Quest } from "../types";
 import { food, frameImages, icons, navIcons, statIcons, uiImages } from "../assets";
 import { formatGameNumber, getStatLevel } from "./gameMath";
-import { getPeakStageNumber, STAGES } from "./stages";
+import { getPeakAreaStage, STAGES } from "./stages";
 import { RECIPES, STARTER_RECIPES } from "./recipes";
 import { getCookbookProgress } from "./cookbook";
 import { GROCERY } from "./grocery";
@@ -35,7 +35,7 @@ const METRICS: Record<Metric, { icon: number; title: (target: number) => string;
   stage: {
     icon: icons.mapTrim,
     title: (n) => `${STAGES[n - 1].area}(${n}) 도착`,
-    read: (s) => getPeakStageNumber(s) + 1,
+    read: (s) => getPeakAreaStage(s) + 1,
   },
   attackUpgrades: { icon: statIcons.attack, title: (n) => `공격력 ${formatGameNumber(n)}회 강화`, read: (s) => s.attackUpgrades },
   critDamageLevel: {
@@ -61,7 +61,7 @@ const METRICS: Record<Metric, { icon: number; title: (target: number) => string;
     title: (n) => `동료 ${n}명 만나기`,
     read: (s) =>
       (Object.keys(OUTFIT_UNLOCK_STAGE) as Outfit[]).filter(
-        (outfit) => outfit !== "default" && isOutfitUnlocked(outfit, s.highestStageNumber ?? s.stageNumber, s.purchasedOutfits),
+        (outfit) => outfit !== "default" && isOutfitUnlocked(outfit, getPeakAreaStage(s), s.purchasedOutfits),
       ).length,
   },
 };

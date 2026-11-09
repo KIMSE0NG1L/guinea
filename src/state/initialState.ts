@@ -22,6 +22,7 @@ export const initialState: GameState = {
   stageNumber: 0,
   stageKills: 0,
   highestStageNumber: 0,
+  loopsCompleted: 0,
   knownRecipes: [],
   equippedOutfit: "default",
   equippedSkill: null,

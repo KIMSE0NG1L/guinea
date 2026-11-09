@@ -50,11 +50,15 @@ export function GroceryScreen({
   onBuy,
   discount,
   stageNumber,
+  priceStage,
   onBack,
   onOpenRecipes,
 }: {
-  // The stage prices are set by (see getGroceryPrice).
+  // Which items are on the shelf (isGroceryAvailable) — the story stage reached this loop.
   stageNumber: number;
+  // What they cost (getGroceryPrice) — never drops back down across a loop, see useGameState's
+  // own priceStage.
+  priceStage: number;
   inventory: GameState["inventory"];
   gold: number;
   onBuy: (name: string, price: number) => "ok" | "gold" | "full";
@@ -120,10 +124,10 @@ export function GroceryScreen({
           <GroceryCard
             key={item.name}
             name={item.name}
-            price={applyDiscount(getGroceryPrice(item.name, stageNumber), discount)}
+            price={applyDiscount(getGroceryPrice(item.name, priceStage), discount)}
             owned={getItemQuantity(inventory, item.name)}
             gold={gold}
-            onBuy={() => buy(item.name, getGroceryPrice(item.name, stageNumber))}
+            onBuy={() => buy(item.name, getGroceryPrice(item.name, priceStage))}
           />
         ))}
       </View>

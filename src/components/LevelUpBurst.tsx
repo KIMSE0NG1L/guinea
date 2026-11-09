@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -11,7 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
 import { colors, fonts } from "../theme";
-import { icons, statIcons } from "../assets";
+import { icons } from "../assets";
 import { formatGameNumber } from "../state/gameMath";
 import { StrokedText } from "./StrokedText";
 
@@ -44,7 +44,7 @@ const STARS = [
 
 // A radial flash + sunburst + popping level number over the player, mounted fresh via
 // `key={level}` at the call site so it restarts on every level-up.
-export function LevelUpBurst({ level, attackGain }: { level: number; attackGain: number }) {
+export function LevelUpBurst({ level }: { level: number }) {
   const glow = useSharedValue(0);
   const burst = useSharedValue(0);
   const punch = useSharedValue(0.3);
@@ -52,7 +52,6 @@ export function LevelUpBurst({ level, attackGain }: { level: number; attackGain:
   // actually disappears before the component unmounts instead of sitting there fully
   // opaque (and looking stuck) once the rest of the burst has already faded out.
   const contentOpacity = useSharedValue(0);
-  const gainLift = useSharedValue(1);
 
   useEffect(() => {
     glow.value = withSequence(
@@ -69,16 +68,11 @@ export function LevelUpBurst({ level, attackGain }: { level: number; attackGain:
       withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) }),
       withDelay(740, withTiming(0, { duration: 350, easing: Easing.in(Easing.quad) })),
     );
-    gainLift.value = withDelay(260, withSequence(withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value * 0.9, transform: [{ scale: 0.6 + glow.value * 0.6 }] }));
   const contentStyle = useAnimatedStyle(() => ({ opacity: contentOpacity.value, transform: [{ scale: punch.value }] }));
-  const gainStyle = useAnimatedStyle(() => ({
-    opacity: 1 - gainLift.value,
-    transform: [{ translateY: gainLift.value * 10 }, { scale: 0.85 + (1 - gainLift.value) * 0.15 }],
-  }));
 
   return (
     <View style={styles.wrap} pointerEvents="none">
@@ -115,10 +109,6 @@ export function LevelUpBurst({ level, attackGain }: { level: number; attackGain:
         <StrokedText style={styles.level} strokeColor={colors.line} strokeWidth={2}>
           {`Lv.${formatGameNumber(level)}`}
         </StrokedText>
-        <Animated.View style={[styles.gainBadge, gainStyle]}>
-          <Image source={statIcons.attack} style={styles.gainIcon} />
-          <Text style={styles.gainText}>{`+${attackGain}`}</Text>
-        </Animated.View>
       </Animated.View>
     </View>
   );
@@ -216,16 +206,4 @@ const styles = StyleSheet.create({
   content: { marginTop: 34, alignItems: "center" },
   label: { color: colors.gold, fontSize: 10, fontWeight: "900", fontFamily: fonts.bold, letterSpacing: 2 },
   level: { marginTop: 1, color: "#fff4bd", fontSize: 24, fontWeight: "800", fontFamily: fonts.bold, letterSpacing: -0.5 },
-  gainBadge: {
-    marginTop: 3,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: "#4a3418d9",
-  },
-  gainIcon: { width: 12, height: 12 },
-  gainText: { color: colors.gold, fontSize: 11, fontWeight: "900", fontFamily: fonts.bold },
 });

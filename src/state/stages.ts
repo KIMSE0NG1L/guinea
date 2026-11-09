@@ -238,14 +238,22 @@ export function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highe
   return state.bossesCleared ?? Array.from({ length: state.highestStageNumber ?? state.stageNumber }, (_, index) => index);
 }
 
-// Which 회차 the player is on: 1 until the first 환생.
-export function getRunNumber(state: Pick<GameState, "rebirths">) {
-  return (state.rebirths ?? 0) + 1;
+// Clearing the last stage's boss loops back to stage 1 (stageNumber resets, see
+// useGameState's kill handler) so the map, companions-by-stage and grocery shelves all
+// re-lock behind highestStageNumber each time around — but the enemies you meet shouldn't
+// get easier just because the area art looped. This is the stage index to scale their HP,
+// exp and gold against instead: it never drops, so stage 1 of a second lap is exactly as
+// tough as stage 40 would be.
+export function getDifficultyStage(stageNumber: number, loopsCompleted: number) {
+  return stageNumber + loopsCompleted * (LAST_STAGE_NUMBER + 1);
 }
 
-// The furthest stage ever reached, across every 환생 (highestStageNumber restarts each run).
-export function getPeakStageNumber(state: Pick<GameState, "peakStageNumber" | "highestStageNumber" | "stageNumber">) {
-  return Math.max(state.peakStageNumber ?? 0, state.highestStageNumber ?? state.stageNumber);
+// The furthest story stage ever reached, across every loop. highestStageNumber itself
+// re-locks each loop (see above), but completing a loop at least once necessarily means
+// every stage has been passed through — so from then on this is pinned to the last one,
+// for things that should stay fully revealed once seen (the monster codex, lifetime quests).
+export function getPeakAreaStage(state: Pick<GameState, "loopsCompleted" | "highestStageNumber" | "stageNumber">) {
+  return (state.loopsCompleted ?? 0) > 0 ? LAST_STAGE_NUMBER : state.highestStageNumber ?? state.stageNumber;
 }
 
 // Regular-mob kills needed in a stage before the boss spawns automatically.
@@ -314,16 +322,14 @@ const STAGE_HP_GROWTH = 1.8;
 // Past this stage (0-based; 25 on screen) HP climbs faster, so the late game is a real wall.
 const LATE_STAGE_START = 24;
 const LATE_STAGE_HP_GROWTH = 2.0;
-// Each 환생 (state/rebirth.ts) makes every enemy this many times tougher.
-export const REBIRTH_HP_MULTIPLIER = 4;
 // A boss fights twice: beaten once it comes back enraged at this share of its HP, on a shorter
 // clock (BOSS_PHASE_TWO_TIME_LIMIT_MS) and casting more (ENRAGED_BOSS_SKILL_CHECKPOINTS).
 export const BOSS_PHASE_TWO_HP_MULTIPLIER = 0.75;
 
-export function getEnemyMaxHp(stageNumber: number, boss: boolean, rebirths = 0) {
+export function getEnemyMaxHp(stageNumber: number, boss: boolean) {
   const early = STAGE_HP_GROWTH ** Math.min(stageNumber, LATE_STAGE_START);
   const late = LATE_STAGE_HP_GROWTH ** Math.max(0, stageNumber - LATE_STAGE_START);
-  return Math.round((boss ? BOSS_BASE_HP : MOB_BASE_HP) * early * late * REBIRTH_HP_MULTIPLIER ** rebirths);
+  return Math.round((boss ? BOSS_BASE_HP : MOB_BASE_HP) * early * late);
 }
 
 // The HP gold rewards are priced on: STAGE_HP_GROWTH all the way, ignoring the late-game

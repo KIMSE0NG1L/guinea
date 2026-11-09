@@ -60,6 +60,18 @@ export function isOutfitUnlocked(outfit: Outfit, highestStageNumber: number, pur
   return outfit === "default" || highestStageNumber >= OUTFIT_UNLOCK_STAGE[outfit] - 1;
 }
 
+// highestStageNumber re-locks every time stageNumber loops back to stage 1 (see
+// useGameState's kill handler), but a companion met by reaching its stage should stay met.
+// Called with the furthest stage reached *before* any such reset, this writes every
+// stage-unlocked companion already qualifying into purchasedOutfits for good — same list a
+// gem early-unlock lands in, so isOutfitUnlocked finds it there regardless of future loops.
+export function syncStageUnlockedOutfits(highestStageNumber: number, purchasedOutfits: Outfit[] = []) {
+  const newlyOwned = (Object.keys(OUTFIT_UNLOCK_STAGE) as Outfit[]).filter(
+    (outfit) => outfit !== "default" && !(outfit in OUTFIT_GEM_PRICE) && highestStageNumber >= OUTFIT_UNLOCK_STAGE[outfit] - 1 && !purchasedOutfits.includes(outfit),
+  );
+  return newlyOwned.length > 0 ? [...purchasedOutfits, ...newlyOwned] : purchasedOutfits;
+}
+
 // Companions that join on first arriving at this stage (0-based).
 export function getOutfitsUnlockedByStage(stageNumber: number) {
   return (Object.keys(OUTFIT_UNLOCK_STAGE) as Outfit[]).filter((outfit) => outfit !== "default" && OUTFIT_UNLOCK_STAGE[outfit] - 1 === stageNumber);

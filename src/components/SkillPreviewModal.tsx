@@ -209,7 +209,6 @@ export function SkillPreviewModal({ skillId, enemyKind, outfit, onClose }: { ski
               bossEntranceKey={null}
               onBeginBoss={noop}
               levelUpAnnouncement={null}
-              levelUpAttackGain={0}
               now={0}
               bossTimerStartedAt={null}
               bossTimeLimitMs={0}

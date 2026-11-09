@@ -22,6 +22,9 @@ export function ComicsScreen({
 }) {
   const unlocked = getUnlockedComics(clearedStages, allUnlocked);
   const seen = new Set(seenComics ?? []);
+  // apprenticeGini unlocks by having been shown once (GameScreen's comic chain), not by a
+  // stage clear, so getUnlockedComics (clearedStages-based) alone can't see it.
+  const isOpen = (id: ComicId) => unlocked.includes(id) || seen.has(id);
 
   return (
     <View style={styles.page}>
@@ -34,12 +37,12 @@ export function ComicsScreen({
         </Pressable>
       </View>
       <Text style={styles.count}>
-        모은 이야기 {unlocked.length} / {COMIC_ORDER.length}
+        모은 이야기 {COMIC_ORDER.filter(isOpen).length} / {COMIC_ORDER.length}
       </Text>
       <View style={styles.list}>
         {COMIC_ORDER.map((id, index) => {
           const comic = COMICS[id];
-          const open = unlocked.includes(id);
+          const open = isOpen(id);
           const cover = comic.panels[0];
           return (
             <Pressable

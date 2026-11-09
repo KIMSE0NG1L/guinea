@@ -3,8 +3,9 @@ import { GROCERY } from "./grocery";
 import { getCookbookProgress } from "./cookbook";
 import type { GameState, Outfit } from "../types";
 
-// Long-haul goals that survive 환생. Every bonus here adds on and has a ceiling: at most +70%
-// attack in all. Anything compounding would outgrow 환생's enemy HP and shorten each run.
+// Long-haul goals that survive each loop back to stage 1. Every bonus here adds on and has a
+// ceiling: at most +70% attack in all. Anything compounding would outgrow the loop's enemy HP
+// and shorten each run through it.
 
 // --- 동료 승급: each companion's shards come from one boss of its own. --------------------
 export const COMPANION_MAX_LEVEL = 10;

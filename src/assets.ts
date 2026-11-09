@@ -451,6 +451,13 @@ export const spriteSheets = {
   },
 };
 
+// 견습기니: the bubble-riding follower that tags along from the second loop on (see
+// state/comics.ts's apprenticeGini and BattleScene's own ApprenticeFollower). Not an Outfit
+// — it isn't equippable, just a trailing sprite — so it sits outside spriteSheets.
+export const apprenticeSprite = {
+  idle: require("../assets/sprites/guinea-apprentice-idle-strip.png"),
+};
+
 export const images = {
   titleScreen: require("../assets/sprites/title-screen.webp"),
   // Same scene and framing as titleScreen, at sunset and at night (see TitleScreen's TIME_OF_DAY).
@@ -1114,6 +1121,14 @@ export const comics = {
   griffinFlight2: require("../assets/comics/griffin-flight-2.webp"),
   griffinFlight3: require("../assets/comics/griffin-flight-3.webp"),
   griffinFlight4: require("../assets/comics/griffin-flight-4.webp"),
+  ending1: require("../assets/comics/ending-1.png"),
+  ending2: require("../assets/comics/ending-2.png"),
+  ending3: require("../assets/comics/ending-3.png"),
+  ending4: require("../assets/comics/ending-4.png"),
+  apprenticeGini1: require("../assets/comics/apprentice-gini-1.png"),
+  apprenticeGini2: require("../assets/comics/apprentice-gini-2.png"),
+  apprenticeGini3: require("../assets/comics/apprentice-gini-3.png"),
+  apprenticeGini4: require("../assets/comics/apprentice-gini-4.png"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.

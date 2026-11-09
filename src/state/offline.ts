@@ -1,6 +1,6 @@
 import type { GameState } from "../types";
-import { getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, STAGE_KILL_TARGET } from "./stages";
-import { getExpReward, getExpToLevel, getGoldReward, getTotalAttack } from "./gameMath";
+import { getDifficultyStage, getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, STAGE_KILL_TARGET } from "./stages";
+import { getExpReward, getExpToLevel, getGoldReward } from "./gameMath";
 import { DILIGENT_OFFLINE_BONUS } from "./skills";
 import { getBuffTotals, OUTFIT_BUFFS, OUTFIT_FIRST_STRIKE, OUTFIT_NO_OFFLINE } from "./buffs";
 import { getDropTable } from "./drops";
@@ -83,20 +83,23 @@ export function simulateOfflineProgress(
   let mobsKilled = 0;
   let expGained = 0;
 
-  const enemyMaxHp = getEnemyMaxHp(state.stageNumber, false, state.rebirths ?? 0);
+  // Same reasoning as useGameState's own difficultyStage: never drops back to stage-1
+  // strength just because the area art looped.
+  const difficultyStage = getDifficultyStage(state.stageNumber, state.loopsCompleted ?? 0);
+  const enemyMaxHp = getEnemyMaxHp(difficultyStage, false);
 
   for (const segment of segments) {
     // Leftover time from the last segment carries into this one.
     remainingMs += segment.end - segment.start;
     const food = keepBuffs ? getBuffTotals(state.buffSlots, leftAt + segment.start, state.equippedOutfit) : undefined;
-    const attack = getTotalAttack(state) * (1 + (food?.attack ?? 0) / 100);
+    const attack = state.attack * (1 + (food?.attack ?? 0) / 100);
     const dmg = expectedDamage(
       attack,
       (state.criticalChance ?? 5) + (food?.criticalChance ?? 0),
       state.criticalDamage + (food?.criticalDamage ?? 0),
     );
     if (dmg <= 0) continue;
-    const mobExpReward = Math.round(getExpReward(state.stageNumber, false) * (1 + (food?.exp ?? 0) / 100) * OFFLINE_REWARD_RATE);
+    const mobExpReward = Math.round(getExpReward(difficultyStage, false) * (1 + (food?.exp ?? 0) / 100) * OFFLINE_REWARD_RATE);
     // 사무라이기니's opening draw (attack × N, no crit) may finish a mob outright.
     const firstStrike = OUTFIT_FIRST_STRIKE[state.equippedOutfit] ?? 0;
     const opening = attack * firstStrike;
@@ -107,7 +110,7 @@ export function simulateOfflineProgress(
     while (remainingMs >= msPerMob) {
       remainingMs -= msPerMob;
 
-      const goldReward = Math.round(getGoldReward(attack, state.goldBonus + (food?.gold ?? 0), getEnemyRewardHp(state.stageNumber, false), false) * goldMultiplier * OFFLINE_REWARD_RATE);
+      const goldReward = Math.round(getGoldReward(attack, state.goldBonus + (food?.gold ?? 0), getEnemyRewardHp(difficultyStage, false), false) * goldMultiplier * OFFLINE_REWARD_RATE);
       gold += goldReward;
       totalGoldEarned += goldReward;
       kills += 1;

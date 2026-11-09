@@ -26,9 +26,7 @@ export function MilestoneScreen({
   seenStage,
   onSeen,
   onOpenComics,
-  onOpenRebirth,
   codexStageNumber,
-  runNumber,
   stageStars,
 }: {
   // Each stage's stars (STAR_* bits in state/progression.ts).
@@ -40,10 +38,8 @@ export function MilestoneScreen({
   onSeen: (stage: number) => void;
   // Opens the comic album (추억 앨범).
   onOpenComics: () => void;
-  onOpenRebirth: () => void;
-  // Furthest stage across every 환생: monsters already met stay in the codex.
+  // Furthest stage ever reached: monsters already met stay in the codex.
   codexStageNumber: number;
-  runNumber: number;
   onSelectStage: (stageNumber: number) => void;
   onBack: () => void;
 }) {
@@ -61,7 +57,7 @@ export function MilestoneScreen({
     <View style={styles.page}>
       <View style={styles.headingRow}>
         <View style={styles.heading}>
-          <PageHeading kicker={heading.kicker} title={heading.title} description={view === "map" && runNumber > 1 ? `${runNumber}회차 모험 중 · ${heading.description}` : heading.description} />
+          <PageHeading kicker={heading.kicker} title={heading.title} description={heading.description} />
         </View>
         {/* Bare icon: the purple book opens the monster codex, the map brings you back. */}
         <View style={styles.toggles}>
@@ -89,16 +85,6 @@ export function MilestoneScreen({
           >
             <Image source={icons.scroll} style={styles.toggleIcon} />
             <IconCaption>만화보기</IconCaption>
-          </Pressable>
-          <Pressable
-            onPress={onOpenRebirth}
-            accessibilityRole="button"
-            accessibilityLabel="환생 열기"
-            hitSlop={6}
-            style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
-          >
-            <Image source={icons.star} style={styles.toggleIcon} />
-            <IconCaption>환생</IconCaption>
           </Pressable>
         </View>
       </View>

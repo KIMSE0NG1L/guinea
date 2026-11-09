@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
-import { effects, food, icons, images, kitImages, FRAME_SIZE, uiImages } from "../assets";
+import { apprenticeSprite, effects, food, icons, images, kitImages, FRAME_SIZE, uiImages } from "../assets";
 import { StrokedText } from "../components/StrokedText";
 import { MOTE_PRESETS, RisingMotes, type MotePreset } from "../components/RisingMotes";
 import { CharacterSprite } from "../components/CharacterSprite";
@@ -304,6 +304,7 @@ export function BattleScene({
   questReady,
   onQuest,
   outfit,
+  apprenticeActive = false,
   manualEnabled,
   onManualAttack,
   onOpenMap,
@@ -334,7 +335,6 @@ export function BattleScene({
   bossFirstMeet = false,
   onBeginBoss,
   levelUpAnnouncement,
-  levelUpAttackGain,
   now,
   bossTimerStartedAt,
   bossTimeLimitMs,
@@ -377,6 +377,8 @@ export function BattleScene({
   questReady: boolean;
   onQuest: () => void;
   outfit: Outfit;
+  // From the second loop on (loopsCompleted >= 1): 견습기니 trails the player (see ApprenticeFollower).
+  apprenticeActive?: boolean;
   manualEnabled: boolean;
   onManualAttack: () => void;
   onOpenMap: () => void;
@@ -419,7 +421,6 @@ export function BattleScene({
   bossFirstMeet?: boolean;
   onBeginBoss: () => void;
   levelUpAnnouncement: number | null;
-  levelUpAttackGain: number;
   // Live clock + the current boss fight's deadline (see useGameState's bossTimerStartedAt)
   // — only meaningful while `boss` is true; null/0 otherwise.
   now: number;
@@ -715,6 +716,7 @@ export function BattleScene({
             <PlayerFighter
               animation={playerAnimation}
               outfit={outfit}
+              apprenticeActive={apprenticeActive}
               boss={boss}
               executeId={executeId}
               beamId={beamId}
@@ -723,9 +725,7 @@ export function BattleScene({
               stealAuraId={steal.active ? steal.id : 0}
               focusAuraId={focus.active ? focus.id : 0}
             />
-            {levelUpAnnouncement !== null && (
-              <LevelUpBurst key={levelUpAnnouncement} level={levelUpAnnouncement} attackGain={levelUpAttackGain} />
-            )}
+            {levelUpAnnouncement !== null && <LevelUpBurst key={levelUpAnnouncement} level={levelUpAnnouncement} />}
 
             <EnemyFighter
               animation={enemyAnimation}
@@ -1014,6 +1014,7 @@ function BagButton({ onPress, dropEvents, full }: { onPress: () => void; dropEve
 function PlayerFighter({
   animation,
   outfit,
+  apprenticeActive,
   boss,
   executeId,
   beamId,
@@ -1024,6 +1025,7 @@ function PlayerFighter({
 }: {
   animation: PlayerAnimation;
   outfit: Outfit;
+  apprenticeActive: boolean;
   boss: boolean;
   executeId: number;
   beamId: number;
@@ -1113,6 +1115,7 @@ function PlayerFighter({
           {OUTFIT_NAMES[outfit]}
         </StrokedText>
       </View>
+      {apprenticeActive && <ApprenticeFollower />}
       <CharacterSprite
         outfit={outfit}
         animation={animation}
@@ -1120,6 +1123,17 @@ function PlayerFighter({
         restartKey={skillPoseKey ? `${outfit}-${skillPoseKey}` : `${outfit}-${animation}`}
       />
     </Animated.View>
+  );
+}
+
+// 견습기니, riding its bubble, peeking out from behind the player — joined in the
+// "apprenticeGini" comic (state/comics.ts) at the start of the second loop. Idle-only: it
+// doesn't fight, just bobs along (see guinea-apprentice-idle-strip.png's 4 frames).
+function ApprenticeFollower() {
+  return (
+    <View style={styles.apprenticeFollower} pointerEvents="none">
+      <SpriteStrip source={apprenticeSprite.idle} frameSize={500} frameCount={4} displaySize={46} durationMs={1800} mode="loop" />
+    </View>
   );
 }
 
@@ -1545,6 +1559,9 @@ const styles = StyleSheet.create({
   executeHalf: { position: "absolute", top: 0, left: 0, overflow: "hidden" },
   executeCutLine: { position: "absolute", left: -8, height: 3, borderRadius: 1.5, backgroundColor: "#ffffff" },
   characterWrap: { width: 108, alignItems: "center", position: "relative" },
+  // Peeking out behind the player's lower-left, low enough to read as trailing rather
+  // than standing beside them.
+  apprenticeFollower: { position: "absolute", left: -14, bottom: 2, zIndex: -1 },
   unitLabel: {
     marginBottom: 4,
     paddingHorizontal: 6,

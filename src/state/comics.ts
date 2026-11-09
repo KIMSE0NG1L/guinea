@@ -1,5 +1,6 @@
 import { comics } from "../assets";
 import type { SfxKey } from "../sound";
+import { LAST_STAGE_NUMBER } from "./stages";
 
 // Short story comics. Each panel is one picture plus the speech bubbles laid over it
 // (lettering lives here rather than in the art, so it can be edited and stays crisp).
@@ -20,7 +21,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase" | "giniReturn" | "griffinFlight";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase" | "giniReturn" | "griffinFlight" | "ending" | "apprenticeGini";
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1477,6 +1478,87 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  // The last stage's boss (무너진 성채's 배고픈 드래곤) finally down: every recipe book
+  // ingredient recovered, the whole party carries it home to 할머니's — the cookbook from
+  // stage 5's comic ("세상의 모든 맛") finished for real, cooked and eaten together.
+  ending: {
+    title: "세상의 모든 맛, 완성",
+    panels: [
+      {
+        image: comics.ending1,
+        aspect: 499 / 666,
+        sfx: "levelup",
+        bubbles: [
+          { text: "다 모았어! 책에 있는 재료, 전부 다!", left: 0.04, top: 0.03, maxWidth: 0.42, tail: "bottom", tailAt: 0.6, shout: true },
+          { text: "할머니한테 가자!", right: 0.03, top: 0.04, maxWidth: 0.28, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.ending2,
+        aspect: 499 / 666,
+        bubbles: [
+          { text: "얘들아! 다들 무사히 왔구나!", right: 0.02, top: 0.04, maxWidth: 0.36, tail: "bottom", tailAt: 0.3 },
+          { text: "할머니, 저희 왔어요!", left: 0.02, top: 0.7, maxWidth: 0.32, tail: "top", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.ending3,
+        aspect: 499 / 666,
+        sfx: "cookDone",
+        bubbles: [
+          { text: "자, 가진 재료 다 넣자꾸나!", left: 0.3, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.4 },
+          { text: "보글보글, 냄새 좋다!", right: 0.02, top: 0.55, maxWidth: 0.3, tail: "left", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.ending4,
+        aspect: 499 / 666,
+        sfx: "levelup",
+        bubbles: [{ text: "세상에서 제일 귀한 맛... 바로 이거였어!", left: 0.14, top: 0.02, maxWidth: 0.55, tail: "bottom", tailAt: 0.4, shout: true }],
+      },
+    ],
+  },
+  // Plays once, right after "ending" — the first time stageNumber loops back to stage 1
+  // (see useGameState's loopsCompleted). The feast's smell draws the village's 아가기니 to
+  // the fence; one works up the nerve to ask along. It's this one who tags along from the
+  // second run on, so later runs skip straight back to stage 1 without it.
+  apprenticeGini: {
+    title: "견습기니의 소원",
+    panels: [
+      {
+        image: comics.apprenticeGini1,
+        aspect: 499 / 666,
+        sfx: "cookDone",
+        bubbles: [{ text: "자, 한 그릇씩 더 먹자!", left: 0.3, top: 0.03, maxWidth: 0.4, tail: "bottom", tailAt: 0.4 }],
+      },
+      {
+        image: comics.apprenticeGini2,
+        aspect: 499 / 666,
+        bubbles: [
+          { text: "냄새가 너무 좋아...", left: 0.02, top: 0.52, maxWidth: 0.32, tail: "bottom", tailAt: 0.4 },
+          { text: "저 안에서 무슨 요리를 하는 거지?", right: 0.02, top: 0.3, maxWidth: 0.4, tail: "bottom", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.apprenticeGini3,
+        aspect: 499 / 666,
+        sfx: "cookDone",
+        bubbles: [
+          { text: "우와, 이거 진짜 맛있다!", left: 0.02, top: 0.03, maxWidth: 0.4, tail: "bottom", tailAt: 0.6 },
+          { text: "나도 모험하면서\n이런 요리 해주고 싶어!", right: 0.02, top: 0.55, maxWidth: 0.4, tail: "left", tailAt: 0.5 },
+        ],
+      },
+      {
+        image: comics.apprenticeGini4,
+        aspect: 499 / 666,
+        sfx: "levelup",
+        bubbles: [
+          { text: "저도... 같이 가도 될까요?", left: 0.02, top: 0.03, maxWidth: 0.42, tail: "bottom", tailAt: 0.7 },
+          { text: "그래, 같이 가자!", right: 0.02, top: 0.68, maxWidth: 0.34, tail: "top", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
 };
 
 // Story comics that play when a stage's (0-based) boss falls for the first time.
@@ -1519,19 +1601,26 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   35: "beeChase",
   36: "giniReturn",
   37: "griffinFlight",
+  // Whichever stage is last stays dynamic as new regions get added — the ending always
+  // plays off beating the last one's boss, not off a hardcoded stage number.
+  [LAST_STAGE_NUMBER]: "ending",
 };
 
 // Story order, for the album: the opening, then each by the stage that unlocks it.
+// apprenticeGini isn't keyed to a stage (it fires once off looping back to stage 1 — see
+// GameScreen's comic chain), so it's appended by hand right after "ending", which it follows.
 export const COMIC_ORDER: ComicId[] = [
   "opening",
   ...(Object.entries(COMIC_ON_FIRST_CLEAR) as [string, ComicId][])
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([, id]) => id),
+  "apprenticeGini",
 ];
 
 // What opens a comic, for the album's locked cards.
 export function getComicUnlockLabel(id: ComicId) {
   if (id === "opening") return "게임 시작";
+  if (id === "apprenticeGini") return "2회차를 시작하면 열려요";
   const stage = Object.entries(COMIC_ON_FIRST_CLEAR).find(([, comic]) => comic === id)?.[0];
   return stage === undefined ? "" : `${Number(stage) + 1}스테이지 보스를 처음 잡으면 열려요`;
 }

@@ -38,8 +38,7 @@ import { measureTarget } from "./components/tutorialTargets";
 import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES, ITEM_IMAGES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
-import { BGM_GROUP, getEnemyKind, getPeakStageNumber, getRunNumber } from "./state/stages";
-import { RebirthScreen } from "./screens/RebirthScreen";
+import { BGM_GROUP, getDifficultyStage, getEnemyKind, getPeakAreaStage } from "./state/stages";
 import { setBattleVisible, setBgmTrack } from "./sound";
 import { UpgradeTutorial } from "./components/UpgradeTutorial";
 import { getStatLevel, getUpgradeCost } from "./state/gameMath";
@@ -67,7 +66,6 @@ const TAB_PARENT: Partial<Record<Tab, Tab>> = {
   recipes: "kitchen",
   grocery: "kitchen",
   stats: "battle",
-  rebirth: "milestone",
   guide: "battle",
   credits: "battle",
   backup: "battle",
@@ -87,6 +85,9 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
   const [comicPaused, setComicPaused] = useState(false);
   const game = useGameState({ externallyPaused: comicPaused });
   const { state, setState, questOpen, setQuestOpen, claimQuest } = game;
+  // Grocery/recipe/sell prices (see useGameState's own priceStage) keyed off the furthest
+  // stage of this loop, so prices stay put across a loop instead of resetting cheap.
+  const priceStage = getDifficultyStage(state.highestStageNumber ?? state.stageNumber, state.loopsCompleted ?? 0);
 
   // Lives here rather than in BattleScreen so the right track keeps playing on other tabs.
   // Keyed off displayBoss (not the raw 25th-kill moment) so the switch lands with the
@@ -259,8 +260,6 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     switch (state.selectedTab) {
       case "stats":
         return <StatsScreen state={state} />;
-      case "rebirth":
-        return <RebirthScreen state={state} onRebirth={game.rebirth} />;
       case "guide":
         return <GuideScreen />;
       case "credits":
@@ -295,7 +294,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             inventory={state.inventory}
             discoveredItems={state.discoveredItems ?? []}
             droppedItems={state.droppedItems}
-            priceStage={state.highestStageNumber ?? state.stageNumber}
+            priceStage={priceStage}
             gems={state.gems}
             expansions={state.bagExpansions ?? 0}
             onExpand={game.expandBag}
@@ -333,7 +332,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             rushDiscount={game.foodBuffs.rushDiscount}
             gold={state.gold}
             groceryDiscount={game.foodBuffs.groceryDiscount}
-            priceStage={state.highestStageNumber ?? state.stageNumber}
+            priceStage={priceStage}
             onCook={game.cook}
             onBuyAndCook={game.buyMissingAndCook}
             onCollect={onCollect}
@@ -380,6 +379,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             onBuy={game.buyIngredient}
             discount={game.foodBuffs.groceryDiscount}
             stageNumber={state.highestStageNumber ?? state.stageNumber}
+            priceStage={priceStage}
             onBack={() => onSelectTab("kitchen")}
             onOpenRecipes={() => onSelectTab("recipes")}
           />
@@ -394,9 +394,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             onSeen={(mapSeenStage) => setState((previous) => ({ ...previous, mapSeenStage }))}
             onBack={() => onSelectTab("battle")}
             onOpenComics={() => onSelectTab("comics")}
-            onOpenRebirth={() => onSelectTab("rebirth")}
-            codexStageNumber={getPeakStageNumber(state)}
-            runNumber={getRunNumber(state)}
+            codexStageNumber={getPeakAreaStage(state)}
             stageStars={state.stageStars}
           />
         );
@@ -509,7 +507,11 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             id={playingComic}
             onClose={() => {
               markComicSeen(playingComic);
-              setPlayingComic(null);
+              // "ending" and "apprenticeGini" both fire off the same last-boss kill (the
+              // loop back to stage 1) — chain straight into the second one rather than
+              // relying on a second independent trigger landing in the same tick.
+              const next = playingComic === "ending" && !(state.seenComics ?? []).includes("apprenticeGini") ? "apprenticeGini" : null;
+              setPlayingComic(next);
             }}
           />
         )}

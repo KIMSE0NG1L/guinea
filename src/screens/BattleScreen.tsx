@@ -8,7 +8,7 @@ import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import { BOSS_RETRY_TIME_RATIO, type UseGameState } from "../state/useGameState";
 import { getBossTimeLimitMs } from "../state/gameMath";
-import { getEnemyKind, getRunNumber, getStageLabel } from "../state/stages";
+import { getEnemyKind, getStageLabel } from "../state/stages";
 import { getBagCapacity, slotsUsed } from "../state/bag";
 import { playSfx } from "../sound";
 import { ConfirmModal } from "../components/ConfirmModal";
@@ -42,8 +42,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   const regularEnemyKind: EnemyKind = getEnemyKind(displayStageNumber);
   // Derived live from stageNumber rather than the saved `state.currentStage` string, so a
   // save written before a stage-label wording change can't show a stale label.
-  const runNumber = getRunNumber(state);
-  const stageLabel = `${runNumber > 1 ? `${runNumber}회차 · ` : ""}${getStageLabel(displayStageNumber)}`;
+  const stageLabel = getStageLabel(displayStageNumber);
   // Which empty buff slot the dish picker is filling, if it's open.
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
   // The first finished dish waiting in a pot, shown floating over the kitchen button.
@@ -89,6 +88,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         questReady={hasClaimableQuest(state)}
         onQuest={() => game.setQuestOpen(true)}
         outfit={state.equippedOutfit}
+        apprenticeActive={(state.loopsCompleted ?? 0) >= 1}
         manualEnabled={!battle.isAutoBattle}
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
@@ -128,7 +128,6 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         bossFirstMeet={!game.clearedStages.includes(state.stageNumber)}
         onBeginBoss={game.beginBossFight}
         levelUpAnnouncement={game.levelUpAnnouncement}
-        levelUpAttackGain={game.levelUpAttackGain}
         now={game.now}
         bossTimerStartedAt={game.bossTimerStartedAt}
         bossTimeLimitMs={game.bossTimeLimitMs}
