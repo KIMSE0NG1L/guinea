@@ -1,5 +1,5 @@
 import type { SkillTimers } from "./state/skills";
-export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats" | "guide" | "credits" | "backup";
+export type Tab = "battle" | "companions" | "inventory" | "skills" | "shop" | "milestone" | "kitchen" | "grocery" | "recipes" | "cookbook" | "comics" | "stats" | "rebirth" | "guide" | "credits" | "backup";
 export type StatKey = "attack" | "criticalDamage" | "criticalChance" | "goldBonus";
 export type BattlePhase = "idle" | "attacking" | "hit" | "defeated" | "entering";
 export type PlayerAnimation = "idle" | "attack" | "critical" | "win";
@@ -37,6 +37,12 @@ export interface GameState {
   bossesCleared?: number[];
   // Furthest stage reached — every stage up to it can be revisited from the milestone map.
   highestStageNumber?: number;
+  // 환생 (state/rebirth.ts), all missing before the first one: runs started over, and what
+  // bossesCleared/highestStageNumber held across all runs (those two restart each run; the
+  // album, codex and quests go by these).
+  rebirths?: number;
+  peakStageNumber?: number;
+  everClearedBosses?: number[];
   // Recipe ids the player has learned; missing on saves from before the recipe shop.
   knownRecipes?: string[];
   // Food buff slots on the battle screen (null = empty); missing on older saves.

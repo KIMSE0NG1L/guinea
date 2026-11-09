@@ -6,13 +6,14 @@ import { msSinceLastAd, showInterstitial, subscribeAdShowing } from "../ads";
 import { LATEST_UPDATE } from "./updates";
 import { GLUTTON_FOOD_MULTIPLIER, INITIAL_SKILL_TIMERS, SKILL_SWAP_LOCK_MS, getSkill } from "./skills";
 import { initialState } from "./initialState";
+import { applyRebirth, canRebirth } from "./rebirth";
 import { applyUpgradeLevels, getBossTimeLimitMs, getExpReward, getGoldReward, getExpToLevel, getStatLevel, getStatValue, getTotalAttack, getUpgradeQuote } from "./gameMath";
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
 import { getOutfitGemPrice, getOutfitsUnlockedByStage, getUnlocksAtLevel, isOutfitUnlocked, isSkillUnlocked } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
-import { BOSS_NAME, getClearedBosses, getEnemyKind, getEnemyMaxHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
+import { BOSS_NAME, getClearedBosses, BOSS_PHASE_TWO_HP_MULTIPLIER, getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals } from "./buffs";
 import { GROCERY, getSellPrice, getShortfall } from "./grocery";
@@ -96,6 +97,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   useEffect(() => subscribeAdShowing(setAdShowing), []);
   const [questOpen, setQuestOpen] = useState(false);
   const [boss, setBoss] = useState(false);
+  // Which of the boss's two lives is up. Not saved, like the rest of the fight: a reload
+  // starts the boss over from its first.
+  const [bossPhase, setBossPhase] = useState<1 | 2>(1);
   // An enraged mid-boss (the stage's mob, bigger and tougher) is up. The fight itself isn't
   // saved, but which ones are beaten is (stageMiniBosses) — so a reload brings it back.
   const [miniBoss, setMiniBoss] = useState(false);
@@ -149,10 +153,15 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const [skipStageAnnouncement, setSkipStageAnnouncement] = useState(false);
   const [announcedStageNumber, setAnnouncedStageNumber] = useState(state.stageNumber);
   // Enemies get tougher each stage so progression isn't flat — tuned in stages.ts.
+  const rebirths = state.rebirths ?? 0;
   const enemyMaxHp =
     strayKind && !boss && !miniBoss
-      ? getEnemyMaxHp(Math.max(0, state.stageNumber - 1), false)
-      : getEnemyMaxHp(state.stageNumber, boss) * (miniBoss && !boss ? MINI_BOSS_HP_MULTIPLIER : 1);
+      ? getEnemyMaxHp(Math.max(0, state.stageNumber - 1), false, rebirths)
+      : Math.round(getEnemyMaxHp(state.stageNumber, boss, rebirths) * (miniBoss && !boss ? MINI_BOSS_HP_MULTIPLIER : boss && bossPhase === 2 ? BOSS_PHASE_TWO_HP_MULTIPLIER : 1));
+  const enemyRewardHp =
+    strayKind && !boss && !miniBoss
+      ? getEnemyRewardHp(Math.max(0, state.stageNumber - 1), false)
+      : getEnemyRewardHp(state.stageNumber, boss) * (miniBoss && !boss ? MINI_BOSS_HP_MULTIPLIER : 1);
   // Ticks once a second so buff timers count down and expire on time.
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -281,7 +290,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           setMiniBoss(true);
           setGoldenMini(isGoldenMiniBoss(loadedState.stageNumber, loadedState.stageMiniBosses ?? 0, getMiniBossSalt(loadedState)));
         }
-        battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, bossDue) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
+        battle.resetEnemy(getEnemyMaxHp(loadedState.stageNumber, bossDue, loadedState.rebirths ?? 0) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
         // A first-clear celebration that was still open when the game closed comes back.
         if (loadedState.pendingFirstClear) setFirstClear({ ...loadedState.pendingFirstClear, key: Date.now() });
         setState(loadedState);
@@ -392,6 +401,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // `stageNumber`: for a save just loaded, whose stage isn't in `state` yet this render.
   const startBossFight = useCallback((stageNumber: number = state.stageNumber) => {
     setMiniBoss(false);
+    setBossPhase(1);
     setBossTimerStartedAt(null);
     setBossTimeLimitMs(getBossTimeLimitMs(stageNumber));
     setBossIntroPending(true);
@@ -405,6 +415,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   }, [bossIntroPending]);
   const endBossFight = () => {
     setBoss(false);
+    setBossPhase(1);
     setMiniBoss(false);
     setStrayKind(null);
     setBossIntroPending(false);
@@ -417,6 +428,26 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     // the three of them, and always drops one 초록 젤리 for the recipe tutorial.
     const gift = (state.giftKills ?? 0) > 0 && !boss;
     const goldReward = gift ? Math.max(rawGold, GIFT_KILL_GOLD) : rawGold;
+    // The boss's first life: it pays its share and gets back up enraged. Its second life gets
+    // a fresh clock once it's on its feet (see the effect by the flee timer).
+    if (boss && bossPhase === 1) {
+      setDefeatedBoss(true);
+      setDefeatedMiniBoss(false);
+      setDefeatedStrayKind(null);
+      setDefeatedStageNumber(state.stageNumber);
+      setBossPhase(2);
+      setBossTimerStartedAt(null);
+      setState((previous) => {
+        let level = previous.level;
+        let experience = previous.experience + Math.round(getExpReward(previous.stageNumber, true) * (1 + expBonus / 100));
+        while (experience >= getExpToLevel(level)) {
+          experience -= getExpToLevel(level);
+          level += 1;
+        }
+        return { ...previous, gold: previous.gold + goldReward, totalGoldEarned: previous.totalGoldEarned + goldReward, level, experience };
+      });
+      return;
+    }
     setDefeatedBoss(boss);
     // A mid-boss going down doesn't count toward the stage's mob quota.
     const wasMiniBoss = miniBoss && !boss;
@@ -553,7 +584,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
+  }, [boss, bossPhase, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -573,7 +604,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // the flying coin and the attendance gold days are measured in.
   const currentMobGold = () => {
     const attack = Math.round(getTotalAttack(state) * (1 + buffs.attack / 100));
-    return getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyMaxHp(state.stageNumber, false), false);
+    return getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyRewardHp(state.stageNumber, false), false);
   };
 
   // Today's attendance reward; returns what it paid (nothing if already claimed today).
@@ -615,7 +646,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       return { gold: 0, gems: FLYING_GEM_AD_REWARD };
     }
     const attack = Math.round(getTotalAttack(state) * (1 + buffs.attack / 100));
-    const mobGold = getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyMaxHp(state.stageNumber, false), false);
+    const mobGold = getGoldReward(attack, state.goldBonus + buffs.gold, getEnemyRewardHp(state.stageNumber, false), false);
     const gold = Math.max(1, Math.round(mobGold * 5));
     addBonusGold(gold);
     setState((previous) => ({ ...previous, coinsCaught: (previous.coinsCaught ?? 0) + 1 }));
@@ -684,6 +715,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     extraHitChance: foodBuffs.extraHit,
     executeBonus: foodBuffs.execute,
     enemyMaxHp,
+    enemyRewardHp,
     boss,
     speedMultiplier: battleSpeed,
     onDefeat: handleEnemyDefeat,
@@ -757,6 +789,18 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     }, 0);
     return () => clearTimeout(timer);
   }, [now, boss, bossClockStart, bossTimeLimitMs, battlePaused]);
+
+  // The enraged second life's clock starts once it's back on its feet, not at the moment the
+  // first died: the boss-skill plan below needs the new enemy in place to count as a fresh spawn.
+  useEffect(() => {
+    if (!boss || bossPhase !== 2 || bossTimerStartedAt !== null || bossRetryAvailable || battle.phase === "defeated") return;
+    const timer = setTimeout(() => {
+      setBossTimeLimitMs(getBossTimeLimitMs(state.stageNumber));
+      setBossTimerStartedAt(Date.now());
+      setNow(Date.now());
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [boss, bossPhase, bossTimerStartedAt, bossRetryAvailable, battle.phase, state.stageNumber]);
 
   // Boss skill (src/state/bossSkills.ts): up to 3 casts per fight, one per BOSS_SKILL_CHECKPOINTS
   // entry (75%/50%/30% of the boss's own hp), each resolved — rolled and spent, hit or miss —
@@ -878,8 +922,22 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const claimFirstClearGems = () => {
     if (!firstClear) return;
     const { gems } = firstClear;
+    const beatLastBoss = firstClear.stageNumber === LAST_STAGE_NUMBER;
     setFirstClear(null);
-    setState((previous) => ({ ...previous, gems: previous.gems + gems, pendingFirstClear: undefined }));
+    setState((previous) => ({ ...previous, gems: previous.gems + gems, pendingFirstClear: undefined, selectedTab: beatLastBoss ? "rebirth" : previous.selectedTab }));
+  };
+
+  // Starts the next run; applyRebirth handles what carries over.
+  const rebirth = (bonusGems: number) => {
+    if (!canRebirth(state)) return;
+    endBossFight();
+    setDefeatedBoss(false);
+    setBossRetryAvailable(false);
+    setGoldenMini(false);
+    setStageAnnouncement(null);
+    setFirstClear(null);
+    setState((previous) => applyRebirth(previous, bonusGems));
+    battle.resetEnemy(getEnemyMaxHp(0, false, rebirths + 1));
   };
 
   const retryBossAfterAd = useCallback(() => {
@@ -994,7 +1052,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       setMiniBoss(true);
       setGoldenMini(isGoldenMiniBoss(stageNumber, targetMinis, getMiniBossSalt(state)));
     }
-    battle.resetEnemy(getEnemyMaxHp(stageNumber, false) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
+    battle.resetEnemy(getEnemyMaxHp(stageNumber, false, rebirths) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
   };
 
   // Dev-convenience shortcut from the settings menu: a golden mid-boss right now, in place of
@@ -1006,7 +1064,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setStrayKind(null);
     setMiniBoss(true);
     setGoldenMini(true);
-    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, false) * MINI_BOSS_HP_MULTIPLIER);
+    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, false, rebirths) * MINI_BOSS_HP_MULTIPLIER);
   };
 
   // Dev-convenience shortcut from the settings menu — skips straight to the current
@@ -1017,7 +1075,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setDefeatedBoss(false);
     startBossFight();
     setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET, stageMiniBosses: MINI_BOSS_COUNT }));
-    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
+    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true, rebirths));
   };
 
   // 텔레포트: the player-facing version of the shortcut above — only on a stage whose boss
@@ -1032,7 +1090,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setDefeatedBoss(false);
     startBossFight();
     setState((previous) => ({ ...previous, stageKills: STAGE_KILL_TARGET, stageMiniBosses: MINI_BOSS_COUNT }));
-    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true));
+    battle.resetEnemy(getEnemyMaxHp(state.stageNumber, true, rebirths));
   };
 
   // Dev-convenience shortcut from the settings menu — bumps the level by a flat amount
@@ -1289,7 +1347,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     const killGold = getGoldReward(
       getTotalAttack(state),
       state.goldBonus + buffs.gold,
-      getEnemyMaxHp(state.stageNumber, false),
+      getEnemyRewardHp(state.stageNumber, false),
       false,
     );
     const amount = killGold * goldKills;
@@ -1393,11 +1451,15 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     stageAnnouncement,
     continueStage,
     firstClear,
-    clearedStages: getClearedBosses(state),
+    // Across every run: what's been opened in the album and the recipe shop stays open.
+    clearedStages: [...new Set([...(state.everClearedBosses ?? []), ...getClearedBosses(state)])],
     dismissFirstClear: () => {
+      const beatLastBoss = firstClear?.stageNumber === LAST_STAGE_NUMBER;
       setFirstClear(null);
-      setState((previous) => (previous.pendingFirstClear ? { ...previous, pendingFirstClear: undefined } : previous));
+      setState((previous) => ({ ...previous, pendingFirstClear: undefined, selectedTab: beatLastBoss ? "rebirth" : previous.selectedTab }));
     },
+    bossEnraged: boss && bossPhase === 2 && battle.phase !== "defeated",
+    rebirth,
     claimFirstClearGems,
     levelUpAnnouncement,
     levelUpAttackGain,

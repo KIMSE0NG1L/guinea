@@ -42,7 +42,7 @@ function companionDetail(outfit: Outfit) {
   const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
   if (foodDurationBonus) parts.push(`음식 효과시간 +${foodDurationBonus}초`);
   const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
-  if (firstStrike) parts.push(`적마다 첫 공격은 일반 공격 ×${firstStrike} 치명타`, "수동 공격 불가");
+  if (firstStrike) parts.push(`적마다 첫 공격은 일반 공격 ×${firstStrike} (치명타 없음)`, "수동 공격 불가");
   if (OUTFIT_SURE_DROPS[outfit]) parts.push("재료 드랍 확률 100%");
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
   if (cooldownReduction) parts.push(`스킬 쿨타임 -${cooldownReduction / 60}분`);

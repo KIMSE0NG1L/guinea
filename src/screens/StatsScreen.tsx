@@ -9,7 +9,7 @@ import { CharacterSprite } from "../components/CharacterSprite";
 import { StrokedText } from "../components/StrokedText";
 import { useCountUp } from "../components/motion";
 import { formatGameNumber } from "../state/gameMath";
-import { getStageLabel } from "../state/stages";
+import { getPeakStageNumber, getRunNumber, getStageLabel } from "../state/stages";
 import { getCookbookProgress } from "../state/cookbook";
 import { RECIPES } from "../state/recipes";
 import { OUTFIT_NAMES } from "../state/buffs";
@@ -71,7 +71,7 @@ function Section({ title }: { title: string }) {
 
 export function StatsScreen({ state }: { state: GameState }) {
   const outfits = Object.keys(OUTFIT_NAMES) as Outfit[];
-  const highest = state.highestStageNumber ?? state.stageNumber;
+  const highest = getPeakStageNumber(state);
   const ownedCompanions = outfits.filter((outfit) => isOutfitUnlocked(outfit, highest, state.purchasedOutfits)).length;
   const cookbookDone = getCookbookProgress(state.cookedRecipes);
   // Read once on opening the page.
@@ -107,6 +107,7 @@ export function StatsScreen({ state }: { state: GameState }) {
       <View style={styles.grid}>
         <StatCard delay={next()} icon={icons.star} label="레벨" value={state.level} />
         <StatCard delay={next()} icon={icons.compass} label="최고 스테이지" text={getStageLabel(highest)} />
+        <StatCard delay={next()} icon={icons.star} label="현재 회차" text={`${formatGameNumber(getRunNumber(state))}회차`} />
         <StatCard delay={next()} icon={uiImages.swords} label="총 처치 수" value={state.kills} />
         <StatCard delay={next()} icon={icons.codexMonster} label="보스 처치 수" value={state.bossKills ?? 0} />
         <StatCard delay={next()} icon={icons.coins} label="누적 획득 골드" value={state.totalGoldEarned} />

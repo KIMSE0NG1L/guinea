@@ -58,6 +58,7 @@ export function useAutoBattle({
   extraHitChance = 0,
   executeBonus = 0,
   enemyMaxHp,
+  enemyRewardHp,
   boss,
   speedMultiplier = 1,
   onDefeat,
@@ -88,7 +89,7 @@ export function useAutoBattle({
   // Food buffs: % more damage to bosses, % chance a swing lands one extra strike, and
   // points added to Execute's HP threshold.
   bossDamage?: number;
-  // 사무라이기니: the first strike on each enemy is a sure crit worth this many normal hits
+  // 사무라이기니: the first strike on each enemy is worth this many normal hits, no crit
   // (0 = off). While it's on, battle is auto only — manual taps would waste the draw.
   firstStrikeMultiplier?: number;
   // 복서기니: manual tapping is always open, with no need to cast 난타 first (its tradeoff
@@ -97,6 +98,8 @@ export function useAutoBattle({
   extraHitChance?: number;
   executeBonus?: number;
   enemyMaxHp: number;
+  // What this enemy's gold is priced on (getEnemyRewardHp).
+  enemyRewardHp: number;
   boss: boolean;
   // Scales down every auto-battle timer delay — e.g. 2 halves them, doubling the pace.
   speedMultiplier?: number;
@@ -184,6 +187,7 @@ export function useAutoBattle({
   const extraHitChanceRef = useRef(extraHitChance);
   const executeBonusRef = useRef(executeBonus);
   const maxHpRef = useRef(enemyMaxHp);
+  const rewardHpRef = useRef(enemyRewardHp);
   const bossRef = useRef(boss);
   const reviveHpRatioRef = useRef(reviveHpRatio);
   // The enemy (by epoch, same pattern as firstStrikeEpochRef) that already used its one
@@ -258,6 +262,7 @@ export function useAutoBattle({
     extraHitChanceRef.current = extraHitChance;
     executeBonusRef.current = executeBonus;
     maxHpRef.current = enemyMaxHp;
+    rewardHpRef.current = enemyRewardHp;
     bossRef.current = boss;
     reviveHpRatioRef.current = reviveHpRatio;
     speedMultiplierRef.current = speedMultiplier;
@@ -287,7 +292,7 @@ export function useAutoBattle({
     clearTimers(manualTimersRef);
     clearTimers(respawnTimersRef);
 
-    const reward = getGoldReward(attackRef.current, goldBonusRef.current, maxHpRef.current, bossRef.current);
+    const reward = getGoldReward(attackRef.current, goldBonusRef.current, rewardHpRef.current, bossRef.current);
     setLastGoldReward(reward);
     phaseRef.current = "defeated";
     setPhase("defeated");
@@ -307,7 +312,7 @@ export function useAutoBattle({
     pushDamageEvent(damage, critical);
     playSfx(critical ? "crit" : "hit");
     if (isSkillActive(skillTimersRef.current, "steal", Date.now())) {
-      const killGold = getGoldReward(attackRef.current, goldBonusRef.current, maxHpRef.current, bossRef.current);
+      const killGold = getGoldReward(attackRef.current, goldBonusRef.current, rewardHpRef.current, bossRef.current);
       const stolen = Math.round(killGold * STEAL_GOLD_RATIO * skillPowerRef.current);
       if (stolen > 0) {
         onBonusGoldRef.current(stolen);
@@ -351,11 +356,11 @@ export function useAutoBattle({
     if (missed) return { isCritical: false, damage: 0, missed: true, firstStrike: false };
     const shout = isSkillActive(skillTimersRef.current, "shout", now) ? 1 + SHOUT_DAMAGE_BONUS * skillPowerRef.current : 1;
     const bossBonus = bossRef.current ? 1 + bossDamageRef.current / 100 : 1;
-    // First strike on a fresh enemy: a sure crit, worth `firstStrikeMultiplier` normal hits.
+    // First strike on a fresh enemy: worth `firstStrikeMultiplier` normal hits, never a crit.
     if (firstStrikeRef.current > 0 && firstStrikeEpochRef.current !== enemyEpochRef.current) {
       firstStrikeEpochRef.current = enemyEpochRef.current;
-      const damage = Math.round(attackRef.current * firstStrikeRef.current * (criticalDamageRef.current / 100) * shout * bossBonus);
-      return { isCritical: true, damage, missed: false, firstStrike: true };
+      const damage = Math.round(attackRef.current * firstStrikeRef.current * shout * bossBonus);
+      return { isCritical: false, damage, missed: false, firstStrike: true };
     }
     const isCritical =
       isSkillActive(skillTimersRef.current, "focus", now) ||

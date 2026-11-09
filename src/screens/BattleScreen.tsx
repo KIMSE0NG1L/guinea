@@ -8,7 +8,7 @@ import { BattleScene } from "./BattleScene";
 import { StatUpgradePanel } from "./StatUpgradePanel";
 import { BOSS_RETRY_TIME_RATIO, type UseGameState } from "../state/useGameState";
 import { getBossTimeLimitMs } from "../state/gameMath";
-import { getEnemyKind, getStageLabel } from "../state/stages";
+import { getEnemyKind, getRunNumber, getStageLabel } from "../state/stages";
 import { getBagCapacity, slotsUsed } from "../state/bag";
 import { playSfx } from "../sound";
 import { ConfirmModal } from "../components/ConfirmModal";
@@ -42,7 +42,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
   const regularEnemyKind: EnemyKind = getEnemyKind(displayStageNumber);
   // Derived live from stageNumber rather than the saved `state.currentStage` string, so a
   // save written before a stage-label wording change can't show a stale label.
-  const stageLabel = getStageLabel(displayStageNumber);
+  const runNumber = getRunNumber(state);
+  const stageLabel = `${runNumber > 1 ? `${runNumber}회차 · ` : ""}${getStageLabel(displayStageNumber)}`;
   // Which empty buff slot the dish picker is filling, if it's open.
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
   // The first finished dish waiting in a pot, shown floating over the kitchen button.
@@ -70,6 +71,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         enemyMaxHp={enemyMaxHp}
         boss={displayBoss}
         miniBoss={game.displayMiniBoss}
+        bossEnraged={game.bossEnraged}
         miniBossDefeated={game.isMiniDefeatFlash}
         golden={game.displayGolden}
         goldenReward={game.goldenReward}
@@ -81,7 +83,7 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         stageAdvance={game.stageAnnouncement}
         onContinueStage={game.continueStage}
         battleSpeed={game.battleSpeed}
-        stageLabel={boss ? `${stageLabel} · 보스` : game.displayMiniBoss ? `${stageLabel} · ${game.displayGolden ? "황금 " : ""}중간 보스` : stageLabel}
+        stageLabel={game.bossEnraged ? `${stageLabel} · 분노한 보스` : boss ? `${stageLabel} · 보스` : game.displayMiniBoss ? `${stageLabel} · ${game.displayGolden ? "황금 " : ""}중간 보스` : stageLabel}
         stageKills={state.stageKills}
         questReady={hasClaimableQuest(state)}
         onQuest={() => game.setQuestOpen(true)}

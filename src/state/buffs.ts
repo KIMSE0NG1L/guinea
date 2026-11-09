@@ -41,15 +41,15 @@ export const BUFF_SLOT_PRICES = [0, 500, 1000];
 
 const MINUTE = 60_000;
 
-// How long a dish lasts, by tier — at least as long as it takes to cook (COOK_TIME_MS in
-// cooking.ts: 1 / 5 / 15 / 60 / 120 min), so three pots can keep three slots running.
-// Cheap dishes outlast their cook time more; dear ones pay off in strength instead.
+// How long a dish lasts, by tier — never longer than it takes to cook (COOK_TIME_MS in
+// cooking.ts: 1 / 5 / 15 / 60 / 120 min). The strongest tiers run well short of it, so they
+// can't be kept up around the clock.
 const BUFF_DURATION_MS: Record<RecipeTier, number> = {
-  common: 3 * MINUTE,
-  rare: 10 * MINUTE,
-  epic: 20 * MINUTE,
-  legendary: 60 * MINUTE,
-  hidden: 120 * MINUTE,
+  common: 1 * MINUTE,
+  rare: 5 * MINUTE,
+  epic: 15 * MINUTE,
+  legendary: 45 * MINUTE,
+  hidden: 60 * MINUTE,
 };
 
 // Effects are sized to a per-tier budget — common ~12, rare ~25, epic ~40, legendary ~95,
@@ -105,7 +105,8 @@ const EFFECTS: Record<string, { effect: BuffEffect; tint: string }> = {
   "five-grain-rice": { effect: { exp: 30, gold: 20 }, tint: "#d9c0b8" },
   "patbingsu": { effect: { attackSpeed: 20, greatSuccess: 20 }, tint: "#dfe7f2" },
   "salmon-roe-bowl": { effect: { criticalDamage: 70, seafoodDrop: 30 }, tint: "#f7a27a" },
-  "guinea-feast": { effect: { attack: 60, criticalChance: 10, gold: 60, exp: 30 }, tint: "#dab8a2" },
+  // Well under the hidden budget on purpose: it's made from early-game dishes.
+  "guinea-feast": { effect: { attack: 25, criticalChance: 10, gold: 25, exp: 30 }, tint: "#dab8a2" },
 };
 
 // Snacks: eaten on the spot instead of filling a slot — they pay out this many regular
@@ -229,16 +230,16 @@ export const OUTFIT_BUFFS: Partial<Record<Outfit, BuffEffect>> = {
   witchGini: { criticalDamage: 20 },
 };
 
-// The first strike on each enemy is a sure crit worth this many normal hits (times crit
-// damage) — 사무라이기니's iaido draw. Auto-battle only while it's equipped.
 // Every ingredient a monster can drop always drops while this companion is out —
 // 셰프기니 knows exactly which part of every catch is worth keeping.
 export const OUTFIT_SURE_DROPS: Partial<Record<Outfit, boolean>> = {
   chefGini: true,
 };
 
+// The first strike on each enemy is worth this many normal hits and never crits —
+// 사무라이기니's iaido draw. Auto-battle only while it's equipped.
 export const OUTFIT_FIRST_STRIKE: Partial<Record<Outfit, number>> = {
-  samuraiGini: 10,
+  samuraiGini: 7,
 };
 
 // Percent chance an attack whiffs completely (0 damage, no kill, no on-hit effects) while

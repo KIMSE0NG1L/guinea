@@ -1,5 +1,5 @@
 import type { GameState } from "../types";
-import { getEnemyKind, getEnemyMaxHp, STAGE_KILL_TARGET } from "./stages";
+import { getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, STAGE_KILL_TARGET } from "./stages";
 import { getExpReward, getExpToLevel, getGoldReward, getTotalAttack } from "./gameMath";
 import { DILIGENT_OFFLINE_BONUS } from "./skills";
 import { getBuffTotals, OUTFIT_BUFFS, OUTFIT_FIRST_STRIKE, OUTFIT_NO_OFFLINE } from "./buffs";
@@ -83,7 +83,7 @@ export function simulateOfflineProgress(
   let mobsKilled = 0;
   let expGained = 0;
 
-  const enemyMaxHp = getEnemyMaxHp(state.stageNumber, false);
+  const enemyMaxHp = getEnemyMaxHp(state.stageNumber, false, state.rebirths ?? 0);
 
   for (const segment of segments) {
     // Leftover time from the last segment carries into this one.
@@ -97,9 +97,9 @@ export function simulateOfflineProgress(
     );
     if (dmg <= 0) continue;
     const mobExpReward = Math.round(getExpReward(state.stageNumber, false) * (1 + (food?.exp ?? 0) / 100) * OFFLINE_REWARD_RATE);
-    // 사무라이기니's opening draw (attack × N × crit damage) may finish a mob outright.
+    // 사무라이기니's opening draw (attack × N, no crit) may finish a mob outright.
     const firstStrike = OUTFIT_FIRST_STRIKE[state.equippedOutfit] ?? 0;
-    const opening = firstStrike > 0 ? attack * firstStrike * ((state.criticalDamage + (food?.criticalDamage ?? 0)) / 100) : 0;
+    const opening = attack * firstStrike;
     const hits = opening >= enemyMaxHp ? 1 : (opening > 0 ? 1 : 0) + Math.max(1, Math.ceil((enemyMaxHp - opening) / dmg));
     const pace = 1 + (OUTFIT_BUFFS[state.equippedOutfit]?.attackSpeed ?? 0) / 100;
     const msPerMob = (hits * AVG_HIT_INTERVAL_MS) / pace + MOB_RESPAWN_MS;
@@ -107,7 +107,7 @@ export function simulateOfflineProgress(
     while (remainingMs >= msPerMob) {
       remainingMs -= msPerMob;
 
-      const goldReward = Math.round(getGoldReward(attack, state.goldBonus + (food?.gold ?? 0), enemyMaxHp, false) * goldMultiplier * OFFLINE_REWARD_RATE);
+      const goldReward = Math.round(getGoldReward(attack, state.goldBonus + (food?.gold ?? 0), getEnemyRewardHp(state.stageNumber, false), false) * goldMultiplier * OFFLINE_REWARD_RATE);
       gold += goldReward;
       totalGoldEarned += goldReward;
       kills += 1;

@@ -38,7 +38,8 @@ import { measureTarget } from "./components/tutorialTargets";
 import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES, ITEM_IMAGES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
-import { BGM_GROUP, getEnemyKind } from "./state/stages";
+import { BGM_GROUP, getEnemyKind, getPeakStageNumber, getRunNumber } from "./state/stages";
+import { RebirthScreen } from "./screens/RebirthScreen";
 import { setBattleVisible, setBgmTrack } from "./sound";
 import { UpgradeTutorial } from "./components/UpgradeTutorial";
 import { getStatLevel, getUpgradeCost } from "./state/gameMath";
@@ -66,6 +67,7 @@ const TAB_PARENT: Partial<Record<Tab, Tab>> = {
   recipes: "kitchen",
   grocery: "kitchen",
   stats: "battle",
+  rebirth: "milestone",
   guide: "battle",
   credits: "battle",
   backup: "battle",
@@ -257,6 +259,8 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     switch (state.selectedTab) {
       case "stats":
         return <StatsScreen state={state} />;
+      case "rebirth":
+        return <RebirthScreen state={state} onRebirth={game.rebirth} />;
       case "guide":
         return <GuideScreen />;
       case "credits":
@@ -382,6 +386,9 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             onSeen={(mapSeenStage) => setState((previous) => ({ ...previous, mapSeenStage }))}
             onBack={() => onSelectTab("battle")}
             onOpenComics={() => onSelectTab("comics")}
+            onOpenRebirth={() => onSelectTab("rebirth")}
+            codexStageNumber={getPeakStageNumber(state)}
+            runNumber={getRunNumber(state)}
           />
         );
       case "comics":

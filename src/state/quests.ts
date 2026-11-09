@@ -1,7 +1,7 @@
 import type { GameState, Outfit, Quest } from "../types";
 import { food, frameImages, icons, navIcons, statIcons, uiImages } from "../assets";
 import { formatGameNumber, getStatLevel } from "./gameMath";
-import { STAGES } from "./stages";
+import { getPeakStageNumber, STAGES } from "./stages";
 import { RECIPES, STARTER_RECIPES } from "./recipes";
 import { getCookbookProgress } from "./cookbook";
 import { GROCERY } from "./grocery";
@@ -35,7 +35,7 @@ const METRICS: Record<Metric, { icon: number; title: (target: number) => string;
   stage: {
     icon: icons.mapTrim,
     title: (n) => `${STAGES[n - 1].area}(${n}) 도착`,
-    read: (s) => (s.highestStageNumber ?? s.stageNumber) + 1,
+    read: (s) => getPeakStageNumber(s) + 1,
   },
   attackUpgrades: { icon: statIcons.attack, title: (n) => `공격력 ${formatGameNumber(n)}회 강화`, read: (s) => s.attackUpgrades },
   critDamageLevel: {

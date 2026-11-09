@@ -285,6 +285,7 @@ export function BattleScene({
   enemyMaxHp,
   boss,
   miniBoss = false,
+  bossEnraged = false,
   miniBossDefeated = false,
   golden = false,
   goldenReward = null,
@@ -348,6 +349,8 @@ export function BattleScene({
   boss: boolean;
   // An enraged mid-boss: the stage's mob drawn bigger and red, with a rage aura.
   miniBoss?: boolean;
+  // The boss is on its enraged second life.
+  bossEnraged?: boolean;
   // Whether the enemy now dying is a mid-boss (for its defeat burst).
   miniBossDefeated?: boolean;
   // The mid-boss is a rare golden one, and what the last golden one paid (for its toast).
@@ -723,6 +726,7 @@ export function BattleScene({
               animation={enemyAnimation}
               boss={boss}
               miniBoss={miniBoss}
+              enraged={bossEnraged}
               miniBossDefeated={miniBossDefeated}
               golden={golden}
               stray={stray}
@@ -1118,6 +1122,7 @@ function EnemyFighter({
   animation,
   boss,
   miniBoss,
+  enraged,
   miniBossDefeated,
   golden,
   stray,
@@ -1138,6 +1143,7 @@ function EnemyFighter({
   miniBossDefeated: boolean;
   golden: boolean;
   stray: boolean;
+  enraged: boolean;
   enemyKind: EnemyKind;
   enemyId: number;
   currentHp: number;
@@ -1255,7 +1261,7 @@ function EnemyFighter({
       <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, (boss || miniBoss) && styles.enemyNameplateBoss, miniBoss && (golden ? styles.enemyNameplateGolden : styles.enemyNameplateMini)]}>
         {/* Outlined, since the plate behind it is see-through. */}
         <StrokedText style={styles.unitLabelText} strokeColor={colors.line} strokeWidth={1.5}>
-          {boss ? BOSS_NAME[enemyKind] : golden ? `황금 ${ENEMY_NAME[enemyKind]}` : stray ? `길 잃은 ${ENEMY_NAME[enemyKind]}` : ENEMY_NAME[enemyKind]}
+          {boss ? `${enraged ? "분노한 " : ""}${BOSS_NAME[enemyKind]}` : golden ? `황금 ${ENEMY_NAME[enemyKind]}` : stray ? `길 잃은 ${ENEMY_NAME[enemyKind]}` : ENEMY_NAME[enemyKind]}
         </StrokedText>
         <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
       </View>
@@ -1280,8 +1286,8 @@ function EnemyFighter({
           <SpriteStrip source={effects.miniBossBurst} frameSize={216} frameCount={28} displaySize={size * 1.8} durationMs={900} mode="once" />
         </View>
       )}
-      {/* Mid-boss: its own silhouette washed red (pulsing), and the rage aura over it. */}
-      {miniBoss && phase !== "defeated" && (
+      {/* Mid-boss or enraged boss: its own silhouette washed red (pulsing), and the rage aura over it. */}
+      {(miniBoss || enraged) && phase !== "defeated" && (
         <MiniBossRage size={size} boss={boss} enemyKind={enemyKind} animation={animation} restartKey={`${animation}-${enemyId}`} golden={golden} />
       )}
       {/* White silhouette flash on every landed hit — same sprite/frame, tinted and faded

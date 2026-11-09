@@ -6,17 +6,19 @@ import { bgm, bgmTitle, sfx } from "./assets";
 import type { BgmGroupId } from "./state/stages";
 
 const VOLUME_KEY = "gini.sfx.volume";
-// Short effects can overlap themselves (a burst of auto-battle hits, several coin pickups
-// in a row) — a pool per sound lets each play land on its own player instead of the next
-// call cutting the previous one off.
-const POOL_SIZE = 3;
+// A burst of auto-battle hits overlaps itself, so those sounds get a pool: each play lands on
+// its own player instead of the next call cutting the previous one off. Everything else
+// gets one player, since every player holds device audio resources for as long as it exists.
+const OVERLAPPING_SFX_POOL_SIZE = 3;
+const OVERLAPPING_SFX: readonly string[] = ["hit", "crit"];
 
 export type SfxKey = keyof typeof sfx;
 
 setAudioModeAsync({ playsInSilentMode: true, interruptionMode: "mixWithOthers" }).catch(() => {});
 
 const pools = (Object.keys(sfx) as SfxKey[]).reduce((acc, key) => {
-  acc[key] = { players: Array.from({ length: POOL_SIZE }, () => createAudioPlayer(sfx[key])), next: 0 };
+  const poolSize = OVERLAPPING_SFX.includes(key) ? OVERLAPPING_SFX_POOL_SIZE : 1;
+  acc[key] = { players: Array.from({ length: poolSize }, () => createAudioPlayer(sfx[key])), next: 0 };
   return acc;
 }, {} as Record<SfxKey, { players: AudioPlayer[]; next: number }>);
 
@@ -88,17 +90,17 @@ type BgmKind = "field" | "boss";
 
 const FALLBACK_GROUP: LoadedBgmGroup = "countryside";
 
-const bgmPlayers = (Object.keys(bgm) as LoadedBgmGroup[]).reduce((acc, group) => {
-  const field = createAudioPlayer(bgm[group].field);
-  const boss = createAudioPlayer(bgm[group].boss);
-  field.loop = true;
-  boss.loop = true;
-  acc[group] = { field, boss };
-  return acc;
-}, {} as Record<LoadedBgmGroup, Record<BgmKind, AudioPlayer>>);
+// One player for all music, swapping its source when the track changes. A player per track
+// (21 of them, on top of the sfx pools) left the last ones created silent on Android: each
+// player holds on to device audio resources from the moment it's created, even paused.
+const bgmPlayer = createAudioPlayer(bgmTitle);
+bgmPlayer.loop = true;
+let loadedBgmSource = bgmTitle;
+// A track that can't play is otherwise just silence.
+bgmPlayer.addListener("playbackStatusUpdate", (status) => {
+  if (status.error) console.warn("BGM playback error:", status.error);
+});
 // The title screen plays its own theme instead of any region's, until the game starts.
-const titlePlayer = createAudioPlayer(bgmTitle);
-titlePlayer.loop = true;
 let titleMode = true;
 
 let bgmGroup: LoadedBgmGroup = FALLBACK_GROUP;
@@ -110,44 +112,33 @@ let appActive = AppState.currentState === "active";
 let bgmSuspended = false;
 const bgmListeners = new Set<(volume: number) => void>();
 
-function forEachBgmPlayer(fn: (player: AudioPlayer) => void) {
-  fn(titlePlayer);
-  (Object.keys(bgmPlayers) as LoadedBgmGroup[]).forEach((group) => {
-    fn(bgmPlayers[group].field);
-    fn(bgmPlayers[group].boss);
-  });
-}
-
 function applyBgmVolume() {
-  forEachBgmPlayer((player) => {
-    player.volume = bgmVolume;
-  });
+  bgmPlayer.volume = bgmVolume;
 }
 applyBgmVolume();
 
 function syncBgm() {
+  const source = titleMode ? bgmTitle : bgm[bgmGroup][bgmKind];
+  if (source !== loadedBgmSource) {
+    loadedBgmSource = source;
+    bgmPlayer.replace(source);
+    // Not documented to survive replace().
+    bgmPlayer.loop = true;
+    applyBgmVolume();
+  }
   const shouldPlay = bgmStarted && bgmVolume > 0 && appActive && !bgmSuspended;
-  if (shouldPlay && titleMode) titlePlayer.play();
-  else titlePlayer.pause();
-  (Object.keys(bgmPlayers) as LoadedBgmGroup[]).forEach((group) => {
-    (["field", "boss"] as BgmKind[]).forEach((kind) => {
-      if (shouldPlay && !titleMode && group === bgmGroup && kind === bgmKind) bgmPlayers[group][kind].play();
-      else bgmPlayers[group][kind].pause();
-    });
-  });
+  if (shouldPlay) bgmPlayer.play();
+  else bgmPlayer.pause();
 }
 
-// The boss theme restarts from the top on every boss, and so does the field theme once a
-// boss is over (the stage cleared) — never picking up mid-song from before the boss. Falls
-// back to "countryside" for any region that doesn't have its own tracks yet.
+// Every track change starts the new track from the top. Falls back to "countryside" for any
+// region that doesn't have its own tracks yet.
 export function setBgmTrack(group: BgmGroupId, boss: boolean) {
-  const resolvedGroup: LoadedBgmGroup = group in bgmPlayers ? (group as LoadedBgmGroup) : FALLBACK_GROUP;
+  const resolvedGroup: LoadedBgmGroup = group in bgm ? (group as LoadedBgmGroup) : FALLBACK_GROUP;
   const kind: BgmKind = boss ? "boss" : "field";
   if (resolvedGroup === bgmGroup && kind === bgmKind) return;
-  const leavingBoss = bgmKind === "boss";
   bgmGroup = resolvedGroup;
   bgmKind = kind;
-  if (kind === "boss" || leavingBoss) bgmPlayers[resolvedGroup][kind].seekTo(0);
   syncBgm();
 }
 

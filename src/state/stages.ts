@@ -238,13 +238,23 @@ export function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highe
   return state.bossesCleared ?? Array.from({ length: state.highestStageNumber ?? state.stageNumber }, (_, index) => index);
 }
 
+// Which 회차 the player is on: 1 until the first 환생.
+export function getRunNumber(state: Pick<GameState, "rebirths">) {
+  return (state.rebirths ?? 0) + 1;
+}
+
+// The furthest stage ever reached, across every 환생 (highestStageNumber restarts each run).
+export function getPeakStageNumber(state: Pick<GameState, "peakStageNumber" | "highestStageNumber" | "stageNumber">) {
+  return Math.max(state.peakStageNumber ?? 0, state.highestStageNumber ?? state.stageNumber);
+}
+
 // Regular-mob kills needed in a stage before the boss spawns automatically.
 // Regular mobs per stage before its boss. Once in each of the first MINI_BOSS_COUNT blocks of
 // MINI_BOSS_EVERY mobs, at a random point in it, a mid-boss turns up; the last block leads
 // straight to the boss.
-export const STAGE_KILL_TARGET = 40;
+export const STAGE_KILL_TARGET = 50;
 export const MINI_BOSS_EVERY = 10;
-export const MINI_BOSS_COUNT = 3;
+export const MINI_BOSS_COUNT = 4;
 // A mid-boss is the stage's own mob, enraged: this many times its HP, and this much exp.
 export const MINI_BOSS_HP_MULTIPLIER = 4;
 export const MINI_BOSS_EXP_MULTIPLIER = 3;
@@ -301,8 +311,25 @@ export const BOSS_BASE_HP = MOB_BASE_HP * 15;
 
 // Every stage's monsters are this many times tougher than the previous stage's.
 const STAGE_HP_GROWTH = 1.8;
+// Past this stage (0-based; 25 on screen) HP climbs faster, so the late game is a real wall.
+const LATE_STAGE_START = 24;
+const LATE_STAGE_HP_GROWTH = 2.0;
+// Each 환생 (state/rebirth.ts) makes every enemy this many times tougher.
+export const REBIRTH_HP_MULTIPLIER = 4;
+// A boss fights twice: beaten once it comes back enraged with this much more HP.
+export const BOSS_PHASE_TWO_HP_MULTIPLIER = 1.5;
 
-export function getEnemyMaxHp(stageNumber: number, boss: boolean) {
+export function getEnemyMaxHp(stageNumber: number, boss: boolean, rebirths = 0) {
+  const early = STAGE_HP_GROWTH ** Math.min(stageNumber, LATE_STAGE_START);
+  const late = LATE_STAGE_HP_GROWTH ** Math.max(0, stageNumber - LATE_STAGE_START);
+  return Math.round((boss ? BOSS_BASE_HP : MOB_BASE_HP) * early * late * REBIRTH_HP_MULTIPLIER ** rebirths);
+}
+
+// The HP gold rewards are priced on: STAGE_HP_GROWTH all the way, ignoring the late-game
+// surcharge. Gold grows faster than HP (STAGE_GOLD_CURVE in gameMath.ts), so paying out on the
+// real HP would buy back the extra toughness: simulated, that left the late game only ~10%
+// longer, against 2-4x with the payout held to this curve.
+export function getEnemyRewardHp(stageNumber: number, boss: boolean) {
   return Math.round((boss ? BOSS_BASE_HP : MOB_BASE_HP) * STAGE_HP_GROWTH ** stageNumber);
 }
 

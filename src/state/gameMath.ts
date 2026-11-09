@@ -1,5 +1,5 @@
 import type { GameState, StatKey, UpgradeMode } from "../types";
-import { BOSS_BASE_HP, getEnemyMaxHp, MOB_BASE_HP } from "./stages";
+import { BOSS_BASE_HP, getEnemyMaxHp, getEnemyRewardHp, MOB_BASE_HP } from "./stages";
 
 // `step` is a flat add-per-level, used for every stat except attack (see
 // ATTACK_UPGRADE_RATE below and applyUpgradeLevels) — kept here anyway so attack still
@@ -43,7 +43,8 @@ export function applyUpgradeLevels(key: StatKey, currentValue: number, levels: n
 
 // Extra payout for killing the boss, beyond its sheer HP being 10x a regular mob's — it's
 // the stage's one-time milestone moment and should feel like a real payday.
-const BOSS_GOLD_MULTIPLIER = 5;
+// Per phase: a boss is beaten twice (see BOSS_PHASE_TWO_HP_MULTIPLIER).
+const BOSS_GOLD_MULTIPLIER = 2.5;
 
 // Reward scales with how tanky the current enemy actually is (enemyMaxHp vs. its un-scaled
 // base HP), raised above 1 so payout compounds faster than enemy HP (and therefore kill
@@ -51,9 +52,10 @@ const BOSS_GOLD_MULTIPLIER = 5;
 // holding flat, so pushing further is always worth it.
 const STAGE_GOLD_CURVE = 1.5;
 
-export function getGoldReward(attack: number, goldBonus: number, enemyMaxHp: number, boss: boolean) {
+// `rewardHp` comes from getEnemyRewardHp, not the enemy's real HP.
+export function getGoldReward(attack: number, goldBonus: number, rewardHp: number, boss: boolean) {
   const baseHp = boss ? BOSS_BASE_HP : MOB_BASE_HP;
-  const stageMultiplier = (enemyMaxHp / baseHp) ** STAGE_GOLD_CURVE;
+  const stageMultiplier = (rewardHp / baseHp) ** STAGE_GOLD_CURVE;
   const base = (18 + attack / 2) * (1 + goldBonus / 100) * stageMultiplier;
   return Math.round(boss ? base * BOSS_GOLD_MULTIPLIER : base);
 }
@@ -63,7 +65,7 @@ export function getGoldReward(attack: number, goldBonus: number, enemyMaxHp: num
 // price against, so their prices keep pace with gold income instead of going trivial a
 // few stages in (kill gold grows ~2.4x a stage).
 export function getReferenceMobGold(stageNumber: number) {
-  return getGoldReward(6 * 1.5 ** stageNumber, 0, getEnemyMaxHp(stageNumber, false), false);
+  return getGoldReward(6 * 1.5 ** stageNumber, 0, getEnemyRewardHp(stageNumber, false), false);
 }
 
 // Shop prices rounded to two significant figures (80, 540, 17,000, 1,400,000) so they
@@ -76,7 +78,8 @@ export function roundPrice(value: number) {
 
 // Boss kills are the stage's milestone moment, so they pay out notably more exp than a
 // regular mob at the same stage — on top of already being worth 10x a mob's HP.
-const BOSS_EXP_MULTIPLIER = 3;
+// Per phase, like BOSS_GOLD_MULTIPLIER.
+const BOSS_EXP_MULTIPLIER = 1.5;
 
 // Exp reward grows 1:1 with how much tougher the current stage's enemies are (see
 // STAGE_HP_GROWTH in stages.ts), so a kill further in always feels proportional to what
