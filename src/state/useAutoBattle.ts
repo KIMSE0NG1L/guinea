@@ -3,6 +3,10 @@ import type { BattlePhase } from "../types";
 import { getGoldReward } from "./gameMath";
 import { playSfx } from "../sound";
 import {
+  APPRENTICE_ATTACK_HIT_MS,
+  APPRENTICE_ATTACK_INTERVAL_MS,
+  APPRENTICE_BEAM_CHANCE,
+  APPRENTICE_FLAT_DAMAGE,
   BEAM_BOSS_HP_RATIO,
   BEAM_BOSS_MAX_RATIO,
   BEAM_TIMING,
@@ -70,6 +74,7 @@ export function useAutoBattle({
   autoStunned = false,
   reviveHpRatio,
   instantKill = false,
+  apprenticeActive = false,
 }: {
   attack: number;
   criticalDamage: number;
@@ -124,6 +129,9 @@ export function useAutoBattle({
   reviveHpRatio?: number;
   // The post-intro gift: every strike is a one-hit kill while this is on.
   instantKill?: boolean;
+  // 견습기니 has joined (state.loopsCompleted >= 1) — its own attacks run on their own clock
+  // regardless of the player's equipped skill or auto/manual state.
+  apprenticeActive?: boolean;
 }) {
   const [enemyHp, setEnemyHp] = useState(enemyMaxHp);
   const [phase, setPhase] = useState<BattlePhase>("idle");
@@ -680,6 +688,50 @@ export function useAutoBattle({
     enterEnemy();
   }, [enterEnemy]);
 
+  // 견습기니's own attacks: every APPRENTICE_ATTACK_INTERVAL_MS it picks a kind — almost
+  // always a flat-damage body slam, rarely a beam-judgment bolt (see skills.ts) — the same
+  // way the auto loop above schedules a swing. Bumping apprenticeAttackId per attempt lets
+  // the scene play the matching visual timed to apprenticeAttackHitMs, independent of the
+  // player's own pace, equipped skill or manual/auto state — only `paused` stops it, and it
+  // never runs at all before 견습기니 has joined (apprenticeActive).
+  const [apprenticeAttackId, setApprenticeAttackId] = useState(0);
+  const [apprenticeAttackKind, setApprenticeAttackKind] = useState<"slam" | "beam">("slam");
+  const [apprenticeAttackHitMs, setApprenticeAttackHitMs] = useState(APPRENTICE_ATTACK_HIT_MS);
+  useEffect(() => {
+    if (paused || !apprenticeActive) return;
+    let active = true;
+    let timer: Timer;
+    const tick = () => {
+      timer = setTimeout(() => {
+        if (!active) return;
+        if (phaseRef.current !== "defeated" && phaseRef.current !== "entering") {
+          const kind = Math.random() < APPRENTICE_BEAM_CHANCE ? "beam" : "slam";
+          const hitMs = kind === "beam" ? BEAM_TIMING.hit : APPRENTICE_ATTACK_HIT_MS;
+          setApprenticeAttackKind(kind);
+          setApprenticeAttackHitMs(hitMs);
+          setApprenticeAttackId((value) => value + 1);
+          const epoch = enemyEpochRef.current;
+          const hitTimer = setTimeout(() => {
+            if (epoch !== enemyEpochRef.current) return;
+            if (kind === "beam") {
+              const damage = bossRef.current ? Math.ceil(maxHpRef.current * BEAM_BOSS_HP_RATIO) : hpRef.current;
+              dealDamage(damage, true);
+            } else {
+              dealDamage(APPRENTICE_FLAT_DAMAGE, false);
+            }
+          }, hitMs);
+          eventTimersRef.current.push(hitTimer);
+        }
+        tick();
+      }, APPRENTICE_ATTACK_INTERVAL_MS / speedMultiplierRef.current);
+    };
+    tick();
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [paused, apprenticeActive, dealDamage]);
+
   return {
     enemyHp,
     phase,
@@ -706,5 +758,8 @@ export function useAutoBattle({
     restoreSkillTimers,
     firstStrikeId,
     autoLocked,
+    apprenticeAttackId,
+    apprenticeAttackKind,
+    apprenticeAttackHitMs,
   };
 }

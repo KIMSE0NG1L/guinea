@@ -22,6 +22,17 @@ export const BEAM_BOSS_MAX_RATIO = 0.8;
 // Guinea Beam timeline (ms from the cast), shared by the battle logic and BeamEffect:
 // charge up → beam fires → damage lands → everything has faded.
 export const BEAM_TIMING = { fire: 240, hit: 370, end: 900 };
+// 견습기니's own attacks — not a player skill, it's the bubble follower (joins at the second
+// loop), always active on its own clock once it's around. Every APPRENTICE_ATTACK_INTERVAL_MS
+// it flies in and lands a flat-damage body slam; rarely (APPRENTICE_BEAM_CHANCE) it fires a
+// magic bolt instead, with the same judgment as Guinea Beam above (BEAM_BOSS_HP_RATIO, wipes
+// out a regular mob outright) but at a fixed power — it isn't the player's own leveled-up
+// beam. APPRENTICE_ATTACK_HIT_MS is the slam's travel time; the beam case reuses
+// BEAM_TIMING.hit instead.
+export const APPRENTICE_ATTACK_INTERVAL_MS = 10 * SECOND;
+export const APPRENTICE_FLAT_DAMAGE = 10;
+export const APPRENTICE_BEAM_CHANCE = 0.01;
+export const APPRENTICE_ATTACK_HIT_MS = 500;
 // While Steal is active, every hit scatters this share of the enemy's kill gold.
 export const STEAL_GOLD_RATIO = 0.1;
 // With Execute equipped, any hit that leaves the enemy at or below this share of its

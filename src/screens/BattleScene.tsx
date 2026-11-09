@@ -305,6 +305,9 @@ export function BattleScene({
   onQuest,
   outfit,
   apprenticeActive = false,
+  apprenticeAttackId = 0,
+  apprenticeAttackKind = "slam",
+  apprenticeAttackHitMs = 500,
   manualEnabled,
   onManualAttack,
   onOpenMap,
@@ -377,8 +380,12 @@ export function BattleScene({
   questReady: boolean;
   onQuest: () => void;
   outfit: Outfit;
-  // From the second loop on (loopsCompleted >= 1): 견습기니 trails the player (see ApprenticeFollower).
+  // From the second loop on (loopsCompleted >= 1): 견습기니 wanders the scene (see ApprenticeFollower).
   apprenticeActive?: boolean;
+  // Bumped each time it attacks on its own clock (see useAutoBattle's own fields of the same name).
+  apprenticeAttackId?: number;
+  apprenticeAttackKind?: "slam" | "beam";
+  apprenticeAttackHitMs?: number;
   manualEnabled: boolean;
   onManualAttack: () => void;
   onOpenMap: () => void;
@@ -694,6 +701,9 @@ export function BattleScene({
           )}
 
           {!preview && <FlyingCoin onCatch={onCatchFlyingCoin} gemFlights={flyingGemsLeft > 0} />}
+          {!preview && apprenticeActive && (
+            <ApprenticeFollower attackId={apprenticeAttackId} attackKind={apprenticeAttackKind} attackHitMs={apprenticeAttackHitMs} />
+          )}
           {!preview && giftKills > 0 && (
             <View style={styles.giftBanner} pointerEvents="none">
               <StrokedText style={styles.giftText} strokeColor={colors.line} strokeWidth={2}>
@@ -716,7 +726,6 @@ export function BattleScene({
             <PlayerFighter
               animation={playerAnimation}
               outfit={outfit}
-              apprenticeActive={apprenticeActive}
               boss={boss}
               executeId={executeId}
               beamId={beamId}
@@ -1014,7 +1023,6 @@ function BagButton({ onPress, dropEvents, full }: { onPress: () => void; dropEve
 function PlayerFighter({
   animation,
   outfit,
-  apprenticeActive,
   boss,
   executeId,
   beamId,
@@ -1025,7 +1033,6 @@ function PlayerFighter({
 }: {
   animation: PlayerAnimation;
   outfit: Outfit;
-  apprenticeActive: boolean;
   boss: boolean;
   executeId: number;
   beamId: number;
@@ -1115,7 +1122,6 @@ function PlayerFighter({
           {OUTFIT_NAMES[outfit]}
         </StrokedText>
       </View>
-      {apprenticeActive && <ApprenticeFollower />}
       <CharacterSprite
         outfit={outfit}
         animation={animation}
@@ -1126,13 +1132,83 @@ function PlayerFighter({
   );
 }
 
-// 견습기니, riding its bubble, peeking out from behind the player — joined in the
-// "apprenticeGini" comic (state/comics.ts) at the start of the second loop. Idle-only: it
-// doesn't fight, just bobs along (see guinea-apprentice-idle-strip.png's 4 frames).
-function ApprenticeFollower() {
+// 견습기니, riding its bubble — joined in the "apprenticeGini" comic (state/comics.ts) at the
+// start of the second loop. Not tied to the player: it drifts on its own around the scene's
+// top-left corner (above the fighters' zIndex so it reads as passing in front, not behind,
+// whenever it floats over one or the enemy), idling in place most of the time — except every
+// APPRENTICE_ATTACK_INTERVAL_MS (see useAutoBattle), when it zips over to the enemy, lands its
+// own hit, and drifts back. The damage itself (and its floating number) comes from the same
+// dealDamage/DamageNumber path every other hit uses — this just plays the matching visual,
+// timed to attackHitMs so the punch lands exactly when the hit actually does.
+function ApprenticeFollower({ attackId, attackKind, attackHitMs }: { attackId: number; attackKind: "slam" | "beam"; attackHitMs: number }) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  const bob = useSharedValue(0);
+  const punch = useSharedValue(1);
+  const flash = useSharedValue(0);
+  // The attackId this component has already played the flight/impact for — starts at
+  // whatever attackId already was on mount, so remounting mid-game doesn't replay an old hit.
+  const lastHandledAttackId = useRef(attackId);
+
+  useEffect(() => {
+    bob.value = withRepeat(withSequence(withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 1100, easing: Easing.inOut(Easing.sin) })), -1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The one place x/y ever get set: ambient wandering normally, or — the moment attackId
+  // bumps — a detour to the enemy, a punch/flash timed to attackHitMs (matching
+  // useAutoBattle's own scheduled dealDamage), then straight back into wandering from there —
+  // no pause sitting next to the enemy first, which used to read as a second, separate hit.
+  useEffect(() => {
+    if (size.width === 0 || size.height === 0) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const wander = () => {
+      if (cancelled) return;
+      const duration = 3200 + Math.random() * 2600;
+      x.value = withTiming(Math.random() * size.width * 0.5, { duration, easing: Easing.inOut(Easing.quad) });
+      y.value = withTiming(Math.random() * size.height * 0.4, { duration, easing: Easing.inOut(Easing.quad) });
+      timer = setTimeout(wander, duration);
+    };
+
+    if (attackId !== lastHandledAttackId.current) {
+      lastHandledAttackId.current = attackId;
+      const travel = Math.max(150, attackHitMs - 60);
+      x.value = withTiming(size.width * 0.74, { duration: travel, easing: Easing.out(Easing.quad) });
+      y.value = withTiming(size.height * 0.5, { duration: travel, easing: Easing.out(Easing.quad) });
+      timer = setTimeout(() => {
+        punch.value = withSequence(withTiming(1.5, { duration: 90, easing: Easing.out(Easing.quad) }), withTiming(1, { duration: 200 }));
+        if (attackKind === "beam") flash.value = withSequence(withTiming(1, { duration: 60 }), withTiming(0, { duration: 220 }));
+        wander();
+      }, attackHitMs);
+    } else {
+      wander();
+    }
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [size.width, size.height, attackId]);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateX: x.value }, { translateY: y.value - bob.value * 6 }, { scale: punch.value }],
+  }));
+  const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value }));
+
   return (
-    <View style={styles.apprenticeFollower} pointerEvents="none">
-      <SpriteStrip source={apprenticeSprite.idle} frameSize={500} frameCount={4} displaySize={46} durationMs={1800} mode="loop" />
+    <View
+      style={styles.apprenticeLayer}
+      pointerEvents="none"
+      onLayout={(event) => setSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })}
+    >
+      <Animated.View style={style}>
+        <SpriteStrip source={apprenticeSprite.idle} frameSize={500} frameCount={4} displaySize={76} durationMs={1800} mode="loop" />
+        <Animated.View style={[styles.apprenticeBeamFlash, flashStyle]} />
+      </Animated.View>
     </View>
   );
 }
@@ -1470,6 +1546,11 @@ const styles = StyleSheet.create({
   camLayer: { transformOrigin: "0% 0%" },
   // Where the fighters always sat in the stacking order (styles.fighters' own zIndex).
   camFighters: { zIndex: 4 },
+  // Above camFighters, so the wandering follower reads as passing in front of either
+  // fighter whenever it happens to float over one.
+  apprenticeLayer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 12 },
+  // A quick white zap over the sprite itself on the rare magic-bolt hit.
+  apprenticeBeamFlash: { position: "absolute", top: -6, left: -6, right: -6, bottom: -6, borderRadius: 999, backgroundColor: "#ffffff" },
   skyImage: { width: "100%", height: "100%" },
   stageBar: {
     position: "absolute",
@@ -1559,9 +1640,6 @@ const styles = StyleSheet.create({
   executeHalf: { position: "absolute", top: 0, left: 0, overflow: "hidden" },
   executeCutLine: { position: "absolute", left: -8, height: 3, borderRadius: 1.5, backgroundColor: "#ffffff" },
   characterWrap: { width: 108, alignItems: "center", position: "relative" },
-  // Peeking out behind the player's lower-left, low enough to read as trailing rather
-  // than standing beside them.
-  apprenticeFollower: { position: "absolute", left: -14, bottom: 2, zIndex: -1 },
   unitLabel: {
     marginBottom: 4,
     paddingHorizontal: 6,

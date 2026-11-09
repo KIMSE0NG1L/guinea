@@ -117,6 +117,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   // Which of the boss's two lives is up. Not saved, like the rest of the fight: a reload
   // starts the boss over from its first.
   const [bossPhase, setBossPhase] = useState<1 | 2>(1);
+  // Rolled fresh per boss fight (see startBossFight): only half of them get back up enraged
+  // for a second life. The last implemented stage's boss always does.
+  const [bossHasPhaseTwo, setBossHasPhaseTwo] = useState(true);
   // An enraged mid-boss (the stage's mob, bigger and tougher) is up. The fight itself isn't
   // saved, but which ones are beaten is (stageMiniBosses) — so a reload brings it back.
   const [miniBoss, setMiniBoss] = useState(false);
@@ -423,6 +426,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const startBossFight = useCallback((stageNumber: number = state.stageNumber) => {
     setMiniBoss(false);
     setBossPhase(1);
+    setBossHasPhaseTwo(stageNumber >= LAST_STAGE_NUMBER || Math.random() < 0.5);
     setBossTimerStartedAt(null);
     setBossTimeLimitMs(getBossTimeLimitMs(stageNumber));
     setBossIntroPending(true);
@@ -450,8 +454,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     const gift = (state.giftKills ?? 0) > 0 && !boss;
     const goldReward = gift ? Math.max(rawGold, GIFT_KILL_GOLD) : rawGold;
     // The boss's first life: it pays its share and gets back up enraged. Its second life gets
-    // a fresh clock once it's on its feet (see the effect by the flee timer).
-    if (boss && bossPhase === 1) {
+    // a fresh clock once it's on its feet (see the effect by the flee timer). Skipped entirely
+    // for the half of boss fights rolled with no second phase (see startBossFight) — that
+    // first kill falls straight through to the real defeat below.
+    if (boss && bossPhase === 1 && bossHasPhaseTwo) {
       setDefeatedBoss(true);
       setDefeatedMiniBoss(false);
       setDefeatedStrayKind(null);
@@ -635,7 +641,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, bossPhase, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained, bossTimeLimitMs, state.buffSlots, state.stageStars]);
+  }, [boss, bossPhase, bossHasPhaseTwo, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained, bossTimeLimitMs, state.buffSlots, state.stageStars]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -780,6 +786,9 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     autoStunned: now < bossStunnedUntil,
     reviveHpRatio: boss && getEnemyKind(state.stageNumber) === GHOST_GOAT_REVIVE_KIND ? GHOST_GOAT_REVIVE_HP_RATIO : undefined,
     instantKill: (state.giftKills ?? 0) > 0 && !boss && now >= (state.giftStartsAt ?? 0) && heldLoot === null,
+    // 견습기니 joined at the second loop (see the apprenticeGini comic) — from then on it
+    // throws in its own attacks on its own clock, independent of the player's.
+    apprenticeActive: (state.loopsCompleted ?? 0) >= 1,
   });
 
   // Personal best: the biggest single hit.

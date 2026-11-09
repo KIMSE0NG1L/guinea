@@ -89,6 +89,9 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         onQuest={() => game.setQuestOpen(true)}
         outfit={state.equippedOutfit}
         apprenticeActive={(state.loopsCompleted ?? 0) >= 1}
+        apprenticeAttackId={battle.apprenticeAttackId}
+        apprenticeAttackKind={battle.apprenticeAttackKind}
+        apprenticeAttackHitMs={battle.apprenticeAttackHitMs}
         manualEnabled={!battle.isAutoBattle}
         onManualAttack={battle.manualAttack}
         onOpenMap={() => game.setState((previous) => ({ ...previous, selectedTab: "milestone" }))}
