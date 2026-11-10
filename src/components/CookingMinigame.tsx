@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { chef, frameKit, kit } from "../assets";
 import { NineSlice } from "./NineSlice";
@@ -96,7 +97,7 @@ export function CookingMinigame({
             <Text style={styles.difficulty}>{`난이도 ${difficulty.label}`}</Text>
           </View>
 
-          <Image source={chef.wok} style={styles.chef} resizeMode="contain" />
+          <JigglingChef active={!failed} />
 
           <View style={styles.dots}>
             {Array.from({ length: MINIGAME_ROUNDS }, (_, index) => (
@@ -106,12 +107,9 @@ export function CookingMinigame({
 
           {failed ? (
             <View style={styles.failWrap}>
-              <View style={styles.failImageWrap}>
-                <Image source={recipe.image} style={styles.failImage} />
-                {/* 80% black over the dish — see the plan: a failed cook grants nothing, so
-                    this is the only visual the player gets for it. */}
-                <View style={styles.failOverlay} />
-              </View>
+              {/* The dish itself goes black (tintColor recolors its opaque pixels, keeping
+                  its silhouette) — not a dark rectangle laid over it. */}
+              <Image source={recipe.image} style={styles.failImage} />
               <StrokedText style={styles.failText} strokeColor={colors.line} strokeWidth={2.5}>
                 망함...
               </StrokedText>
@@ -141,6 +139,23 @@ export function CookingMinigame({
       </View>
     </Modal>
   );
+}
+
+// The chef+wok rocks and hops in place the whole time cooking's underway — a continuous
+// "들썩들썩" simmer feel instead of sitting dead still while the player works the bar below.
+// Settles to a stop once `active` goes false (the 망함 reveal — still jiggling through that
+// would read wrong).
+function JigglingChef({ active }: { active: boolean }) {
+  const wobble = useSharedValue(0);
+  useEffect(() => {
+    wobble.value = active
+      ? withRepeat(withSequence(withTiming(1, { duration: 150, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 150, easing: Easing.inOut(Easing.quad) })), -1)
+      : withTiming(0, { duration: 200 });
+  }, [active, wobble]);
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateY: -wobble.value * 4 }, { rotate: `${(wobble.value - 0.5) * 8}deg` }],
+  }));
+  return <Animated.Image source={chef.wok} style={[styles.chef, style]} resizeMode="contain" />;
 }
 
 // One sweep-and-stop attempt. Remounted fresh (via the parent's `key={round}`) for every
@@ -242,9 +257,9 @@ const styles = StyleSheet.create({
   resultWrap: { width: "100%", height: TRACK_HEIGHT + 56, marginTop: 14, alignItems: "center", justifyContent: "center" },
   resultText: { fontSize: 28, fontWeight: "900", fontFamily: fonts.bold },
   failWrap: { width: "100%", height: TRACK_HEIGHT + 56, marginTop: 14, alignItems: "center", justifyContent: "center", gap: 6 },
-  failImageWrap: { width: 56, height: 56 },
-  failImage: { width: "100%", height: "100%", resizeMode: "contain" },
-  failOverlay: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: 8, backgroundColor: "#000000cc" },
+  // tintColor repaints every opaque pixel black, leaving transparent ones alone — the dish's
+  // own shape reads as a burnt silhouette instead of a black box sitting over it.
+  failImage: { width: 56, height: 56, resizeMode: "contain", tintColor: "#000000", opacity: 0.85 },
   failText: { fontSize: 24, fontWeight: "900", fontFamily: fonts.bold, color: "#e07a5f" },
   stopButtonWrap: { marginTop: 18, alignItems: "center" },
   stopButton: { minWidth: 140, minHeight: 44, paddingHorizontal: 20 },
