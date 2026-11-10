@@ -1289,3 +1289,42 @@ export const creamSlices = {
   // A square cell for an item or icon.
   cell: slice(creamArt[3], 224, 217, [56, 58, 60, 58], "#fdecc4"),
 };
+
+// 골목 상점: the merchant guinea (상인기니) and the gold-trimmed store frames from the shop
+// sheets. Ornate (gem-studded) frames are the top tier, the simple gold ones the middle tier;
+// small tiles inside them stay on creamSlices. The wide frames are sliced with left/right
+// insets that meet in the middle so the top gem never stretches — draw them at
+// scale = width / source width (see ShopScreen's StoreFrame).
+export const merchantImages = {
+  // The jewel-and-gold store interior behind the merchant (same 1168x880 as the kitchen).
+  background: require("../assets/shop/store-background.webp"),
+  wave: require("../assets/shop/merchant-wave.webp"),
+  gem: require("../assets/shop/merchant-gem.webp"),
+  gold: require("../assets/shop/merchant-gold.webp"),
+  think: require("../assets/shop/merchant-think.webp"),
+  bag: require("../assets/shop/merchant-bag.webp"),
+  bust: require("../assets/shop/merchant-bust.webp"),
+  mini: require("../assets/shop/merchant-mini.webp"),
+};
+
+export const storeArt = {
+  ornateCurtain: require("../assets/shop/frame-ornate-curtain.webp"),
+  ornatePill: require("../assets/shop/frame-ornate-pill.webp"),
+  ornateMd: require("../assets/shop/frame-ornate-md.webp"),
+  ornateSq: require("../assets/shop/frame-ornate-sq.webp"),
+  ornateWide: require("../assets/shop/frame-ornate-wide.webp"),
+  simpleMd: require("../assets/shop/frame-simple-md.webp"),
+  simpleSq: require("../assets/shop/frame-simple-sq.webp"),
+  simpleWide: require("../assets/shop/frame-simple-wide.webp"),
+  simplePill: require("../assets/shop/frame-simple-pill.webp"),
+  simpleCurtain: require("../assets/shop/frame-simple-curtain.webp"),
+};
+
+export const storeSlices = {
+  // Gem crown on top, a gem on each side post and a gem leaf below — all kept unstretched.
+  ornate: slice(require("../assets/shop/frame-ornate-lg.webp"), 558, 259, [178, 279, 60, 279], "#fcebc6"),
+  // Plain gold-and-caramel frame, leaf sprigs in the corners.
+  simple: slice(require("../assets/shop/frame-simple-lg.webp"), 600, 298, [130, 300, 100, 300], "#fcebc6"),
+  // The brighter yellow-gold version of the same frame.
+  simpleGold: slice(require("../assets/shop/frame-simple-gold.webp"), 577, 226, [115, 288, 85, 289], "#fcebc6"),
+};
