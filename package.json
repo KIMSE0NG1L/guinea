@@ -27,6 +27,7 @@
     "babel-preset-expo": "^57.0.14",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",
+    "sharp": "^0.35.5",
     "typescript": "~6.0.3"
   },
   "scripts": {
