@@ -82,8 +82,9 @@ function StatRow({
   const nextValue = applyUpgradeLevels(key, value, quote.levels);
   const suffix = key === "attack" ? "" : "%";
   // 공격력 only: formatGameNumber shows up to 3 decimals under 1000 — too noisy here,
-  // capped to 1 instead of switching every other screen that reads attack.
-  const formatStat = (n: number) => (key === "attack" ? n.toLocaleString("ko-KR", { maximumFractionDigits: 1 }) : formatGameNumber(n));
+  // capped to 1 instead of switching every other screen that reads attack. From 1,000 up
+  // formatGameNumber already drops decimals, and past six digits it adds the a/b/c units.
+  const formatStat = (n: number) => (key === "attack" && Math.abs(n) < 1000 ? n.toLocaleString("ko-KR", { maximumFractionDigits: 1 }) : formatGameNumber(n));
   const atCap = STAT_CAP[key] !== undefined && getStatValue(state, key) >= STAT_CAP[key]!;
   const affordable = quote.levels > 0 && state.gold >= quote.cost;
   const short = !atCap && !affordable;

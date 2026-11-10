@@ -74,15 +74,16 @@ export function ShopTopBar({
   );
 }
 
-// The kitchen backdrop in a wooden frame, with the shopkeeper and their speech bubble.
-export function ShopHero({ speaker, talk }: { speaker: string; talk: Talk }) {
+// The kitchen backdrop (or the shop's own, same 1168x880 size) in a wooden frame, with the
+// shopkeeper and their speech bubble.
+export function ShopHero({ speaker, talk, background = shopImages.background }: { speaker: string; talk: Talk; background?: number }) {
   const [heroWidth, setHeroWidth] = useState(0);
   return (
     <Panel slice={shopKit.frameWide} scale={0.32} style={styles.heroFrame}>
       <View style={styles.hero} onLayout={(event) => setHeroWidth(event.nativeEvent.layout.width)}>
         {heroWidth > 0 && (
           <Image
-            source={shopImages.background}
+            source={background}
             resizeMode="stretch"
             style={[styles.heroImage, { width: heroWidth, height: heroWidth * BACKGROUND_ASPECT }]}
           />

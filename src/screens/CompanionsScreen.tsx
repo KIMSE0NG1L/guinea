@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   avatar: { width: 66, height: 66, alignItems: "center", justifyContent: "center" },
   avatarRing: { position: "absolute", left: 0, top: 0, width: 66, height: 66 },
   avatarInner: { width: 37, height: 37, borderRadius: 18.5, overflow: "hidden", alignItems: "center", justifyContent: "center" },
-  avatarGem: { width: 18, height: 24, resizeMode: "contain" },
+  avatarGem: { width: 24, height: 24, resizeMode: "contain" },
   avatarStage: { fontSize: 16, lineHeight: 18, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
   // Squeezed inside the ring's opening — one of the few labels kept under 12pt.
   avatarStageLabel: { fontSize: 8, lineHeight: 9, fontWeight: "800", fontFamily: fonts.bold, color: colors.muted },

@@ -309,11 +309,10 @@ const styles = StyleSheet.create({
   bubbleWrap: { position: "absolute", left: "100%", bottom: 22, marginLeft: 8 },
   bubblePressed: { transform: [{ scale: 0.95 }] },
   bubble: { flexDirection: "row", alignItems: "center", gap: 5, paddingLeft: 12, paddingRight: 14, paddingTop: 8, paddingBottom: 16 },
-  bubbleGem: { width: 15, height: 20, resizeMode: "contain" },
+  bubbleGem: { width: 18, height: 18, resizeMode: "contain" },
   bubbleText: { fontSize: 17, fontWeight: "900", fontFamily: fonts.bold, color: colors.ink },
   reward: { flexDirection: "row", alignItems: "center", gap: 6 },
-  // item-crystal.png is 109x149 — sized to that ratio so it isn't cropped square.
-  gem: { width: 33, height: 45, resizeMode: "contain" },
+  gem: { width: 42, height: 42, resizeMode: "contain" },
   sparkles: { position: "absolute", left: "50%", top: "50%", width: 0, height: 0 },
   spark: { position: "absolute", left: 0, top: 0 },
   rewardText: { fontSize: 32, fontWeight: "900", fontFamily: fonts.bold, color: "#bff0ff" },

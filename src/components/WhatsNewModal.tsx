@@ -53,5 +53,5 @@ const styles = StyleSheet.create({
   button: { marginTop: 16, minWidth: 190 },
   gift: { flexDirection: "row", alignItems: "center", gap: 4 },
   giftText: { fontSize: 14, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
-  gem: { width: 13, height: 18, resizeMode: "contain" },
+  gem: { width: 16, height: 16, resizeMode: "contain" },
 });

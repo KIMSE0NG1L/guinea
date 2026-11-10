@@ -618,6 +618,25 @@ export const icons = {
   codexIngredient: require("../assets/icons/icon-codex-ingredient.webp"),
 };
 
+// 재화 그림: one gem / one coin, then growing hauls (pile, small sack, big sack, cart) — for
+// shop products and rewards whose size should read at a glance.
+export const currencyImages = {
+  gem: [
+    require("../assets/currency/gem-1.webp"),
+    require("../assets/currency/gem-2.webp"),
+    require("../assets/currency/gem-3.webp"),
+    require("../assets/currency/gem-4.webp"),
+    require("../assets/currency/gem-5.webp"),
+  ],
+  gold: [
+    require("../assets/currency/gold-1.webp"),
+    require("../assets/currency/gold-2.webp"),
+    require("../assets/currency/gold-3.webp"),
+    require("../assets/currency/gold-4.webp"),
+    require("../assets/currency/gold-5.webp"),
+  ],
+};
+
 export const uiImages = {
   coin: require("../assets/ui/coin.webp"),
   // Winged coin that flutters across the battle scene to be tapped.
@@ -625,7 +644,8 @@ export const uiImages = {
   // Winged gem that occasionally replaces the flying coin in battle.
   gemWinged: require("../assets/ui/gem-winged.webp"),
   coins: require("../assets/ui/item-coins.webp"),
-  crystal: require("../assets/ui/item-crystal.webp"),
+  // The single faceted gem (assets/currency/gem-1), about square — size its slots square.
+  crystal: require("../assets/currency/gem-1.webp"),
   gear: require("../assets/ui/item-gear.webp"),
   badgeAlert: require("../assets/ui/badge-alert.webp"),
   carrot: require("../assets/ui/item-carrot.webp"),
@@ -1268,4 +1288,43 @@ export const creamSlices = {
   row: slice(creamArt[6], 1105, 139, [64, 72, 68, 72], "#fdedc7"),
   // A square cell for an item or icon.
   cell: slice(creamArt[3], 224, 217, [56, 58, 60, 58], "#fdecc4"),
+};
+
+// 골목 상점: the merchant guinea (상인기니) and the gold-trimmed store frames from the shop
+// sheets. Ornate (gem-studded) frames are the top tier, the simple gold ones the middle tier;
+// small tiles inside them stay on creamSlices. The wide frames are sliced with left/right
+// insets that meet in the middle so the top gem never stretches — draw them at
+// scale = width / source width (see ShopScreen's StoreFrame).
+export const merchantImages = {
+  // The jewel-and-gold store interior behind the merchant (same 1168x880 as the kitchen).
+  background: require("../assets/shop/store-background.webp"),
+  wave: require("../assets/shop/merchant-wave.webp"),
+  gem: require("../assets/shop/merchant-gem.webp"),
+  gold: require("../assets/shop/merchant-gold.webp"),
+  think: require("../assets/shop/merchant-think.webp"),
+  bag: require("../assets/shop/merchant-bag.webp"),
+  bust: require("../assets/shop/merchant-bust.webp"),
+  mini: require("../assets/shop/merchant-mini.webp"),
+};
+
+export const storeArt = {
+  ornateCurtain: require("../assets/shop/frame-ornate-curtain.webp"),
+  ornatePill: require("../assets/shop/frame-ornate-pill.webp"),
+  ornateMd: require("../assets/shop/frame-ornate-md.webp"),
+  ornateSq: require("../assets/shop/frame-ornate-sq.webp"),
+  ornateWide: require("../assets/shop/frame-ornate-wide.webp"),
+  simpleMd: require("../assets/shop/frame-simple-md.webp"),
+  simpleSq: require("../assets/shop/frame-simple-sq.webp"),
+  simpleWide: require("../assets/shop/frame-simple-wide.webp"),
+  simplePill: require("../assets/shop/frame-simple-pill.webp"),
+  simpleCurtain: require("../assets/shop/frame-simple-curtain.webp"),
+};
+
+export const storeSlices = {
+  // Gem crown on top, a gem on each side post and a gem leaf below — all kept unstretched.
+  ornate: slice(require("../assets/shop/frame-ornate-lg.webp"), 558, 259, [178, 279, 60, 279], "#fcebc6"),
+  // Plain gold-and-caramel frame, leaf sprigs in the corners.
+  simple: slice(require("../assets/shop/frame-simple-lg.webp"), 600, 298, [130, 300, 100, 300], "#fcebc6"),
+  // The brighter yellow-gold version of the same frame.
+  simpleGold: slice(require("../assets/shop/frame-simple-gold.webp"), 577, 226, [115, 288, 85, 289], "#fcebc6"),
 };
