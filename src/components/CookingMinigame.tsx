@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { chef, frameKit, kit } from "../assets";
 import { NineSlice } from "./NineSlice";
@@ -9,8 +9,12 @@ import { StrokedText } from "./StrokedText";
 import { GuideArrow } from "./GuideArrow";
 import {
   classifyStop,
+  driftingZoneCenter,
+  getDriftMargin,
+  getRoundSweepMs,
   getZoneWidth,
   gradeFromRounds,
+  isDriftingRound,
   MINIGAME_DIFFICULTY,
   MINIGAME_ROUNDS,
   randomZoneCenter,
@@ -21,6 +25,7 @@ import {
 import type { Recipe } from "../state/recipes";
 import type { CookGrade } from "../state/buffs";
 import { playHaptic } from "../haptics";
+import { playSfx } from "../sound";
 
 const TRACK_HEIGHT = 34;
 const TRACK_SCALE = TRACK_HEIGHT / 40;
@@ -36,6 +41,14 @@ const FAIL_HOLD_MS = 1200;
 
 const RESULT_TEXT: Record<RoundResult, string> = { perfect: "완벽!", good: "좋아!", miss: "아깝다!" };
 const RESULT_COLOR: Record<RoundResult, string> = { perfect: "#ffd34d", good: "#bfe08a", miss: "#e07a5f" };
+
+// How many perfects in a row sit at the end of `rounds` right now — purely cosmetic (the
+// COMBO badge below), not read anywhere near gradeFromRounds.
+function countTrailingPerfects(rounds: RoundResult[]): number {
+  let count = 0;
+  for (let i = rounds.length - 1; i >= 0 && rounds[i] === "perfect"; i--) count++;
+  return count;
+}
 
 // The active-cooking screen: 3 timed stops of a sweeping indicator, replacing the old
 // real-time pot wait. Ingredients/gold are NOT spent by this component at all — the caller
@@ -66,9 +79,17 @@ export function CookingMinigame({
   const zoneWidth = getZoneWidth(recipe.tier, cookSpeedPercent);
   const showingResult = results.length > round;
   const lastResult = results[results.length - 1];
+  const combo = countTrailingPerfects(results);
+
+  // Sizzle-on cue the moment the pot's up, so the three stops below don't open in silence —
+  // cookStart/cookDone exist in sfx already but nothing was ever wired to play them.
+  useEffect(() => {
+    playSfx("cookStart");
+  }, []);
 
   const handleStop = (result: RoundResult) => {
     playHaptic(result === "perfect" ? "crit" : "hit");
+    playSfx(result === "perfect" ? "crit" : "hit", result === "miss" ? 0.5 : 1);
     const next = [...results, result];
     setResults(next);
     setTimeout(() => {
@@ -81,6 +102,7 @@ export function CookingMinigame({
         setFailed(true);
         setTimeout(() => onFinish("fail"), FAIL_HOLD_MS);
       } else {
+        playSfx("cookDone");
         onFinish(grade);
       }
     }, RESULT_HOLD_MS);
@@ -101,7 +123,7 @@ export function CookingMinigame({
 
           <View style={styles.dots}>
             {Array.from({ length: MINIGAME_ROUNDS }, (_, index) => (
-              <View key={index} style={[styles.dot, results[index] && { backgroundColor: RESULT_COLOR[results[index]] }]} />
+              <Dot key={index} result={results[index]} />
             ))}
           </View>
 
@@ -115,15 +137,12 @@ export function CookingMinigame({
               </StrokedText>
             </View>
           ) : showingResult && lastResult ? (
-            <View style={styles.resultWrap}>
-              <StrokedText style={[styles.resultText, { color: RESULT_COLOR[lastResult] }]} strokeColor={colors.line} strokeWidth={2}>
-                {RESULT_TEXT[lastResult]}
-              </StrokedText>
-            </View>
+            <ResultReveal key={results.length} result={lastResult} combo={combo} />
           ) : (
             <Round
               key={round}
-              sweepMs={difficulty.sweepMs}
+              round={round}
+              baseSweepMs={difficulty.sweepMs}
               zoneWidth={zoneWidth}
               guideActive={guideActive && round === 0}
               onStop={handleStop}
@@ -158,38 +177,112 @@ function JigglingChef({ active }: { active: boolean }) {
   return <Animated.Image source={chef.wok} style={[styles.chef, style]} resizeMode="contain" />;
 }
 
+// One progress pip, popping in with an overshoot the instant its round lands instead of just
+// appearing — `result` goes from undefined to set exactly once, which this watches to fire.
+function Dot({ result }: { result: RoundResult | undefined }) {
+  const pop = useSharedValue(1);
+  useEffect(() => {
+    if (!result) return;
+    pop.value = 0.3;
+    pop.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.back(2.2)) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
+  return <Animated.View style={[styles.dot, result && { backgroundColor: RESULT_COLOR[result] }, style]} />;
+}
+
+// The per-round payoff: the result text punches in with an overshoot (a harder punch for a
+// perfect, a side-to-side shake layered on for a miss) instead of just appearing static.
+// Keyed by `results.length` in the parent so this remounts — and replays — fresh every round.
+function ResultReveal({ result, combo }: { result: RoundResult; combo: number }) {
+  const pop = useSharedValue(0.4);
+  const shake = useSharedValue(0);
+  const comboPop = useSharedValue(0);
+  useEffect(() => {
+    pop.value = withTiming(1, {
+      duration: result === "perfect" ? 320 : 220,
+      easing: Easing.out(Easing.back(result === "perfect" ? 2.4 : 1.6)),
+    });
+    if (result === "miss") {
+      shake.value = withSequence(
+        withTiming(1, { duration: 50 }),
+        withTiming(-1, { duration: 90 }),
+        withTiming(0.6, { duration: 90 }),
+        withTiming(0, { duration: 90 }),
+      );
+    }
+    // The badge lands a beat after the text itself, so it reads as "...and a combo!" rather
+    // than both slamming in at once.
+    if (combo >= 2) comboPop.value = withDelay(120, withTiming(1, { duration: 220, easing: Easing.out(Easing.back(2)) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const textStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pop.value }, { translateX: shake.value * 10 }],
+  }));
+  const comboStyle = useAnimatedStyle(() => ({
+    opacity: comboPop.value === 0 ? 0 : 1,
+    transform: [{ scale: comboPop.value }],
+  }));
+  return (
+    <View style={styles.resultWrap}>
+      <Animated.View style={textStyle}>
+        <StrokedText style={[styles.resultText, { color: RESULT_COLOR[result] }]} strokeColor={colors.line} strokeWidth={2}>
+          {RESULT_TEXT[result]}
+        </StrokedText>
+      </Animated.View>
+      {combo >= 2 && (
+        <Animated.View style={comboStyle}>
+          <StrokedText style={styles.comboText} strokeColor={colors.line} strokeWidth={1.5}>
+            {`${combo} 콤보!`}
+          </StrokedText>
+        </Animated.View>
+      )}
+    </View>
+  );
+}
+
 // One sweep-and-stop attempt. Remounted fresh (via the parent's `key={round}`) for every
 // round, so there's nothing to manually reset between attempts. The indicator's position is
 // a pure function of wall-clock time (sweepPosition), read straight off Date.now() at the
 // moment of stopping — never off the `now` state below, which only drives the *visual*
 // redraw and would otherwise be a stale closure inside the round-timeout's one-time effect.
 function Round({
-  sweepMs,
+  round,
+  baseSweepMs,
   zoneWidth,
   guideActive,
   onStop,
 }: {
-  sweepMs: number;
+  round: number;
+  baseSweepMs: number;
   zoneWidth: number;
   guideActive: boolean;
   onStop: (result: RoundResult) => void;
 }) {
-  const [zoneCenter] = useState(() => randomZoneCenter(zoneWidth));
+  const sweepMs = getRoundSweepMs(baseSweepMs, round);
+  const drifting = isDriftingRound(round);
+  const margin = drifting ? getDriftMargin(zoneWidth) : 0;
+  const [zoneCenter] = useState(() => randomZoneCenter(zoneWidth, margin));
   const [startedAt] = useState(() => Date.now());
   const [now, setNow] = useState(startedAt);
   const [channelWidth, setChannelWidth] = useState(0);
   const stoppedRef = useRef(false);
+  const pulse = useSharedValue(0);
 
   const stop = () => {
     if (stoppedRef.current) return;
     stoppedRef.current = true;
-    const position = sweepPosition(Date.now() - startedAt, sweepMs);
-    onStop(classifyStop(position, zoneCenter, zoneWidth));
+    const elapsed = Date.now() - startedAt;
+    const position = sweepPosition(elapsed, sweepMs);
+    onStop(classifyStop(position, driftingZoneCenter(elapsed, zoneCenter, margin), zoneWidth));
   };
 
   useEffect(() => {
     const tick = setInterval(() => setNow(Date.now()), 16);
     const timeout = setTimeout(stop, ROUND_TIMEOUT_MS);
+    // A slow, continuous breathing pulse on the zone/indicator — just enough to keep the
+    // track feeling alive while the player's tracking the sweep, not a gameplay signal.
+    pulse.value = withRepeat(withSequence(withTiming(1, { duration: 500, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 500, easing: Easing.inOut(Easing.quad) })), -1);
     return () => {
       clearInterval(tick);
       clearTimeout(timeout);
@@ -198,9 +291,13 @@ function Round({
   }, []);
 
   const position = sweepPosition(now - startedAt, sweepMs);
+  const liveZoneCenter = driftingZoneCenter(now - startedAt, zoneCenter, margin);
+  const zonePulseStyle = useAnimatedStyle(() => ({ opacity: 0.75 + pulse.value * 0.25 }));
+  const indicatorPulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + pulse.value * 0.12 }] }));
 
   return (
     <View style={styles.round}>
+      {drifting && <Text style={styles.driftHint}>타겟이 움직여요!</Text>}
       <View style={styles.track}>
         <NineSlice slice={frameKit.barFrame} scale={TRACK_SCALE} />
         <View
@@ -209,8 +306,10 @@ function Round({
         >
           {channelWidth > 0 && (
             <>
-              <View style={[styles.zone, { left: (zoneCenter - zoneWidth / 2) * channelWidth, width: zoneWidth * channelWidth }]} />
-              <View style={[styles.indicator, { left: position * channelWidth - INDICATOR_SIZE / 2 }]} />
+              <Animated.View
+                style={[styles.zone, { left: (liveZoneCenter - zoneWidth / 2) * channelWidth, width: zoneWidth * channelWidth }, zonePulseStyle]}
+              />
+              <Animated.View style={[styles.indicator, { left: position * channelWidth - INDICATOR_SIZE / 2 }, indicatorPulseStyle]} />
             </>
           )}
         </View>
@@ -254,8 +353,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.line,
   },
-  resultWrap: { width: "100%", height: TRACK_HEIGHT + 56, marginTop: 14, alignItems: "center", justifyContent: "center" },
+  resultWrap: { width: "100%", height: TRACK_HEIGHT + 56, marginTop: 14, alignItems: "center", justifyContent: "center", gap: 4 },
   resultText: { fontSize: 28, fontWeight: "900", fontFamily: fonts.bold },
+  comboText: { fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.gold },
+  driftHint: { marginBottom: -4, fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.red, letterSpacing: -0.2 },
   failWrap: { width: "100%", height: TRACK_HEIGHT + 56, marginTop: 14, alignItems: "center", justifyContent: "center", gap: 6 },
   // tintColor repaints every opaque pixel black, leaving transparent ones alone — the dish's
   // own shape reads as a burnt silhouette instead of a black box sitting over it.

@@ -89,6 +89,7 @@ export const BOSS_SKILLS: Record<EnemyKind, BossSkill> = {
   bee: { kind: "stun", variant: "confused", name: "벌떼 돌진" },
   angryCandyBasketSlime: { kind: "stun", variant: "stunned", name: "그리핀의 날개바람" },
   thiefCrow: { kind: "stun", variant: "stunned", name: "굶주린 화염 숨결" },
+  spiceElephant: { kind: "stun", variant: "confused", name: "매운 연기" },
 };
 
 export function getBossSkill(kind: EnemyKind): BossSkill {

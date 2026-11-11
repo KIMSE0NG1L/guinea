@@ -449,6 +449,16 @@ export const spriteSheets = {
     hit: require("../assets/sprites/hungry-red-dragon-hit-strip.webp"),
     die: require("../assets/sprites/hungry-red-dragon-die-strip.webp"),
   },
+  spiceElephant: {
+    idle: require("../assets/sprites/spice-elephant-idle-strip.webp"),
+    hit: require("../assets/sprites/spice-elephant-hit-strip.webp"),
+    die: require("../assets/sprites/spice-elephant-die-strip.webp"),
+  },
+  bossCurryTiger: {
+    idle: require("../assets/sprites/boss-curry-tiger-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-curry-tiger-hit-strip.webp"),
+    die: require("../assets/sprites/boss-curry-tiger-die-strip.webp"),
+  },
 };
 
 // 견습기니: the bubble-riding follower that tags along from the second loop on (see
@@ -502,6 +512,7 @@ export const images = {
   battleBackgroundHoneyTrail: require("../assets/sprites/battle-honey-trail.webp"),
   battleBackgroundDragonMountainRuin: require("../assets/sprites/battle-dragon-mountain-ruin.webp"),
   battleBackgroundRuinedCitadel: require("../assets/sprites/battle-ruined-citadel.webp"),
+  battleBackgroundSpiceBazaar: require("../assets/sprites/battle-spice-bazaar.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -834,6 +845,9 @@ export const food = {
   dishYuzuSherbet: require("../assets/food/dish-yuzu-sherbet.webp"),
   dishAbalonePorridge: require("../assets/food/dish-abalone-porridge.webp"),
   dishDragonFeast: require("../assets/food/dish-dragon-feast.webp"),
+  curryPowder: require("../assets/food/curry-powder.webp"),
+  goldenTurmeric: require("../assets/food/golden-turmeric.webp"),
+  dishCurryRice: require("../assets/food/dish-curry-rice.webp"),
 };
 
 // A stretchable UI frame: `insets` (source px: top, right, bottom, left) mark the rounded
@@ -1151,6 +1165,22 @@ export const comics = {
   apprenticeGini2: require("../assets/comics/apprentice-gini-2.webp"),
   apprenticeGini3: require("../assets/comics/apprentice-gini-3.webp"),
   apprenticeGini4: require("../assets/comics/apprentice-gini-4.webp"),
+  apprenticeGuard1: require("../assets/comics/apprentice-guard-1.webp"),
+  apprenticeGuard2: require("../assets/comics/apprentice-guard-2.webp"),
+  apprenticeGuard3: require("../assets/comics/apprentice-guard-3.webp"),
+  apprenticeGuard4: require("../assets/comics/apprentice-guard-4.webp"),
+  boxerEvolution1: require("../assets/comics/boxer-evolution-1.webp"),
+  boxerEvolution2: require("../assets/comics/boxer-evolution-2.webp"),
+  boxerEvolution3: require("../assets/comics/boxer-evolution-3.webp"),
+  boxerEvolution4: require("../assets/comics/boxer-evolution-4.webp"),
+  apprenticeWeak1: require("../assets/comics/apprentice-weak-1.webp"),
+  apprenticeWeak2: require("../assets/comics/apprentice-weak-2.webp"),
+  apprenticeWeak3: require("../assets/comics/apprentice-weak-3.webp"),
+  apprenticeWeak4: require("../assets/comics/apprentice-weak-4.webp"),
+  bazaarBound1: require("../assets/comics/bazaar-bound-1.webp"),
+  bazaarBound2: require("../assets/comics/bazaar-bound-2.webp"),
+  bazaarBound3: require("../assets/comics/bazaar-bound-3.webp"),
+  bazaarBound4: require("../assets/comics/bazaar-bound-4.webp"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.

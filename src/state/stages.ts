@@ -3,7 +3,7 @@ import type { EnemyKind, GameState } from "../types";
 // Groups stages by region/mood for BGM — several stages share one field+boss pair (see
 // sound.ts's bgm lookup). Not every group has tracks yet; sound.ts falls back to
 // "countryside" for any group still missing one.
-export type BgmGroupId = "countryside" | "tropical" | "desert" | "china" | "korea" | "japan" | "dragonPalace" | "europe" | "hauntedHouse" | "fantasy";
+export type BgmGroupId = "countryside" | "tropical" | "desert" | "china" | "korea" | "japan" | "dragonPalace" | "europe" | "hauntedHouse" | "fantasy" | "india";
 
 export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   // 뒷산~부잣집 주방
@@ -54,6 +54,8 @@ export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   bee: "fantasy",
   angryCandyBasketSlime: "fantasy",
   thiefCrow: "fantasy",
+  // 인도 향신료 바자르: a new region past the dragon's lair.
+  spiceElephant: "india",
 };
 
 export const ENEMY_NAME: Record<EnemyKind, string> = {
@@ -96,6 +98,7 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   bee: "꿀벌",
   angryCandyBasketSlime: "분노한 사탕바구니 슬라임",
   thiefCrow: "도둑 까마귀",
+  spiceElephant: "향신료 꼬마코끼리",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -138,6 +141,7 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   bee: "여왕벌",
   angryCandyBasketSlime: "그리핀",
   thiefCrow: "배고픈 드래곤",
+  spiceElephant: "커리 호랑이 셰프",
 };
 
 // The one-liner under the boss's name on its entrance banner (BossEntranceBanner) — the
@@ -182,6 +186,7 @@ export const BOSS_TAGLINE: Record<EnemyKind, string> = {
   bee: "호박 냄새를 맡았구나! 한 방울도 못 가져가!",
   angryCandyBasketSlime: "날개 바람에 날아가기 전에 끝내자!",
   thiefCrow: "그리핀만 한 위엄이야! 그래도 음식은 돌려받자!",
+  spiceElephant: "웍을 휘두르는 호랑이라니, 매운맛 좀 보자!",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -228,14 +233,20 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "꿀향기 귀갓길", enemyKind: "bee", story: "호박등 숲에서 챙긴 호박을 들고 돌아가던 기니들. 달콤한 호박 냄새를 맡은 꿀벌 떼가 벌집을 나와 바짝 뒤쫓고, 길목에는 여왕벌이 날아든다." },
   { area: "기니 대도시 귀환길", enemyKind: "angryCandyBasketSlime", story: "기니 대도시로 돌아온 일행 앞에 호박죽 냄새를 따라온 분노한 사탕바구니 슬라임이 나타난다. 죽 냄비를 노리고 광장에 내려앉은 그리핀까지 막아야 한다." },
   { area: "무너진 성채", enemyKind: "thiefCrow", story: "그리핀의 등에 올라 용을 찾아 떠난 기니들. 무너진 성채에는 훔친 식재료를 나르는 도둑 까마귀들과 음식을 숨겨 둔 배고픈 드래곤이 기다리고 있다." },
+  { area: "인도 향신료 바자르", enemyKind: "spiceElephant", story: "용의 보물창고에서 찢겨나간 요리책 마지막 장을 발견한 기니들이 향신료 냄새를 따라 닿은 시끌벅적한 바자르. 터번 두른 꼬마코끼리들이 향신료 자루를 코로 슬쩍하고 다닌다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;
 
-// Stages whose boss has been beaten at least once. Saves from before this was tracked
-// count every stage below the furthest one reached — those bosses had to fall to get there.
-export function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highestStageNumber" | "stageNumber">) {
-  return state.bossesCleared ?? Array.from({ length: state.highestStageNumber ?? state.stageNumber }, (_, index) => index);
+// Stages whose boss has been beaten at least once. Saves from before this was tracked count
+// every stage below the furthest one reached — those bosses had to fall to get there. Past
+// the first loop, that "furthest one reached" has to be every stage there is (same reasoning
+// as getPeakAreaStage below): highestStageNumber re-locks to 0 on each loop's wrap, so reading
+// it straight here would make a legacy save's first-clear rewards/comics replay every loop.
+export function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highestStageNumber" | "stageNumber" | "loopsCompleted">) {
+  if (state.bossesCleared) return state.bossesCleared;
+  const peak = (state.loopsCompleted ?? 0) > 0 ? LAST_STAGE_NUMBER : (state.highestStageNumber ?? state.stageNumber);
+  return Array.from({ length: peak }, (_, index) => index);
 }
 
 // Clearing the last stage's boss loops back to stage 1 (stageNumber resets, see
@@ -246,6 +257,18 @@ export function getClearedBosses(state: Pick<GameState, "bossesCleared" | "highe
 // tough as stage 40 would be.
 export function getDifficultyStage(stageNumber: number, loopsCompleted: number) {
   return stageNumber + loopsCompleted * (LAST_STAGE_NUMBER + 1);
+}
+
+// The difficulty actually used for combat/rewards right now: full current-loop scaling while
+// at or past the furthest stage reached this loop, but dropped back to that stage's very own
+// first-loop baseline once MilestoneScreen's "이동" has walked you behind your frontier — so a
+// maxed-out save can deliberately 양학 (farm) an early stage's drops at that stage's own HP/exp/
+// gold instead of the current loop's inflated ones. No history has to be stored for this: it's
+// just which of the two inputs getDifficultyStage already takes to use, picked fresh each time
+// off stageNumber vs. highestStageNumber (both already tracked).
+export function getEffectiveDifficultyStage(state: Pick<GameState, "stageNumber" | "highestStageNumber" | "loopsCompleted">) {
+  const frontier = state.highestStageNumber ?? state.stageNumber;
+  return getDifficultyStage(state.stageNumber, state.stageNumber < frontier ? 0 : (state.loopsCompleted ?? 0));
 }
 
 // The furthest story stage ever reached, across every loop. highestStageNumber itself

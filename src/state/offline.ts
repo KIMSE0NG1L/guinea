@@ -1,5 +1,5 @@
 import type { GameState } from "../types";
-import { getDifficultyStage, getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, STAGE_KILL_TARGET } from "./stages";
+import { getEffectiveDifficultyStage, getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, STAGE_KILL_TARGET } from "./stages";
 import { getExpReward, getExpToLevel, getGoldReward } from "./gameMath";
 import { DILIGENT_OFFLINE_BONUS } from "./skills";
 import { getBuffTotals, OUTFIT_BUFFS, OUTFIT_FIRST_STRIKE, OUTFIT_NO_OFFLINE } from "./buffs";
@@ -84,8 +84,10 @@ export function simulateOfflineProgress(
   let expGained = 0;
 
   // Same reasoning as useGameState's own difficultyStage: never drops back to stage-1
-  // strength just because the area art looped.
-  const difficultyStage = getDifficultyStage(state.stageNumber, state.loopsCompleted ?? 0);
+  // strength just because the area art looped — unless you'd deliberately walked back there
+  // (see getEffectiveDifficultyStage), in which case offline progress stays just as easy/cheap
+  // as it would be live.
+  const difficultyStage = getEffectiveDifficultyStage(state);
   const enemyMaxHp = getEnemyMaxHp(difficultyStage, false);
 
   for (const segment of segments) {

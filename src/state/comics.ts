@@ -21,7 +21,21 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase" | "giniReturn" | "griffinFlight" | "ending" | "apprenticeGini";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase" | "giniReturn" | "griffinFlight" | "ending" | "bazaarBound" | "apprenticeGini" | "apprenticeWeak" | "apprenticeGuard" | "boxerEvolution";
+
+// Loop-gated story beats: each fires once, in GameScreen's comic chain, the first time
+// `loopsCompleted` equals `afterLoop` and (if given) `stageNumber` has passed `afterStage` —
+// i.e. "that stage's (0-based) boss, cleared during that specific loop." `afterStage` omitted
+// means "that loop's very last boss, whichever stage that currently is" (stays correct no
+// matter how many stages get appended after today's last one). apprenticeGini is NOT here —
+// it chains directly off the "ending" comic closing (see GameScreen), not off persisted state.
+// Add a row for the next loop's beat here instead of wiring up another one-off effect.
+export type LoopComic = { comic: ComicId; afterLoop: number; afterStage?: number };
+export const LOOP_COMICS: LoopComic[] = [
+  { comic: "apprenticeWeak", afterLoop: 1, afterStage: 5 }, // 평범한 마을 (stage 6): first real fight, goes badly
+  { comic: "apprenticeGuard", afterLoop: 1, afterStage: 22 }, // 수군 포구 (stage 23): the rescue
+  { comic: "boxerEvolution", afterLoop: 2 }, // second loop's last boss: evolves into 복서기니
+];
 
 export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = {
   // Before the first battle: hay again → grandma's golden carrot → the mouse snatches it →
@@ -1518,6 +1532,39 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  // Stage 39 (0-based) — 무너진 성채. 용을 잡고(1) → 낯선 냄새를 따라 떠나(2) → 바자르에
+  // 도착해서(3) → 호랑이 셰프와 시비가 붙는(4) 데까지, 한 편으로. 다음 스테이지(40, 인도
+  // 향신료 바자르)에서 그 싸움을 직접 겪고, 그 스테이지를 클리어하면 "ending"이 이어진다.
+  bazaarBound: {
+    title: "낯선 향기를 따라서",
+    panels: [
+      {
+        image: comics.bazaarBound1,
+        aspect: 504 / 760,
+        sfx: "levelup",
+        bubbles: [{ text: "드디어...\n잡았다!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.7, shout: true }],
+      },
+      {
+        image: comics.bazaarBound2,
+        aspect: 504 / 760,
+        bubbles: [{ text: "어? 이 냄새는...\n따라가 보자!", left: 0.02, top: 0.02, maxWidth: 0.44, tail: "bottom", tailAt: 0.7 }],
+      },
+      {
+        image: comics.bazaarBound3,
+        aspect: 504 / 760,
+        bubbles: [{ text: "오, 바로 여기였구나!", left: 0.02, top: 0.02, maxWidth: 0.42, tail: "bottom", tailAt: 0.7 }],
+      },
+      {
+        image: comics.bazaarBound4,
+        aspect: 504 / 760,
+        sfx: "bossEnter",
+        bubbles: [
+          { text: "내 바자르에서\n뭘 찾는 거지?", right: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.3 },
+          { text: "이 레시피,\n돌려받아야겠어!", left: 0.0, top: 0.68, maxWidth: 0.36, tail: "top", tailAt: 0.6, shout: true },
+        ],
+      },
+    ],
+  },
   // Plays once, right after "ending" — the first time stageNumber loops back to stage 1
   // (see useGameState's loopsCompleted). The feast's smell draws the village's 아가기니 to
   // the fence; one works up the nerve to ask along. It's this one who tags along from the
@@ -1555,6 +1602,134 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
         bubbles: [
           { text: "저도... 같이 가도 될까요?", left: 0.02, top: 0.03, maxWidth: 0.42, tail: "bottom", tailAt: 0.7 },
           { text: "그래, 같이 가자!", right: 0.02, top: 0.68, maxWidth: 0.34, tail: "top", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
+  // Fires once: the second loop's 평범한 마을 boss (LOOP_COMICS, stage 6) clear —
+  // see GameScreen's comic chain. 견습기니's first real taste of actually fighting instead of
+  // just tagging along, and it does not go well — sets up the contrast for apprenticeGuard's
+  // stage-23 turn and boxerEvolution's training arc later this same loop.
+  apprenticeWeak: {
+    title: "무력한 아가기니",
+    panels: [
+      {
+        image: comics.apprenticeWeak1,
+        aspect: 504 / 760,
+        bubbles: [
+          { text: "쥐들이 많아!\n조심해!", right: 0.0, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.3, shout: true },
+          { text: "나도...\n싸울 수 있어!", left: 0.0, top: 0.55, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.apprenticeWeak2,
+        aspect: 504 / 760,
+        sfx: "hit",
+        shake: true,
+        bubbles: [{ text: "으앗...?!", left: 0.02, top: 0.4, maxWidth: 0.3, tail: "bottom", tailAt: 0.5, shout: true }],
+      },
+      {
+        image: comics.apprenticeWeak3,
+        aspect: 504 / 760,
+        sfx: "crit",
+        shake: true,
+        bubbles: [
+          { text: "히익!", left: 0.0, top: 0.02, maxWidth: 0.22, tail: "bottom", tailAt: 0.6, shout: true },
+          { text: "저리 가!", right: 0.0, top: 0.02, maxWidth: 0.28, tail: "bottom", tailAt: 0.4, shout: true },
+        ],
+      },
+      {
+        image: comics.apprenticeWeak4,
+        aspect: 504 / 760,
+        bubbles: [
+          { text: "나는...\n역시 도움이 안 되나 봐.", left: 0.0, top: 0.02, maxWidth: 0.38, tail: "bottom", tailAt: 0.6 },
+          { text: "천천히 하면 돼.\n급할 거 없어.", right: 0.0, top: 0.68, maxWidth: 0.4, tail: "top", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
+  // Fires once: the second loop's 수군 포구 boss (LOOP_COMICS, stage 23) clear —
+  // see GameScreen's comic chain. 견습기니's been tagging along quietly since joining at the
+  // start of this loop, never once in the thick of a fight; here the pirate captain's tentacle
+  // comes in from 모험기니's blind side and the "weak" one is the one who actually stops it.
+  apprenticeGuard: {
+    title: "수군 포구의 작은 방패",
+    panels: [
+      {
+        image: comics.apprenticeGuard1,
+        aspect: 504 / 760,
+        bubbles: [
+          { text: "해적선장이다!\n이번에도 내가 처리할게!", right: 0.02, top: 0.03, maxWidth: 0.44, tail: "bottom", tailAt: 0.4 },
+          { text: "나는... 그냥 뒤에 있을게...", left: 0.0, top: 0.42, maxWidth: 0.3, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.apprenticeGuard2,
+        aspect: 504 / 760,
+        sfx: "hit",
+        shake: true,
+        bubbles: [{ text: "하압—!!", left: 0.02, top: 0.03, maxWidth: 0.3, tail: "bottom", tailAt: 0.7, shout: true }],
+      },
+      {
+        image: comics.apprenticeGuard3,
+        aspect: 504 / 760,
+        sfx: "crit",
+        shake: true,
+        bubbles: [
+          { text: "견습기니?!", left: 0.02, top: 0.02, maxWidth: 0.34, tail: "bottom", tailAt: 0.75, shout: true },
+          { text: "내, 내가 막을게...!", left: 0.3, top: 0.68, maxWidth: 0.4, tail: "top", tailAt: 0.3, shout: true },
+        ],
+      },
+      {
+        image: comics.apprenticeGuard4,
+        aspect: 504 / 760,
+        sfx: "levelup",
+        bubbles: [
+          { text: "...너 하나도\n안 약하잖아.", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.7 },
+          { text: "에헤헤...\n나도 도움이 됐지?", right: 0.02, top: 0.68, maxWidth: 0.4, tail: "top", tailAt: 0.3 },
+        ],
+      },
+    ],
+  },
+  // Fires once: the moment loopsCompleted ticks past 2 — i.e. the very last boss of the
+  // second loop falls, whichever stage that currently is (see GameScreen's comic chain; no
+  // stage number is hardcoded here on purpose, since new stages keep getting appended to the
+  // far end and today's "last boss" won't stay the last boss). 복서기니 has never had a join
+  // story of its own (it's gem-bought, not stage-unlocked — see unlocks.ts) — this comic
+  // quietly adopts it as who 견습기니 trains into after two full loops at 아가기니's side.
+  boxerEvolution: {
+    title: "복서기니의 탄생",
+    panels: [
+      {
+        image: comics.boxerEvolution1,
+        aspect: 504 / 760,
+        sfx: "levelup",
+        bubbles: [
+          { text: "해냈다!\n또 한 바퀴 다 돌았어!", left: 0.02, top: 0.02, maxWidth: 0.42, tail: "bottom", tailAt: 0.7, shout: true },
+          { text: "나도... 더 강해지고 싶어.", right: 0.0, top: 0.5, maxWidth: 0.36, tail: "bottom", tailAt: 0.4 },
+        ],
+      },
+      {
+        image: comics.boxerEvolution2,
+        aspect: 504 / 760,
+        sfx: "hit",
+        shake: true,
+        bubbles: [{ text: "하나 더...!\n하나만 더!!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.6, shout: true }],
+      },
+      {
+        image: comics.boxerEvolution3,
+        aspect: 504 / 760,
+        sfx: "levelup",
+        shake: true,
+        bubbles: [{ text: "이 빛은 뭐야?!", left: 0.02, top: 0.02, maxWidth: 0.34, tail: "bottom", tailAt: 0.8, shout: true }],
+      },
+      {
+        image: comics.boxerEvolution4,
+        aspect: 504 / 760,
+        sfx: "bossEnter",
+        bubbles: [
+          { text: "우와...\n진짜 복서기니가 됐구나!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.7 },
+          { text: "이제부턴\n내 주먹도 믿어봐!", right: 0.02, top: 0.68, maxWidth: 0.4, tail: "top", tailAt: 0.3, shout: true },
         ],
       },
     ],
@@ -1601,26 +1776,46 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   35: "beeChase",
   36: "giniReturn",
   37: "griffinFlight",
-  // Whichever stage is last stays dynamic as new regions get added — the ending always
-  // plays off beating the last one's boss, not off a hardcoded stage number.
+  // 38 (무너진 성채): the dragon falls, and the comic itself carries straight on into finding
+  // the hoard's torn page, following its scent, and the confrontation with 40's boss waiting
+  // at the bazaar (see COMICS.bazaarBound) — a normal first-clear entry, nothing dynamic.
+  38: "bazaarBound",
+  // 39 (인도 향신료 바자르): "ending" plays here because it's CURRENTLY the true last stage —
+  // keyed dynamically so it always follows the real frontier, not pinned to this number. The
+  // next time a stage ships past this one, write that stage's own bridge comic (same shape as
+  // bazaarBound above: wherever 39's fight leaves off, through to arriving at and clashing
+  // with the new area's boss) and this key keeps pointing at "ending" with zero edits here —
+  // only GameScreen's apprenticeGini chain (tied to the actual loop-wrap stage) needs
+  // re-pointing by hand when that happens.
   [LAST_STAGE_NUMBER]: "ending",
 };
 
-// Story order, for the album: the opening, then each by the stage that unlocks it.
-// apprenticeGini isn't keyed to a stage (it fires once off looping back to stage 1 — see
-// GameScreen's comic chain), so it's appended by hand right after "ending", which it follows.
+// Story order, for the album: the opening, then each by the stage that unlocks it. "ending"
+// and "bazaarBound" are both normal stage-keyed entries now (dynamic and 38, respectively) so
+// they're included automatically below — only apprenticeGini/apprenticeWeak/apprenticeGuard/
+// boxerEvolution (loop-specific triggers, not stage-keyed) are appended by hand.
 export const COMIC_ORDER: ComicId[] = [
   "opening",
   ...(Object.entries(COMIC_ON_FIRST_CLEAR) as [string, ComicId][])
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([, id]) => id),
   "apprenticeGini",
+  "apprenticeWeak",
+  "apprenticeGuard",
+  "boxerEvolution",
 ];
 
 // What opens a comic, for the album's locked cards.
 export function getComicUnlockLabel(id: ComicId) {
   if (id === "opening") return "게임 시작";
   if (id === "apprenticeGini") return "2회차를 시작하면 열려요";
+  const loopComic = LOOP_COMICS.find((entry) => entry.comic === id);
+  if (loopComic) {
+    const loopLabel = `${loopComic.afterLoop + 1}회차`;
+    return loopComic.afterStage === undefined
+      ? `${loopLabel}의 마지막 보스를 잡으면 열려요`
+      : `${loopLabel}에 ${loopComic.afterStage + 1}스테이지 보스를 잡으면 열려요`;
+  }
   const stage = Object.entries(COMIC_ON_FIRST_CLEAR).find(([, comic]) => comic === id)?.[0];
   return stage === undefined ? "" : `${Number(stage) + 1}스테이지 보스를 처음 잡으면 열려요`;
 }

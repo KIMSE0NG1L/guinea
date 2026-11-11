@@ -32,7 +32,7 @@ import { SkillTutorial } from "./components/SkillTutorial";
 import { CookCompleteBurst } from "./components/CookCompleteBurst";
 import { FlightLayer, launchFlight } from "./components/FlightLayer";
 import { ComicViewer } from "./components/ComicViewer";
-import { COMIC_ON_FIRST_CLEAR, type ComicId } from "./state/comics";
+import { COMIC_ON_FIRST_CLEAR, LOOP_COMICS, type ComicId } from "./state/comics";
 import { ComicsScreen } from "./screens/ComicsScreen";
 import { measureTarget } from "./components/tutorialTargets";
 import type { CookGrade } from "./state/buffs";
@@ -177,6 +177,23 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     const timer = setTimeout(() => setComicPaused(next), 0);
     return () => clearTimeout(timer);
   }, [openingComicShowing, playingComic]);
+  // Loop-gated story beats (comics.ts's LOOP_COMICS table: apprenticeWeak, apprenticeGuard,
+  // boxerEvolution, and whatever's added for later loops) — the first entry whose loop/stage
+  // condition is currently met and hasn't played yet. Derived straight from persisted state
+  // (loopsCompleted/stageNumber/seenComics), so it survives an app restart like every other
+  // derived "showing" flag here, and a new loop's beat is just another row in that table.
+  const dueLoopComic =
+    LOOP_COMICS.find(
+      (entry) =>
+        (state.loopsCompleted ?? 0) === entry.afterLoop &&
+        (entry.afterStage === undefined || state.stageNumber > entry.afterStage) &&
+        !(state.seenComics ?? []).includes(entry.comic),
+    )?.comic ?? null;
+  useEffect(() => {
+    if (!dueLoopComic || playingComic || openingComicShowing || game.firstClear) return;
+    const timer = setTimeout(() => setPlayingComic(dueLoopComic), 0);
+    return () => clearTimeout(timer);
+  }, [dueLoopComic, playingComic, openingComicShowing, game.firstClear]);
   const markComicSeen = (id: ComicId) =>
     setState((previous) => ({ ...previous, seenComics: [...new Set([...(previous.seenComics ?? []), id])] }));
   const collectCount = useRef(0);
@@ -486,7 +503,10 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
               markComicSeen(playingComic);
               // "ending" and "apprenticeGini" both fire off the same last-boss kill (the
               // loop back to stage 1) — chain straight into the second one rather than
-              // relying on a second independent trigger landing in the same tick.
+              // relying on a second independent trigger landing in the same tick. "ending"
+              // itself is keyed dynamically to LAST_STAGE_NUMBER (comics.ts), so this needs
+              // no edits when a new stage takes over the frontier — only comics.ts's mapping
+              // (and that new stage's own bridge comic, the next bazaarBound) does.
               const next = playingComic === "ending" && !(state.seenComics ?? []).includes("apprenticeGini") ? "apprenticeGini" : null;
               setPlayingComic(next);
             }}

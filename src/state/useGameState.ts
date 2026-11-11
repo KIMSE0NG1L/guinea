@@ -29,7 +29,7 @@ import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
 import { getOutfitGemPrice, getOutfitsUnlockedByStage, getUnlocksAtLevel, isOutfitUnlocked, isSkillUnlocked, syncStageUnlockedOutfits } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
-import { BOSS_NAME, getClearedBosses, BOSS_PHASE_TWO_HP_MULTIPLIER, getDifficultyStage, getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
+import { BOSS_NAME, getClearedBosses, BOSS_PHASE_TWO_HP_MULTIPLIER, getDifficultyStage, getEffectiveDifficultyStage, getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, GRADE_DURATION_MS, GRADE_GOLD_MULTIPLIER, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals, peekGrade, pushGrade, shiftGrade, type CookGrade } from "./buffs";
 import { GROCERY, applyDiscount, getSellPrice, getShortfall } from "./grocery";
@@ -175,8 +175,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
   const [announcedStageNumber, setAnnouncedStageNumber] = useState(state.stageNumber);
   // Enemies get tougher each stage so progression isn't flat — tuned in stages.ts. Scaled
   // off difficultyStage rather than the raw (looping) stageNumber, so a second lap around
-  // the map doesn't knock enemies back down to stage-1 strength.
-  const difficultyStage = getDifficultyStage(state.stageNumber, state.loopsCompleted ?? 0);
+  // the map doesn't knock enemies back down to stage-1 strength — unless you deliberately
+  // walked back there yourself (MilestoneScreen's "이동"), which getEffectiveDifficultyStage
+  // treats as an intentional 양학 farming trip instead. See its own comment in stages.ts.
+  const difficultyStage = getEffectiveDifficultyStage(state);
   // Grocery/recipe/sell prices key off the furthest stage of this loop (so walking back
   // to an earlier stage can't buy things cheap) rather than wherever you're currently
   // standing — same idea as difficultyStage, just against highestStageNumber instead.
@@ -346,7 +348,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           setMiniBoss(true);
           setGoldenMini(isGoldenMiniBoss(loadedState.stageNumber, loadedState.stageMiniBosses ?? 0, getMiniBossSalt(loadedState)));
         }
-        battle.resetEnemy(getEnemyMaxHp(getDifficultyStage(loadedState.stageNumber, loadedState.loopsCompleted ?? 0), bossDue) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
+        battle.resetEnemy(getEnemyMaxHp(getEffectiveDifficultyStage(loadedState), bossDue) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
         // A first-clear celebration that was still open when the game closed comes back.
         // Always today's amount — a celebration saved before the reward changed still carries
         // its old gem count.
@@ -497,7 +499,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       setBossTimerStartedAt(null);
       setState((previous) => {
         let level = previous.level;
-        let experience = previous.experience + Math.round(getExpReward(getDifficultyStage(previous.stageNumber, previous.loopsCompleted ?? 0), true) * (1 + expBonus / 100));
+        let experience = previous.experience + Math.round(getExpReward(getEffectiveDifficultyStage(previous), true) * (1 + expBonus / 100));
         while (experience >= getExpToLevel(level)) {
           experience -= getExpToLevel(level);
           level += 1;
@@ -590,6 +592,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       bossesCleared: state.bossesCleared,
       highestStageNumber: state.highestStageNumber,
       stageNumber: state.stageNumber,
+      loopsCompleted: state.loopsCompleted,
     }).includes(state.stageNumber);
     if (firstClear) {
       const pending = {
@@ -617,7 +620,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
 
       const kills = previous.kills + 1;
       let level = previous.level;
-      const killDifficultyStage = getDifficultyStage(previous.stageNumber, previous.loopsCompleted ?? 0);
+      const killDifficultyStage = getEffectiveDifficultyStage(previous);
       const expReward = Math.round(getExpReward(Math.max(0, killDifficultyStage - (wasStray ? 1 : 0)), boss) * (1 + expBonus / 100) * (wasMiniBoss ? MINI_BOSS_EXP_MULTIPLIER : 1));
       let experience = previous.experience + expReward;
       while (experience >= getExpToLevel(level)) {
@@ -672,7 +675,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         experience,
       };
     });
-  }, [boss, bossPhase, bossHasPhaseTwo, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained, bossTimeLimitMs, state.buffSlots, state.stageStars]);
+  }, [boss, bossPhase, bossHasPhaseTwo, miniBoss, goldenMini, strayKind, state.stageKills, state.stageMiniBosses, state.bossKills, state.runSeed, state.stageNumber, state.inventory, state.bagExpansions, state.bossesCleared, state.highestStageNumber, state.loopsCompleted, state.purchasedOutfits, state.equippedOutfit, dropRate, vegetableDrop, seafoodDrop, dropDouble, bossDropSure, expBonus, startBossFight, state.giftKills, state.giftLootExplained, bossTimeLimitMs, state.buffSlots, state.stageStars]);
 
   // Gold that isn't a kill reward (the Steal skill) still counts toward the gold quest.
   const addBonusGold = useCallback((amount: number) => {
@@ -1137,7 +1140,10 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       setMiniBoss(true);
       setGoldenMini(isGoldenMiniBoss(stageNumber, targetMinis, getMiniBossSalt(state)));
     }
-    battle.resetEnemy(getEnemyMaxHp(getDifficultyStage(stageNumber, state.loopsCompleted ?? 0), false) * (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1));
+    battle.resetEnemy(
+      getEnemyMaxHp(getEffectiveDifficultyStage({ stageNumber, highestStageNumber, loopsCompleted: state.loopsCompleted }), false) *
+        (miniDue ? MINI_BOSS_HP_MULTIPLIER : 1),
+    );
   };
 
   // Dev-convenience shortcut from the settings menu: a golden mid-boss right now, in place of

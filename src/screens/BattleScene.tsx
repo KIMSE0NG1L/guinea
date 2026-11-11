@@ -102,6 +102,7 @@ const BOSS_SIZE: Record<EnemyKind, number> = {
   bee: 152,
   angryCandyBasketSlime: 170,
   thiefCrow: 180,
+  spiceElephant: 160,
 };
 
 // Regular mobs render at a flat 108px by default; override here for the rare mob whose
@@ -159,6 +160,7 @@ const AMBIENCE: Record<EnemyKind, MotePreset> = {
   bee: "honey",
   angryCandyBasketSlime: "dust",
   thiefCrow: "embers",
+  spiceElephant: "dust",
 };
 
 const BACKGROUND: Record<EnemyKind, number> = {
@@ -201,6 +203,7 @@ const BACKGROUND: Record<EnemyKind, number> = {
   bee: images.battleBackgroundHoneyTrail,
   angryCandyBasketSlime: images.battleBackgroundGiniMetropolis,
   thiefCrow: images.battleBackgroundRuinedCitadel,
+  spiceElephant: images.battleBackgroundSpiceBazaar,
 };
 
 // Scene geometry the drop animation needs, measured from the sky's bottom-right corner.

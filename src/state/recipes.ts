@@ -443,6 +443,18 @@ const RECIPE_DEFS: RecipeDef[] = [
     ],
   },
   {
+    id: "curry-rice",
+    name: "카레라이스",
+    description: "용의 보물창고에서 찾은 요리책 마지막 장, 그 레시피.",
+    image: food.dishCurryRice,
+    tier: "legendary",
+    ingredients: [
+      { name: "커리가루", quantity: 2 },
+      { name: "쌀", quantity: 1 },
+      { name: "황금 강황", quantity: 1 },
+    ],
+  },
+  {
     id: "barley-tea",
     name: "구수한 보리차",
     description: "볶은 보리를 우려 구수하고 따뜻한 한 잔.",
@@ -678,6 +690,8 @@ export const ITEM_IMAGES: Record<string, number> = {
   "무": food.radish,
   "유자": food.yuzu,
   "전복": food.abalone,
+  "커리가루": food.curryPowder,
+  "황금 강황": food.goldenTurmeric,
   ...Object.fromEntries(RECIPES.map((recipe) => [recipe.name, recipe.image])),
 };
 

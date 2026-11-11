@@ -92,6 +92,7 @@ const EFFECTS: Record<string, { effect: BuffEffect; tint: string }> = {
   "yuzu-sherbet": { effect: { offlineBuffs: 1, offlineGold: 60 }, tint: "#f6d76a" },
   "abalone-porridge": { effect: { exp: 50, attack: 40 }, tint: "#cfd6b8" },
   "dragon-feast": { effect: { bossDropSure: 1, attack: 80, gold: 60, dropDouble: 25 }, tint: "#f3c36a" },
+  "curry-rice": { effect: { attack: 60, bossDamage: 50 }, tint: "#f0a030" },
   "barley-tea": { effect: { exp: 8, attackSpeed: 5 }, tint: "#e2b98a" },
   "mango-smoothie": { effect: { attackSpeed: 15, gold: 12 }, tint: "#fcd36a" },
   "grilled-sardine": { effect: { seafoodDrop: 25, criticalChance: 5 }, tint: "#c9d4dc" },

@@ -535,6 +535,17 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "우유", chance: 0.55 },
     ],
   },
+  // 인도 향신료 바자르: 꼬마코끼리들이 흘리고 다니는 커리가루; 커리 호랑이 셰프는 비장의
+  // 황금 강황까지 내놓는다.
+  spiceElephant: {
+    mob: [
+      { name: "커리가루", chance: 0.35 },
+    ],
+    boss: [
+      { name: "커리가루", chance: 1, quantity: 2 },
+      { name: "황금 강황", chance: 0.4 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.

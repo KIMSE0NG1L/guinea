@@ -31,6 +31,33 @@ export function getZoneWidth(tier: RecipeTier, cookSpeedPercent: number): number
   return Math.min(0.7, MINIGAME_DIFFICULTY[tier].zoneWidth * (1 + cookSpeedPercent / 100));
 }
 
+// The sweep speeds up round over round within one cook — round 1 is the tier's base pace,
+// round 3 noticeably brisker — so the three stops build tension instead of repeating the
+// same timing three times.
+const ROUND_SWEEP_MULT = [1, 0.9, 0.78];
+export function getRoundSweepMs(baseSweepMs: number, round: number): number {
+  return Math.round(baseSweepMs * ROUND_SWEEP_MULT[round]);
+}
+
+// Only the last round's zone drifts — a moving target instead of a static one, turning the
+// final stop into the cook's climax. The margin is how far the center can wander either way;
+// randomZoneCenter's own `margin` param keeps the base center far enough from each edge that
+// drifting by this much never pushes the zone off the 0–1 track.
+const DRIFT_ROUND = MINIGAME_ROUNDS - 1;
+const DRIFT_PERIOD_MS = 2600;
+export function isDriftingRound(round: number): boolean {
+  return round === DRIFT_ROUND;
+}
+export function getDriftMargin(zoneWidth: number): number {
+  return ((1 - zoneWidth) / 2) * 0.55;
+}
+// Where the zone's center actually sits at `elapsedMs`, oscillating ± `margin` around
+// `baseCenter` on a sine wave. `margin` 0 (non-drifting rounds) collapses to `baseCenter`.
+export function driftingZoneCenter(elapsedMs: number, baseCenter: number, margin: number): number {
+  if (margin === 0) return baseCenter;
+  return baseCenter + Math.sin((elapsedMs / DRIFT_PERIOD_MS) * Math.PI * 2) * margin;
+}
+
 // Where the sweeping indicator sits (0–1) at `elapsedMs` into a round: a linear ping-pong
 // (triangle wave), one-way trip `sweepMs`. Gameplay-critical, so this is a pure function of
 // wall-clock time rather than a Reanimated shared value — see CookingMinigame.tsx.
@@ -40,10 +67,13 @@ export function sweepPosition(elapsedMs: number, sweepMs: number): number {
   return t <= sweepMs ? t / sweepMs : 2 - t / sweepMs;
 }
 
-// A random zone center, never flush against either end of the track.
-export function randomZoneCenter(zoneWidth: number): number {
-  const half = zoneWidth / 2;
-  return half + Math.random() * (1 - zoneWidth);
+// A random zone center, never flush against either end of the track. `margin` (the drifting
+// round's sine amplitude — see driftingZoneCenter) pulls the valid range in further still, so
+// the drift itself never carries the zone off the track.
+export function randomZoneCenter(zoneWidth: number, margin = 0): number {
+  const half = zoneWidth / 2 + margin;
+  if (half >= 0.5) return 0.5;
+  return half + Math.random() * (1 - half * 2);
 }
 
 // Classifies one stop: `stop` and `zoneCenter` are both 0–1 track positions.
