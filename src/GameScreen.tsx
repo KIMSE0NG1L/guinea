@@ -415,7 +415,9 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
   return (
     <View style={styles.shell}>
       <StatusBar barStyle="light-content" />
-      <SafeAreaView style={styles.frame} edges={["top", "bottom"]}>
+      {/* Only the top inset is padded here: the bottom nav runs down into the home-indicator
+          area itself (see BottomNavigation), so no strip of bare background shows under it. */}
+      <SafeAreaView style={styles.frame} edges={["top"]}>
         <GameHeader
           state={state}
           onReset={game.resetSave}
@@ -517,13 +519,14 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
         )}
         {/* First gift kill (after the intro): the loot sits frozen on the stage while 모험기니
             explains it — gold first, then ingredients — and each tap sends that part flying
-            where it belongs. No arrows; the flight itself shows where it goes. */}
+            where it belongs. The gold pile gets a bouncing arrow over it; the flight shows where it goes. */}
         {game.heldLoot && (game.heldLoot.stage === "gold" || game.heldLoot.stage === "items") && state.selectedTab === "battle" && (
           <MiniGuide
             key={game.heldLoot.stage}
             // The loot itself sits on the stage under this guide — tapping it (or anywhere)
             // picks it up, not just the speech bubble.
             tapAnywhere
+            topic={game.heldLoot.stage === "gold" ? { feature: "전리품", detail: "골드 줍기" } : { feature: "전리품", detail: "재료 모으기" }}
             line={
               game.heldLoot.stage === "gold"
                 ? "쓰러뜨렸다! 몬스터가 **골드**를 떨어뜨렸어.\n눌러서 **골드 칸**에 담아 보자!"
@@ -581,6 +584,7 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             for as long as 훔치기's tap window runs. */}
         {stealHintShowing && (
           <MiniGuide
+            topic={{ feature: "스킬", detail: "훔치기 쓰는 중" }}
             line={"지금 **화면을 연타**해서 공격해 봐!\n때릴 때마다 **골드**가 튀어나와. 다 쓰면\n3분 뒤에 다시 쓸 수 있어."}
             onTap={() => setStealHint(false)}
           />

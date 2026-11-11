@@ -121,7 +121,7 @@ function StatRow({
           <Animated.View style={[styles.markFlash, flashStyle]} pointerEvents="none" />
         </Panel>
         <View style={styles.rowCopy}>
-          <Text style={styles.rowSmall}>Lv. {formatGameNumber(level)} · {info.label}</Text>
+          <Text style={styles.rowSmall}>{`Lv.${formatGameNumber(level)} ${info.label}`}</Text>
           <Text style={styles.rowValue}>{formatStat(value)}{suffix}</Text>
           {gains.map((gain) => (
             <FloatText key={gain.id} text={gain.text} style={styles.gainFloat} />

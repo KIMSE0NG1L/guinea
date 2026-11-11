@@ -1,8 +1,7 @@
 import { useEffect } from "react";
-import { StyleSheet, type StyleProp, type ViewStyle } from "react-native";
+import { Image, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
-import Svg, { Path } from "react-native-svg";
-import { colors } from "../theme";
+import { uiImages } from "../assets";
 
 export const ARROW_W = 38;
 export const ARROW_H = 44;
@@ -31,14 +30,14 @@ export function GuideArrow({ direction = "down", style }: { direction?: Directio
   });
   return (
     <Animated.View pointerEvents="none" style={[styles.arrow, style, animated]}>
-      <Svg width={ARROW_W} height={ARROW_H} viewBox="0 0 38 44">
-        <Path d="M12 3 H26 V22 H35 L19 41 L3 22 H12 Z" fill="#ffd34d" stroke={colors.line} strokeWidth={3} strokeLinejoin="round" />
-        <Path d="M15 6 H19 V24 H15 Z" fill="#fff3b8" opacity={0.8} />
-      </Svg>
+      {/* The art points right; turned a quarter so "down" is the base the rotation above starts from. */}
+      <Image source={uiImages.guideArrow} style={styles.image} />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  arrow: { position: "absolute", width: ARROW_W, height: ARROW_H, filter: "drop-shadow(0px 3px 2px rgba(10, 6, 3, 0.5))" },
+  arrow: { position: "absolute", width: ARROW_W, height: ARROW_H, alignItems: "center", justifyContent: "center", filter: "drop-shadow(0px 3px 2px rgba(10, 6, 3, 0.5))" },
+  // 256x201 art, as long as the box is tall once turned to point down.
+  image: { width: ARROW_H, height: ARROW_H * (201 / 256), resizeMode: "contain", transform: [{ rotate: "90deg" }] },
 });

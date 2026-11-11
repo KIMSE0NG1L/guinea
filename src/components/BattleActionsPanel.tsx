@@ -4,7 +4,6 @@ import { Text } from "./GameText";
 import { fonts } from "../theme";
 import { icons, uiImages } from "../assets";
 import { GameButton } from "./GameButton";
-import { AdBadge } from "./AdBadge";
 import { formatDuration } from "../state/buffs";
 
 export function BattleActionsPanel({
@@ -43,15 +42,17 @@ export function BattleActionsPanel({
         </View>
       </GameButton>
 
-      <View>
-        <GameButton variant={speedBoostActive ? "gray" : "beige"} disabled={speedBoostActive} onPress={onWatchAd} style={styles.action}>
+      {/* The ad clapper sits left of the text, inside the button — the same icon-then-text
+          layout as the auto-battle button beside it. */}
+      <GameButton variant={speedBoostActive ? "gray" : "beige"} disabled={speedBoostActive} onPress={onWatchAd} style={styles.action}>
+        <View style={styles.autoContent}>
+          {!speedBoostActive && <Image source={uiImages.adClapper} style={styles.adIcon} />}
           <View style={styles.stack}>
             <Text style={styles.actionSmall}>{speedBoostActive ? "2배속 중" : "광고 보고"}</Text>
             <Text style={styles.actionLabel}>{speedBoostActive ? formatDuration(speedBoostRemainingMs) : "2배속"}</Text>
           </View>
-        </GameButton>
-        {!speedBoostActive && <AdBadge />}
-      </View>
+        </View>
+      </GameButton>
     </View>
   );
 }
@@ -65,6 +66,8 @@ const styles = StyleSheet.create({
   action: { width: ACTION_WIDTH, minHeight: 50, paddingHorizontal: 8 },
   autoContent: { flexDirection: "row", alignItems: "center", gap: 4 },
   autoIcon: { width: 16, height: 16 },
+  // Clapper art is 219x256.
+  adIcon: { width: 22, height: 26, resizeMode: "contain" },
   stack: { alignItems: "center" },
   actionSmall: { fontSize: 12, fontWeight: "800", fontFamily: fonts.bold, color: "#4f463c" },
   actionSmallOnGreen: { color: "#2f4a16" },

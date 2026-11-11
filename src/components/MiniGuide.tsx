@@ -4,7 +4,7 @@ import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "
 import { colors, fonts } from "../theme";
 import { CharacterSprite } from "./CharacterSprite";
 import { ARROW_H, ARROW_W, GuideArrow } from "./GuideArrow";
-import { RichLine } from "./TutorialOverlay";
+import { RichLine, TopicTag, type GuideTopic } from "./TutorialOverlay";
 import { measureTarget, type TargetRect } from "./tutorialTargets";
 
 // A light-touch guide: no dimming, so the game stays in full view. 모험기니's face pops up
@@ -12,7 +12,7 @@ import { measureTarget, type TargetRect } from "./tutorialTargets";
 // about (e.g. the gold counter and the bag). Tap the bubble to move on — or, with
 // `tapAnywhere`, anywhere on screen (for steps that point at something on the stage the
 // player will naturally tap instead, like the held loot).
-export function MiniGuide({ line, targetIds = [], onTap, tapAnywhere = false }: { line: string; targetIds?: string[]; onTap: () => void; tapAnywhere?: boolean }) {
+export function MiniGuide({ line, topic, targetIds = [], onTap, tapAnywhere = false }: { line: string; topic?: GuideTopic; targetIds?: string[]; onTap: () => void; tapAnywhere?: boolean }) {
   const overlayRef = useRef<View>(null);
   const [holes, setHoles] = useState<TargetRect[]>([]);
   const pop = useSharedValue(0);
@@ -73,6 +73,7 @@ export function MiniGuide({ line, targetIds = [], onTap, tapAnywhere = false }: 
           </View>
           <View style={styles.bubble}>
             <View style={styles.tail} />
+            {topic && <TopicTag topic={topic} compact />}
             <RichLine text={line} style={styles.line} />
           </View>
         </Pressable>

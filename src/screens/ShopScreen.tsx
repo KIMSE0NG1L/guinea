@@ -21,7 +21,7 @@ const PACKS: Record<PackKind, Pack[]> = {
   gem: [
     { tier: 2, name: "보석 한 줌", amount: "보석 300" },
     { tier: 3, name: "보석 주머니", amount: "보석 1,000" },
-    { tier: 4, name: "보석 자루", amount: "보석 3,000" },
+    { tier: 4, name: "보석 상자", amount: "보석 3,000" },
     { tier: 5, name: "보석 수레", amount: "보석 10,000" },
   ],
   gold: [

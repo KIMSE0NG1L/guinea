@@ -654,8 +654,12 @@ export const uiImages = {
   coinWinged: require("../assets/ui/coin-winged.webp"),
   // Winged gem that occasionally replaces the flying coin in battle.
   gemWinged: require("../assets/ui/gem-winged.webp"),
+  // Clapperboard with a play button: marks anything that plays an ad (AdBadge).
+  adClapper: require("../assets/ui/ad-clapper.webp"),
+  // Glossy gold arrow, pointing right in the art; GuideArrow turns it to point where needed.
+  guideArrow: require("../assets/ui/guide-arrow.webp"),
   coins: require("../assets/ui/item-coins.webp"),
-  // The single faceted gem (assets/currency/gem-1), about square — size its slots square.
+  // The single faceted crystal (assets/currency/gem-1), taller than wide (~4:5) — square slots with resizeMode contain fit it.
   crystal: require("../assets/currency/gem-1.webp"),
   gear: require("../assets/ui/item-gear.webp"),
   badgeAlert: require("../assets/ui/badge-alert.webp"),
@@ -1277,6 +1281,10 @@ export const panelSlices = {
   goldPill: slice(panelArt[16], 393, 109, [48, 52, 48, 52], "#fce6a8"),
   // Wood frame with a leafy plank sign across the top — the title goes on the plank.
   leafPlank: slice(panelArt[1], 480, 257, [106, 66, 42, 66]),
+  // Wood frame with a red ribbon arching across the top — the heading goes on the ribbon.
+  // Left/right insets meet in the middle so the ribbon never stretches sideways: draw it at
+  // scale = width / 480; only the plain side posts stretch to fit taller content.
+  redRibbon: slice(panelArt[13], 480, 205, [112, 240, 34, 240]),
   // Ornate boss-trophy frame (crown, crossed swords, wings up top; star medallion below).
   // Left/right insets meet in the middle so the ornaments never stretch sideways — draw it
   // at width = 1000 × scale; only the plain side posts stretch to fit taller content.

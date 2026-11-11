@@ -47,12 +47,14 @@ export function SkillTutorial({
   if (equipped) {
     if (tab !== "battle") {
       return scene(2, {
+      topic: { feature: "스킬", detail: "전투로 돌아가기" },
         line: "장착 완료! 이제 **전투**로 돌아가서\n스킬을 써 보자.",
         icon: navIcons.battle,
         targetId: "nav-battle",
       });
     }
     return scene(3, {
+      topic: { feature: "스킬", detail: "스킬 쓰기" },
       line: "아래 **스킬 슬롯**을 눌러서\n훔치기를 써 봐!",
       icon: skillImages.steal,
       targetId: "skill-slot",
@@ -60,12 +62,14 @@ export function SkillTutorial({
   }
   if (tab === "skills") {
     return scene(1, {
+      topic: { feature: "스킬", detail: "스킬 장착하기" },
       line: "**훔치기**는 때릴 때마다 처치\n골드의 10%를 더 주는 스킬이야.\n**장착** 버튼을 눌러 봐!",
       icon: skillImages.steal,
       targetId: "equip-steal",
     });
   }
   return scene(0, {
+      topic: { feature: "스킬", detail: "스킬 탭 열기" },
     line: "레벨이 올라서 첫 **스킬**을\n쓸 수 있게 됐어! 아래\n**스킬** 버튼을 눌러 보자.",
     icon: navIcons.skills,
     targetId: "nav-skills",

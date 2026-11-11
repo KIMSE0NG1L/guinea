@@ -53,6 +53,7 @@ import { OUTFIT_NAMES } from "../state/buffs";
 import { ITEM_IMAGES } from "../state/recipes";
 import type { DropEvent } from "../state/useGameState";
 import { tutorialRef } from "../components/tutorialTargets";
+import { ARROW_H, ARROW_W, GuideArrow } from "../components/GuideArrow";
 import { getUnlocksAtLevel } from "../state/unlocks";
 import { FlyingCoin } from "../components/FlyingCoin";
 import { IconCaption } from "../components/IconCaption";
@@ -979,7 +980,7 @@ function UnlockToast({ level }: { level: number }) {
 }
 
 // The frozen first-kill loot: a little coin pile and the dropped ingredients sitting on the
-// ground, bobbing and sparkling so they read as "look here". Tagged for the tutorial's
+// ground, bobbing under a bouncing arrow so they read as "look here". Tagged for the tutorial's
 // arrows and fly-in starting points.
 function HeldLoot({ left, bottom, showGold, showItems, items }: { left: number; bottom: number; showGold: boolean; showItems: boolean; items: string[] }) {
   const bob = useSharedValue(0);
@@ -988,28 +989,28 @@ function HeldLoot({ left, bottom, showGold, showItems, items }: { left: number; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.value * 5 }] }));
-  const glowStyle = useAnimatedStyle(() => ({ opacity: 0.35 + bob.value * 0.45, transform: [{ scale: 0.9 + bob.value * 0.2 }] }));
   return (
     <View style={[styles.heldLoot, { left: left - 70, bottom }]} pointerEvents="none">
       {showGold && (
-        <View ref={tutorialRef("loot-gold")} style={styles.heldSpot}>
-          <Animated.View style={[styles.heldGlow, glowStyle]} />
-          <Animated.View style={bobStyle}>
-            <Image source={uiImages.coin} style={[styles.heldCoin, { left: 0, top: 10 }]} />
-            <Image source={uiImages.coin} style={[styles.heldCoin, { left: 16, top: 10 }]} />
-            <Image source={uiImages.coin} style={[styles.heldCoin, { left: 8, top: 0 }]} />
+        // No glow behind the coins — the tutorial's bouncing arrow points down at them instead.
+        <View ref={tutorialRef("loot-gold")} style={styles.heldGoldSpot}>
+          <Animated.View style={[styles.heldCoins, bobStyle]}>
+            <Image source={uiImages.coin} style={[styles.heldGoldCoin, { left: 0, top: 13 }]} />
+            <Image source={uiImages.coin} style={[styles.heldGoldCoin, { left: 20, top: 13 }]} />
+            <Image source={uiImages.coin} style={[styles.heldGoldCoin, { left: 10, top: 0 }]} />
           </Animated.View>
+          <GuideArrow style={styles.heldArrow} />
         </View>
       )}
       {/* Ingredients only come out once the gold has been explained and sent off. */}
       {showItems && (
-        <View ref={tutorialRef("loot-items")} style={styles.heldSpot}>
-          <Animated.View style={[styles.heldGlow, glowStyle]} />
+        <View ref={tutorialRef("loot-items")} style={styles.heldItemsSpot}>
           <Animated.View style={[styles.heldItems, bobStyle]}>
             {items.map((name, index) => (
               <Image key={`${name}-${index}`} source={ITEM_IMAGES[name]} style={styles.heldItem} />
             ))}
           </Animated.View>
+          <GuideArrow style={styles.heldItemsArrow} />
         </View>
       )}
     </View>
@@ -1610,11 +1611,15 @@ const styles = StyleSheet.create({
   questIcon: { width: 38, height: 38 },
   // Just a dot — whether there's something to claim, not how many.
   heldLoot: { position: "absolute", width: 140, flexDirection: "row", justifyContent: "center", alignItems: "flex-end", gap: 18, zIndex: 13 },
-  heldSpot: { width: 46, height: 46, alignItems: "center", justifyContent: "center" },
-  heldGlow: { position: "absolute", width: 52, height: 52, borderRadius: 26, backgroundColor: "#fff3a0" },
-  heldCoin: { position: "absolute", width: 22, height: 22 },
+  heldGoldSpot: { width: 50, height: 50, alignItems: "center", justifyContent: "center" },
+  heldCoins: { width: 48, height: 41 },
+  heldGoldCoin: { position: "absolute", width: 28, height: 28 },
+  // Sits just above the coin pile, centred on it.
+  heldArrow: { left: 25 - ARROW_W / 2, top: -ARROW_H - 4 },
   heldItems: { flexDirection: "row", gap: 2 },
-  heldItem: { width: 32, height: 32 },
+  heldItem: { width: 38, height: 38 },
+  heldItemsSpot: { minWidth: 50, height: 50, alignItems: "center", justifyContent: "center" },
+  heldItemsArrow: { left: "50%", marginLeft: -ARROW_W / 2, top: -ARROW_H - 4 },
   giftBanner: {
     position: "absolute",
     top: 62,

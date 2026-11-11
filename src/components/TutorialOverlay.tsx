@@ -16,13 +16,31 @@ import { GameButton } from "./GameButton";
 // The intro only sets the scene — everything else is taught in context, as it happens:
 // loot right after the first kill, upgrades once there's gold, the stage bar / boss /
 // quests once the stage is under way, cooking once there are ingredients.
-const STEPS: { line: string; icon?: number }[] = [
-  { line: "안녕! 나는 **모험기니**야.\n건초만 먹기 지겨워서\n맛있는 끼니를 찾아 모험 중이야!" },
-  { line: "몬스터는 내가 **자동으로** 공격해.\n어떻게 싸우는지는 직접 보면서\n하나씩 알려 줄게!", icon: navIcons.battle },
-  { line: "자, 첫 **전투**야! 이건 내가 널 위해\n준비한 **선물**이야.\n잠깐 엄청 강해질 거야!", icon: icons.chest },
+const STEPS: { line: string; icon?: number; topic: GuideTopic }[] = [
+  { line: "안녕! 나는 **모험기니**야.\n건초만 먹기 지겨워서\n맛있는 끼니를 찾아 모험 중이야!", topic: { feature: "시작", detail: "모험기니 소개" } },
+  { line: "몬스터는 내가 **자동으로** 공격해.\n어떻게 싸우는지는 직접 보면서\n하나씩 알려 줄게!", icon: navIcons.battle, topic: { feature: "전투", detail: "자동 공격" } },
+  { line: "자, 첫 **전투**야! 이건 내가 널 위해\n준비한 **선물**이야.\n잠깐 엄청 강해질 거야!", icon: icons.chest, topic: { feature: "전투", detail: "첫 선물" } },
 ];
 
 const SPRITE_SIZE = 132;
+
+// What a guide line is teaching, shown as a tag on top of its bubble so it's always clear
+// which feature is being explained: the feature in a red pill, then the specific thing.
+export type GuideTopic = { feature: string; detail: string };
+
+export function TopicTag({ topic, compact = false }: { topic: GuideTopic; compact?: boolean }) {
+  return (
+    <View style={styles.topic}>
+      <View style={[styles.topicPill, compact && styles.topicPillCompact]}>
+        <NineSlice slice={shopKit.pillRed} scale={0.28} />
+        <Text style={[styles.topicFeature, compact && styles.topicFeatureCompact]}>{topic.feature}</Text>
+      </View>
+      <Text style={[styles.topicDetail, compact && styles.topicDetailCompact]} numberOfLines={1}>
+        {topic.detail}
+      </Text>
+    </View>
+  );
+}
 
 export function RichLine({ text, style }: { text: string; style?: object }) {
   const parts = text.split(/\*\*(.+?)\*\*/);
@@ -45,13 +63,14 @@ export function RichLine({ text, style }: { text: string; style?: object }) {
 export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const last = step === STEPS.length - 1;
-  const { line, icon } = STEPS[step];
+  const { line, icon, topic } = STEPS[step];
   const next = () => (last ? onFinish() : setStep((current) => current + 1));
   return (
     <GuideScene
       stepKey={step}
       line={line}
       icon={icon}
+      topic={topic}
       dots={{ count: STEPS.length, index: step }}
       onTap={last ? undefined : next}
       onSkip={last ? undefined : onFinish}
@@ -68,6 +87,7 @@ export function GuideScene({
   stepKey,
   line,
   icon,
+  topic,
   dots,
   onTap,
   onSkip,
@@ -78,6 +98,7 @@ export function GuideScene({
   stepKey: number | string;
   line: string;
   icon?: number;
+  topic?: GuideTopic;
   dots?: { count: number; index: number };
   onTap?: () => void;
   onSkip?: () => void;
@@ -177,7 +198,7 @@ export function GuideScene({
             <NineSlice slice={shopKit.bubble} scale={0.42} />
             <View style={styles.body}>
               <View style={styles.copy}>
-                <Text style={styles.speaker}>모험기니</Text>
+                {topic ? <TopicTag topic={topic} /> : <Text style={styles.speaker}>모험기니</Text>}
                 <RichLine text={line} />
               </View>
               {icon !== undefined && (
@@ -265,9 +286,14 @@ function Spotlight({
     `V${ring.top + r} A${r} ${r} 0 0 1 ${ring.left + r} ${ring.top} Z`;
   return (
     <>
-      <Svg width={size.width} height={size.height} style={styles.dimShape} pointerEvents="none">
-        <Path d={dimPath} fill={DIM_COLOR} fillRule="evenodd" />
-      </Svg>
+      {/* Wrapped in a pointerEvents="none" View: on iOS an <Svg>'s own pointerEvents isn't
+          honoured, so the full-screen dim shape swallowed the tap meant for the button in
+          its hole. The View drops the whole subtree out of hit-testing on every platform. */}
+      <View style={styles.dimShape} pointerEvents="none">
+        <Svg width={size.width} height={size.height}>
+          <Path d={dimPath} fill={DIM_COLOR} fillRule="evenodd" />
+        </Svg>
+      </View>
       {showcase ? (
         // Showing off, not asking for a press: the whole screen (target included) continues.
         <Pressable style={[styles.blocker, { left: 0, top: 0, width: size.width, height: size.height }]} onPress={onTap} accessibilityRole="button" accessibilityLabel="다음 설명" />
@@ -336,7 +362,8 @@ const styles = StyleSheet.create({
   // Bubble above, guinea below it; the whole group parks at the bottom or the top.
   group: { position: "absolute", left: 0, right: 0 },
   groupBottom: { bottom: 26 },
-  groupTop: { top: 12 },
+  // Clears the header (about 64px tall) so the skip button above the bubble stays visible.
+  groupTop: { top: 70 },
   guinea: { marginLeft: 4, marginTop: 4, width: SPRITE_SIZE, height: SPRITE_SIZE, alignItems: "center" },
   dimShape: { position: "absolute", left: 0, top: 0 },
   blocker: { position: "absolute" },
@@ -360,6 +387,13 @@ const styles = StyleSheet.create({
   speaker: { fontSize: 12, fontWeight: "900", fontFamily: fonts.bold, color: colors.red, letterSpacing: 0.5 },
   line: { marginTop: 5, fontSize: 16, lineHeight: 21, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   emphasis: { color: colors.red },
+  topic: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 3 },
+  topicPill: { height: 26, paddingHorizontal: 12, justifyContent: "center" },
+  topicPillCompact: { height: 22, paddingHorizontal: 9 },
+  topicFeature: { fontSize: 13, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream },
+  topicFeatureCompact: { fontSize: 12 },
+  topicDetail: { flexShrink: 1, fontSize: 15, fontWeight: "900", fontFamily: fonts.bold, color: colors.brown },
+  topicDetailCompact: { fontSize: 13 },
   iconSlot: { width: 54, height: 54, alignItems: "center", justifyContent: "center", marginTop: 4 },
   icon: { width: 38, height: 38 },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10, minHeight: 32 },
