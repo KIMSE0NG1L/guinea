@@ -11,7 +11,7 @@ export const OUTFIT_UNLOCK_STAGE: Record<Outfit, number> = {
   egenGini: 21, // 스킬 쿨타임 -1분
   samuraiGini: 24, // 적마다 첫 공격 = 일반 공격 ×7 (치명타 없음), 공격 속도 -25%, 수동 공격 불가
   chefGini: 33, // 요리 시간 -50%, 요리 대성공 +20%, 재료 드랍 100%, 공격력 -15%
-  // Never reached by stage — bought instead, see OUTFIT_GEM_PRICE below.
+  // Never reached by stage — bought with gems (OUTFIT_GEM_PRICE) or granted at loop 2 (OUTFIT_LOOP_GRANT).
   boxerGini: Infinity,
   witchGini: 36, // 기니 대도시(35스테이지) 보스 첫 처치 보상
 };
@@ -22,14 +22,26 @@ export const OUTFIT_GEM_PRICE: Partial<Record<Outfit, number>> = {
   boxerGini: 2000,
 };
 
+// Companions granted outright, for free, the moment loopsCompleted reaches this value (a
+// gem price in OUTFIT_GEM_PRICE still lets them be bought sooner). boxerGini is literally 견습기니 (the apprentice who joins at
+// loop 2) trained into its boxer form by the time that loop's last boss falls — see
+// comics.ts's LOOP_COMICS (boxerEvolution plays the same beat) and useGameState's kill
+// handler, which writes it into purchasedOutfits right as loopsCompleted ticks to this.
+export const OUTFIT_LOOP_GRANT: Partial<Record<Outfit, number>> = {
+  boxerGini: 2,
+};
+
 // Any stage companion can also be brought along early, before reaching its stage, for this.
 export const OUTFIT_EARLY_UNLOCK_GEMS = 1000;
 
 // What it costs in gems to unlock this companion right now: its own price for gem-only ones
-// (OUTFIT_GEM_PRICE), the early-unlock price for stage ones, nothing for the starter.
+// (OUTFIT_GEM_PRICE), the early-unlock price for stage ones, nothing for the starter or for
+// a loop-granted one without its own gem price.
 export function getOutfitGemPrice(outfit: Outfit): number | undefined {
   if (outfit === "default") return undefined;
-  return OUTFIT_GEM_PRICE[outfit] ?? OUTFIT_EARLY_UNLOCK_GEMS;
+  if (outfit in OUTFIT_GEM_PRICE) return OUTFIT_GEM_PRICE[outfit];
+  if (outfit in OUTFIT_LOOP_GRANT) return undefined;
+  return OUTFIT_EARLY_UNLOCK_GEMS;
 }
 
 // Skills: utility and short buffs early, the big damage dealers late, spread out so a new
@@ -75,6 +87,13 @@ export function syncStageUnlockedOutfits(highestStageNumber: number, purchasedOu
 // Companions that join on first arriving at this stage (0-based).
 export function getOutfitsUnlockedByStage(stageNumber: number) {
   return (Object.keys(OUTFIT_UNLOCK_STAGE) as Outfit[]).filter((outfit) => outfit !== "default" && OUTFIT_UNLOCK_STAGE[outfit] - 1 === stageNumber);
+}
+
+// Companions granted outright the moment loopsCompleted first reaches this value (see
+// OUTFIT_LOOP_GRANT) — called right as the kill handler computes the new loopsCompleted, so
+// it only matches on the one tick it actually changes to that value.
+export function getOutfitsGrantedByLoop(loopsCompleted: number) {
+  return (Object.keys(OUTFIT_LOOP_GRANT) as Outfit[]).filter((outfit) => OUTFIT_LOOP_GRANT[outfit] === loopsCompleted);
 }
 
 export function isSkillUnlocked(id: SkillId, level: number) {

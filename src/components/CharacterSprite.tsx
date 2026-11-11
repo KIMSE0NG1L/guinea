@@ -111,6 +111,7 @@ export function CharacterSprite({
   scale = 1,
   repeat = 1,
   restartKey,
+  tintColor,
 }: {
   outfit: Outfit;
   animation: PlayerAnimation;
@@ -118,6 +119,8 @@ export function CharacterSprite({
   scale?: number;
   repeat?: number;
   restartKey?: string | number;
+  // Flat recolor of every opaque pixel (e.g. "#000" for a locked companion's silhouette).
+  tintColor?: string;
 }) {
   const source = spriteSheets.guinea[outfit][animation];
   const config = CONFIG[outfit][animation];
@@ -145,6 +148,7 @@ export function CharacterSprite({
         mode={animation === "idle" ? "loop" : "once"}
         repeat={repeat}
         restartKey={restartKey}
+        tintColor={tintColor}
       />
     </View>
   );

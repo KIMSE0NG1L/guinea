@@ -27,7 +27,7 @@ import { applyUpgradeLevels, BOSS_PHASE_TWO_TIME_LIMIT_MS, getBossTimeLimitMs, g
 import { useAutoBattle } from "./useAutoBattle";
 import { clearSave, loadSave, writeSave } from "./storage";
 import { claimHiddenQuest, claimMission, migrateQuestClaims } from "./quests";
-import { getOutfitGemPrice, getOutfitsUnlockedByStage, getUnlocksAtLevel, isOutfitUnlocked, isSkillUnlocked, syncStageUnlockedOutfits } from "./unlocks";
+import { getOutfitGemPrice, getOutfitsGrantedByLoop, getOutfitsUnlockedByStage, getUnlocksAtLevel, isOutfitUnlocked, isSkillUnlocked, syncStageUnlockedOutfits } from "./unlocks";
 import { fitItems, getBagCapacity, getBagExpandCost, BAG_MAX_SLOTS, slotsUsed } from "./bag";
 import { BOSS_NAME, getClearedBosses, BOSS_PHASE_TWO_HP_MULTIPLIER, getDifficultyStage, getEffectiveDifficultyStage, getEnemyKind, getEnemyMaxHp, getEnemyRewardHp, getStageLabel, LAST_STAGE_NUMBER, isMiniBossDue, isGoldenMiniBoss, getMiniBossSalt, GOLDEN_GEMS, GOLDEN_GOLD_MULTIPLIER, STRAY_MOB_CHANCE, MINI_BOSS_COUNT, MINI_BOSS_EXP_MULTIPLIER, MINI_BOSS_HP_MULTIPLIER, STAGE_KILL_TARGET } from "./stages";
 import { rollDrops, type DropModifiers } from "./drops";
@@ -642,7 +642,12 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       const highestStageNumber = wrapped ? stageNumber : reachedStageNumber;
       // Companions join by reaching their stage — lock that in for good before the reset
       // above re-locks highestStageNumber, or they'd have to be walked back to each loop.
-      const purchasedOutfits = syncStageUnlockedOutfits(reachedStageNumber, previous.purchasedOutfits);
+      const stageUnlockedOutfits = syncStageUnlockedOutfits(reachedStageNumber, previous.purchasedOutfits);
+      // Loop-granted ones (currently just 복서기니, see unlocks.ts's OUTFIT_LOOP_GRANT) join
+      // outright the instant loopsCompleted first reaches their number — same beat as
+      // comics.ts's LOOP_COMICS plays their evolution/reveal comic.
+      const loopGrantedOutfits = getOutfitsGrantedByLoop(loopsCompleted).filter((outfit) => !stageUnlockedOutfits.includes(outfit));
+      const purchasedOutfits = loopGrantedOutfits.length > 0 ? [...stageUnlockedOutfits, ...loopGrantedOutfits] : stageUnlockedOutfits;
       const starKey = String(previous.stageNumber);
       const starsBefore = previous.stageStars?.[starKey] ?? 0;
       const starGems = countStars(earnedStars & ~starsBefore) * STAR_GEMS;

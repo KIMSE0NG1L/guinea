@@ -29,7 +29,7 @@ import {
 import type { BuffEffect } from "../state/buffs";
 import { RECIPES } from "../state/recipes";
 import { LockBadge } from "../components/LockBadge";
-import { getOutfitGemPrice, isOutfitUnlocked, OUTFIT_GEM_PRICE, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
+import { getOutfitGemPrice, isOutfitUnlocked, OUTFIT_EARLY_UNLOCK_GEMS, OUTFIT_GEM_PRICE, OUTFIT_LOOP_GRANT, OUTFIT_UNLOCK_STAGE } from "../state/unlocks";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { RewardedAdModal } from "../components/RewardedAdModal";
 import { COMPANION_ATTACK_PER_LEVEL, COMPANION_MAX_LEVEL, COMPANION_SHARD_STAGE, getCompanionLevel, getCompanionShards, getShardCost, SHARD_AD_REWARD, SHARD_ADS_PER_DAY, SHARDS_PER_BOSS } from "../state/progression";
@@ -144,16 +144,17 @@ export const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: 
     detail: companionDetail("chefGini"),
   },
   {
-    outfit: "boxerGini",
-    name: "복서기니",
-    blurb: "글러브를 벗는 법이 없는 열혈 복서. 보석으로 데려올 수 있는 특별한 동료다.",
-    detail: companionDetail("boxerGini"),
-  },
-  {
     outfit: "witchGini",
     name: "마녀기니",
     blurb: "수상한 집의 마법을 연구하던 기니. 모든 공격이 마법이라, 제자리에서 불꽃·얼음·독·번개·빛·유령불 등 여러 마법을 쏘아 싸운다.",
     detail: `${companionDetail("witchGini")} · 모든 공격이 마법`,
+  },
+  // After 마녀기니 (36스테이지, loop 1): 복서기니 only joins once loop 2 is done.
+  {
+    outfit: "boxerGini",
+    name: "복서기니",
+    blurb: "글러브를 벗는 법이 없는 열혈 복서. 2회차를 마칠 때쯤 단련 끝에 합류한다.",
+    detail: companionDetail("boxerGini"),
   },
 ];
 
@@ -247,6 +248,17 @@ const PREVIEW_SPRITE_SIZE = 108;
 // Height / width of the battle backgrounds (1168x880).
 const BACKDROP_ASPECT = 880 / 1168;
 
+// How a still-locked companion joins, for its ??? card.
+function unlockCondition(outfit: Outfit) {
+  const gemOnlyPrice = OUTFIT_GEM_PRICE[outfit];
+  const loopGrant = OUTFIT_LOOP_GRANT[outfit];
+  if (gemOnlyPrice !== undefined) {
+    return loopGrant !== undefined ? `보석 ${gemOnlyPrice}개로 해금 · ${loopGrant}회차 완료 시 무료 합류` : `보석 ${gemOnlyPrice}개로 해금`;
+  }
+  if (loopGrant !== undefined) return `${loopGrant}회차 완료 시 합류`;
+  return `${OUTFIT_UNLOCK_STAGE[outfit]}스테이지 도달 시 합류 · 보석 ${OUTFIT_EARLY_UNLOCK_GEMS}개로 미리 해금`;
+}
+
 export function getCompanionName(outfit: Outfit) {
   return COMPANIONS.find((item) => item.outfit === outfit)?.name ?? outfit;
 }
@@ -278,7 +290,7 @@ export function CompanionsScreen({
   // Companions shown unlocked last visit (undefined = never tracked), and the report on leaving.
   outfitsSeen: Outfit[] | undefined;
   onSeen: (outfits: Outfit[]) => void;
-  // For gem-bought companions — 복서기니 (OUTFIT_GEM_PRICE), or any stage one unlocked early.
+  // For gem-bought companions — any stage one unlocked early (OUTFIT_EARLY_UNLOCK_GEMS).
   gems: number;
   purchasedOutfits: Outfit[] | undefined;
   onPurchase: (outfit: Outfit) => void;
@@ -353,7 +365,7 @@ export function CompanionsScreen({
           const equipped = item.outfit === equippedOutfit;
           const unlockStage = OUTFIT_UNLOCK_STAGE[item.outfit];
           const gemPrice = getOutfitGemPrice(item.outfit);
-          const gemOnly = item.outfit in OUTFIT_GEM_PRICE;
+          const loopGrant = OUTFIT_LOOP_GRANT[item.outfit];
           const locked = !equipped && !isOutfitUnlocked(item.outfit, highestStageNumber, purchasedOutfits);
           const affordable = gemPrice !== undefined && gems >= gemPrice;
           const level = getCompanionLevel(progress, item.outfit);
@@ -366,29 +378,25 @@ export function CompanionsScreen({
               <View style={styles.cardHead}>
               <View>
                 {/* Portrait in a wood ring (gold for the one along now). A locked companion
-                    shows, in place of its face, the stage it joins at (or a gem if gem-only). */}
+                    is just a black silhouette — no name, no blurb, no effects; when it joins
+                    is on its button instead. */}
                 <View style={styles.avatar}>
                   <Image source={equipped ? frameImages.ringGold : frameImages.ringWood} style={styles.avatarRing} />
                   <View style={styles.avatarInner}>
-                    {!locked ? (
-                      <CharacterSprite outfit={item.outfit} animation="idle" size={46} restartKey={item.outfit} />
-                    ) : gemOnly ? (
-                      <Image source={uiImages.crystal} style={styles.avatarGem} />
-                    ) : (
-                      <>
-                        <Text style={styles.avatarStage}>{unlockStage}</Text>
-                        <Text style={styles.avatarStageLabel}>스테이지</Text>
-                      </>
-                    )}
+                    <CharacterSprite outfit={item.outfit} animation="idle" size={46} restartKey={item.outfit} tintColor={locked ? "#000" : undefined} />
                   </View>
                 </View>
                 {freshlyUnlocked.includes(item.outfit) && <BreakingLock />}
               </View>
               <View style={styles.cardCopy}>
-                {/* Locked ones say when they join in the ring itself, so no status line here. */}
                 {!locked && <Text style={styles.cardSmall}>{equipped ? "함께하는 중" : "같이 다닐 수 있음"}</Text>}
-                <Text style={styles.cardStrong}>{item.name}</Text>
-                <Text style={styles.cardBlurb}>{item.blurb}</Text>
+                <Text style={styles.cardStrong}>{locked ? "???" : item.name}</Text>
+                {locked ? (
+                  // The one thing a locked companion does say: how to get it.
+                  <Text style={styles.cardBlurb}>{unlockCondition(item.outfit)}</Text>
+                ) : (
+                  <Text style={styles.cardBlurb}>{item.blurb}</Text>
+                )}
               </View>
               {locked && gemPrice !== undefined ? (
                 // Short of gems: just greyed out (no detour to the shop).
@@ -398,7 +406,7 @@ export function CompanionsScreen({
                   onPress={() => setBuying(item.outfit)}
                   style={styles.equipButton}
                   textStyle={styles.equipButtonText}
-                  accessibilityLabel={`보석 ${gemPrice}개로 ${item.name} 열기`}
+                  accessibilityLabel={`보석 ${gemPrice}개로 동료 열기`}
                 >
                   <View style={styles.gemCost}>
                     <Image source={uiImages.crystal} style={styles.gemIcon} />
@@ -413,12 +421,13 @@ export function CompanionsScreen({
                   style={styles.equipButton}
                   textStyle={styles.equipButtonText}
                 >
-                  {equipped ? "함께 중" : locked ? `${unlockStage}스테이지` : "함께하기"}
+                  {equipped ? "함께 중" : locked ? (loopGrant !== undefined ? `${loopGrant}회차 완료` : `${unlockStage}스테이지`) : "함께하기"}
                 </GameButton>
               )}
               </View>
-              {/* What the companion does, as little cards rather than lines of text. */}
-              <View style={styles.tiles}>
+              {/* What the companion does, as little cards rather than lines of text — kept
+                  hidden until it joins. */}
+              {!locked && <View style={styles.tiles}>
                 <InfoTile label="적용 효과">
                   {companionEffects(item.outfit).map((effect) => (
                     <IconFact key={effect.text} icon={effect.icon} caption={effect.text} />
@@ -438,17 +447,15 @@ export function CompanionsScreen({
                     </View>
                   </IconFact>
                 </InfoTile>
-                {!locked && (
-                  <InfoTile label={`레벨 ${level}${maxed ? " · 최고" : ""}`}>
-                    <IconFact icon={statIcons.attack} caption={`공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n조각 ${shards}/${shardCost}`}`} />
-                    {canUpgrade && (
-                      <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={`${item.name} 승급`}>
-                        승급
-                      </GameButton>
-                    )}
-                  </InfoTile>
-                )}
-              </View>
+                <InfoTile label={`레벨 ${level}${maxed ? " · 최고" : ""}`}>
+                  <IconFact icon={statIcons.attack} caption={`공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n조각 ${shards}/${shardCost}`}`} />
+                  {canUpgrade && (
+                    <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={`${item.name} 승급`}>
+                      승급
+                    </GameButton>
+                  )}
+                </InfoTile>
+              </View>}
             </Panel>
           );
         })}
@@ -465,16 +472,16 @@ export function CompanionsScreen({
         />
       )}
       {buying && (() => {
-        const item = COMPANIONS.find((companion) => companion.outfit === buying)!;
         const price = getOutfitGemPrice(buying) ?? 0;
         const gemOnly = buying in OUTFIT_GEM_PRICE;
         return (
           <ConfirmModal
-            title={`${item.name} 데려오기`}
+            // Still locked, so the name stays hidden here too.
+            title="??? 데려오기"
             message={
               gemOnly
-                ? `보석 ${price}개로 ${item.name}을(를) 데려올까요?`
-                : `보석 ${price}개로 ${item.name}을(를) 지금 바로 데려올까요? (${OUTFIT_UNLOCK_STAGE[buying]}스테이지에 도착하면 무료로 합류해요)`
+                ? `보석 ${price}개로 이 동료를 데려올까요?`
+                : `보석 ${price}개로 이 동료를 지금 바로 데려올까요? (${OUTFIT_UNLOCK_STAGE[buying]}스테이지에 도착하면 무료로 합류해요)`
             }
             confirmLabel={`보석 ${price}개 쓰기`}
             onConfirm={() => {
