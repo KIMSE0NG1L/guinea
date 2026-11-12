@@ -34,7 +34,7 @@ import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, GRADE_DURATION_MS, GRADE_GOLD_MULTIPLIER, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals, peekGrade, pushGrade, shiftGrade, type CookGrade } from "./buffs";
 import { GROCERY, applyDiscount, getSellPrice, getShortfall } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
-import { AD_RUSHES_PER_DAY, getCookingPots, getCookTimeMs, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
+import { getCookingPots, getPotsUnlocked, getPotUnlockCost, MAX_POTS } from "./cooking";
 import { playSfx } from "../sound";
 import { playHaptic } from "../haptics";
 import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./offline";
@@ -62,7 +62,6 @@ export const SHOP_ADS_PER_DAY = 5;
 // The winged gem's "watch an ad" offer: gems per ad, and ads a day before only coins fly.
 export const FLYING_GEM_AD_REWARD = 5;
 export const FLYING_GEM_ADS_PER_DAY = 8;
-const adRushesToday = (state: GameState) => (state.adRushes?.day === todayKey() ? state.adRushes.count : 0);
 const flyingGemAdsToday = (state: GameState) => (state.flyingGemAds?.day === todayKey() ? state.flyingGemAds.count : 0);
 // Gold each of the three post-intro gift kills pays at the least (the first attack
 // upgrade costs 120).
@@ -1206,21 +1205,19 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setState((previous) => ({ ...previous, bagFullCount: (previous.bagFullCount ?? 0) + 1 }));
   }
 
-  // Cooking is a real-time pot again, with the timing minigame at the end: `cook` /
-  // `buyMissingAndCook` spend the ingredients (and grocery gold) and put the dish on to
-  // simmer in the first free pot; once it's done (or rushed with gems/an ad via `rushPot`),
-  // tapping the pot opens the 3-stop minigame, and `collectDish` takes the dish out at the
-  // grade it scored. A 망함 grade empties the pot with nothing to show for it.
+  // Cooking finishes at once, with the timing minigame as the finishing step: `cook` /
+  // `buyMissingAndCook` spend the ingredients (and grocery gold) and put the dish straight
+  // into the first free pot already done; tapping the pot opens the 3-stop minigame, and
+  // `collectDish` takes the dish out at the grade it scored. A 망함 grade empties the pot
+  // with nothing to show for it.
 
-  // Puts a dish on to simmer in the first free pot — the ingredients go in now. Null when it
-  // can't start (not known, ingredients short, no free pot).
+  // Puts a dish into the first free pot, done immediately — the ingredients go in now. Null
+  // when it can't start (not known, ingredients short, no free pot).
   function startCookingIn(previous: GameState, recipe: (typeof RECIPES)[number], startedAt: number): GameState | null {
     if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return null;
     const pots = getCookingPots(previous.cookingPots);
     const potIndex = pots.findIndex((pot, index) => index < getPotsUnlocked(previous.potsUnlocked) && !pot);
     if (potIndex < 0) return null;
-    const inTutorial = previous.tutorialDone && !previous.recipeTutorialDone && recipe.id === "green-jelly";
-    const readyAt = startedAt + (inTutorial ? TUTORIAL_COOK_MS : getCookTimeMs(recipe.tier, foodBuffs.cookSpeed));
     // ingredientSave may spare one of each ingredient.
     const used = {
       ...recipe,
@@ -1232,7 +1229,7 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     return {
       ...previous,
       inventory: consumeIngredients(previous.inventory, used),
-      cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt, fast: foodBuffs.cookSpeed > 0 } : pot)),
+      cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt: startedAt } : pot)),
     };
   }
 
@@ -1269,31 +1266,6 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         discoveredItems: discover(previous.discoveredItems, missing.items.map((item) => item.name)),
       };
       return startCookingIn(stocked, recipe, startedAt) ?? previous;
-    });
-    return "ok";
-  };
-
-  // Finishes a still-simmering pot on the spot — for gems (getRushCost), or with a watched ad
-  // (`viaAd`, AD_RUSHES_PER_DAY). The dish isn't taken out here: the pot just turns ready, and
-  // the kitchen opens the minigame for it right away.
-  const rushPot = (potIndex: number, viaAd = false): "ok" | "gems" | "notCooking" => {
-    const pot = getCookingPots(state.cookingPots)[potIndex];
-    if (!pot) return "notCooking";
-    const now = Date.now();
-    if (pot.readyAt <= now) return "ok";
-    if (viaAd && adRushesToday(state) >= AD_RUSHES_PER_DAY) return "gems";
-    const rushCost = viaAd ? 0 : getRushCost(pot.readyAt - now);
-    if (state.gems < rushCost) return "gems";
-    setState((previous) => {
-      const pots = getCookingPots(previous.cookingPots);
-      const current = pots[potIndex];
-      if (!current || current.startedAt !== pot.startedAt || previous.gems < rushCost) return previous;
-      return {
-        ...previous,
-        gems: previous.gems - rushCost,
-        cookingPots: pots.map((item, index) => (index === potIndex && item ? { ...item, readyAt: Math.min(item.readyAt, now) } : item)),
-        adRushes: viaAd ? { day: todayKey(), count: adRushesToday(previous) + 1 } : previous.adRushes,
-      };
     });
     return "ok";
   };
@@ -1675,10 +1647,8 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     },
     cook,
     foodBuffs,
-    rushPot,
     collectDish,
     unlockPot,
-    adRushesLeft: Math.max(0, AD_RUSHES_PER_DAY - adRushesToday(state)),
     buyIngredient,
     sellIngredient,
     buyMissingAndCook,

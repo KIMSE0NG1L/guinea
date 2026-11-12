@@ -21,7 +21,7 @@ export type BuffEffect = {
   vegetableDrop?: number; // % more likely, vegetables only
   seafoodDrop?: number; // % more likely, seafood only
   bossDropSure?: number; // > 0: every boss drop is guaranteed
-  cookSpeed?: number; // % shorter pot cook time (min 25% left) and % wider minigame target zone
+  cookSpeed?: number; // % wider cooking minigame target zone
   greatSuccess?: number; // % chance a collected dish comes out as two
   ingredientSave?: number; // % chance, per ingredient, to use one less when cooking
   groceryDiscount?: number; // % off grandma's grocery
@@ -330,7 +330,7 @@ const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
   vegetableDrop: (value) => `채소 드롭 ${signed(value)}%`,
   seafoodDrop: (value) => `해산물 드롭 ${signed(value)}%`,
   bossDropSure: () => "보스 재료 확정",
-  cookSpeed: (value) => `요리 시간 -${Math.min(75, value)}% · 성공 범위 +${value}%`,
+  cookSpeed: (value) => `성공 범위 +${value}%`,
   greatSuccess: (value) => `요리 대성공 ${value}%`,
   ingredientSave: (value) => `재료 절약 ${value}%`,
   groceryDiscount: (value) => `재료 상점 -${value}%`,

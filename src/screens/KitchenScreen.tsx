@@ -11,7 +11,7 @@ import { getCookbookProgress } from "../state/cookbook";
 import { MINIGAME_DIFFICULTY } from "../state/cookingMinigame";
 import { CookingMinigame } from "../components/CookingMinigame";
 import { CookingPots } from "../components/CookingPots";
-import { COOK_TIME_MS, formatCookTime, type CookingPot } from "../state/cooking";
+import type { CookingPot } from "../state/cooking";
 import { launchFlight } from "../components/FlightLayer";
 import { measureTarget } from "../components/tutorialTargets";
 import { DishSetGuide } from "../components/DishSetGuide";
@@ -62,7 +62,6 @@ export function KitchenScreen({
   cookSpeedPercent,
   pots,
   potsUnlocked,
-  now,
   gems,
   gold,
   groceryDiscount,
@@ -70,8 +69,6 @@ export function KitchenScreen({
   onCook,
   onBuyAndCook,
   onCollect,
-  onRush,
-  adRushesLeft,
   onUnlockPot,
   guideRecipeId,
   cookedRecipes,
@@ -87,22 +84,18 @@ export function KitchenScreen({
   cookSpeedPercent: number;
   pots: CookingPot[];
   potsUnlocked: number;
-  now: number;
   gems: number;
   gold: number;
   // Food-buff % off grocery prices, for the "buy what's missing" cost.
   groceryDiscount: number;
   // The stage grocery prices are set by (see getGroceryPrice).
   priceStage: number;
-  // Put a dish on to simmer in the first free pot (ingredients spent now).
+  // Puts a dish straight into the first free pot, done at once (ingredients spent now).
   onCook: (recipeId: string) => "ok" | "noPot" | "unavailable";
   // Buys the missing ingredients from the grocery and starts the dish (see buyMissingAndCook).
   onBuyAndCook: (recipeId: string) => "ok" | "gold" | "noPot" | "unavailable";
   // Takes a done pot's dish out at the grade its minigame scored.
   onCollect: (potIndex: number, grade: CookGrade) => void;
-  // Finishes a simmering pot early (gems, or an ad with `viaAd`) — it turns ready, not collected.
-  onRush: (potIndex: number, viaAd?: boolean) => "ok" | "gems" | "notCooking";
-  adRushesLeft: number;
   onUnlockPot: () => boolean;
   // During the recipe tutorial: the dish whose minigame gets the first-round guide arrow.
   guideRecipeId?: string;
@@ -128,14 +121,11 @@ export function KitchenScreen({
       });
     });
   };
-  // The done pot whose cooking minigame is playing (null = none). Tapping a ready pot (or
-  // rushing one) opens it; 그만두기 just closes it and the pot stays ready for later.
+  // The done pot whose cooking minigame is playing (null = none). Tapping a ready pot opens
+  // it; 그만두기 just closes it and the pot stays ready for later.
   const [finishingPot, setFinishingPot] = useState<number | null>(null);
   const finishingDish = finishingPot !== null ? pots[finishingPot] : null;
   const cookingRecipe = finishingDish ? RECIPES.find((recipe) => recipe.id === finishingDish.recipeId) : undefined;
-  const rush = (potIndex: number, viaAd = false) => {
-    if (onRush(potIndex, viaAd) === "ok") setFinishingPot(potIndex);
-  };
   // What can be cooked right now floats to the top; otherwise recipe order is kept.
   const recipes = RECIPES.filter((recipe) => known.includes(recipe.id))
     .map((recipe) => ({ recipe, cookable: canCook(inventory, recipe) }))
@@ -171,13 +161,9 @@ export function KitchenScreen({
       <CookingPots
         pots={pots}
         potsUnlocked={potsUnlocked}
-        now={now}
         gems={gems}
         suggestion={recipes.find((recipe) => canCook(inventory, recipe)) ?? null}
         onCollect={setFinishingPot}
-        onRush={(potIndex) => rush(potIndex)}
-        adRushesLeft={adRushesLeft}
-        onRushAd={(potIndex) => rush(potIndex, true)}
         onUnlock={onUnlockPot}
         onShowRecipe={(recipeId) => setQuery(RECIPES.find((recipe) => recipe.id === recipeId)?.name ?? "")}
       />
@@ -282,7 +268,7 @@ export function KitchenScreen({
               {!ready ? "재료 부족" : freePot ? "요리하기" : "냄비 가득"}
             </GameButton>
           );
-          const effectParts = [...describeBuffParts(recipe.id), `⏱${formatCookTime(COOK_TIME_MS[recipe.tier])}`, `🎯${MINIGAME_DIFFICULTY[recipe.tier].label}`];
+          const effectParts = [...describeBuffParts(recipe.id), `🎯${MINIGAME_DIFFICULTY[recipe.tier].label}`];
           const effect = (
             <BalancedRows
               items={effectParts}

@@ -98,11 +98,11 @@ export interface GameState {
   kitchenLayout?: "list" | "grid";
   // Bought bag expansions (see state/bag.ts); missing on older saves = none.
   bagExpansions?: number;
-  // Dishes simmering in the kitchen (null = empty pot), and how many pots are open; see
-  // state/cooking.ts. Missing on older saves = one empty pot.
+  // Dishes in the kitchen's pots (null = empty pot, each finishes at once), and how many
+  // pots are open; see state/cooking.ts. Missing on older saves = one empty pot.
   cookingPots?: ({ recipeId: string; startedAt: number; readyAt: number; fast?: boolean } | null)[];
   potsUnlocked?: number;
-  // Pots finished instantly by watching an ad today (AD_RUSHES_PER_DAY). Missing on older saves.
+  // Unused leftover from when pots could be rushed with an ad — kept so older saves still parse.
   adRushes?: { day: string; count: number };
   // A FIFO queue per recipe of its uneaten units' cook-minigame grades ("great"/"good"/
   // "fail" — state/buffs.ts's CookGrade) — pushed on collectDish, shifted on eatDish/eatSnack.

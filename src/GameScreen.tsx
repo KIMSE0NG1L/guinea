@@ -343,7 +343,6 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             cookSpeedPercent={game.foodBuffs.cookSpeed}
             pots={cookingPots}
             potsUnlocked={getPotsUnlocked(state.potsUnlocked)}
-            now={game.now}
             gems={state.gems}
             gold={state.gold}
             groceryDiscount={game.foodBuffs.groceryDiscount}
@@ -351,8 +350,6 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             onCook={game.cook}
             onBuyAndCook={game.buyMissingAndCook}
             onCollect={onCollect}
-            onRush={game.rushPot}
-            adRushesLeft={game.adRushesLeft}
             onUnlockPot={game.unlockPot}
             guideRecipeId={state.tutorialDone && !state.recipeTutorialDone ? "green-jelly" : undefined}
             cookedRecipes={state.cookedRecipes}
@@ -593,7 +590,6 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             canCookFirst={canCook(state.inventory, RECIPES.find((recipe) => recipe.id === "green-jelly")!)}
             dishesCooked={state.dishesCooked ?? 0}
             firstDishPot={cookingPots.findIndex((pot) => pot?.recipeId === "green-jelly")}
-            firstDishReady={cookingPots.some((pot) => pot?.recipeId === "green-jelly" && pot.readyAt <= game.now)}
             dishesEaten={state.dishesEaten ?? 0}
             freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot, index) => index < (state.buffSlotsUnlocked ?? 1) && (!slot || slot.expiresAt <= game.now)))}
             onGoTo={onSelectTab}
