@@ -5,6 +5,8 @@ import { APP_MAX_WIDTH, colors } from "./theme";
 import { FIRST_CLEAR_AD_GEMS, LOOT_COIN_GAP_MS, LOOT_COINS, LOOT_FLIGHT_MS, useGameState } from "./state/useGameState";
 import { GameHeader } from "./components/GameHeader";
 import { BottomNavigation } from "./components/BottomNavigation";
+import { ConfirmModal } from "./components/ConfirmModal";
+import { ExitBannerAd } from "./components/ExitBannerAd";
 import { QuestModal } from "./components/QuestModal";
 import { OfflineRewardModal } from "./components/OfflineRewardModal";
 import { BattleScreen } from "./screens/BattleScreen";
@@ -36,6 +38,7 @@ import { COMIC_ON_FIRST_CLEAR, LOOP_COMICS, type ComicId } from "./state/comics"
 import { ComicsScreen } from "./screens/ComicsScreen";
 import { measureTarget } from "./components/tutorialTargets";
 import type { CookGrade } from "./state/buffs";
+import { getCookingPots, getPotsUnlocked } from "./state/cooking";
 import { canCook, getKnownRecipes, RECIPES, ITEM_IMAGES } from "./state/recipes";
 import { isOutfitUnlocked } from "./state/unlocks";
 import { BGM_GROUP, getDifficultyStage, getEnemyKind, getPeakAreaStage } from "./state/stages";
@@ -114,11 +117,12 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     if (!recipeTutorialDue || recipeTutorialArmed) return;
     const timer = setTimeout(() => {
       setRecipeTutorialArmed(true);
-      // On the house: the first recipe's price in gold (there's no starting gold).
+      // On the house: the first recipe's price in gold (there's no starting gold) and one
+      // gem to finish the dish in its pot on the spot.
       setState((previous) => {
         if (previous.recipeGiftGiven) return previous;
         const price = RECIPES.find((recipe) => recipe.id === "green-jelly")?.price ?? 0;
-        return { ...previous, gold: previous.gold + price, recipeGiftGiven: true };
+        return { ...previous, gold: previous.gold + price, gems: previous.gems + 1, recipeGiftGiven: true };
       });
     }, 1600);
     return () => clearTimeout(timer);
@@ -197,12 +201,14 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
   const markComicSeen = (id: ComicId) =>
     setState((previous) => ({ ...previous, seenComics: [...new Set([...(previous.seenComics ?? []), id])] }));
   const collectCount = useRef(0);
-  // The cooking minigame resolved with `grade` (see CookingMinigame/KitchenScreen) — spends
-  // the ingredients/gold and grants the dish, then plays the same "완성!" burst the old
-  // pot-collect flow did.
-  const onFinishCook = (recipeId: string, grade: CookGrade, buyMissing: boolean) => {
+  const cookingPots = getCookingPots(state.cookingPots);
+  // A done pot's cooking minigame resolved with `grade` (see CookingMinigame/KitchenScreen) —
+  // takes the dish out at that grade and plays the "완성!" burst (nothing on a 망함).
+  const onCollect = (potIndex: number, grade: CookGrade) => {
+    const recipeId = cookingPots[potIndex]?.recipeId;
+    if (!recipeId) return;
     const isNew = !(state.cookedRecipes ?? []).includes(recipeId);
-    const result = game.finishCook(recipeId, grade, buyMissing);
+    const result = game.collectDish(potIndex, grade);
     if (result === "ok" || result === "great") {
       collectCount.current += 1;
       setCollected({ key: collectCount.current, recipeId, great: result === "great", grade, isNew });
@@ -245,6 +251,8 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
     firstClearShowing ||
     cookCompleteBurstShowing;
 
+  // The "나가시겠어요?" check a root-tab back press opens (a <Modal>, so back again closes it).
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   useEffect(() => {
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
       // A plain overlay (not a <Modal>) is up — swallow back rather than let it exit/background
@@ -255,8 +263,9 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
         onSelectTab(parentTab);
         return true;
       }
-      // On a root tab (battle/companions/skills/shop) with nothing else showing: fully quit.
-      BackHandler.exitApp();
+      // On a root tab (battle/companions/kitchen/skills/shop) with nothing else showing: ask
+      // before quitting, so a stray back press doesn't close the game.
+      setExitConfirmOpen(true);
       return true;
     });
     return () => subscription.remove();
@@ -331,14 +340,20 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
           <KitchenScreen
             inventory={state.inventory}
             knownRecipes={state.knownRecipes}
-            dishQuality={state.dishQuality}
             cookSpeedPercent={game.foodBuffs.cookSpeed}
+            pots={cookingPots}
+            potsUnlocked={getPotsUnlocked(state.potsUnlocked)}
+            now={game.now}
+            gems={state.gems}
             gold={state.gold}
             groceryDiscount={game.foodBuffs.groceryDiscount}
             priceStage={priceStage}
-            onStartCook={game.startCook}
-            onBuyAndStartCook={game.buyMissingAndStartCook}
-            onFinishCook={onFinishCook}
+            onCook={game.cook}
+            onBuyAndCook={game.buyMissingAndCook}
+            onCollect={onCollect}
+            onRush={game.rushPot}
+            adRushesLeft={game.adRushesLeft}
+            onUnlockPot={game.unlockPot}
             guideRecipeId={state.tutorialDone && !state.recipeTutorialDone ? "green-jelly" : undefined}
             cookedRecipes={state.cookedRecipes}
             onOpenCookbook={() => onSelectTab("cookbook")}
@@ -442,6 +457,21 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
           {renderContent()}
         </ScrollView>
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
+        {exitConfirmOpen && (
+          <ConfirmModal
+            title="게임을 나가시겠어요?"
+            message="기니는 자는 동안에도 조금씩 모험을 계속해요."
+            confirmLabel="예"
+            cancelLabel="아니요"
+            onConfirm={() => {
+              setExitConfirmOpen(false);
+              BackHandler.exitApp();
+            }}
+            onCancel={() => setExitConfirmOpen(false)}
+          >
+            <ExitBannerAd />
+          </ConfirmModal>
+        )}
         {questOpen && (
           <QuestModal state={state} gems={state.gems} onClose={() => setQuestOpen(false)} onClaim={claimQuest} />
         )}
@@ -562,6 +592,8 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             knowsFirstRecipe={getKnownRecipes(state.knownRecipes).includes("green-jelly")}
             canCookFirst={canCook(state.inventory, RECIPES.find((recipe) => recipe.id === "green-jelly")!)}
             dishesCooked={state.dishesCooked ?? 0}
+            firstDishPot={cookingPots.findIndex((pot) => pot?.recipeId === "green-jelly")}
+            firstDishReady={cookingPots.some((pot) => pot?.recipeId === "green-jelly" && pot.readyAt <= game.now)}
             dishesEaten={state.dishesEaten ?? 0}
             freeSlotIndex={Math.max(0, game.buffSlots.findIndex((slot, index) => index < (state.buffSlotsUnlocked ?? 1) && (!slot || slot.expiresAt <= game.now)))}
             onGoTo={onSelectTab}

@@ -7,6 +7,7 @@ import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { StrokedText } from "./StrokedText";
 import { GuideArrow } from "./GuideArrow";
+import { RewardedAdModal } from "./RewardedAdModal";
 import {
   classifyStop,
   driftingZoneCenter,
@@ -17,6 +18,7 @@ import {
   isDriftingRound,
   MINIGAME_DIFFICULTY,
   MINIGAME_ROUNDS,
+  PERFECT_SHARE,
   randomZoneCenter,
   ROUND_TIMEOUT_MS,
   sweepPosition,
@@ -38,6 +40,8 @@ const RESULT_HOLD_MS = 650;
 // Held longer than a per-round result — nothing follows a fail (no CookCompleteBurst), so
 // this is the only beat the player gets to actually read "망함".
 const FAIL_HOLD_MS = 1200;
+// How many times a 망함 can be retried (each one costs a watched ad) before it sticks.
+const FAIL_RETRIES = 2;
 
 const RESULT_TEXT: Record<RoundResult, string> = { perfect: "완벽!", good: "좋아!", miss: "아깝다!" };
 const RESULT_COLOR: Record<RoundResult, string> = { perfect: "#ffd34d", good: "#bfe08a", miss: "#e07a5f" };
@@ -50,10 +54,9 @@ function countTrailingPerfects(rounds: RoundResult[]): number {
   return count;
 }
 
-// The active-cooking screen: 3 timed stops of a sweeping indicator, replacing the old
-// real-time pot wait. Ingredients/gold are NOT spent by this component at all — the caller
-// (KitchenScreen) only spends them once `onFinish` reports a grade, so "그만두기" below is
-// always a free, no-cost cancel.
+// The finishing step of a pot that's done simmering (CookingPots): 3 timed stops of a
+// sweeping indicator, whose grade decides what comes out. The ingredients already went in
+// when the pot started, so "나중에" below just closes this — the pot stays ready to retry.
 export function CookingMinigame({
   recipe,
   cookSpeedPercent,
@@ -73,8 +76,12 @@ export function CookingMinigame({
   const [round, setRound] = useState(0);
   const [results, setResults] = useState<RoundResult[]>([]);
   // Set only on a 망함 grade — held up on its own for a beat (no CookCompleteBurst follows a
-  // failed cook, since finishCook grants nothing) before onFinish actually closes this.
+  // failed cook, since collectDish grants nothing) before onFinish actually closes this.
   const [failed, setFailed] = useState(false);
+  // A 망함 can be retried by watching an ad, up to FAIL_RETRIES times per cook; `attempt`
+  // keys the rounds so a retry remounts them fresh.
+  const [retriesLeft, setRetriesLeft] = useState(FAIL_RETRIES);
+  const [attempt, setAttempt] = useState(0);
   const difficulty = MINIGAME_DIFFICULTY[recipe.tier];
   const zoneWidth = getZoneWidth(recipe.tier, cookSpeedPercent);
   const showingResult = results.length > round;
@@ -100,12 +107,21 @@ export function CookingMinigame({
       const grade = gradeFromRounds(next);
       if (grade === "fail") {
         setFailed(true);
-        setTimeout(() => onFinish("fail"), FAIL_HOLD_MS);
+        // With retries left, the ad offer below decides what happens next instead.
+        if (retriesLeft === 0) setTimeout(() => onFinish("fail"), FAIL_HOLD_MS);
       } else {
         playSfx("cookDone");
         onFinish(grade);
       }
     }, RESULT_HOLD_MS);
+  };
+
+  const retry = () => {
+    setRetriesLeft((value) => value - 1);
+    setAttempt((value) => value + 1);
+    setResults([]);
+    setRound(0);
+    setFailed(false);
   };
 
   return (
@@ -137,21 +153,31 @@ export function CookingMinigame({
               </StrokedText>
             </View>
           ) : showingResult && lastResult ? (
-            <ResultReveal key={results.length} result={lastResult} combo={combo} />
+            <ResultReveal key={`${attempt}-${results.length}`} result={lastResult} combo={combo} />
           ) : (
             <Round
-              key={round}
+              key={`${attempt}-${round}`}
               round={round}
               baseSweepMs={difficulty.sweepMs}
               zoneWidth={zoneWidth}
-              guideActive={guideActive && round === 0}
+              guideActive={guideActive && round === 0 && attempt === 0}
               onStop={handleStop}
             />
           )}
 
+          {failed && retriesLeft > 0 && (
+            <RewardedAdModal
+              autoStart={false}
+              message={`광고를 보면 한 번 더 도전할 수 있어요. (남은 기회 ${retriesLeft}/${FAIL_RETRIES})`}
+              claimLabel="재도전"
+              onClaim={retry}
+              secondary={{ label: "포기하기", onPress: () => onFinish("fail") }}
+            />
+          )}
+
           {!failed && (
-            <Pressable onPress={onCancel} style={styles.cancel} accessibilityRole="button" accessibilityLabel="요리 그만두기">
-              <Text style={styles.cancelText}>그만두기</Text>
+            <Pressable onPress={onCancel} style={styles.cancel} accessibilityRole="button" accessibilityLabel="나중에 마무리하기">
+              <Text style={styles.cancelText}>나중에</Text>
             </Pressable>
           )}
         </View>
@@ -308,7 +334,15 @@ function Round({
             <>
               <Animated.View
                 style={[styles.zone, { left: (liveZoneCenter - zoneWidth / 2) * channelWidth, width: zoneWidth * channelWidth }, zonePulseStyle]}
-              />
+              >
+                {/* The 완벽 band — the middle PERFECT_SHARE of the zone (classifyStop). */}
+                <View
+                  style={[
+                    styles.perfectZone,
+                    { left: ((1 - PERFECT_SHARE) / 2) * zoneWidth * channelWidth, width: PERFECT_SHARE * zoneWidth * channelWidth },
+                  ]}
+                />
+              </Animated.View>
               <Animated.View style={[styles.indicator, { left: position * channelWidth - INDICATOR_SIZE / 2 }, indicatorPulseStyle]} />
             </>
           )}
@@ -343,6 +377,7 @@ const styles = StyleSheet.create({
   track: { width: "100%", height: TRACK_HEIGHT },
   channel: { position: "absolute" },
   zone: { position: "absolute", top: 0, bottom: 0, borderRadius: 4, backgroundColor: "#bfe08a99" },
+  perfectZone: { position: "absolute", top: 0, bottom: 0, borderRadius: 4, backgroundColor: "#ffd34dcc", borderLeftWidth: 1.5, borderRightWidth: 1.5, borderColor: "#c98a1a" },
   indicator: {
     position: "absolute",
     top: -3,

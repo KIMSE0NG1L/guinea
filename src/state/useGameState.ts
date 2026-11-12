@@ -34,6 +34,7 @@ import { rollDrops, type DropModifiers } from "./drops";
 import { BUFF_SLOT_PRICES, BUFFS, GRADE_DURATION_MS, GRADE_GOLD_MULTIPLIER, INSTANT_DISHES, OUTFIT_FIRST_STRIKE, OUTFIT_FORCED_MANUAL, OUTFIT_NAMES, OUTFIT_BUFFS, OUTFIT_COOLDOWN_REDUCTION_SEC, OUTFIT_FOOD_DURATION_BONUS_SEC, OUTFIT_HIT_COUNT, OUTFIT_MISS_CHANCE, OUTFIT_SKILL_POWER, OUTFIT_SURE_DROPS, emptyBuffSlots, getBuffTotals, peekGrade, pushGrade, shiftGrade, type CookGrade } from "./buffs";
 import { GROCERY, applyDiscount, getSellPrice, getShortfall } from "./grocery";
 import { canCook, consumeIngredients, getKnownRecipes, isRecipeForSale, RECIPES } from "./recipes";
+import { AD_RUSHES_PER_DAY, getCookingPots, getCookTimeMs, getPotsUnlocked, getPotUnlockCost, getRushCost, MAX_POTS, TUTORIAL_COOK_MS } from "./cooking";
 import { playSfx } from "../sound";
 import { playHaptic } from "../haptics";
 import { simulateOfflineProgress, type OfflineSummary, MAX_OFFLINE_MS } from "./offline";
@@ -61,6 +62,7 @@ export const SHOP_ADS_PER_DAY = 5;
 // The winged gem's "watch an ad" offer: gems per ad, and ads a day before only coins fly.
 export const FLYING_GEM_AD_REWARD = 5;
 export const FLYING_GEM_ADS_PER_DAY = 8;
+const adRushesToday = (state: GameState) => (state.adRushes?.day === todayKey() ? state.adRushes.count : 0);
 const flyingGemAdsToday = (state: GameState) => (state.flyingGemAds?.day === todayKey() ? state.flyingGemAds.count : 0);
 // Gold each of the three post-intro gift kills pays at the least (the first attack
 // upgrade costs 120).
@@ -262,20 +264,6 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         const inventory = save.state.inventory
           .filter((item) => !retiredItems.includes(item.name))
           .map((item) => (renamedItems[item.name] ? { ...item, name: renamedItems[item.name] } : item));
-        // Saves from before the cooking minigame rework may have a dish still simmering in
-        // the old pot system — its ingredients were already spent, so it's granted outright
-        // now (dishQuality's empty-queue fallback already defaults to "good") rather than
-        // lost. `cookingPots` is read here one last time and never written to again.
-        const strandedRecipes = (save.state.cookingPots ?? [])
-          .filter((pot): pot is NonNullable<typeof pot> => Boolean(pot))
-          .map((pot) => RECIPES.find((recipe) => recipe.id === pot.recipeId))
-          .filter((recipe): recipe is (typeof RECIPES)[number] => Boolean(recipe));
-        const inventoryWithStranded = strandedRecipes.reduce((bag, recipe) => {
-          const owned = bag.find((item) => item.name === recipe.name);
-          return owned
-            ? bag.map((item) => (item === owned ? { ...item, quantity: item.quantity + 1 } : item))
-            : [...bag, { name: recipe.name, quantity: 1, type: "dish" }];
-        }, inventory);
         // Quest claims now live in questClaimed (older saves kept them on quest rows).
         const questClaimed = migrateQuestClaims(save.state);
         // 당근 수프 used to be the free starter recipe; there is none now (the first one is
@@ -291,22 +279,16 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
         // Saves already past the intro predate the upgrade tutorial — they skip it.
         const upgradeTutorialDone = save.state.upgradeTutorialDone ?? Boolean(save.state.tutorialDone);
         // Saves from before the ingredient codex start it from whatever's in the bag now.
-        const discoveredItems = save.state.discoveredItems ?? inventoryWithStranded.filter((item) => item.type === "food").map((item) => item.name);
+        const discoveredItems = save.state.discoveredItems ?? inventory.filter((item) => item.type === "food").map((item) => item.name);
         // Saves from before the cookbook have no cooked-recipe record; anything already sitting
-        // in the bag as a dish was clearly cooked, so that's the starting page count. Any
-        // just-granted stranded dish counts as cooked too, whichever branch this took.
-        const cookedRecipes = [
-          ...new Set([
-            ...(save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventoryWithStranded.some((item) => item.name === recipe.name)).map((recipe) => recipe.id)),
-            ...strandedRecipes.map((recipe) => recipe.id),
-          ]),
-        ];
-        const dishesCooked = (save.state.dishesCooked ?? 0) + strandedRecipes.length;
+        // in the bag as a dish was clearly cooked, so that's the starting page count.
+        const cookedRecipes =
+          save.state.cookedRecipes ?? RECIPES.filter((recipe) => inventory.some((item) => item.name === recipe.name)).map((recipe) => recipe.id);
         let loadedState: GameState = {
           ...save.state,
           equippedOutfit,
           equippedSkill,
-          inventory: inventoryWithStranded,
+          inventory,
           questClaimed,
           knownRecipes,
           recipeTutorialDone,
@@ -315,7 +297,6 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
           discoveredItems,
           droppedItems: save.state.droppedItems ?? discoveredItems,
           cookedRecipes,
-          dishesCooked,
         };
         // The game is running again from now on — so a reload (which never fires the
         // background event below) can't hand the same offline stretch out a second time.
@@ -1225,89 +1206,145 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
     setState((previous) => ({ ...previous, bagFullCount: (previous.bagFullCount ?? 0) + 1 }));
   }
 
-  // Cooking is now a two-step interaction instead of a real-time wait: `startCook`/
-  // `buyMissingAndStartCook` are pure precondition checks (nothing is spent) that the
-  // kitchen screen uses to decide whether to open the timing minigame; once that minigame
-  // resolves with a grade, `finishCook` is what actually spends ingredients/gold and grants
-  // the dish. Deferring every mutation to `finishCook` means a killed app mid-minigame never
-  // loses ingredients, and the minigame modal can safely offer a "그만두기" cancel.
+  // Cooking is a real-time pot again, with the timing minigame at the end: `cook` /
+  // `buyMissingAndCook` spend the ingredients (and grocery gold) and put the dish on to
+  // simmer in the first free pot; once it's done (or rushed with gems/an ad via `rushPot`),
+  // tapping the pot opens the 3-stop minigame, and `collectDish` takes the dish out at the
+  // grade it scored. A 망함 grade empties the pot with nothing to show for it.
 
-  const startCook = (recipeId: string): "ok" | "unavailable" => {
+  // Puts a dish on to simmer in the first free pot — the ingredients go in now. Null when it
+  // can't start (not known, ingredients short, no free pot).
+  function startCookingIn(previous: GameState, recipe: (typeof RECIPES)[number], startedAt: number): GameState | null {
+    if (!getKnownRecipes(previous.knownRecipes).includes(recipe.id) || !canCook(previous.inventory, recipe)) return null;
+    const pots = getCookingPots(previous.cookingPots);
+    const potIndex = pots.findIndex((pot, index) => index < getPotsUnlocked(previous.potsUnlocked) && !pot);
+    if (potIndex < 0) return null;
+    const inTutorial = previous.tutorialDone && !previous.recipeTutorialDone && recipe.id === "green-jelly";
+    const readyAt = startedAt + (inTutorial ? TUTORIAL_COOK_MS : getCookTimeMs(recipe.tier, foodBuffs.cookSpeed));
+    // ingredientSave may spare one of each ingredient.
+    const used = {
+      ...recipe,
+      ingredients: recipe.ingredients.map((ingredient) => ({
+        ...ingredient,
+        quantity: ingredient.quantity - (Math.random() * 100 < foodBuffs.ingredientSave ? 1 : 0),
+      })),
+    };
+    return {
+      ...previous,
+      inventory: consumeIngredients(previous.inventory, used),
+      cookingPots: pots.map((pot, index) => (index === potIndex ? { recipeId: recipe.id, startedAt, readyAt, fast: foodBuffs.cookSpeed > 0 } : pot)),
+    };
+  }
+
+  const hasFreePot = (current: GameState) =>
+    getCookingPots(current.cookingPots).some((pot, index) => index < getPotsUnlocked(current.potsUnlocked) && !pot);
+
+  const cook = (recipeId: string): "ok" | "noPot" | "unavailable" => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     if (!recipe || !getKnownRecipes(state.knownRecipes).includes(recipeId) || !canCook(state.inventory, recipe)) return "unavailable";
+    if (!hasFreePot(state)) return "noPot";
+    const startedAt = Date.now();
+    setState((previous) => startCookingIn(previous, recipe, startedAt) ?? previous);
     return "ok";
   };
 
-  // "재료 사서 요리": precondition check only, same as startCook — the actual grocery
-  // purchase happens in finishCook once the minigame resolves.
-  const buyMissingAndStartCook = (recipeId: string): "ok" | "gold" | "unavailable" => {
-    const recipe = RECIPES.find((item) => item.id === recipeId);
-    if (!recipe) return "unavailable";
-    const shortfall = getShortfall(state.inventory, recipe.ingredients, foodBuffs.groceryDiscount, priceStage);
-    if (!shortfall) return "unavailable"; // nothing missing — the plain cook button covers this
-    return state.gold < shortfall.cost ? "gold" : "ok";
-  };
-
-  // The minigame resolved with `grade` — now the ingredients (and, if `buyMissing`, the
-  // grocery gold) actually leave. A 망함 grade wastes them outright: no dish, no cookbook
-  // credit, nothing added to dishQuality — cooking badly has a real cost, not just a weak
-  // dish. Anything else lands in the bag (plus the existing, orthogonal greatSuccess
-  // quantity roll) with its grade recorded in `dishQuality` (a FIFO queue per recipe — see
-  // buffs.ts) for whichever unit gets eaten first.
-  const finishCook = (recipeId: string, grade: CookGrade, buyMissing: boolean): "ok" | "great" | "failed" | "full" | "gold" | "unavailable" => {
+  // "재료 사서 요리": pays the grocery for whatever the bag is short of (getShortfall) and
+  // puts the dish on in one go. The bought ingredients go straight into the pot, so it needs
+  // no bag room. Nothing is spent unless the dish actually starts.
+  const buyMissingAndCook = (recipeId: string): "ok" | "gold" | "noPot" | "unavailable" => {
     const recipe = RECIPES.find((item) => item.id === recipeId);
     if (!recipe || !getKnownRecipes(state.knownRecipes).includes(recipeId)) return "unavailable";
-    if (!buyMissing && !canCook(state.inventory, recipe)) return "unavailable";
-    const shortfall = buyMissing ? getShortfall(state.inventory, recipe.ingredients, foodBuffs.groceryDiscount, priceStage) : null;
-    if (buyMissing && shortfall && state.gold < shortfall.cost) return "gold";
+    const shortfall = getShortfall(state.inventory, recipe.ingredients, foodBuffs.groceryDiscount, priceStage);
+    if (!shortfall) return "unavailable"; // nothing missing — the plain cook button covers this
+    if (state.gold < shortfall.cost) return "gold";
+    if (!hasFreePot(state)) return "noPot";
+    const startedAt = Date.now();
+    setState((previous) => {
+      const missing = getShortfall(previous.inventory, recipe.ingredients, foodBuffs.groceryDiscount, priceStage);
+      if (!missing || previous.gold < missing.cost) return previous;
+      const stocked: GameState = {
+        ...previous,
+        gold: previous.gold - missing.cost,
+        inventory: addItems(previous.inventory, missing.items),
+        discoveredItems: discover(previous.discoveredItems, missing.items.map((item) => item.name)),
+      };
+      return startCookingIn(stocked, recipe, startedAt) ?? previous;
+    });
+    return "ok";
+  };
+
+  // Finishes a still-simmering pot on the spot — for gems (getRushCost), or with a watched ad
+  // (`viaAd`, AD_RUSHES_PER_DAY). The dish isn't taken out here: the pot just turns ready, and
+  // the kitchen opens the minigame for it right away.
+  const rushPot = (potIndex: number, viaAd = false): "ok" | "gems" | "notCooking" => {
+    const pot = getCookingPots(state.cookingPots)[potIndex];
+    if (!pot) return "notCooking";
+    const now = Date.now();
+    if (pot.readyAt <= now) return "ok";
+    if (viaAd && adRushesToday(state) >= AD_RUSHES_PER_DAY) return "gems";
+    const rushCost = viaAd ? 0 : getRushCost(pot.readyAt - now);
+    if (state.gems < rushCost) return "gems";
+    setState((previous) => {
+      const pots = getCookingPots(previous.cookingPots);
+      const current = pots[potIndex];
+      if (!current || current.startedAt !== pot.startedAt || previous.gems < rushCost) return previous;
+      return {
+        ...previous,
+        gems: previous.gems - rushCost,
+        cookingPots: pots.map((item, index) => (index === potIndex && item ? { ...item, readyAt: Math.min(item.readyAt, now) } : item)),
+        adRushes: viaAd ? { day: todayKey(), count: adRushesToday(previous) + 1 } : previous.adRushes,
+      };
+    });
+    return "ok";
+  };
+
+  // Takes a finished dish out of its pot at the minigame's `grade`. 망함 empties the pot with
+  // no dish (the ingredients went in when it started). Anything else needs bag room — a free
+  // slot, or space left in its last stack — and lands with its grade in `dishQuality` (a FIFO
+  // queue per recipe, see buffs.ts), plus the separate greatSuccess roll for a second one.
+  const collectDish = (potIndex: number, grade: CookGrade): "ok" | "great" | "failed" | "full" | "notReady" => {
+    const pot = getCookingPots(state.cookingPots)[potIndex];
+    const recipe = pot && RECIPES.find((item) => item.id === pot.recipeId);
+    if (!pot || !recipe || pot.readyAt > Date.now()) return "notReady";
     const failed = grade === "fail";
-    // A failed cook never produces anything, so there's nothing to check bag room for.
     if (!failed && fitItems(state.inventory, [{ name: recipe.name, quantity: 1 }], getBagCapacity(state.bagExpansions)).overflow.length > 0) return "full";
-    // Great success: the dish comes out as two — if the bag has room for the second. Entirely
-    // orthogonal to `grade` (which only decides the eventual buff duration/gold multiplier) —
-    // a 보통-grade dish can still double; a failed one never gets the chance to.
     const great =
       !failed &&
       Math.random() * 100 < foodBuffs.greatSuccess &&
       fitItems(state.inventory, [{ name: recipe.name, quantity: 2 }], getBagCapacity(state.bagExpansions)).overflow.length === 0;
     const count = great ? 2 : 1;
     setState((previous) => {
-      const missing = buyMissing ? getShortfall(previous.inventory, recipe.ingredients, foodBuffs.groceryDiscount, priceStage) : null;
-      if (!buyMissing && !canCook(previous.inventory, recipe)) return previous;
-      if (buyMissing && missing && previous.gold < missing.cost) return previous;
-      const stocked: GameState = missing
-        ? {
-            ...previous,
-            gold: previous.gold - missing.cost,
-            inventory: addItems(previous.inventory, missing.items),
-            discoveredItems: discover(previous.discoveredItems, missing.items.map((item) => item.name)),
-          }
-        : previous;
-      // ingredientSave may spare one of each ingredient — still rolls on a failed cook too,
-      // the one small mercy left once the attempt's gone wrong.
-      const usedRecipe = {
-        ...recipe,
-        ingredients: recipe.ingredients.map((ingredient) => ({
-          ...ingredient,
-          quantity: ingredient.quantity - (Math.random() * 100 < foodBuffs.ingredientSave ? 1 : 0),
-        })),
-      };
-      const afterIngredients = consumeIngredients(stocked.inventory, usedRecipe);
-      if (failed) return { ...stocked, inventory: afterIngredients };
-      const dish = afterIngredients.find((item) => item.name === recipe.name);
-      const dishesCooked = (stocked.dishesCooked ?? 0) + count;
-      const cookedRecipes = stocked.cookedRecipes?.includes(recipe.id) ? stocked.cookedRecipes : [...(stocked.cookedRecipes ?? []), recipe.id];
+      const pots = getCookingPots(previous.cookingPots);
+      if (pots[potIndex]?.startedAt !== pot.startedAt) return previous;
+      const emptied = pots.map((item, index) => (index === potIndex ? null : item));
+      if (failed) return { ...previous, cookingPots: emptied };
+      const dish = previous.inventory.find((item) => item.name === recipe.name);
+      const cookedRecipes = previous.cookedRecipes?.includes(recipe.id) ? previous.cookedRecipes : [...(previous.cookedRecipes ?? []), recipe.id];
       return {
-        ...stocked,
+        ...previous,
         inventory: dish
-          ? afterIngredients.map((item) => (item === dish ? { ...item, quantity: item.quantity + count } : item))
-          : [...afterIngredients, { name: recipe.name, quantity: count, type: "dish" }],
-        dishQuality: pushGrade(stocked.dishQuality, recipe.id, grade, count),
+          ? previous.inventory.map((item) => (item === dish ? { ...item, quantity: item.quantity + count } : item))
+          : [...previous.inventory, { name: recipe.name, quantity: count, type: "dish" }],
+        cookingPots: emptied,
+        dishQuality: pushGrade(previous.dishQuality, recipe.id, grade, count),
         cookedRecipes,
-        dishesCooked,
+        dishesCooked: (previous.dishesCooked ?? 0) + count,
       };
     });
     return failed ? "failed" : great ? "great" : "ok";
+  };
+
+  // Spends gems to open another pot; returns whether it went through.
+  const unlockPot = () => {
+    const unlocked = getPotsUnlocked(state.potsUnlocked);
+    if (unlocked >= MAX_POTS || state.gems < getPotUnlockCost(unlocked)) return false;
+    setState((previous) => {
+      const current = getPotsUnlocked(previous.potsUnlocked);
+      const price = getPotUnlockCost(current);
+      if (current >= MAX_POTS || previous.gems < price) return previous;
+      return { ...previous, gems: previous.gems - price, potsUnlocked: current + 1 };
+    });
+    return true;
   };
 
   // Reports why a purchase failed (or "ok"), so the shop can react either way.
@@ -1636,12 +1673,15 @@ export function useGameState({ externallyPaused = false }: { externallyPaused?: 
       });
       setOfflineSummary(null);
     },
-    startCook,
+    cook,
     foodBuffs,
-    finishCook,
+    rushPot,
+    collectDish,
+    unlockPot,
+    adRushesLeft: Math.max(0, AD_RUSHES_PER_DAY - adRushesToday(state)),
     buyIngredient,
     sellIngredient,
-    buyMissingAndStartCook,
+    buyMissingAndCook,
     learnRecipe,
     dropEvents,
     buffSlots,

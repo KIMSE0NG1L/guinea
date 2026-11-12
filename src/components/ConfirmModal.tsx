@@ -14,6 +14,7 @@ export function ConfirmModal({
   cancelLabel = "취소",
   onConfirm,
   onCancel,
+  children,
 }: {
   title: string;
   message: string;
@@ -21,6 +22,8 @@ export function ConfirmModal({
   cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  // Extra content between the message and the buttons (e.g. the exit dialog's banner ad).
+  children?: React.ReactNode;
 }) {
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onCancel}>
@@ -29,6 +32,7 @@ export function ConfirmModal({
           <NineSlice slice={kit.panelLarge} />
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
+          {children}
           <View style={styles.buttonRow}>
             <GameButton variant="gray" onPress={onCancel} style={styles.button}>{cancelLabel}</GameButton>
             <GameButton variant="green" onPress={onConfirm} style={styles.button}>{confirmLabel}</GameButton>

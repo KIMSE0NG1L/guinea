@@ -1,25 +1,27 @@
 import type { RecipeTier } from "./recipeTiers";
 
-// Cooking resolves instantly now: the player times 3 stops of a sweeping indicator instead
-// of waiting out a real-time pot. This file is the pure math behind that — no GameState, no
+// Once a pot finishes simmering (cooking.ts), the player times 3 stops of a sweeping
+// indicator to finish the dish. This file is the pure math behind that — no GameState, no
 // React — so it's trivial to reason about and reuse from the minigame component.
 
 export type RoundResult = "perfect" | "good" | "miss";
 
 // How hard each tier's minigame is: how long one one-way sweep takes (the indicator
-// ping-pongs, so the full back-and-forth period is double this), and how wide the target
-// zone is as a share of the 0–1 track. Harder tiers sweep faster and give a narrower window.
+// ping-pongs, so the full back-and-forth period is double this — the same 2s for every tier
+// and every round), and how wide the target zone is as a share of the 0–1 track (40% down to
+// 15%). Harder tiers only get a narrower window.
+const SWEEP_MS = 2000;
 export const MINIGAME_DIFFICULTY: Record<RecipeTier, { label: string; sweepMs: number; zoneWidth: number }> = {
-  common: { label: "쉬움", sweepMs: 1400, zoneWidth: 0.34 },
-  rare: { label: "보통", sweepMs: 1150, zoneWidth: 0.28 },
-  epic: { label: "어려움", sweepMs: 950, zoneWidth: 0.22 },
-  legendary: { label: "매우 어려움", sweepMs: 780, zoneWidth: 0.17 },
-  hidden: { label: "극한", sweepMs: 650, zoneWidth: 0.13 },
+  common: { label: "쉬움", sweepMs: SWEEP_MS, zoneWidth: 0.4 },
+  rare: { label: "보통", sweepMs: SWEEP_MS, zoneWidth: 0.34 },
+  epic: { label: "어려움", sweepMs: SWEEP_MS, zoneWidth: 0.27 },
+  legendary: { label: "매우 어려움", sweepMs: SWEEP_MS, zoneWidth: 0.21 },
+  hidden: { label: "극한", sweepMs: SWEEP_MS, zoneWidth: 0.15 },
 };
 
-// Within the zone, this inner share of its half-width counts as a dead-center "perfect";
-// the rest of the zone is "good"; outside it entirely is a "miss".
-const PERFECT_SHARE = 0.35;
+// Within the zone, this inner share of its width counts as a dead-center "perfect" (drawn as
+// the brighter band inside the zone); the rest of the zone is "good"; outside it is a "miss".
+export const PERFECT_SHARE = 0.5;
 
 export const MINIGAME_ROUNDS = 3;
 // Auto-miss if the player never taps 멈춰! — so a round (and the modal) can't hang forever.
@@ -31,12 +33,10 @@ export function getZoneWidth(tier: RecipeTier, cookSpeedPercent: number): number
   return Math.min(0.7, MINIGAME_DIFFICULTY[tier].zoneWidth * (1 + cookSpeedPercent / 100));
 }
 
-// The sweep speeds up round over round within one cook — round 1 is the tier's base pace,
-// round 3 noticeably brisker — so the three stops build tension instead of repeating the
-// same timing three times.
-const ROUND_SWEEP_MULT = [1, 0.9, 0.78];
-export function getRoundSweepMs(baseSweepMs: number, round: number): number {
-  return Math.round(baseSweepMs * ROUND_SWEEP_MULT[round]);
+// The sweep pace is fixed (SWEEP_MS) for all three rounds — no per-round speed-up. Kept as a
+// function so the component doesn't care; the last round still gets its drifting zone below.
+export function getRoundSweepMs(baseSweepMs: number, _round: number): number {
+  return baseSweepMs;
 }
 
 // Only the last round's zone drifts — a moving target instead of a static one, turning the
