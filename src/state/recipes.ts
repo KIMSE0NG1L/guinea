@@ -455,6 +455,30 @@ const RECIPE_DEFS: RecipeDef[] = [
     ],
   },
   {
+    id: "masala-chai",
+    name: "마살라 짜이",
+    description: "짜이 설인이 하루 천 잔씩 끓인다는, 바자르 향신료를 한 꼬집 넣은 밀크티.",
+    image: food.dishMasalaChai,
+    tier: "legendary",
+    ingredients: [
+      { name: "찻잎", quantity: 2 },
+      { name: "야크 우유", quantity: 1 },
+      { name: "커리가루", quantity: 1 },
+    ],
+  },
+  {
+    id: "mughal-biryani",
+    name: "무굴 비리야니",
+    description: "황실 사프란으로 물들인 바스마티 쌀을 향신료와 켜켜이 쪄 낸, 무굴 황제의 잔칫밥.",
+    image: food.dishMughalBiryani,
+    tier: "legendary",
+    ingredients: [
+      { name: "바스마티 쌀", quantity: 2 },
+      { name: "사프란", quantity: 1 },
+      { name: "커리가루", quantity: 1 },
+    ],
+  },
+  {
     id: "barley-tea",
     name: "구수한 보리차",
     description: "볶은 보리를 우려 구수하고 따뜻한 한 잔.",
@@ -692,6 +716,10 @@ export const ITEM_IMAGES: Record<string, number> = {
   "전복": food.abalone,
   "커리가루": food.curryPowder,
   "황금 강황": food.goldenTurmeric,
+  "찻잎": food.teaLeaf,
+  "야크 우유": food.yakMilk,
+  "사프란": food.saffron,
+  "바스마티 쌀": food.basmatiRice,
   ...Object.fromEntries(RECIPES.map((recipe) => [recipe.name, recipe.image])),
 };
 

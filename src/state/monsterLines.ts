@@ -44,6 +44,8 @@ export const MOB_LINES: Record<EnemyKind, string[]> = {
   angryCandyBasketSlime: ["호박죽은 우리 거야!", "사탕도 내놔!"],
   thiefCrow: ["먹을 건 다 우리 거야!", "이 성채는 우리 둥지다!"],
   spiceElephant: ["향신료 냄새 좋다~", "이 자루 내가 먼저 봤어!"],
+  teaYak: ["찻잎 다 땄다... 이제 낮잠~", "음메? 이거 잡초였어?"],
+  saffronParrot: ["사프란? 내 거 아닌데?", "짹! 황제님께 이를 거야!"],
 };
 
 export const BOSS_LINES: Record<EnemyKind, string[]> = {
@@ -87,4 +89,6 @@ export const BOSS_LINES: Record<EnemyKind, string[]> = {
   angryCandyBasketSlime: ["호박죽 냄새가 날 깨웠다!", "광장의 먹거리는 전부 내 것이다!"],
   thiefCrow: ["내가 숨긴 음식에 손대지 마라!", "배고픈 용의 분노를 받아라!"],
   spiceElephant: ["내 커리가 제일 매워!", "불맛 좀 볼 텐가?"],
+  teaYak: ["짜이 한 잔 하고 가게!", "찻물은 높이 따라야 제맛이지!"],
+  saffronParrot: ["황실 사프란은 한 올도 못 내준다!", "짐의 꼬리를 우러러보라!"],
 };

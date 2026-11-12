@@ -56,6 +56,9 @@ export const BGM_GROUP: Record<EnemyKind, BgmGroupId> = {
   thiefCrow: "fantasy",
   // 인도 향신료 바자르: a new region past the dragon's lair.
   spiceElephant: "india",
+  // 히말라야 차밭: 바자르에서 이어지는 산길이라 인도 BGM을 함께 쓴다.
+  teaYak: "india",
+  saffronParrot: "india",
 };
 
 export const ENEMY_NAME: Record<EnemyKind, string> = {
@@ -99,6 +102,8 @@ export const ENEMY_NAME: Record<EnemyKind, string> = {
   angryCandyBasketSlime: "분노한 사탕바구니 슬라임",
   thiefCrow: "도둑 까마귀",
   spiceElephant: "향신료 꼬마코끼리",
+  teaYak: "찻잎 꼬마야크",
+  saffronParrot: "사프란 앵무새",
 };
 
 export const BOSS_NAME: Record<EnemyKind, string> = {
@@ -142,6 +147,8 @@ export const BOSS_NAME: Record<EnemyKind, string> = {
   angryCandyBasketSlime: "그리핀",
   thiefCrow: "배고픈 드래곤",
   spiceElephant: "커리 호랑이 셰프",
+  teaYak: "짜이 설인",
+  saffronParrot: "공작 황제",
 };
 
 // The one-liner under the boss's name on its entrance banner (BossEntranceBanner) — the
@@ -187,6 +194,8 @@ export const BOSS_TAGLINE: Record<EnemyKind, string> = {
   angryCandyBasketSlime: "날개 바람에 날아가기 전에 끝내자!",
   thiefCrow: "그리핀만 한 위엄이야! 그래도 음식은 돌려받자!",
   spiceElephant: "웍을 휘두르는 호랑이라니, 매운맛 좀 보자!",
+  teaYak: "찻물 맞기 전에 끝내자, 저거 엄청 뜨거워!",
+  saffronParrot: "꼬리 펼치기 전에 쳐! 눈부셔서 못 봐!",
 };
 
 // Indexed by stageNumber. Only these stages have a theme, mob, and boss implemented —
@@ -234,6 +243,8 @@ export const STAGES: { area: string; enemyKind: EnemyKind; story: string }[] = [
   { area: "기니 대도시 귀환길", enemyKind: "angryCandyBasketSlime", story: "기니 대도시로 돌아온 일행 앞에 호박죽 냄새를 따라온 분노한 사탕바구니 슬라임이 나타난다. 죽 냄비를 노리고 광장에 내려앉은 그리핀까지 막아야 한다." },
   { area: "무너진 성채", enemyKind: "thiefCrow", story: "그리핀의 등에 올라 용을 찾아 떠난 기니들. 무너진 성채에는 훔친 식재료를 나르는 도둑 까마귀들과 음식을 숨겨 둔 배고픈 드래곤이 기다리고 있다." },
   { area: "인도 향신료 바자르", enemyKind: "spiceElephant", story: "용의 보물창고에서 찢겨나간 요리책 마지막 장을 발견한 기니들이 향신료 냄새를 따라 닿은 시끌벅적한 바자르. 터번 두른 꼬마코끼리들이 향신료 자루를 코로 슬쩍하고 다닌다." },
+  { area: "히말라야 차밭", enemyKind: "teaYak", story: "만년설 봉우리 아래 계단식 차밭이 펼쳐진 산마을, 룽다 깃발이 펄럭이는 사이로 찻잎 바구니를 멘 꼬마야크들이 찻잎을 따다 말고 낮잠을 잔다." },
+  { area: "타지마할 정원", enemyKind: "saffronParrot", story: "새벽 안개 속 하얀 대리석 궁전 앞, 분수 물길 따라 보랏빛 사프란 꽃이 핀 무굴 정원. 터번 쓴 앵무새들이 붉은 꽃실을 물어다 황제의 창고로 나른다." },
 ];
 
 export const LAST_STAGE_NUMBER = STAGES.length - 1;

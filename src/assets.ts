@@ -459,6 +459,26 @@ export const spriteSheets = {
     hit: require("../assets/sprites/boss-curry-tiger-hit-strip.webp"),
     die: require("../assets/sprites/boss-curry-tiger-die-strip.webp"),
   },
+  teaYak: {
+    idle: require("../assets/sprites/tea-yak-idle-strip.webp"),
+    hit: require("../assets/sprites/tea-yak-hit-strip.webp"),
+    die: require("../assets/sprites/tea-yak-die-strip.webp"),
+  },
+  bossChaiYeti: {
+    idle: require("../assets/sprites/boss-chai-yeti-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-chai-yeti-hit-strip.webp"),
+    die: require("../assets/sprites/boss-chai-yeti-die-strip.webp"),
+  },
+  saffronParrot: {
+    idle: require("../assets/sprites/saffron-parrot-idle-strip.webp"),
+    hit: require("../assets/sprites/saffron-parrot-hit-strip.webp"),
+    die: require("../assets/sprites/saffron-parrot-die-strip.webp"),
+  },
+  bossPeacockEmperor: {
+    idle: require("../assets/sprites/boss-peacock-emperor-idle-strip.webp"),
+    hit: require("../assets/sprites/boss-peacock-emperor-hit-strip.webp"),
+    die: require("../assets/sprites/boss-peacock-emperor-die-strip.webp"),
+  },
 };
 
 // 견습기니: the bubble-riding follower that tags along from the second loop on (see
@@ -513,6 +533,8 @@ export const images = {
   battleBackgroundDragonMountainRuin: require("../assets/sprites/battle-dragon-mountain-ruin.webp"),
   battleBackgroundRuinedCitadel: require("../assets/sprites/battle-ruined-citadel.webp"),
   battleBackgroundSpiceBazaar: require("../assets/sprites/battle-spice-bazaar.webp"),
+  battleBackgroundHimalayaTea: require("../assets/sprites/battle-himalaya-tea.webp"),
+  battleBackgroundMughalGarden: require("../assets/sprites/battle-mughal-garden.webp"),
 };
 
 // A 3-frame flash played once over the enemy when a hit lands as a critical.
@@ -852,6 +874,12 @@ export const food = {
   curryPowder: require("../assets/food/curry-powder.webp"),
   goldenTurmeric: require("../assets/food/golden-turmeric.webp"),
   dishCurryRice: require("../assets/food/dish-curry-rice.webp"),
+  teaLeaf: require("../assets/food/tea-leaf.webp"),
+  yakMilk: require("../assets/food/yak-milk.webp"),
+  dishMasalaChai: require("../assets/food/dish-masala-chai.webp"),
+  saffron: require("../assets/food/saffron.webp"),
+  basmatiRice: require("../assets/food/basmati-rice.webp"),
+  dishMughalBiryani: require("../assets/food/dish-mughal-biryani.webp"),
 };
 
 // A stretchable UI frame: `insets` (source px: top, right, bottom, left) mark the rounded
@@ -1185,6 +1213,14 @@ export const comics = {
   bazaarBound2: require("../assets/comics/bazaar-bound-2.webp"),
   bazaarBound3: require("../assets/comics/bazaar-bound-3.webp"),
   bazaarBound4: require("../assets/comics/bazaar-bound-4.webp"),
+  teaTrail1: require("../assets/comics/tea-trail-1.webp"),
+  teaTrail2: require("../assets/comics/tea-trail-2.webp"),
+  teaTrail3: require("../assets/comics/tea-trail-3.webp"),
+  teaTrail4: require("../assets/comics/tea-trail-4.webp"),
+  saffronGarden1: require("../assets/comics/saffron-garden-1.webp"),
+  saffronGarden2: require("../assets/comics/saffron-garden-2.webp"),
+  saffronGarden3: require("../assets/comics/saffron-garden-3.webp"),
+  saffronGarden4: require("../assets/comics/saffron-garden-4.webp"),
 };
 
 // Per-region BGM — see BGM_GROUP in stages.ts for which EnemyKind maps to which group.

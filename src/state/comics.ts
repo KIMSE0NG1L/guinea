@@ -21,7 +21,7 @@ export type ComicBubble = {
 // `aspect`: the panel art's height / width (panels from one page can differ slightly).
 export type ComicPanel = { image: number; aspect: number; bubbles: ComicBubble[]; sfx?: SfxKey; shake?: boolean };
 
-export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase" | "giniReturn" | "griffinFlight" | "ending" | "bazaarBound" | "apprenticeGini" | "apprenticeWeak" | "apprenticeGuard" | "boxerEvolution";
+export type ComicId = "opening" | "explorer" | "cookbook" | "teto" | "assassin" | "egen" | "samurai" | "harbor" | "dive" | "kite" | "snowpass" | "jungle" | "cavevillage" | "cloudpalace" | "farmchicken" | "jungleoasis" | "marketsilk" | "oasisdesert" | "slimeroad" | "swampfarm" | "snowvillage" | "tigerride" | "foxpath" | "chiliport" | "shrinesteps" | "tanukimap" | "castleonsen" | "nightthief" | "dragonroad" | "dragongate" | "whaleride" | "alpinetrain" | "sledbakery" | "ginitown" | "townasleep" | "pumpkinforest" | "beeChase" | "giniReturn" | "griffinFlight" | "ending" | "bazaarBound" | "teaTrail" | "saffronGarden" | "apprenticeGini" | "apprenticeWeak" | "apprenticeGuard" | "boxerEvolution";
 
 // Loop-gated story beats: each fires once, in GameScreen's comic chain, the first time
 // `loopsCompleted` equals `afterLoop` and (if given) `stageNumber` has passed `afterStage` —
@@ -1606,6 +1606,79 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
       },
     ],
   },
+  // Stage 39 (0-based) — 인도 향신료 바자르. 커리 재료를 다 모으고 호랑이 셰프에게서 요리책 짜이의
+  // 찻잎이 산 위에 있다는 걸 듣고(1) → 산길을 올라(2) →
+  // 히말라야 차밭에 도착해 감탄하고(3) → 짜이 설인이 나타나는(4) 데까지. 다음 스테이지(40,
+  // 히말라야 차밭)에서 그 싸움을 직접 겪는다.
+  teaTrail: {
+    title: "찻잎 향기 따라 산 위로",
+    panels: [
+      {
+        image: comics.teaTrail1,
+        aspect: 504 / 760,
+        sfx: "levelup",
+        bubbles: [
+          { text: "커리 재료,\n다 모았다!", left: 0.02, top: 0.02, maxWidth: 0.3, tail: "bottom", tailAt: 0.4, shout: true },
+          { text: "짜이에 넣을 찻잎은...\n저 산 위에 있지...", right: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.6 },
+        ],
+      },
+      {
+        image: comics.teaTrail2,
+        aspect: 504 / 760,
+        bubbles: [{ text: "헉헉... 그래도\n찻잎 냄새가 나!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.7 }],
+      },
+      {
+        image: comics.teaTrail3,
+        aspect: 504 / 760,
+        bubbles: [{ text: "우와...\n찻잎이 한가득!", left: 0.22, top: 0.02, maxWidth: 0.36, tail: "bottom", tailAt: 0.1 }],
+      },
+      {
+        image: comics.teaTrail4,
+        aspect: 504 / 760,
+        sfx: "bossEnter",
+        bubbles: [
+          { text: "내 찻잎을 노리는 거냐?\n짜이부터 받아라!", left: 0.02, top: 0.02, maxWidth: 0.44, tail: "bottom", tailAt: 0.9 },
+          { text: "요리책 짜이,\n꼭 만들 거야!", left: 0.0, top: 0.4, maxWidth: 0.32, tail: "bottom", tailAt: 0.5, shout: true },
+        ],
+      },
+    ],
+  },
+  // Stage 40 (0-based) — 히말라야 차밭. 짜이 설인을 쓰러뜨려 찻잎을 얻고, 요리책 다음 요리 비리야니에
+  // 사프란이 필요하다는 걸 알고(1) → 강을 따라 내려가(2) → 타지마할 정원에 도착해 감탄하고(3) →
+  // 황실 사프란을 끌어안은 공작 황제가 나타나는(4) 데까지.
+  saffronGarden: {
+    title: "사프란 꽃이 피는 정원",
+    panels: [
+      {
+        image: comics.saffronGarden1,
+        aspect: 504 / 760,
+        sfx: "levelup",
+        bubbles: [
+          { text: "찻잎 확보!\n짜이 완성이다!", left: 0.02, top: 0.02, maxWidth: 0.34, tail: "bottom", tailAt: 0.4, shout: true },
+          { text: "다음 비리야니엔...\n사프란이 필요하대!", right: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.3 },
+        ],
+      },
+      {
+        image: comics.saffronGarden2,
+        aspect: 504 / 760,
+        bubbles: [{ text: "사프란 꽃이 핀다는\n하얀 궁전까지 가자!", left: 0.02, top: 0.02, maxWidth: 0.44, tail: "bottom", tailAt: 0.7 }],
+      },
+      {
+        image: comics.saffronGarden3,
+        aspect: 504 / 760,
+        bubbles: [{ text: "우와... 꽃밭이\n전부 사프란이야!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.6 }],
+      },
+      {
+        image: comics.saffronGarden4,
+        aspect: 504 / 760,
+        sfx: "bossEnter",
+        bubbles: [
+          { text: "황실 사프란은\n한 올도 못 내준다!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.9 },
+          { text: "비리야니에\n딱 한 줌만!", left: 0.0, top: 0.36, maxWidth: 0.3, tail: "bottom", tailAt: 0.5, shout: true },
+        ],
+      },
+    ],
+  },
   // Fires once: the second loop's 평범한 마을 boss (LOOP_COMICS, stage 6) clear —
   // see GameScreen's comic chain. 견습기니's first real taste of actually fighting instead of
   // just tagging along, and it does not go well — sets up the contrast for apprenticeGuard's
@@ -1780,7 +1853,13 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   // the hoard's torn page, following its scent, and the confrontation with 40's boss waiting
   // at the bazaar (see COMICS.bazaarBound) — a normal first-clear entry, nothing dynamic.
   38: "bazaarBound",
-  // 39 (인도 향신료 바자르): "ending" plays here because it's CURRENTLY the true last stage —
+  // 39 (인도 향신료 바자르): the tiger chef falls and points at the mountains, the climb, the
+  // tea terraces, and the chai yeti's entrance (see COMICS.teaTrail) — same shape as 38.
+  39: "teaTrail",
+  // 40 (히말라야 차밭): the yeti falls and hands over the tea, the cookbook's biryani page calls for
+  // saffron, the river trip down, the Mughal garden, the peacock emperor (COMICS.saffronGarden).
+  40: "saffronGarden",
+  // "ending" plays on whichever stage is CURRENTLY the true last one (41, 타지마할 정원, today) —
   // keyed dynamically so it always follows the real frontier, not pinned to this number. The
   // next time a stage ships past this one, write that stage's own bridge comic (same shape as
   // bazaarBound above: wherever 39's fight leaves off, through to arriving at and clashing

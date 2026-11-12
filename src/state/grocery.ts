@@ -109,6 +109,10 @@ const STOCK: { name: string; category: GroceryCategory; shopPrice?: number }[] =
   { name: "전복", category: "seafood" },
   { name: "커리가루", category: "special" },
   { name: "황금 강황", category: "special" },
+  { name: "찻잎", category: "special" },
+  { name: "야크 우유", category: "special" },
+  { name: "사프란", category: "special" },
+  { name: "바스마티 쌀", category: "grain" },
 ];
 
 // Buying costs this much more than the gold you'd earn farming the item yourself, so the

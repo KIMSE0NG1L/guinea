@@ -546,6 +546,27 @@ const DROPS: Record<EnemyKind, { mob: DropEntry[]; boss: DropEntry[] }> = {
       { name: "황금 강황", chance: 0.4 },
     ],
   },
+  // 히말라야 차밭: 꼬마야크 바구니에서 떨어지는 찻잎과 야크 우유; 짜이 설인은 둘 다 넉넉히.
+  teaYak: {
+    mob: [
+      { name: "찻잎", chance: 0.35 },
+      { name: "야크 우유", chance: 0.15 },
+    ],
+    boss: [
+      { name: "찻잎", chance: 1, quantity: 2 },
+      { name: "야크 우유", chance: 0.6 },
+    ],
+  },
+  // 타지마할 정원: 앵무새가 물고 다니는 사프란; 공작 황제는 창고의 바스마티 쌀까지.
+  saffronParrot: {
+    mob: [
+      { name: "사프란", chance: 0.3 },
+    ],
+    boss: [
+      { name: "바스마티 쌀", chance: 1, quantity: 2 },
+      { name: "사프란", chance: 0.5 },
+    ],
+  },
 };
 
 // Every place an ingredient drops: which monster, mob or boss table, and the entry.
