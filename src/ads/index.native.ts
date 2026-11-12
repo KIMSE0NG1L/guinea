@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import mobileAds, { AdEventType, InterstitialAd, RewardedAd, RewardedAdEventType, TestIds } from "react-native-google-mobile-ads";
+import { requestTrackingPermissionsAsync } from "expo-tracking-transparency";
 import { setBgmSuspended } from "../sound";
 
 export type AdResult = "earned" | "dismissed" | "failed";
@@ -66,8 +67,11 @@ function describeError(error: unknown) {
 
 export function initAds() {
   if (!initPromise) {
-    initPromise = mobileAds()
-      .initialize()
+    // Apple requires the ATT prompt before any IDFA-dependent SDK init; the SDK then
+    // serves personalized or non-personalized ads based on the user's answer on its own.
+    initPromise = requestTrackingPermissionsAsync()
+      .catch(() => null)
+      .then(() => mobileAds().initialize())
       .catch(() => null);
     initPromise.then(() => {
       preload();
