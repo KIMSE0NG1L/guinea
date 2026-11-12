@@ -445,7 +445,7 @@ const RECIPE_DEFS: RecipeDef[] = [
   {
     id: "curry-rice",
     name: "카레라이스",
-    description: "용의 보물창고에서 찾은 요리책 마지막 장, 그 레시피.",
+    description: "바자르 향신료를 듬뿍 넣어 끓인, 요리책 속 인도 커리.",
     image: food.dishCurryRice,
     tier: "legendary",
     ingredients: [

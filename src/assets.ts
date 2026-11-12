@@ -1268,6 +1268,11 @@ export const bgm = {
     field: require("../assets/bgm/field-fantasy.mp3"),
     boss: require("../assets/bgm/boss-fantasy.mp3"),
   },
+  // 인도 향신료 바자르~타지마할 정원: "Sunny Adventure" and "Main Theme - Intense".
+  india: {
+    field: require("../assets/bgm/field-india.mp3"),
+    boss: require("../assets/bgm/boss-india.mp3"),
+  },
 };
 
 // The title screen's own theme (마을 대기 화면), looping until the player taps in.

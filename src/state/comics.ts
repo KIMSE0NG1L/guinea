@@ -1542,17 +1542,17 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
         image: comics.bazaarBound1,
         aspect: 504 / 760,
         sfx: "levelup",
-        bubbles: [{ text: "드디어...\n잡았다!", left: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.7, shout: true }],
+        bubbles: [{ text: "드디어 잡았다!\n숨긴 재료도 돌려받자!", left: 0.02, top: 0.02, maxWidth: 0.44, tail: "bottom", tailAt: 0.7, shout: true }],
       },
       {
         image: comics.bazaarBound2,
         aspect: 504 / 760,
-        bubbles: [{ text: "어? 이 냄새는...\n따라가 보자!", left: 0.02, top: 0.02, maxWidth: 0.44, tail: "bottom", tailAt: 0.7 }],
+        bubbles: [{ text: "다시 요리책 재료 모으러!\n어? 이 냄새는...?", left: 0.02, top: 0.02, maxWidth: 0.44, tail: "bottom", tailAt: 0.7 }],
       },
       {
         image: comics.bazaarBound3,
         aspect: 504 / 760,
-        bubbles: [{ text: "오, 바로 여기였구나!", left: 0.02, top: 0.02, maxWidth: 0.42, tail: "bottom", tailAt: 0.7 }],
+        bubbles: [{ text: "커리 향신료가\n전부 여기 있어!", left: 0.02, top: 0.02, maxWidth: 0.42, tail: "bottom", tailAt: 0.7 }],
       },
       {
         image: comics.bazaarBound4,
@@ -1560,7 +1560,7 @@ export const COMICS: Record<ComicId, { title: string; panels: ComicPanel[] }> = 
         sfx: "bossEnter",
         bubbles: [
           { text: "내 바자르에서\n뭘 찾는 거지?", right: 0.02, top: 0.02, maxWidth: 0.4, tail: "bottom", tailAt: 0.3 },
-          { text: "이 레시피,\n돌려받아야겠어!", left: 0.0, top: 0.68, maxWidth: 0.36, tail: "top", tailAt: 0.6, shout: true },
+          { text: "커리 향신료,\n좀 나눠 줘!", left: 0.0, top: 0.68, maxWidth: 0.36, tail: "top", tailAt: 0.6, shout: true },
         ],
       },
     ],
@@ -1849,8 +1849,8 @@ export const COMIC_ON_FIRST_CLEAR: Partial<Record<number, ComicId>> = {
   35: "beeChase",
   36: "giniReturn",
   37: "griffinFlight",
-  // 38 (무너진 성채): the dragon falls, and the comic itself carries straight on into finding
-  // the hoard's torn page, following its scent, and the confrontation with 40's boss waiting
+  // 38 (무너진 성채): the dragon falls and gives back its hoarded ingredients, the party returns
+  // to the cookbook (curry next), follows the spice scent, and confronts 40's boss waiting
   // at the bazaar (see COMICS.bazaarBound) — a normal first-clear entry, nothing dynamic.
   38: "bazaarBound",
   // 39 (인도 향신료 바자르): the tiger chef falls and points at the mountains, the climb, the
