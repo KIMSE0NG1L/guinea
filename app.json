@@ -9,7 +9,7 @@
     "ios": {
       "bundleIdentifier": "com.guinea.adventure",
       "supportsTablet": true,
-      "buildNumber": "8",
+      "buildNumber": "9",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -21,7 +21,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.guinea.adventure",
-      "versionCode": 8
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/app-icon.png"
@@ -65,7 +65,8 @@
         "expo-audio",
         {
           "microphonePermission": false,
-          "recordAudioAndroid": false
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
         }
       ],
       "expo-asset",
