@@ -10,7 +10,7 @@
 
 게임 진행 정보(레벨, 재화, 가방, 퀘스트 진행, 설정 등)는 **이용자의 기기 안에만 저장**되며 운영자의 서버로 전송되지 않습니다. 운영자는 이 정보를 볼 수도, 받을 수도 없습니다.
 
-게임은 광고를 보여 주기 위해 Google AdMob을 사용합니다. 이 과정에서 Google이 **광고 식별자(ADID/IDFA), 기기 정보(기종, 운영체제, 언어), 대략적인 위치(IP 주소 기반), 광고 이용 기록**을 수집할 수 있습니다. 이 정보는 Google의 개인정보처리방침(https://policies.google.com/privacy)에 따라 처리됩니다.
+게임은 광고를 보여 주기 위해 Unity LevelPlay(구 ironSource)를 사용합니다. 이 과정에서 Unity와 Unity가 중개하는 광고 네트워크가 **광고 식별자(ADID/IDFA), 기기 정보(기종, 운영체제, 언어), 대략적인 위치(IP 주소 기반), 광고 이용 기록**을 수집할 수 있습니다. 이 정보는 Unity의 개인정보처리방침(https://unity.com/kr/legal/privacy-policy)에 따라 처리됩니다.
 
 ## 2. 개인정보의 이용 목적
 
@@ -30,7 +30,7 @@
 
 | 업체 | 처리 내용 |
 |---|---|
-| Google LLC (AdMob) | 광고 표시 및 광고 보상 |
+| Unity Technologies (LevelPlay) | 광고 표시 및 광고 보상 |
 
 ## 5. 이용자의 권리
 
