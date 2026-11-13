@@ -30,6 +30,10 @@ import { t } from "../i18n";
 import type { RecipeTier } from "../state/recipeTiers";
 
 const DIFFICULTY_LABEL_EN: Record<RecipeTier, string> = { common: "Easy", rare: "Normal", epic: "Hard", legendary: "Very Hard", hidden: "Extreme" };
+// Keyed by tier rather than looked up by the Korean label text — "보통" (Normal here)
+// would otherwise collide with the cook-grade "보통" (Good) elsewhere in the dictionary.
+const DIFFICULTY_LABEL_JA: Record<RecipeTier, string> = { common: "簡単", rare: "普通", epic: "難しい", legendary: "とても難しい", hidden: "極限" };
+const DIFFICULTY_LABEL_ZH: Record<RecipeTier, string> = { common: "简单", rare: "普通", epic: "困难", legendary: "非常困难", hidden: "极限" };
 
 export type KitchenLayout = "list" | "grid";
 
@@ -275,7 +279,10 @@ export function KitchenScreen({
               {!ready ? t("재료 부족", "Missing Ingredients") : freePot ? t("요리하기", "Cook") : t("냄비 가득", "Pots Full")}
             </GameButton>
           );
-          const effectParts = [...describeBuffParts(recipe.id), `🎯${t(MINIGAME_DIFFICULTY[recipe.tier].label, DIFFICULTY_LABEL_EN[recipe.tier])}`];
+          const effectParts = [
+            ...describeBuffParts(recipe.id),
+            `🎯${t(MINIGAME_DIFFICULTY[recipe.tier].label, DIFFICULTY_LABEL_EN[recipe.tier], DIFFICULTY_LABEL_JA[recipe.tier], DIFFICULTY_LABEL_ZH[recipe.tier])}`,
+          ];
           const effect = (
             <BalancedRows
               items={effectParts}

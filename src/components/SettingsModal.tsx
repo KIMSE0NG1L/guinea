@@ -7,7 +7,14 @@ import { GameButton } from "./GameButton";
 import { VolumeSlider } from "./VolumeSlider";
 import { playSfx, setBgmVolume, setSfxVolume, useBgmVolume, useSfxVolume } from "../sound";
 import { playHaptic, setHapticsEnabled, useHapticsEnabled } from "../haptics";
-import { setLanguage, t, useLanguage } from "../i18n";
+import { setLanguage, t, useLanguage, type Lang } from "../i18n";
+
+const LANGUAGES: [Lang, string][] = [
+  ["ko", "한국어"],
+  ["en", "EN"],
+  ["ja", "日本語"],
+  ["zh", "中文"],
+];
 
 export function SettingsModal({
   onSkipToBoss,
@@ -65,18 +72,21 @@ export function SettingsModal({
           </Pressable>
           <View style={styles.sfxRow}>
             <Text style={styles.sfxLabel}>{t("언어", "Language")}</Text>
-            <GameButton
-              variant="cream"
-              onPress={() => {
-                const next = language === "en" ? "ko" : "en";
-                setLanguage(next);
-                playSfx("uiToggle");
-              }}
-              style={styles.hapticButton}
-              textStyle={styles.hapticButtonText}
-            >
-              {language === "en" ? "English" : "한국어"}
-            </GameButton>
+            <View style={styles.langRow}>
+              {LANGUAGES.map(([lang, label]) => (
+                <Pressable
+                  key={lang}
+                  onPress={() => {
+                    if (lang === language) return;
+                    setLanguage(lang);
+                    playSfx("uiToggle");
+                  }}
+                  style={[styles.langChip, lang === language && styles.langChipActive]}
+                >
+                  <Text style={[styles.langChipText, lang === language && styles.langChipTextActive]}>{label}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
           <View style={[styles.sfxRow, styles.bgmRow]}>
             <Text style={styles.sfxLabel}>{t("효과음", "SFX")}</Text>
@@ -284,6 +294,11 @@ const styles = StyleSheet.create({
   sfxLabel: { fontSize: 15, fontWeight: "700", fontFamily: fonts.bold, color: colors.ink },
   sliderWrap: { width: 140 },
   hapticButton: { minHeight: 28, paddingHorizontal: 16 },
+  langRow: { flexDirection: "row", gap: 5 },
+  langChip: { paddingHorizontal: 9, paddingVertical: 6, borderRadius: 10, backgroundColor: "#e4d6b8", borderWidth: 1.5, borderColor: colors.line },
+  langChipActive: { backgroundColor: colors.green },
+  langChipText: { fontSize: 11, fontWeight: "800", fontFamily: fonts.bold, color: colors.ink },
+  langChipTextActive: { color: colors.cream },
   hapticButtonText: { fontSize: 11 },
   list: { marginTop: 16, width: "100%", gap: 8 },
   button: { width: "100%" },

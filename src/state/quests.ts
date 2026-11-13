@@ -30,36 +30,98 @@ type Metric =
   | "companions";
 
 const METRICS: Record<Metric, { icon: number; title: (target: number) => string; read: (state: GameState) => number }> = {
-  kills: { icon: navIcons.battle, title: (n) => t(`적 ${formatGameNumber(n)}마리 처치`, `Defeat ${formatGameNumber(n)} Enemies`), read: (s) => s.kills },
-  gold: { icon: icons.coins, title: (n) => t(`골드 ${formatGameNumber(n)} 획득`, `Earn ${formatGameNumber(n)} Gold`), read: (s) => s.totalGoldEarned },
-  bossKills: { icon: icons.trophy, title: (n) => t(`보스 ${formatGameNumber(n)}마리 처치`, `Defeat ${formatGameNumber(n)} Bosses`), read: (s) => s.bossKills ?? 0 },
+  kills: {
+    icon: navIcons.battle,
+    title: (n) => t(`적 ${formatGameNumber(n)}마리 처치`, `Defeat ${formatGameNumber(n)} Enemies`, `敵を${formatGameNumber(n)}体倒す`, `击败${formatGameNumber(n)}只敌人`),
+    read: (s) => s.kills,
+  },
+  gold: {
+    icon: icons.coins,
+    title: (n) => t(`골드 ${formatGameNumber(n)} 획득`, `Earn ${formatGameNumber(n)} Gold`, `ゴールド${formatGameNumber(n)}獲得`, `获得${formatGameNumber(n)}金币`),
+    read: (s) => s.totalGoldEarned,
+  },
+  bossKills: {
+    icon: icons.trophy,
+    title: (n) => t(`보스 ${formatGameNumber(n)}마리 처치`, `Defeat ${formatGameNumber(n)} Bosses`, `ボスを${formatGameNumber(n)}体倒す`, `击败${formatGameNumber(n)}个首领`),
+    read: (s) => s.bossKills ?? 0,
+  },
   stage: {
     icon: icons.mapTrim,
-    title: (n) => t(`${STAGES[n - 1].area}(${n}) 도착`, `Reach ${t(STAGES[n - 1].area)} (${n})`),
+    title: (n) =>
+      t(
+        `${STAGES[n - 1].area}(${n}) 도착`,
+        `Reach ${t(STAGES[n - 1].area)} (${n})`,
+        `${t(STAGES[n - 1].area)}（${n}）到着`,
+        `抵达${t(STAGES[n - 1].area)}（${n}）`,
+      ),
     read: (s) => getPeakAreaStage(s) + 1,
   },
-  attackUpgrades: { icon: statIcons.attack, title: (n) => t(`공격력 ${formatGameNumber(n)}회 강화`, `Upgrade Attack ${formatGameNumber(n)} Times`), read: (s) => s.attackUpgrades },
+  attackUpgrades: {
+    icon: statIcons.attack,
+    title: (n) =>
+      t(`공격력 ${formatGameNumber(n)}회 강화`, `Upgrade Attack ${formatGameNumber(n)} Times`, `攻撃力を${formatGameNumber(n)}回強化`, `强化攻击力${formatGameNumber(n)}次`),
+    read: (s) => s.attackUpgrades,
+  },
   critDamageLevel: {
     icon: statIcons.criticalDamage,
-    title: (n) => t(`치명타 피해 Lv.${formatGameNumber(n)} 달성`, `Reach Crit Damage Lv.${formatGameNumber(n)}`),
+    title: (n) =>
+      t(
+        `치명타 피해 Lv.${formatGameNumber(n)} 달성`,
+        `Reach Crit Damage Lv.${formatGameNumber(n)}`,
+        `クリティカルダメージLv.${formatGameNumber(n)}到達`,
+        `暴击伤害达到Lv.${formatGameNumber(n)}`,
+      ),
     read: (s) => getStatLevel(s, "criticalDamage"),
   },
-  level: { icon: icons.star, title: (n) => t(`기니 Lv.${formatGameNumber(n)} 달성`, `Reach Gini Lv.${formatGameNumber(n)}`), read: (s) => s.level },
-  cooked: { icon: food.cookPotTrim, title: (n) => t(`요리 ${formatGameNumber(n)}회 만들기`, `Cook ${formatGameNumber(n)} Dishes`), read: (s) => s.dishesCooked ?? 0 },
-  eaten: { icon: food.dishBananaMilk, title: (n) => t(`버프 요리 ${formatGameNumber(n)}회 먹기`, `Eat ${formatGameNumber(n)} Buff Dishes`), read: (s) => s.dishesEaten ?? 0 },
+  level: {
+    icon: icons.star,
+    title: (n) => t(`기니 Lv.${formatGameNumber(n)} 달성`, `Reach Gini Lv.${formatGameNumber(n)}`, `ギニーLv.${formatGameNumber(n)}到達`, `吉妮达到Lv.${formatGameNumber(n)}`),
+    read: (s) => s.level,
+  },
+  cooked: {
+    icon: food.cookPotTrim,
+    title: (n) => t(`요리 ${formatGameNumber(n)}회 만들기`, `Cook ${formatGameNumber(n)} Dishes`, `料理を${formatGameNumber(n)}回作る`, `烹饪${formatGameNumber(n)}次料理`),
+    read: (s) => s.dishesCooked ?? 0,
+  },
+  eaten: {
+    icon: food.dishBananaMilk,
+    title: (n) =>
+      t(`버프 요리 ${formatGameNumber(n)}회 먹기`, `Eat ${formatGameNumber(n)} Buff Dishes`, `バフ料理を${formatGameNumber(n)}回食べる`, `食用${formatGameNumber(n)}次增益料理`),
+    read: (s) => s.dishesEaten ?? 0,
+  },
   recipes: {
     icon: icons.scroll,
-    title: (n) => t(`레시피 ${n}개 배우기`, `Learn ${n} Recipes`),
+    title: (n) => t(`레시피 ${n}개 배우기`, `Learn ${n} Recipes`, `レシピを${n}個習得`, `学会${n}个食谱`),
     read: (s) => (s.knownRecipes ?? []).filter((id) => !STARTER_RECIPES.includes(id)).length,
   },
-  cookbook: { icon: icons.codexBook, title: (n) => t(`요리책 ${n}장 채우기`, `Fill ${n} Cookbook Pages`), read: (s) => getCookbookProgress(s.cookedRecipes) },
-  ingredients: { icon: icons.codexIngredient, title: (n) => t(`식재료 ${n}종 모으기`, `Collect ${n} Ingredient Types`), read: (s) => (s.discoveredItems ?? []).length },
-  coinsCaught: { icon: uiImages.coinWinged, title: (n) => t(`날개 코인 ${n}개 잡기`, `Catch ${n} Winged Coins`), read: (s) => s.coinsCaught ?? 0 },
-  foodSlots: { icon: frameImages.slotPlus, title: (n) => t(`음식 슬롯 ${n}칸 열기`, `Open ${n} Food Slots`), read: (s) => s.buffSlotsUnlocked ?? 1 },
-  bagExpansions: { icon: icons.backpackTrim, title: (n) => t(`가방 ${n}번 늘리기`, `Expand Bag ${n} Times`), read: (s) => s.bagExpansions ?? 0 },
+  cookbook: {
+    icon: icons.codexBook,
+    title: (n) => t(`요리책 ${n}장 채우기`, `Fill ${n} Cookbook Pages`, `料理帳を${n}ページ埋める`, `填满食谱书${n}页`),
+    read: (s) => getCookbookProgress(s.cookedRecipes),
+  },
+  ingredients: {
+    icon: icons.codexIngredient,
+    title: (n) => t(`식재료 ${n}종 모으기`, `Collect ${n} Ingredient Types`, `食材を${n}種類集める`, `收集${n}种食材`),
+    read: (s) => (s.discoveredItems ?? []).length,
+  },
+  coinsCaught: {
+    icon: uiImages.coinWinged,
+    title: (n) => t(`날개 코인 ${n}개 잡기`, `Catch ${n} Winged Coins`, `羽コインを${n}枚キャッチ`, `捕捉${n}枚飞行金币`),
+    read: (s) => s.coinsCaught ?? 0,
+  },
+  foodSlots: {
+    icon: frameImages.slotPlus,
+    title: (n) => t(`음식 슬롯 ${n}칸 열기`, `Open ${n} Food Slots`, `料理スロットを${n}個解放`, `开启${n}个食物槽位`),
+    read: (s) => s.buffSlotsUnlocked ?? 1,
+  },
+  bagExpansions: {
+    icon: icons.backpackTrim,
+    title: (n) => t(`가방 ${n}번 늘리기`, `Expand Bag ${n} Times`, `かばんを${n}回拡張`, `扩充背包${n}次`),
+    read: (s) => s.bagExpansions ?? 0,
+  },
   companions: {
     icon: navIcons.companions,
-    title: (n) => t(`동료 ${n}명 만나기`, `Meet ${n} Companions`),
+    title: (n) => t(`동료 ${n}명 만나기`, `Meet ${n} Companions`, `仲間を${n}人集める`, `结识${n}位同伴`),
     read: (s) =>
       (Object.keys(OUTFIT_UNLOCK_STAGE) as Outfit[]).filter(
         (outfit) => outfit !== "default" && isOutfitUnlocked(outfit, getPeakAreaStage(s), s.purchasedOutfits),

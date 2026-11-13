@@ -33,12 +33,20 @@ export function LanguageSelectScreen({ onDone }: { onDone: () => void }) {
           <StrokedText style={styles.title} strokeColor={colors.line} strokeWidth={3}>
             Choose Your Language
           </StrokedText>
-          <View style={styles.buttons}>
+          <View style={[styles.buttons, styles.buttonsFirstRow]}>
             <GameButton variant="cream" onPress={() => choose("ko")} style={styles.button} textStyle={styles.buttonText}>
               한국어
             </GameButton>
             <GameButton variant="green" onPress={() => choose("en")} style={styles.button} textStyle={styles.buttonText}>
               English
+            </GameButton>
+          </View>
+          <View style={styles.buttons}>
+            <GameButton variant="beige" onPress={() => choose("ja")} style={styles.button} textStyle={styles.buttonText}>
+              日本語
+            </GameButton>
+            <GameButton variant="brown" onPress={() => choose("zh")} style={styles.button} textStyle={styles.buttonText}>
+              中文
             </GameButton>
           </View>
           <Text style={styles.hint}>나중에 설정에서 바꿀 수 있어요 · You can change this later in Settings</Text>
@@ -67,7 +75,8 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   title: { fontSize: 24, fontWeight: "900", fontFamily: fonts.bold, color: colors.cream, letterSpacing: 0.5, textAlign: "center" },
-  buttons: { flexDirection: "row", gap: 14, marginTop: 28, width: "100%", justifyContent: "center" },
+  buttons: { flexDirection: "row", gap: 14, marginTop: 10, width: "100%", justifyContent: "center" },
+  buttonsFirstRow: { marginTop: 28 },
   button: { minWidth: 130, paddingHorizontal: 20 },
   buttonText: { fontSize: 18 },
   hint: { marginTop: 22, color: "#f3e6c8d9", fontSize: 12, fontWeight: "700", fontFamily: fonts.bold, textAlign: "center", textShadowColor: "#1c1613", textShadowRadius: 3 },

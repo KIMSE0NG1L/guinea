@@ -1894,14 +1894,28 @@ export function getComicUnlockLabel(id: ComicId) {
     const loopNumber = loopComic.afterLoop + 1;
     const loopLabel = `${loopNumber}회차`;
     return loopComic.afterStage === undefined
-      ? t(`${loopLabel}의 마지막 보스를 잡으면 열려요`, `Unlocks on beating loop ${loopNumber}'s last boss`)
+      ? t(
+          `${loopLabel}의 마지막 보스를 잡으면 열려요`,
+          `Unlocks on beating loop ${loopNumber}'s last boss`,
+          `${loopNumber}周目の最後のボスを倒すと解放されます`,
+          `击败第${loopNumber}周目的最终首领后解锁`,
+        )
       : t(
           `${loopLabel}에 ${loopComic.afterStage + 1}스테이지 보스를 잡으면 열려요`,
           `Unlocks on beating stage ${loopComic.afterStage + 1}'s boss during loop ${loopNumber}`,
+          `${loopNumber}周目でステージ${loopComic.afterStage + 1}のボスを倒すと解放されます`,
+          `在第${loopNumber}周目击败第${loopComic.afterStage + 1}关首领后解锁`,
         );
   }
   const stage = Object.entries(COMIC_ON_FIRST_CLEAR).find(([, comic]) => comic === id)?.[0];
-  return stage === undefined ? "" : t(`${Number(stage) + 1}스테이지 보스를 처음 잡으면 열려요`, `Unlocks on first beating stage ${Number(stage) + 1}'s boss`);
+  return stage === undefined
+    ? ""
+    : t(
+        `${Number(stage) + 1}스테이지 보스를 처음 잡으면 열려요`,
+        `Unlocks on first beating stage ${Number(stage) + 1}'s boss`,
+        `ステージ${Number(stage) + 1}のボスを初めて倒すと解放されます`,
+        `首次击败第${Number(stage) + 1}关首领后解锁`,
+      );
 }
 
 // Comics the player has reached so far (for the album): the opening always, the rest

@@ -35,6 +35,10 @@ import { t } from "../i18n";
 // "보통" here (Normal difficulty) collides with the unrelated cook-grade label "보통" (Good),
 // which the dictionary already maps to a different English word. Keyed by tier instead.
 const DIFFICULTY_LABEL_EN: Record<RecipeTier, string> = { common: "Easy", rare: "Normal", epic: "Hard", legendary: "Very Hard", hidden: "Extreme" };
+// ja/zh also keyed by tier rather than looked up by the Korean label text, same reason as
+// above — "보통" (Normal here) would otherwise collide with the cook-grade "보통" (Good).
+const DIFFICULTY_LABEL_JA: Record<RecipeTier, string> = { common: "簡単", rare: "普通", epic: "難しい", legendary: "とても難しい", hidden: "極限" };
+const DIFFICULTY_LABEL_ZH: Record<RecipeTier, string> = { common: "简单", rare: "普通", epic: "困难", legendary: "非常困难", hidden: "极限" };
 
 const TRACK_HEIGHT = 34;
 const TRACK_SCALE = TRACK_HEIGHT / 40;
@@ -52,6 +56,10 @@ const FAIL_RETRIES = 2;
 
 const RESULT_TEXT: Record<RoundResult, string> = { perfect: "완벽!", good: "좋아!", miss: "아깝다!" };
 const RESULT_TEXT_EN: Record<RoundResult, string> = { perfect: "Perfect!", good: "Nice!", miss: "So Close!" };
+// Keyed by result rather than looked up by the Korean text — "좋아!" also appears as plain
+// dialogue elsewhere (comics), so looking it up by that text risks pulling in the wrong tone.
+const RESULT_TEXT_JA: Record<RoundResult, string> = { perfect: "完璧！", good: "いいね！", miss: "惜しい！" };
+const RESULT_TEXT_ZH: Record<RoundResult, string> = { perfect: "完美！", good: "不错！", miss: "可惜！" };
 const RESULT_COLOR: Record<RoundResult, string> = { perfect: "#ffd34d", good: "#bfe08a", miss: "#e07a5f" };
 
 // How many perfects in a row sit at the end of `rounds` right now — purely cosmetic (the
@@ -140,7 +148,14 @@ export function CookingMinigame({
           <View style={styles.top}>
             <Text style={styles.eyebrow}>COOKING</Text>
             <Text style={styles.title}>{t(recipe.name)}</Text>
-            <Text style={styles.difficulty}>{t(`난이도 ${difficulty.label}`, `Difficulty: ${DIFFICULTY_LABEL_EN[recipe.tier]}`)}</Text>
+            <Text style={styles.difficulty}>
+              {t(
+                `난이도 ${difficulty.label}`,
+                `Difficulty: ${DIFFICULTY_LABEL_EN[recipe.tier]}`,
+                `難易度: ${DIFFICULTY_LABEL_JA[recipe.tier]}`,
+                `难度: ${DIFFICULTY_LABEL_ZH[recipe.tier]}`,
+              )}
+            </Text>
           </View>
 
           <JigglingChef active={!failed} />
@@ -264,7 +279,7 @@ function ResultReveal({ result, combo }: { result: RoundResult; combo: number })
     <View style={styles.resultWrap}>
       <Animated.View style={textStyle}>
         <StrokedText style={[styles.resultText, { color: RESULT_COLOR[result] }]} strokeColor={colors.line} strokeWidth={2}>
-          {t(RESULT_TEXT[result], RESULT_TEXT_EN[result])}
+          {t(RESULT_TEXT[result], RESULT_TEXT_EN[result], RESULT_TEXT_JA[result], RESULT_TEXT_ZH[result])}
         </StrokedText>
       </Animated.View>
       {combo >= 2 && (

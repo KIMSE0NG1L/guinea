@@ -44,17 +44,44 @@ function companionDetail(outfit: Outfit) {
   const buff = OUTFIT_BUFFS[outfit];
   if (buff) parts.push(describeEffect(buff));
   const missChance = OUTFIT_MISS_CHANCE[outfit];
-  if (missChance) parts.push(t(`${missChance}% 확률로 공격 빗나감`, `${missChance}% chance to whiff`));
+  if (missChance)
+    parts.push(
+      t(`${missChance}% 확률로 공격 빗나감`, `${missChance}% chance to whiff`, `${missChance}%の確率で攻撃が外れる`, `${missChance}%概率攻击落空`),
+    );
   const hitCount = OUTFIT_HIT_COUNT[outfit];
-  if (hitCount) parts.push(t(`한 번에 ${hitCount}타씩 타격`, `Strikes ${hitCount} times per hit`));
+  if (hitCount) parts.push(t(`한 번에 ${hitCount}타씩 타격`, `Strikes ${hitCount} times per hit`, `一度に${hitCount}回攻撃`, `每次攻击${hitCount}连击`));
   const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
-  if (foodDurationBonus) parts.push(t(`음식 효과시간 +${foodDurationBonus}초`, `+${foodDurationBonus}s food buff duration`));
+  if (foodDurationBonus)
+    parts.push(
+      t(
+        `음식 효과시간 +${foodDurationBonus}초`,
+        `+${foodDurationBonus}s food buff duration`,
+        `料理効果時間 +${foodDurationBonus}秒`,
+        `食物效果时间 +${foodDurationBonus}秒`,
+      ),
+    );
   const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
   if (firstStrike)
-    parts.push(t(`적마다 첫 공격은 일반 공격 ×${firstStrike} (치명타 없음)`, `First hit on each enemy is ×${firstStrike} a normal attack (no crit)`), t("수동 공격 불가", "No manual attacking"));
-  if (OUTFIT_SURE_DROPS[outfit]) parts.push(t("재료 드랍 확률 100%", "100% ingredient drop rate"));
+    parts.push(
+      t(
+        `적마다 첫 공격은 일반 공격 ×${firstStrike} (치명타 없음)`,
+        `First hit on each enemy is ×${firstStrike} a normal attack (no crit)`,
+        `敵ごとの初撃は通常攻撃の${firstStrike}倍（クリティカルなし）`,
+        `对每个敌人的首次攻击为普通攻击的${firstStrike}倍（无暴击）`,
+      ),
+      t("수동 공격 불가", "No manual attacking", "手動攻撃不可", "无法手动攻击"),
+    );
+  if (OUTFIT_SURE_DROPS[outfit]) parts.push(t("재료 드랍 확률 100%", "100% ingredient drop rate", "素材ドロップ率100%", "材料掉落率100%"));
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
-  if (cooldownReduction) parts.push(t(`스킬 쿨타임 -${cooldownReduction / 60}분`, `Skill cooldown -${cooldownReduction / 60}min`));
+  if (cooldownReduction)
+    parts.push(
+      t(
+        `스킬 쿨타임 -${cooldownReduction / 60}분`,
+        `Skill cooldown -${cooldownReduction / 60}min`,
+        `スキルクールタイム -${cooldownReduction / 60}分`,
+        `技能冷却 -${cooldownReduction / 60}分钟`,
+      ),
+    );
   const skillPower = OUTFIT_SKILL_POWER[outfit];
   if (skillPower) parts.push(t(`스킬 효과 ×${skillPower} (기니빔 보스 피해 최대 80%)`, `Skill power ×${skillPower} (Guinea Beam up to 80% boss damage)`));
   if (OUTFIT_FORCED_MANUAL[outfit]) parts.push(t("항상 수동 전투 (탭해서 공격)", "Always manual combat (tap to attack)"));
@@ -79,17 +106,29 @@ function companionEffects(outfit: Outfit): { icon: number; text: string }[] {
   const buff = OUTFIT_BUFFS[outfit];
   if (buff) for (const part of describeEffectParts(buff)) parts.push({ icon: EFFECT_ICONS[part.key] ?? icons.star, text: part.text });
   const missChance = OUTFIT_MISS_CHANCE[outfit];
-  if (missChance) parts.push({ icon: statIcons.criticalChance, text: t(`${missChance}% 빗나감`, `${missChance}% whiff`) });
+  if (missChance)
+    parts.push({ icon: statIcons.criticalChance, text: t(`${missChance}% 빗나감`, `${missChance}% whiff`, `${missChance}%ミス`, `${missChance}%落空`) });
   const hitCount = OUTFIT_HIT_COUNT[outfit];
-  if (hitCount) parts.push({ icon: uiImages.swords, text: t(`${hitCount}연타`, `${hitCount}-hit combo`) });
+  if (hitCount) parts.push({ icon: uiImages.swords, text: t(`${hitCount}연타`, `${hitCount}-hit combo`, `${hitCount}連撃`, `${hitCount}连击`) });
   const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
-  if (foodDurationBonus) parts.push({ icon: food.cookPotTrim, text: t(`음식 시간 +${foodDurationBonus}초`, `+${foodDurationBonus}s food duration`) });
+  if (foodDurationBonus)
+    parts.push({
+      icon: food.cookPotTrim,
+      text: t(`음식 시간 +${foodDurationBonus}초`, `+${foodDurationBonus}s food duration`, `料理時間 +${foodDurationBonus}秒`, `食物时间 +${foodDurationBonus}秒`),
+    });
   const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
   if (firstStrike)
-    parts.push({ icon: skillImages.execute, text: t(`첫 공격 ×${firstStrike}`, `First hit ×${firstStrike}`) }, { icon: skillImages.barrage, text: t("수동 공격 불가", "No manual attack") });
-  if (OUTFIT_SURE_DROPS[outfit]) parts.push({ icon: icons.chest, text: t("재료 드랍 100%", "100% ingredient drop") });
+    parts.push(
+      { icon: skillImages.execute, text: t(`첫 공격 ×${firstStrike}`, `First hit ×${firstStrike}`, `初撃×${firstStrike}`, `首击×${firstStrike}`) },
+      { icon: skillImages.barrage, text: t("수동 공격 불가", "No manual attack", "手動攻撃不可", "无法手动攻击") },
+    );
+  if (OUTFIT_SURE_DROPS[outfit]) parts.push({ icon: icons.chest, text: t("재료 드랍 100%", "100% ingredient drop", "素材ドロップ100%", "材料掉落100%") });
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
-  if (cooldownReduction) parts.push({ icon: icons.energy, text: t(`쿨타임 -${cooldownReduction / 60}분`, `Cooldown -${cooldownReduction / 60}min`) });
+  if (cooldownReduction)
+    parts.push({
+      icon: icons.energy,
+      text: t(`쿨타임 -${cooldownReduction / 60}분`, `Cooldown -${cooldownReduction / 60}min`, `クールタイム -${cooldownReduction / 60}分`, `冷却 -${cooldownReduction / 60}分钟`),
+    });
   const skillPower = OUTFIT_SKILL_POWER[outfit];
   if (skillPower) parts.push({ icon: skillImages.beam, text: t(`스킬 효과 ×${skillPower}`, `Skill power ×${skillPower}`) });
   if (OUTFIT_FORCED_MANUAL[outfit]) parts.push({ icon: skillImages.barrage, text: t("항상 수동 전투", "Always manual combat") });
@@ -264,13 +303,21 @@ function unlockCondition(outfit: Outfit) {
   const loopGrant = OUTFIT_LOOP_GRANT[outfit];
   if (gemOnlyPrice !== undefined) {
     return loopGrant !== undefined
-      ? t(`보석 ${gemOnlyPrice}개로 해금 · ${loopGrant}회차 완료 시 무료 합류`, `Unlock for ${gemOnlyPrice} gems · joins free after loop ${loopGrant}`)
-      : t(`보석 ${gemOnlyPrice}개로 해금`, `Unlock for ${gemOnlyPrice} gems`);
+      ? t(
+          `보석 ${gemOnlyPrice}개로 해금 · ${loopGrant}회차 완료 시 무료 합류`,
+          `Unlock for ${gemOnlyPrice} gems · joins free after loop ${loopGrant}`,
+          `宝石${gemOnlyPrice}個で解放・${loopGrant}周目クリアで無料加入`,
+          `花费${gemOnlyPrice}颗宝石解锁·完成第${loopGrant}周目后免费加入`,
+        )
+      : t(`보석 ${gemOnlyPrice}개로 해금`, `Unlock for ${gemOnlyPrice} gems`, `宝石${gemOnlyPrice}個で解放`, `花费${gemOnlyPrice}颗宝石解锁`);
   }
-  if (loopGrant !== undefined) return t(`${loopGrant}회차 완료 시 합류`, `Joins after loop ${loopGrant}`);
+  if (loopGrant !== undefined)
+    return t(`${loopGrant}회차 완료 시 합류`, `Joins after loop ${loopGrant}`, `${loopGrant}周目クリアで加入`, `完成第${loopGrant}周目后加入`);
   return t(
     `${OUTFIT_UNLOCK_STAGE[outfit]}스테이지 도달 시 합류 · 보석 ${OUTFIT_EARLY_UNLOCK_GEMS}개로 미리 해금`,
     `Joins on reaching stage ${OUTFIT_UNLOCK_STAGE[outfit]} · unlock early for ${OUTFIT_EARLY_UNLOCK_GEMS} gems`,
+    `ステージ${OUTFIT_UNLOCK_STAGE[outfit]}到達で加入・宝石${OUTFIT_EARLY_UNLOCK_GEMS}個で先行解放`,
+    `抵达第${OUTFIT_UNLOCK_STAGE[outfit]}关后加入·花费${OUTFIT_EARLY_UNLOCK_GEMS}颗宝石提前解锁`,
   );
 }
 
@@ -380,6 +427,8 @@ export function CompanionsScreen({
         {t(
           `광고 보고 ${equippedItem.name} 조각 +${SHARD_AD_REWARD} (오늘 ${shardAdsLeft}/${SHARD_ADS_PER_DAY})`,
           `Watch an ad for +${SHARD_AD_REWARD} ${t(equippedItem.name)} shards (${shardAdsLeft}/${SHARD_ADS_PER_DAY} today)`,
+          `広告を見て${t(equippedItem.name)}の欠片+${SHARD_AD_REWARD}（本日${shardAdsLeft}/${SHARD_ADS_PER_DAY}）`,
+          `看广告获得${t(equippedItem.name)}碎片+${SHARD_AD_REWARD}（今日${shardAdsLeft}/${SHARD_ADS_PER_DAY}）`,
         )}
       </GameButton>
 
@@ -474,6 +523,8 @@ export function CompanionsScreen({
                     caption={t(
                       `${BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])]}\n${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}스테이지 보스`,
                       `${t(BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])])}\nStage ${getStageCode(COMPANION_SHARD_STAGE[item.outfit])} Boss`,
+                      `${t(BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])])}\nステージ${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}ボス`,
+                      `${t(BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])])}\n第${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}关首领`,
                     )}
                   >
                     <View style={styles.factSprite}>
@@ -481,16 +532,25 @@ export function CompanionsScreen({
                     </View>
                   </IconFact>
                 </InfoTile>
-                <InfoTile label={t(`레벨 ${level}${maxed ? " · 최고" : ""}`, `Level ${level}${maxed ? " · Max" : ""}`)}>
+                <InfoTile
+                  label={t(
+                    `레벨 ${level}${maxed ? " · 최고" : ""}`,
+                    `Level ${level}${maxed ? " · Max" : ""}`,
+                    `レベル ${level}${maxed ? "・最大" : ""}`,
+                    `等级 ${level}${maxed ? "·满级" : ""}`,
+                  )}
+                >
                   <IconFact
                     icon={statIcons.attack}
                     caption={t(
                       `공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n조각 ${shards}/${shardCost}`}`,
                       `Attack +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\nShards ${shards}/${shardCost}`}`,
+                      `攻撃力 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n欠片 ${shards}/${shardCost}`}`,
+                      `攻击力 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n碎片 ${shards}/${shardCost}`}`,
                     )}
                   />
                   {canUpgrade && (
-                    <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={t(`${item.name} 승급`, `Upgrade ${t(item.name)}`)}>
+                    <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={t(`${item.name} 승급`, `Upgrade ${t(item.name)}`, `${t(item.name)}を昇格`, `升级${t(item.name)}`)}>
                       {t("승급", "Upgrade")}
                     </GameButton>
                   )}
@@ -520,13 +580,20 @@ export function CompanionsScreen({
             title={t("??? 데려오기", "Bring Along ???")}
             message={
               gemOnly
-                ? t(`보석 ${price}개로 이 동료를 데려올까요?`, `Bring this companion along for ${price} gems?`)
+                ? t(
+                    `보석 ${price}개로 이 동료를 데려올까요?`,
+                    `Bring this companion along for ${price} gems?`,
+                    `宝石${price}個でこの仲間を連れていきますか？`,
+                    `花费${price}颗宝石带上这位同伴吗？`,
+                  )
                 : t(
                     `보석 ${price}개로 이 동료를 지금 바로 데려올까요? (${OUTFIT_UNLOCK_STAGE[buying]}스테이지에 도착하면 무료로 합류해요)`,
                     `Bring this companion along right now for ${price} gems? (It joins free on reaching stage ${OUTFIT_UNLOCK_STAGE[buying]})`,
+                    `宝石${price}個で今すぐこの仲間を連れていきますか？（ステージ${OUTFIT_UNLOCK_STAGE[buying]}に到達すると無料で加入します）`,
+                    `花费${price}颗宝石现在就带上这位同伴吗？（抵达第${OUTFIT_UNLOCK_STAGE[buying]}关后可免费加入）`,
                   )
             }
-            confirmLabel={t(`보석 ${price}개 쓰기`, `Spend ${price} Gems`)}
+            confirmLabel={t(`보석 ${price}개 쓰기`, `Spend ${price} Gems`, `宝石${price}個を使う`, `花费${price}颗宝石`)}
             onConfirm={() => {
               onPurchase(buying);
               setBuying(null);

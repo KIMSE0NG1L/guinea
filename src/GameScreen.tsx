@@ -640,7 +640,16 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             grade={collected.grade}
             isNew={collected.isNew}
             // The page count after this dish — it's already in cookedRecipes by now.
-            pageText={collected.isNew ? t(`요리책 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`, `Cookbook ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`) : undefined}
+            pageText={
+              collected.isNew
+                ? t(
+                    `요리책 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`,
+                    `Cookbook ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`,
+                    `料理帳 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`,
+                    `食谱书 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`,
+                  )
+                : undefined
+            }
             onDone={finishCollect}
           />
         )}
