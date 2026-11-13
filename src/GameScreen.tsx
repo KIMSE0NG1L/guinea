@@ -50,6 +50,7 @@ import { AttendanceModal } from "./components/AttendanceModal";
 import { getSkill } from "./state/skills";
 import { uiImages } from "./assets";
 import type { GameState, Tab } from "./types";
+import { t } from "./i18n";
 
 // Kills on the post-intro gift: one-hit kills that pay for the first upgrade and the
 // recipe tutorial's 초록 젤리.
@@ -456,10 +457,10 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
         <BottomNavigation selected={state.selectedTab} onSelect={onSelectTab} />
         {exitConfirmOpen && (
           <ConfirmModal
-            title="게임을 나가시겠어요?"
-            message="기니는 자는 동안에도 조금씩 모험을 계속해요."
-            confirmLabel="예"
-            cancelLabel="아니요"
+            title={t("게임을 나가시겠어요?", "Leave the game?")}
+            message={t("기니는 자는 동안에도 조금씩 모험을 계속해요.", "Gini keeps adventuring a little, even while asleep.")}
+            confirmLabel={t("예", "Yes")}
+            cancelLabel={t("아니요", "No")}
             onConfirm={() => {
               setExitConfirmOpen(false);
               BackHandler.exitApp();
@@ -553,11 +554,21 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             // The loot itself sits on the stage under this guide — tapping it (or anywhere)
             // picks it up, not just the speech bubble.
             tapAnywhere
-            topic={game.heldLoot.stage === "gold" ? { feature: "전리품", detail: "골드 줍기" } : { feature: "전리품", detail: "재료 모으기" }}
+            topic={
+              game.heldLoot.stage === "gold"
+                ? { feature: t("전리품", "Loot"), detail: t("골드 줍기", "Picking Up Gold") }
+                : { feature: t("전리품", "Loot"), detail: t("재료 모으기", "Collecting Ingredients") }
+            }
             line={
               game.heldLoot.stage === "gold"
-                ? "쓰러뜨렸다! 몬스터가 **골드**를 떨어뜨렸어.\n눌러서 **골드 칸**에 담아 보자!"
-                : "**초록 젤리**도 떨어졌어! 이런 **재료**는\n**가방**에 모아 뒀다가 요리에 써."
+                ? t(
+                    "쓰러뜨렸다! 몬스터가 **골드**를 떨어뜨렸어.\n눌러서 **골드 칸**에 담아 보자!",
+                    "Defeated! The monster dropped **gold**.\nTap it to put it in your **gold counter**!",
+                  )
+                : t(
+                    "**초록 젤리**도 떨어졌어! 이런 **재료**는\n**가방**에 모아 뒀다가 요리에 써.",
+                    "**Green Jelly** dropped too! Keep **ingredients**\nlike this in your **bag** for cooking later.",
+                  )
             }
             onTap={() => {
               const loot = game.heldLoot;
@@ -612,21 +623,24 @@ export function GameScreen({ onRestoreSave }: { onRestoreSave: (state: GameState
             for as long as 훔치기's tap window runs. */}
         {stealHintShowing && (
           <MiniGuide
-            topic={{ feature: "스킬", detail: "훔치기 쓰는 중" }}
-            line={"지금 **화면을 연타**해서 공격해 봐!\n때릴 때마다 **골드**가 튀어나와. 다 쓰면\n3분 뒤에 다시 쓸 수 있어."}
+            topic={{ feature: t("스킬", "Skill"), detail: t("훔치기 쓰는 중", "Using Steal") }}
+            line={t(
+              "지금 **화면을 연타**해서 공격해 봐!\n때릴 때마다 **골드**가 튀어나와. 다 쓰면\n3분 뒤에 다시 쓸 수 있어.",
+              "**Tap the screen rapidly** to attack right now!\nEach hit drops **gold**. Once it's used up,\nit'll be ready again in 3 minutes.",
+            )}
             onTap={() => setStealHint(false)}
           />
         )}
         {collected && collectedRecipe && (
           <CookCompleteBurst
             key={collected.key}
-            dishName={collectedRecipe.name}
+            dishName={t(collectedRecipe.name)}
             dishImage={collectedRecipe.image}
             great={collected.great}
             grade={collected.grade}
             isNew={collected.isNew}
             // The page count after this dish — it's already in cookedRecipes by now.
-            pageText={collected.isNew ? `요리책 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}` : undefined}
+            pageText={collected.isNew ? t(`요리책 ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`, `Cookbook ${getCookbookProgress(state.cookedRecipes)} / ${RECIPES.length}`) : undefined}
             onDone={finishCollect}
           />
         )}

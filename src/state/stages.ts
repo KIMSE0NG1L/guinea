@@ -1,4 +1,5 @@
 import type { EnemyKind, GameState } from "../types";
+import { t } from "../i18n";
 
 // Groups stages by region/mood for BGM — several stages share one field+boss pair (see
 // sound.ts's bgm lookup). Not every group has tracks yet; sound.ts falls back to
@@ -383,7 +384,7 @@ export function getStageCode(stageNumber: number) {
 // area name is already shown separately right next to it.
 export function getStageLabel(stageNumber: number) {
   const area = STAGES[Math.min(stageNumber, LAST_STAGE_NUMBER)].area;
-  return `${getStageCode(stageNumber)} ${area}`;
+  return `${getStageCode(stageNumber)} ${t(area)}`;
 }
 
 export function getEnemyKind(stageNumber: number): EnemyKind {

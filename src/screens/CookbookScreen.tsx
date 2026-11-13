@@ -14,14 +14,15 @@ import { getCookbookProgress, isCookbookComplete } from "../state/cookbook";
 import { getKnownRecipes, getRecipeStage, isRecipeForSale, RECIPES } from "../state/recipes";
 import { RECIPE_TIERS } from "../state/recipeTiers";
 import { COOKBOOK_ATTACK_PER_TIER, getCookbookAttackBonus } from "../state/progression";
+import { t } from "../i18n";
 
 // A line under the progress bar that moves on as the book fills up.
 function progressLine(done: number, total: number) {
-  if (done >= total) return "모든 페이지를 맛봤어요. 기니의 요리책 완성!";
-  if (done === 0) return "책장을 넘기면 처음 보는 요리가 가득해요.";
-  if (done < total / 3) return "첫 장들을 맛보는 중. 아직 갈 길이 멀어요.";
-  if (done < (total * 2) / 3) return "책의 절반쯤 왔어요. 세상의 맛이 조금씩 보여요.";
-  return `마지막 ${total - done}장만 남았어요!`;
+  if (done >= total) return t("모든 페이지를 맛봤어요. 기니의 요리책 완성!", "Every page has been tasted. Gini's cookbook is complete!");
+  if (done === 0) return t("책장을 넘기면 처음 보는 요리가 가득해요.", "Flip the pages and find dishes you've never seen before.");
+  if (done < total / 3) return t("첫 장들을 맛보는 중. 아직 갈 길이 멀어요.", "Still tasting the first chapters — there's a long way to go.");
+  if (done < (total * 2) / 3) return t("책의 절반쯤 왔어요. 세상의 맛이 조금씩 보여요.", "About halfway through the book — the flavors of the world are starting to show.");
+  return t(`마지막 ${total - done}장만 남았어요!`, `Just ${total - done} pages left!`);
 }
 
 // 《세상의 모든 맛》: every recipe as a page — tasted (cooked at least once), learned but not
@@ -55,28 +56,33 @@ export function CookbookScreen({
 
   return (
     <View style={styles.page}>
-      <ShopTopBar kicker="COOKBOOK" title="세상의 모든 맛" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기" />
+      <ShopTopBar kicker="COOKBOOK" title={t("세상의 모든 맛", "Every Flavor in the World")} gold={gold} onBack={onBack} backLabel={t("부엌으로 돌아가기", "Back to Kitchen")} />
 
       <Panel slice={kit.panelParchment} style={styles.hero}>
         <Image source={chef.book} style={styles.heroImage} />
         <View style={styles.heroCopy}>
-          <Text style={styles.heroLabel}>맛본 요리</Text>
+          <Text style={styles.heroLabel}>{t("맛본 요리", "Dishes Tasted")}</Text>
           <Text style={styles.heroCount}>
             {done} <Text style={styles.heroTotal}>/ {total}</Text>
           </Text>
           <ProgressBar progress={(done / total) * 100} height={14} />
           <Text style={styles.heroLine}>{progressLine(done, total)}</Text>
-          <Text style={styles.heroLine}>{`완성 보상: 공격력 +${getCookbookAttackBonus(cookedRecipes)}% (직접 만든 요리 25%마다 +${COOKBOOK_ATTACK_PER_TIER}%)`}</Text>
+          <Text style={styles.heroLine}>
+            {t(
+              `완성 보상: 공격력 +${getCookbookAttackBonus(cookedRecipes)}% (직접 만든 요리 25%마다 +${COOKBOOK_ATTACK_PER_TIER}%)`,
+              `Completion bonus: Attack +${getCookbookAttackBonus(cookedRecipes)}% (+${COOKBOOK_ATTACK_PER_TIER}% per 25% of dishes you've cooked yourself)`,
+            )}
+          </Text>
         </View>
       </Panel>
 
       {isCookbookComplete(cookedRecipes) && (
         <GameButton variant="pillCream" onPress={onOpenEnding} style={styles.rereadButton} textStyle={styles.rereadText}>
-          마지막 장 읽기
+          {t("마지막 장 읽기", "Read the Final Chapter")}
         </GameButton>
       )}
 
-      <SearchBox value={query} onChange={setQuery} placeholder="요리나 재료 이름으로 찾기" resultCount={shown.length} />
+      <SearchBox value={query} onChange={setQuery} placeholder={t("요리나 재료 이름으로 찾기", "Search by dish or ingredient name")} resultCount={shown.length} />
       <View style={styles.grid}>
         {shown.map((recipe) => {
           const tasted = cooked.has(recipe.id);
@@ -86,22 +92,22 @@ export function CookbookScreen({
           return (
             <Panel slice={tasted ? shopKit.cardWood : kit.inset} scale={0.4} style={styles.pageCard} key={recipe.id}>
               <View style={[styles.tierBadge, { backgroundColor: tier.color }]}>
-                <Text style={styles.tierText}>{tier.label}</Text>
+                <Text style={styles.tierText}>{t(tier.label)}</Text>
               </View>
               <View style={!tasted && styles.untasted}>
                 <RecipeArt recipe={recipe} size={64} sealed={sealed} />
               </View>
               <Text style={[styles.pageName, !tasted && styles.pageNameDim]} numberOfLines={1}>
-                {learned || tasted ? recipe.name : "???"}
+                {learned || tasted ? t(recipe.name) : "???"}
               </Text>
               <Text style={[styles.pageState, tasted && styles.pageStateDone]}>
                 {tasted
-                  ? "맛봄 ✓"
+                  ? t("맛봄 ✓", "Tasted ✓")
                   : learned
-                    ? "아직 안 만들어 봄"
+                    ? t("아직 안 만들어 봄", "Not Made Yet")
                     : isRecipeForSale(recipe, clearedStages)
-                      ? "레시피 상점에 있음"
-                      : `${getRecipeStage(recipe) + 1}스테이지 클리어 시 해금`}
+                      ? t("레시피 상점에 있음", "In Recipe Shop")
+                      : t(`${getRecipeStage(recipe) + 1}스테이지 클리어 시 해금`, `Unlocks on clearing Stage ${getRecipeStage(recipe) + 1}`)}
               </Text>
             </Panel>
           );

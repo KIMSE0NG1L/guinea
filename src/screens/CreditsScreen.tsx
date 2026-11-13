@@ -5,35 +5,52 @@ import { kit } from "../assets";
 import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import appConfig from "../../app.json";
+import { t } from "../i18n";
 
 // 크레딧: who made the game and the outside work it uses (see THIRD-PARTY-NOTICES.md and
-// assets/sfx/SOURCES.md for the full texts).
-const SECTIONS: { title: string; entries: { name: string; detail: string; url?: string }[] }[] = [
+// assets/sfx/SOURCES.md for the full texts). Module-level, so Korean-only; titleEn/nameEn/
+// detailEn are read via t(ko, en) at render time to keep the language toggle reactive.
+const SECTIONS: { title: string; titleEn: string; entries: { name: string; nameEn?: string; detail: string; detailEn: string; url?: string }[] }[] = [
   {
     title: "만든 사람",
-    entries: [{ name: "기니 키우기 팀", detail: "기획 · 아트 디렉션 · 개발" }],
+    titleEn: "Made By",
+    entries: [{ name: "기니 키우기 팀", nameEn: "The Guinea Life Team", detail: "기획 · 아트 디렉션 · 개발", detailEn: "Design · Art Direction · Development" }],
   },
   {
     title: "이펙트",
+    titleEn: "Effects",
     entries: [
-      { name: "pixelfx", detail: "© 2026 Patch · MIT License", url: "https://github.com/patch-gg/pixelfx" },
-      { name: "Sprite Fusion pixel art VFX", detail: "© 2026 Hugo Duprez · MIT License (pixelfx 포함)", url: "https://www.spritefusion.com/pixel-art-vfx" },
-      { name: "Hollow Crown", detail: "© 2026 rehan-remade · MIT License (pixelfx 포함)", url: "https://github.com/rehan-remade/hollow-crown" },
+      { name: "pixelfx", detail: "© 2026 Patch · MIT License", detailEn: "© 2026 Patch · MIT License", url: "https://github.com/patch-gg/pixelfx" },
+      {
+        name: "Sprite Fusion pixel art VFX",
+        detail: "© 2026 Hugo Duprez · MIT License (pixelfx 포함)",
+        detailEn: "© 2026 Hugo Duprez · MIT License (bundled via pixelfx)",
+        url: "https://www.spritefusion.com/pixel-art-vfx",
+      },
+      {
+        name: "Hollow Crown",
+        detail: "© 2026 rehan-remade · MIT License (pixelfx 포함)",
+        detailEn: "© 2026 rehan-remade · MIT License (bundled via pixelfx)",
+        url: "https://github.com/rehan-remade/hollow-crown",
+      },
     ],
   },
   {
     title: "효과음",
-    entries: [{ name: "Kenney", detail: "UI Audio · Impact Sounds · Music Jingles (CC0)", url: "https://kenney.nl" }],
+    titleEn: "Sound Effects",
+    entries: [{ name: "Kenney", detail: "UI Audio · Impact Sounds · Music Jingles (CC0)", detailEn: "UI Audio · Impact Sounds · Music Jingles (CC0)", url: "https://kenney.nl" }],
   },
   {
     title: "음악",
-    entries: [{ name: "Suno", detail: "배경 음악 생성", url: "https://suno.com" }],
+    titleEn: "Music",
+    entries: [{ name: "Suno", detail: "배경 음악 생성", detailEn: "Background music generation", url: "https://suno.com" }],
   },
   {
     title: "글꼴",
+    titleEn: "Fonts",
     entries: [
-      { name: "메이플스토리체", detail: "© NEXON Korea" },
-      { name: "빙그레체", detail: "© Binggrae Co., Ltd." },
+      { name: "메이플스토리체", nameEn: "Maplestory Font", detail: "© NEXON Korea", detailEn: "© NEXON Korea" },
+      { name: "빙그레체", nameEn: "Binggrae Font", detail: "© Binggrae Co., Ltd.", detailEn: "© Binggrae Co., Ltd." },
     ],
   },
 ];
@@ -41,11 +58,11 @@ const SECTIONS: { title: string; entries: { name: string; detail: string; url?: 
 export function CreditsScreen() {
   return (
     <View style={styles.page}>
-      <PageHeading kicker="CREDITS" title="크레딧" description="이 게임을 함께 만든 것들." />
+      <PageHeading kicker="CREDITS" title={t("크레딧", "Credits")} description={t("이 게임을 함께 만든 것들.", "Everything that came together to make this game.")} />
       <View style={styles.list}>
         {SECTIONS.map((section) => (
           <Panel key={section.title} slice={kit.panel} style={styles.card}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Text style={styles.sectionTitle}>{t(section.title, section.titleEn)}</Text>
             {section.entries.map((entry) => (
               <Pressable
                 key={entry.name}
@@ -54,14 +71,14 @@ export function CreditsScreen() {
                 accessibilityRole={entry.url ? "link" : undefined}
                 style={styles.entry}
               >
-                <Text style={[styles.entryName, entry.url && styles.entryLink]}>{entry.name}</Text>
-                <Text style={styles.entryDetail}>{entry.detail}</Text>
+                <Text style={[styles.entryName, entry.url && styles.entryLink]}>{t(entry.name, entry.nameEn ?? entry.name)}</Text>
+                <Text style={styles.entryDetail}>{t(entry.detail, entry.detailEn)}</Text>
               </Pressable>
             ))}
           </Panel>
         ))}
       </View>
-      <Text style={styles.version}>기니 키우기 v{appConfig.expo.version}</Text>
+      <Text style={styles.version}>{t(`기니 키우기 v${appConfig.expo.version}`, `Guinea Life v${appConfig.expo.version}`)}</Text>
     </View>
   );
 }

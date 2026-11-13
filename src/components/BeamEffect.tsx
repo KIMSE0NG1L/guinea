@@ -5,6 +5,7 @@ import { effects } from "../assets";
 import { BEAM_TIMING } from "../state/skills";
 import { Flash, SmokePuff, Sparks, type Point } from "./ExecuteEffect";
 import { SkillCallout } from "./SkillCallout";
+import { t } from "../i18n";
 
 // Beam frame art is 512x250; the muzzle ring's centre sits this far in from the left edge.
 const BEAM_ASPECT = 250 / 512;
@@ -37,7 +38,7 @@ export function BeamEffect({ mouth, targetLeft, enemy }: { mouth: Point; targetL
       <Sparks at={enemy} delay={HIT} color="#ffb03a" />
       <Sparks at={enemy} delay={HIT + 60} color="#fff1b0" />
       <SmokePuff at={{ left: enemy.left, bottom: enemy.bottom - 10 }} delay={HIT + 260} />
-      <SkillCallout text="기니빔!!" color="#ffb52e" strokeColor="#4a1500" holdMs={HIT - 40} />
+      <SkillCallout text={t("기니빔!!", "Guinea Beam!!")} color="#ffb52e" strokeColor="#4a1500" holdMs={HIT - 40} />
     </View>
   );
 }

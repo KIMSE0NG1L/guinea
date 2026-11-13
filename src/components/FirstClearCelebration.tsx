@@ -18,6 +18,7 @@ import { StrokedText } from "./StrokedText";
 import { GameButton } from "./GameButton";
 import { RewardedAdModal } from "./RewardedAdModal";
 import { AdBadge } from "./AdBadge";
+import { t } from "../i18n";
 
 const CONFETTI_COLORS = ["#ffd34d", "#ff7a59", "#7ed957", "#5bc0ff", "#ff9ad5", "#fff3b8"];
 const RAY_COUNT = 14;
@@ -160,7 +161,7 @@ export function FirstClearCelebration({
   return (
     <View
       style={styles.overlay}
-      accessibilityLabel={`${bossName} 최초 토벌! 광고를 보면 보석 ${gems}개를 받을 수 있어요`}
+      accessibilityLabel={t(`${bossName} 최초 토벌! 광고를 보면 보석 ${gems}개를 받을 수 있어요`, `First clear of ${t(bossName)}! Watch an ad to get ${gems} gems`)}
       onLayout={(event) => setSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })}
     >
       <Animated.View style={[styles.backdrop, backdropStyle]} />
@@ -189,12 +190,12 @@ export function FirstClearCelebration({
           </Animated.View>
           <Animated.View style={[styles.ribbonWords, wordsStyle]}>
             <StrokedText style={styles.title} strokeColor="#5a1a12" strokeWidth={3}>
-              최초 토벌!
+              {t("최초 토벌!", "First Clear!")}
             </StrokedText>
           </Animated.View>
         </View>
         <StrokedText style={styles.boss} strokeColor={colors.line} strokeWidth={2}>
-          {bossName} 격파!
+          {t(`${bossName} 격파!`, `${t(bossName)} Defeated!`)}
         </StrokedText>
         {/* The gems this clear pays, with a speech bubble offering the ad's extra — tapping
             the bubble starts the ad. */}
@@ -210,7 +211,7 @@ export function FirstClearCelebration({
             <Pressable
               onPress={() => setAdOpen(true)}
               accessibilityRole="button"
-              accessibilityLabel={`광고 보고 보석 ${adGems}개 더 받기`}
+              accessibilityLabel={t(`광고 보고 보석 ${adGems}개 더 받기`, `Watch an ad for ${adGems} more gems`)}
               style={({ pressed }) => [styles.bubbleWrap, pressed && styles.bubblePressed]}
             >
               <Panel slice={shopKit.bubble} scale={0.3} style={styles.bubble}>
@@ -224,21 +225,21 @@ export function FirstClearCelebration({
         {companions.map((name) => (
           <Animated.View key={name} style={[styles.companion, rewardStyle]}>
             <StrokedText style={styles.companionText} strokeColor={colors.line} strokeWidth={2}>
-              {`새 동료 합류! ${name}`}
+              {t(`새 동료 합류! ${name}`, `New Companion! ${t(name)}`)}
             </StrokedText>
           </Animated.View>
         ))}
         </Animated.View>
       </View>
       <Animated.View style={[styles.actions, rewardStyle]}>
-        <GameButton variant="green" onPress={onDone} accessibilityLabel={`보석 ${gems}개 받기`} style={styles.actionButton} textStyle={styles.actionLabel}>
-          받기
+        <GameButton variant="green" onPress={onDone} accessibilityLabel={t(`보석 ${gems}개 받기`, `Claim ${gems} gems`)} style={styles.actionButton} textStyle={styles.actionLabel}>
+          {t("받기", "Claim")}
         </GameButton>
       </Animated.View>
       {adOpen && (
         <RewardedAdModal
-          message={`대신 섭섭하지 않게 보석 ${adGems}개는 그대로 더 챙겨드릴게요.`}
-          claimLabel="보석 받기"
+          message={t(`대신 섭섭하지 않게 보석 ${adGems}개는 그대로 더 챙겨드릴게요.`, `To make up for it, you'll still get the full ${adGems} gems.`)}
+          claimLabel={t("보석 받기", "Claim Gems")}
           onClaim={() => {
             setAdOpen(false);
             onClaimAd();

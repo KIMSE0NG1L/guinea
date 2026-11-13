@@ -10,6 +10,7 @@ import { InfoBubble } from "./InfoBubble";
 import { tutorialRef } from "./tutorialTargets";
 import { RECIPES } from "../state/recipes";
 import type { Outfit } from "../types";
+import { t } from "../i18n";
 
 export const BUFF_SLOT_SIZE = 44;
 
@@ -67,7 +68,7 @@ export function BuffSlots({
   const setJustFormed = activeSet && now - setSince < 2500;
   return (
     <View style={[styles.row, style]}>
-      {setJustFormed && <SetFormed key={setSince} name={activeSet.name} />}
+      {setJustFormed && <SetFormed key={setSince} name={t(activeSet.name)} />}
       {slots.map((slot, index) => {
         const running = slot && slot.expiresAt > now ? slot : null;
         const recipe = running ? RECIPES.find((item) => item.id === running.recipeId) : undefined;
@@ -81,7 +82,7 @@ export function BuffSlots({
               key={index}
               onPress={() => onPressLocked(index)}
               accessibilityRole="button"
-              accessibilityLabel={`음식 슬롯 ${index + 1} 잠김, 보석 ${BUFF_SLOT_PRICES[index]}개로 열기`}
+              accessibilityLabel={t(`음식 슬롯 ${index + 1} 잠김, 보석 ${BUFF_SLOT_PRICES[index]}개로 열기`, `Food slot ${index + 1} locked, open for ${BUFF_SLOT_PRICES[index]} gems`)}
               hitSlop={4}
               style={({ pressed }) => [styles.slot, pressed && styles.pressed]}
             >
@@ -102,7 +103,11 @@ export function BuffSlots({
             ref={tutorialRef(`buff-slot-${index}`)}
             onPress={() => (running ? setInfoIndex((current) => (current === index ? null : index)) : onPressSlot(index))}
             accessibilityRole="button"
-            accessibilityLabel={running && recipe ? `${recipe.name} 버프 ${formatDuration(remaining)} 남음` : `음식 슬롯 ${index + 1}에 음식 넣기`}
+            accessibilityLabel={
+              running && recipe
+                ? t(`${recipe.name} 버프 ${formatDuration(remaining)} 남음`, `${t(recipe.name)} buff, ${formatDuration(remaining)} left`)
+                : t(`음식 슬롯 ${index + 1}에 음식 넣기`, `Put food in slot ${index + 1}`)
+            }
             hitSlop={4}
             style={({ pressed }) => [styles.slot, pressed && styles.pressed]}
           >
@@ -127,12 +132,12 @@ export function BuffSlots({
             )}
             {running && recipe && buff && infoIndex === index && (
               <InfoBubble
-                title={recipe.name}
+                title={t(recipe.name)}
                 lines={[
                   ...describeEffect(buff.effect).split(" · "),
-                  ...(DISH_PARTNERS[running.recipeId] === outfit ? [`동료 궁합 ×${PARTNER_MULTIPLIER}`] : []),
-                  ...(activeSet ? [`${activeSet.name} 세트: ${describeEffect(activeSet.bonus)}`] : []),
-                  `${formatDuration(remaining)} 남음`,
+                  ...(DISH_PARTNERS[running.recipeId] === outfit ? [t(`동료 궁합 ×${PARTNER_MULTIPLIER}`, `Companion Match ×${PARTNER_MULTIPLIER}`)] : []),
+                  ...(activeSet ? [t(`${activeSet.name} 세트: ${describeEffect(activeSet.bonus)}`, `${t(activeSet.name)} Set: ${describeEffect(activeSet.bonus)}`)] : []),
+                  t(`${formatDuration(remaining)} 남음`, `${formatDuration(remaining)} left`),
                 ]}
                 anchorWidth={BUFF_SLOT_SIZE}
                 onClose={closeInfo}

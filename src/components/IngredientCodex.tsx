@@ -13,6 +13,7 @@ import { ITEM_IMAGES, RECIPES } from "../state/recipes";
 import { CoinPrice } from "./CoinPrice";
 import { getStageCode, STAGES } from "../state/stages";
 import { CODEX_GOLD_PER_TIER, getCodexGoldBonus } from "../state/progression";
+import { t } from "../i18n";
 
 const CATEGORY_LABEL: Record<GroceryCategory, string> = {
   vegetable: "채소",
@@ -23,6 +24,17 @@ const CATEGORY_LABEL: Record<GroceryCategory, string> = {
   meat: "고기",
   seafood: "해산물",
   special: "특산",
+};
+
+const CATEGORY_LABEL_EN: Record<GroceryCategory, string> = {
+  vegetable: "Vegetable",
+  fruit: "Fruit",
+  grain: "Grain",
+  nut: "Nut",
+  farm: "Farm",
+  meat: "Meat",
+  seafood: "Seafood",
+  special: "Special",
 };
 
 const CATEGORY_COLOR: Record<GroceryCategory, string> = {
@@ -58,9 +70,12 @@ export function IngredientCodex({ discovered, dropped, priceStage, fresh = [] }:
   return (
     <View>
       <Text style={styles.count}>
-        모은 식재료 {found} / {GROCERY.length} · 완성 보상: 골드 획득 +{getCodexGoldBonus(dropped)}% (몬스터에게 얻은 재료 25%마다 +{CODEX_GOLD_PER_TIER}%)
+        {t(
+          `모은 식재료 ${found} / ${GROCERY.length} · 완성 보상: 골드 획득 +${getCodexGoldBonus(dropped)}% (몬스터에게 얻은 재료 25%마다 +${CODEX_GOLD_PER_TIER}%)`,
+          `Ingredients Collected ${found} / ${GROCERY.length} · Completion bonus: Gold Gain +${getCodexGoldBonus(dropped)}% (+${CODEX_GOLD_PER_TIER}% per 25% of ingredients gotten from monsters)`,
+        )}
       </Text>
-      <SearchBox value={query} onChange={setQuery} placeholder="재료나 요리 이름으로 찾기" resultCount={shown.length} />
+      <SearchBox value={query} onChange={setQuery} placeholder={t("재료나 요리 이름으로 찾기", "Search by ingredient or dish name")} resultCount={shown.length} />
       <View style={styles.grid}>
         {shown.map((item) => {
           const known = discovered.includes(item.name);
@@ -69,44 +84,44 @@ export function IngredientCodex({ discovered, dropped, priceStage, fresh = [] }:
           return (
             <Panel slice={known ? kit.panel : kit.inset} scale={0.4} style={styles.card} key={item.name}>
               <View style={[styles.tag, { backgroundColor: CATEGORY_COLOR[item.category] }]}>
-                <Text style={styles.tagText}>{CATEGORY_LABEL[item.category]}</Text>
+                <Text style={styles.tagText}>{t(CATEGORY_LABEL[item.category], CATEGORY_LABEL_EN[item.category])}</Text>
               </View>
               <CoinPrice amount={getGroceryPrice(item.name, priceStage)} textStyle={styles.priceText} style={styles.price} />
               <View>
                 <Image
                   source={ITEM_IMAGES[item.name]}
                   style={[styles.icon, !known && styles.iconUnknown]}
-                  accessibilityLabel={known ? item.name : "아직 모르는 식재료"}
+                  accessibilityLabel={known ? t(item.name) : t("아직 모르는 식재료", "Undiscovered Ingredient")}
                 />
                 {fresh.includes(item.name) && <Discovered image={ITEM_IMAGES[item.name]} />}
               </View>
-              <Text style={styles.name} numberOfLines={1}>{known ? item.name : "???"}</Text>
+              <Text style={styles.name} numberOfLines={1}>{known ? t(item.name) : "???"}</Text>
               {known ? (
                 <>
                   <View style={styles.section}>
-                    <Text style={styles.sectionLabel}>얻는 곳</Text>
+                    <Text style={styles.sectionLabel}>{t("얻는 곳", "Found In")}</Text>
                     <View style={styles.pills}>
                       {sources.length > 0 ? (
                         sources.map((stage) => (
                           <View key={stage} style={styles.pill}>
                             <Text style={styles.pillText} numberOfLines={1}>
-                              {getStageCode(stage)} {STAGES[stage].area}
+                              {getStageCode(stage)} {t(STAGES[stage].area)}
                             </Text>
                           </View>
                         ))
                       ) : (
                         <View style={[styles.pill, styles.pillShop]}>
-                          <Text style={styles.pillText}>할머니 식료품점</Text>
+                          <Text style={styles.pillText}>{t("할머니 식료품점", "Grandma's Grocery")}</Text>
                         </View>
                       )}
                     </View>
                   </View>
                   {dishes.length > 0 && (
                     <View style={styles.section}>
-                      <Text style={styles.sectionLabel}>쓰이는 요리</Text>
+                      <Text style={styles.sectionLabel}>{t("쓰이는 요리", "Used In")}</Text>
                       <View style={styles.dishes}>
                         {dishes.map((recipe) => (
-                          <Image key={recipe.id} source={recipe.image} style={styles.dish} accessibilityLabel={recipe.name} />
+                          <Image key={recipe.id} source={recipe.image} style={styles.dish} accessibilityLabel={t(recipe.name)} />
                         ))}
                       </View>
                     </View>
@@ -114,7 +129,9 @@ export function IngredientCodex({ discovered, dropped, priceStage, fresh = [] }:
                 </>
               ) : (
                 <Text style={styles.hint} numberOfLines={2}>
-                  {sources.length > 0 ? `${STAGES[sources[0]].area}에서\n구할 수 있대요` : "식료품점에서\n살 수 있대요"}
+                  {sources.length > 0
+                    ? t(`${STAGES[sources[0]].area}에서\n구할 수 있대요`, `Rumor has it you can find it\nin ${t(STAGES[sources[0]].area)}`)
+                    : t("식료품점에서\n살 수 있대요", "Rumor has it you can buy it\nat the grocery")}
                 </Text>
               )}
             </Panel>
@@ -140,7 +157,7 @@ function Discovered({ image }: { image: number }) {
     <>
       <Animated.Image source={image} style={[styles.icon, styles.iconUnknown, styles.overlay, shadowStyle]} />
       <Animated.View style={[styles.found, popStyle]}>
-        <Text style={styles.foundText}>발견!</Text>
+        <Text style={styles.foundText}>{t("발견!", "Found!")}</Text>
       </Animated.View>
     </>
   );

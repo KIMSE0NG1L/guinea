@@ -10,6 +10,7 @@ import { tutorialRef } from "./tutorialTargets";
 import { GameButton } from "./GameButton";
 import { LockBadge } from "./LockBadge";
 import { Panel } from "./NineSlice";
+import { t as translate } from "../i18n";
 
 // The kitchen's row of pots. Each one is empty (breathing, with a suggestion of what could
 // go in), done (a dish just went in — the chef holds the plate out at once; tap it to play
@@ -97,7 +98,7 @@ function EmptyPot({ dropIn: dropInProp, suggestion, onShowRecipe }: { dropIn: bo
       disabled={!suggestion}
       onPress={() => suggestion && onShowRecipe(suggestion.id)}
       accessibilityRole="button"
-      accessibilityLabel={suggestion ? `${suggestion.name} 레시피 보기` : "빈 냄비"}
+      accessibilityLabel={suggestion ? translate(`${suggestion.name} 레시피 보기`, `View ${translate(suggestion.name)} recipe`) : translate("빈 냄비", "Empty Pot")}
       style={({ pressed }) => [styles.fill, pressed && styles.pressed]}
     >
       <Panel slice={kit.inset} scale={0.4} style={styles.pot}>
@@ -106,10 +107,10 @@ function EmptyPot({ dropIn: dropInProp, suggestion, onShowRecipe }: { dropIn: bo
         {suggestion ? (
           <>
             <Image source={suggestion.image} style={styles.suggestion} />
-            <Text style={styles.caption} numberOfLines={1}>추천: {suggestion.name}</Text>
+            <Text style={styles.caption} numberOfLines={1}>{translate(`추천: ${suggestion.name}`, `Suggested: ${translate(suggestion.name)}`)}</Text>
           </>
         ) : (
-          <Text style={styles.caption}>비어 있음</Text>
+          <Text style={styles.caption}>{translate("비어 있음", "Empty")}</Text>
         )}
       </Panel>
     </Pressable>
@@ -141,7 +142,7 @@ function LockedPot({ next, cost, affordable, onUnlock }: { next: boolean; cost: 
             );
             setTimeout(onUnlock, 260);
           }}
-          accessibilityLabel={`보석 ${cost}개로 냄비 열기`}
+          accessibilityLabel={translate(`보석 ${cost}개로 냄비 열기`, `Open pot for ${cost} gems`)}
           style={styles.smallButton}
         >
           <View style={styles.costContent}>
@@ -150,7 +151,7 @@ function LockedPot({ next, cost, affordable, onUnlock }: { next: boolean; cost: 
           </View>
         </GameButton>
       ) : (
-        <Text style={styles.caption}>잠김</Text>
+        <Text style={styles.caption}>{translate("잠김", "Locked")}</Text>
       )}
     </Panel>
   );
@@ -186,7 +187,7 @@ function ReadyPot({ recipe, readyAt, onCollect }: { recipe: Recipe; readyAt: num
     <Pressable
       onPress={onCollect}
       accessibilityRole="button"
-      accessibilityLabel={`${recipe.name} 마무리하기`}
+      accessibilityLabel={translate(`${recipe.name} 마무리하기`, `Finish ${translate(recipe.name)}`)}
       style={({ pressed }) => [styles.fill, pressed && styles.pressed]}
     >
       <Animated.View style={[styles.fill, popStyle]}>
@@ -197,8 +198,8 @@ function ReadyPot({ recipe, readyAt, onCollect }: { recipe: Recipe; readyAt: num
             <Animated.Image source={chef.cheer} style={[styles.chef, styles.layered, cheerStyle]} />
             <Animated.Image source={recipe.image} style={[styles.dishBadge, styles.dishReady, dishStyle]} />
           </View>
-          <Text style={styles.ready}>완성!</Text>
-          <Text style={styles.caption}>눌러서 마무리!</Text>
+          <Text style={styles.ready}>{translate("완성!", "Done!")}</Text>
+          <Text style={styles.caption}>{translate("눌러서 마무리!", "Tap to finish!")}</Text>
           <Animated.View style={[styles.flash, flashStyle]} pointerEvents="none" />
         </Panel>
       </Animated.View>

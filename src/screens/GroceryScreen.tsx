@@ -16,9 +16,12 @@ import { applyDiscount, getGroceryPrice, GROCERY, isGroceryAvailable, type Groce
 import { getItemQuantity, ITEM_IMAGES } from "../state/recipes";
 import { CoinPrice } from "../components/CoinPrice";
 import type { GameState } from "../types";
+import { t } from "../i18n";
 
 type Filter = "all" | GroceryCategory;
 
+// Module-level consts stay Korean — t() runs at render/call time against these (see
+// TAB_LABEL_EN/TAB_LINES_EN below), not at module load, so the language toggle stays reactive.
 const TABS: { id: Filter; label: string }[] = [
   { id: "all", label: "전체" },
   { id: "vegetable", label: "채소" },
@@ -30,8 +33,20 @@ const TABS: { id: Filter; label: string }[] = [
   { id: "seafood", label: "해산물" },
   { id: "special", label: "특산" },
 ];
+const TAB_LABEL_EN: Record<Filter, string> = {
+  all: "All",
+  vegetable: "Veggies",
+  fruit: "Fruit",
+  grain: "Grains",
+  nut: "Nuts",
+  farm: "Farm",
+  meat: "Meat",
+  seafood: "Seafood",
+  special: "Special",
+};
 
 const GREETING = { pose: grandma.happy, line: "어서 오렴! 오늘 들어온 재료가 아주 싱싱하단다." };
+const GREETING_EN = "Welcome in! Today's ingredients are nice and fresh.";
 const TAB_LINES: Record<Filter, string> = {
   all: GREETING.line,
   vegetable: "채소는 오늘 아침 밭에서 바로 따왔지.",
@@ -42,6 +57,17 @@ const TAB_LINES: Record<Filter, string> = {
   nut: "고소한 견과는 한 줌만 먹어도 힘이 난단다.",
   seafood: "항구에서 막 들어온 해산물이야. 비린내 안 나지?",
   special: "젤리랑 열매는 몬스터한테서나 나오는 귀한 거란다.",
+};
+const TAB_LINES_EN: Record<Filter, string> = {
+  all: GREETING_EN,
+  vegetable: "These vegetables were picked straight from the field this morning.",
+  farm: "The eggs and milk came in at dawn.",
+  meat: "Meat's precious, so it costs a bit more.",
+  fruit: "This fruit's from the southern jungle. Sweet, isn't it?",
+  grain: "Fresh rice and mixed grains. Chew them well and they'll really fill you up.",
+  nut: "These savory nuts give you energy with just a handful.",
+  seafood: "Seafood fresh off the boat from the harbor. Doesn't smell fishy, does it?",
+  special: "Jellies and fruit like these only come from monsters — rare stuff.",
 };
 
 export function GroceryScreen({
@@ -68,11 +94,11 @@ export function GroceryScreen({
   onOpenRecipes: () => void;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const { talk, say } = useShopTalk(GREETING);
+  const { talk, say } = useShopTalk({ ...GREETING, line: t(GREETING.line, GREETING_EN) });
 
   const selectTab = (id: Filter) => {
     setFilter(id);
-    say(grandma.menu, TAB_LINES[id]);
+    say(grandma.menu, t(TAB_LINES[id], TAB_LINES_EN[id]));
   };
 
   // Returns the result so the card can react (shake on short gold).
@@ -84,11 +110,11 @@ export function GroceryScreen({
         const image = ITEM_IMAGES[name];
         if (from && to && image !== undefined) launchFlight({ image, from, to, size: 30, duration: 460, arc: 50 });
       });
-      say(grandma.wave, `${name} 하나 담아뒀단다. 맛있게 해먹으렴!`);
+      say(grandma.wave, t(`${name} 하나 담아뒀단다. 맛있게 해먹으렴!`, `Packed away one ${t(name)}. Enjoy your meal!`));
     } else if (result === "full") {
-      say(grandma.happy, "가방이 꽉 찼구나. 가방을 좀 늘려서 오렴.");
+      say(grandma.happy, t("가방이 꽉 찼구나. 가방을 좀 늘려서 오렴.", "Your bag's full. Come back after expanding it a bit."));
     } else {
-      say(grandma.happy, "어이쿠, 골드가 조금 모자라구나.");
+      say(grandma.happy, t("어이쿠, 골드가 조금 모자라구나.", "Oops, you're a little short on gold."));
     }
     return result;
   };
@@ -99,10 +125,10 @@ export function GroceryScreen({
 
   return (
     <View style={styles.page}>
-      <ShopTopBar kicker="GROCERY" title="할머니 식료품점" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기"
-        other={{ label: "레시피", keeper: chef.spoon, onPress: onOpenRecipes, accessibilityLabel: "레시피 상점으로 가기" }}
+      <ShopTopBar kicker="GROCERY" title={t("할머니 식료품점", "Grandma's Grocery")} gold={gold} onBack={onBack} backLabel={t("부엌으로 돌아가기", "Back to Kitchen")}
+        other={{ label: t("레시피", "Recipes"), keeper: chef.spoon, onPress: onOpenRecipes, accessibilityLabel: t("레시피 상점으로 가기", "Go to the recipe shop") }}
       />
-      <ShopHero speaker="할멈 기니" talk={talk} />
+      <ShopHero speaker={t("할멈 기니", "Grandma Gini")} talk={talk} />
 
       {/* More categories than fit across, so the row scrolls sideways. */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroll} contentContainerStyle={styles.tabs}>
@@ -111,14 +137,14 @@ export function GroceryScreen({
           return (
             <Pressable key={tab.id} onPress={() => selectTab(tab.id)} accessibilityRole="tab" accessibilityState={{ selected: active }}>
               <ImageBackground source={active ? shopImages.tabRed : shopImages.tabCream} resizeMode="stretch" style={styles.tab}>
-                <Text style={[styles.tabText, active && styles.tabTextActive]}>{tab.label}</Text>
+                <Text style={[styles.tabText, active && styles.tabTextActive]}>{t(tab.label, TAB_LABEL_EN[tab.id])}</Text>
               </ImageBackground>
             </Pressable>
           );
         })}
       </ScrollView>
 
-      <SearchBox value={query} onChange={setQuery} placeholder="재료 이름으로 찾기" resultCount={items.length} />
+      <SearchBox value={query} onChange={setQuery} placeholder={t("재료 이름으로 찾기", "Search ingredient names")} resultCount={items.length} />
       <View style={styles.grid}>
         {items.map((item) => (
           <GroceryCard
@@ -148,8 +174,8 @@ function GroceryCard({ name, price, owned, gold, onBuy }: { name: string; price:
       <View ref={tutorialRef(`grocery-${name}`)}>
         <Image source={ITEM_IMAGES[name]} style={styles.itemImage} />
       </View>
-      <Text style={styles.itemName}>{name}</Text>
-      <Animated.Text style={[styles.owned, ownedBump]}>보유 {owned}</Animated.Text>
+      <Text style={styles.itemName}>{t(name)}</Text>
+      <Animated.Text style={[styles.owned, ownedBump]}>{t(`보유 ${owned}`, `Owned ${owned}`)}</Animated.Text>
       <Animated.View style={[styles.buyWrap, shakeStyle]}>
         <GameButton
           variant={affordable ? "red" : "pillGray"}
@@ -160,7 +186,7 @@ function GroceryCard({ name, price, owned, gold, onBuy }: { name: string; price:
             if (shortTimer.current) clearTimeout(shortTimer.current);
             shortTimer.current = setTimeout(() => setShort(false), 500);
           }}
-          accessibilityLabel={`${name} ${price}골드에 구매`}
+          accessibilityLabel={t(`${name} ${price}골드에 구매`, `Buy ${t(name)} for ${price} gold`)}
           style={styles.buyButton}
         >
           <CoinPrice amount={price} textStyle={[styles.buyText, !affordable && styles.buyTextOff, short && styles.buyTextShort]} />

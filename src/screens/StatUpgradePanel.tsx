@@ -10,6 +10,7 @@ import { FloatText, useFlash, useHoldRepeat, useShake } from "../components/moti
 import { applyUpgradeLevels, formatGameNumber, getStatLevel, getStatValue, getUpgradeQuote, getNextUpgradeMode, statInfo, STAT_CAP } from "../state/gameMath";
 import { CoinPrice } from "../components/CoinPrice";
 import type { GameState, StatKey, UpgradeMode } from "../types";
+import { t } from "../i18n";
 
 
 export function StatUpgradePanel({
@@ -28,24 +29,28 @@ export function StatUpgradePanel({
   upgraded: StatKey | null;
 }) {
   const modeLabel =
-    upgradeMode === "max" ? "구매 가능한 만큼" : upgradeMode === "next" ? "다음 10레벨 단위까지" : `${upgradeMode}레벨`;
+    upgradeMode === "max"
+      ? t("구매 가능한 만큼", "As Much as Affordable")
+      : upgradeMode === "next"
+        ? t("다음 10레벨 단위까지", "Up to Next 10-Level Mark")
+        : t(`${upgradeMode}레벨`, `${upgradeMode} Levels`);
 
   return (
     <Panel slice={panelSlices.woodBolts} scale={0.5} style={[styles.panel, compact && styles.panelCompact]}>
       <View style={[styles.heading, compact && styles.headingCompact]}>
         <View>
           <Text style={styles.kicker}>POWER UP</Text>
-          <Text style={styles.title}>기니 성장</Text>
+          <Text style={styles.title}>{t("기니 성장", "Gini's Growth")}</Text>
         </View>
         <GameButton
           variant="green"
           onPress={() => onUpgradeModeChange(getNextUpgradeMode(upgradeMode))}
-          accessibilityLabel={`강화 단위 변경, 현재 ${modeLabel}`}
+          accessibilityLabel={t(`강화 단위 변경, 현재 ${modeLabel}`, `Change upgrade amount, currently ${modeLabel}`)}
           style={styles.modeButton}
         >
-          <Text style={styles.modeButtonSmall}>강화 단위</Text>
+          <Text style={styles.modeButtonSmall}>{t("강화 단위", "Upgrade Amount")}</Text>
           <Text style={styles.modeButtonLabel}>
-            {upgradeMode === "max" ? "MAX" : upgradeMode === "next" ? "NEXT" : `${upgradeMode}레벨`}
+            {upgradeMode === "max" ? "MAX" : upgradeMode === "next" ? "NEXT" : t(`${upgradeMode}레벨`, `${upgradeMode}`)}
           </Text>
         </GameButton>
       </View>
@@ -117,18 +122,18 @@ function StatRow({
     <Animated.View style={shakeStyle}>
       <Panel slice={highlighted ? kit.panel : kit.inset} scale={0.4} style={styles.row}>
         <Panel slice={frameKit.squareWood} scale={0.4} style={styles.mark}>
-          <Image source={statIcons[key]} style={styles.markIcon} accessibilityLabel={info.label} />
+          <Image source={statIcons[key]} style={styles.markIcon} accessibilityLabel={t(info.label)} />
           <Animated.View style={[styles.markFlash, flashStyle]} pointerEvents="none" />
         </Panel>
         <View style={styles.rowCopy}>
-          <Text style={styles.rowSmall}>{`Lv.${formatGameNumber(level)} ${info.label}`}</Text>
+          <Text style={styles.rowSmall}>{t(`Lv.${formatGameNumber(level)} ${info.label}`, `Lv.${formatGameNumber(level)} ${t(info.label)}`)}</Text>
           <Text style={styles.rowValue}>{formatStat(value)}{suffix}</Text>
           {gains.map((gain) => (
             <FloatText key={gain.id} text={gain.text} style={styles.gainFloat} />
           ))}
         </View>
         <View style={styles.gain}>
-          <Text style={styles.gainSmall}>다음</Text>
+          <Text style={styles.gainSmall}>{t("다음", "Next")}</Text>
           <Text style={styles.gainValue}>{formatStat(nextValue)}{suffix}</Text>
         </View>
         {/* Short of gold looks just like a maxed-out stat: the same faded button (it stays
@@ -144,7 +149,7 @@ function StatRow({
         >
           <View>
             <Text style={styles.upgradeButtonText}>
-              {atCap ? "최대" : upgradeMode === "max" ? `MAX +${quote.levels}` : `+${quote.levels} 강화`}
+              {atCap ? t("최대", "Max") : upgradeMode === "max" ? `MAX +${quote.levels}` : t(`+${quote.levels} 강화`, `+${quote.levels}`)}
             </Text>
             {!atCap && (
               <CoinPrice

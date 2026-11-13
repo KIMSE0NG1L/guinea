@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Text } from "./GameText";
 import { colors, fonts } from "../theme";
+import { t } from "../i18n";
 
 // A one-line search field for ingredient / dish lists, with a clear button once typed in.
 export function SearchBox({
@@ -31,13 +32,15 @@ export function SearchBox({
           accessibilityLabel={placeholder}
         />
         {value.length > 0 && (
-          <Pressable onPress={() => onChange("")} hitSlop={8} accessibilityRole="button" accessibilityLabel="검색어 지우기" style={styles.clear}>
+          <Pressable onPress={() => onChange("")} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("검색어 지우기", "Clear search")} style={styles.clear}>
             <Text style={styles.clearText}>✕</Text>
           </Pressable>
         )}
       </View>
       {value.length > 0 && resultCount !== undefined && (
-        <Text style={styles.result}>{resultCount > 0 ? `${resultCount}개 찾음` : "찾는 게 없어요. 다른 이름이나 초성(예: ㄸㅂㅇ)으로 찾아보세요."}</Text>
+        <Text style={styles.result}>
+          {resultCount > 0 ? t(`${resultCount}개 찾음`, `${resultCount} found`) : t("찾는 게 없어요. 다른 이름이나 초성(예: ㄸㅂㅇ)으로 찾아보세요.", "Nothing found. Try a different name or spelling.")}
+        </Text>
       )}
     </View>
   );

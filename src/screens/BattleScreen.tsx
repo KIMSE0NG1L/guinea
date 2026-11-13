@@ -17,6 +17,7 @@ import type { EnemyKind } from "../types";
 import { hasClaimableQuest } from "../state/quests";
 import { getCookingPots } from "../state/cooking";
 import { RECIPES } from "../state/recipes";
+import { t } from "../i18n";
 
 export function BattleScreen({ game }: { game: UseGameState }) {
   const {
@@ -83,7 +84,15 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         stageAdvance={game.stageAnnouncement}
         onContinueStage={game.continueStage}
         battleSpeed={game.battleSpeed}
-        stageLabel={game.bossEnraged ? `${stageLabel} · 분노한 보스` : boss ? `${stageLabel} · 보스` : game.displayMiniBoss ? `${stageLabel} · ${game.displayGolden ? "황금 " : ""}중간 보스` : stageLabel}
+        stageLabel={
+          game.bossEnraged
+            ? `${stageLabel} · ${t("분노한 보스", "Enraged Boss")}`
+            : boss
+              ? `${stageLabel} · ${t("보스", "Boss")}`
+              : game.displayMiniBoss
+                ? `${stageLabel} · ${game.displayGolden ? t("황금 ", "Golden ") : ""}${t("중간 보스", "Mid-Boss")}`
+                : stageLabel
+        }
         stageKills={state.stageKills}
         questReady={hasClaimableQuest(state)}
         onQuest={() => game.setQuestOpen(true)}
@@ -146,15 +155,24 @@ export function BattleScreen({ game }: { game: UseGameState }) {
         const affordable = state.gems >= price;
         return (
           <ConfirmModal
-            title={`음식 슬롯 ${next + 1} 열기`}
+            title={t(`음식 슬롯 ${next + 1} 열기`, `Open Food Slot ${next + 1}`)}
             message={
               outOfOrder
-                ? `슬롯은 차례대로 열려요. 먼저 슬롯 ${next + 1}을 보석 ${price}개로 열 수 있어요.`
+                ? t(
+                    `슬롯은 차례대로 열려요. 먼저 슬롯 ${next + 1}을 보석 ${price}개로 열 수 있어요.`,
+                    `Slots open in order. You can open slot ${next + 1} first for ${price} gems.`,
+                  )
                 : affordable
-                  ? `보석 ${price}개로 음식 슬롯을 하나 더 열까요? 음식 버프를 동시에 더 받을 수 있어요.`
-                  : `보석이 ${price - state.gems}개 모자라요. 상점에서 보석을 모아 올까요?`
+                  ? t(
+                      `보석 ${price}개로 음식 슬롯을 하나 더 열까요? 음식 버프를 동시에 더 받을 수 있어요.`,
+                      `Open one more food slot for ${price} gems? You'll be able to run more food buffs at once.`,
+                    )
+                  : t(
+                      `보석이 ${price - state.gems}개 모자라요. 상점에서 보석을 모아 올까요?`,
+                      `You're ${price - state.gems} gems short. Head to the shop to get more?`,
+                    )
             }
-            confirmLabel={affordable ? `보석 ${price}개로 열기` : "상점으로"}
+            confirmLabel={affordable ? t(`보석 ${price}개로 열기`, `Open for ${price} Gems`) : t("상점으로", "Go to Shop")}
             onConfirm={() => {
               if (affordable) game.unlockBuffSlot();
               else game.setState((previous) => ({ ...previous, selectedTab: "shop" }));
@@ -185,8 +203,8 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       )}
       {adModalOpen && (
         <RewardedAdModal
-          message="대신 섭섭하지 않게 2배속 효과는 그대로 챙겨드릴게요."
-          claimLabel="2배속 받기"
+          message={t("대신 섭섭하지 않게 2배속 효과는 그대로 챙겨드릴게요.", "No worries — you'll still get the 2x speed boost.")}
+          claimLabel={t("2배속 받기", "Get 2x Speed")}
           onClaim={() => {
             game.watchAdForSpeedBoost();
             setAdModalOpen(false);
@@ -196,11 +214,14 @@ export function BattleScreen({ game }: { game: UseGameState }) {
       )}
       {game.bossRetryAvailable && (
         <RewardedAdModal
-          message={`광고를 보면 보스의 남은 체력 그대로 이어서 싸워요. 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber, game.bossEnraged ? 2 : 1) * BOSS_RETRY_TIME_RATIO) / 1000)}초)이에요. 필드로 가면 보스는 도망가고 처음부터 다시 몹을 잡아야 해요.`}
-          claimLabel="이어서 도전"
+          message={t(
+            `광고를 보면 보스의 남은 체력 그대로 이어서 싸워요. 제한 시간은 절반(${Math.round((getBossTimeLimitMs(state.stageNumber, game.bossEnraged ? 2 : 1) * BOSS_RETRY_TIME_RATIO) / 1000)}초)이에요. 필드로 가면 보스는 도망가고 처음부터 다시 몹을 잡아야 해요.`,
+            `Watch an ad to pick the fight back up with the boss's remaining HP. The time limit is half as long (${Math.round((getBossTimeLimitMs(state.stageNumber, game.bossEnraged ? 2 : 1) * BOSS_RETRY_TIME_RATIO) / 1000)}s). If you head to the field instead, the boss flees and you'll have to fight through mobs again from the start.`,
+          )}
+          claimLabel={t("이어서 도전", "Resume Fight")}
           onClaim={game.retryBossAfterAd}
           autoStart={false}
-          secondary={{ label: "필드로 가기", onPress: game.leaveBossFight }}
+          secondary={{ label: t("필드로 가기", "Go to the Field"), onPress: game.leaveBossFight }}
         />
       )}
       <BattleActionsPanel

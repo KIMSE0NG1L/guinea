@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, fonts } from "../theme";
 import { COMICS, type ComicBubble, type ComicId } from "../state/comics";
 import { playSfx } from "../sound";
+import { t } from "../i18n";
 
 // Plays a story comic one panel at a time: each tap pops in the panel's next speech bubble,
 // then moves on to the next panel; the last tap closes it. "건너뛰기" closes it any time.
@@ -41,11 +42,11 @@ export function ComicViewer({ id, onClose }: { id: ComicId; onClose: () => void 
 
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={advance} accessibilityRole="button" accessibilityLabel="다음 장면">
+      <Pressable style={styles.backdrop} onPress={advance} accessibilityRole="button" accessibilityLabel={t("다음 장면", "Next scene")}>
         <View style={[styles.top, { top: insets.top + 12 }]}>
-          <Text style={styles.title}>{comic.title}</Text>
-          <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="만화 건너뛰기" style={styles.skip}>
-            <Text style={styles.skipText}>건너뛰기 ▶▶</Text>
+          <Text style={styles.title}>{t(comic.title)}</Text>
+          <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("만화 건너뛰기", "Skip comic")} style={styles.skip}>
+            <Text style={styles.skipText}>{t("건너뛰기 ▶▶", "Skip ▶▶")}</Text>
           </Pressable>
         </View>
         <ComicPanelView key={panel} panel={current} width={width} shown={shown} />
@@ -54,7 +55,7 @@ export function ComicViewer({ id, onClose }: { id: ComicId; onClose: () => void 
             <View key={index} style={[styles.dot, index === panel && styles.dotActive, index < panel && styles.dotDone]} />
           ))}
         </View>
-        <Text style={styles.hint}>{last ? "터치해서 모험 시작!" : "터치해서 넘기기"}</Text>
+        <Text style={styles.hint}>{last ? t("터치해서 모험 시작!", "Tap to start the adventure!") : t("터치해서 넘기기", "Tap to continue")}</Text>
       </Pressable>
     </Modal>
   );
@@ -119,7 +120,7 @@ function Bubble({ bubble, width, height }: { bubble: ComicBubble; width: number;
     <Animated.View style={[styles.bubbleWrap, position, style]} pointerEvents="none">
       <View style={[styles.tail, tailStyle, bubble.shout && styles.shoutBorder]} />
       <View style={[styles.bubble, bubble.shout && styles.shout]}>
-        <Text style={[styles.bubbleText, bubble.shout && styles.shoutText]}>{bubble.text}</Text>
+        <Text style={[styles.bubbleText, bubble.shout && styles.shoutText]}>{t(bubble.text)}</Text>
       </View>
     </Animated.View>
   );

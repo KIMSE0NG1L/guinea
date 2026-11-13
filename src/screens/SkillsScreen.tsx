@@ -14,6 +14,7 @@ import { isSkillUnlocked, SKILL_UNLOCK_LEVEL } from "../state/unlocks";
 import { LockBadge } from "../components/LockBadge";
 import { PREVIEWABLE_SKILLS, SkillPreviewModal } from "../components/SkillPreviewModal";
 import type { EnemyKind, Outfit } from "../types";
+import { t } from "../i18n";
 
 // Every skill, with one equip slot between them — equipping a skill swaps out the last one.
 export function SkillsScreen({
@@ -40,8 +41,11 @@ export function SkillsScreen({
     <View style={styles.page}>
       <PageHeading
         kicker="SKILLS"
-        title="기니의 스킬"
-        description="스킬은 하나만 장착할 수 있어요. 스킬을 쓰거나 패시브를 장착하면 3분 동안 바꿀 수 없어요."
+        title={t("기니의 스킬", "Gini's Skills")}
+        description={t(
+          "스킬은 하나만 장착할 수 있어요. 스킬을 쓰거나 패시브를 장착하면 3분 동안 바꿀 수 없어요.",
+          "Only one skill can be equipped. Using a skill or equipping a passive locks the slot for 3 minutes.",
+        )}
       />
       <View style={styles.list}>
         {[...SKILLS].sort((a, b) => SKILL_UNLOCK_LEVEL[a.id] - SKILL_UNLOCK_LEVEL[b.id]).map((skill) => {
@@ -61,10 +65,16 @@ export function SkillsScreen({
               </View>
               <View style={styles.cardCopy}>
                 <Text style={[styles.cardSmall, sealed && styles.cardSmallLocked]}>
-                  {equipped ? "장착 중" : sealed ? `Lv.${unlockLevel}에 해금` : skill.passive ? "패시브" : `쿨타임 ${skill.cooldownMs / 60000}분`}
+                  {equipped
+                    ? t("장착 중", "Equipped")
+                    : sealed
+                      ? t(`Lv.${unlockLevel}에 해금`, `Unlocks at Lv.${unlockLevel}`)
+                      : skill.passive
+                        ? t("패시브", "Passive")
+                        : t(`쿨타임 ${skill.cooldownMs / 60000}분`, `Cooldown ${skill.cooldownMs / 60000}m`)}
                 </Text>
-                <Text style={styles.cardStrong}>{skill.name}</Text>
-                <Text style={styles.cardSpan}>{skill.description}</Text>
+                <Text style={styles.cardStrong}>{t(skill.name)}</Text>
+                <Text style={styles.cardSpan}>{t(skill.description)}</Text>
               </View>
               <View style={styles.buttons}>
               <GameButton
@@ -75,7 +85,7 @@ export function SkillsScreen({
                 textStyle={styles.equipButtonText}
                 tutorialId={skill.id === "steal" ? "equip-steal" : undefined}
               >
-                {sealed ? `Lv.${unlockLevel}` : locked ? formatDuration(swapLockLeftMs) : equipped ? "해제" : "장착"}
+                {sealed ? `Lv.${unlockLevel}` : locked ? formatDuration(swapLockLeftMs) : equipped ? t("해제", "Unequip") : t("장착", "Equip")}
               </GameButton>
               {PREVIEWABLE_SKILLS.includes(skill.id) && (
                 <GameButton
@@ -83,9 +93,9 @@ export function SkillsScreen({
                   onPress={() => setPreviewing(skill.id)}
                   style={styles.equipButton}
                   textStyle={styles.equipButtonText}
-                  accessibilityLabel={`${skill.name} 미리보기`}
+                  accessibilityLabel={t(`${skill.name} 미리보기`, `Preview ${t(skill.name)}`)}
                 >
-                  미리보기
+                  {t("미리보기", "Preview")}
                 </GameButton>
               )}
               </View>

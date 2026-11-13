@@ -15,6 +15,7 @@ import { measureTarget, tutorialRef } from "./tutorialTargets";
 import { useBumpOnChange, useRollingNumber } from "./motion";
 import { playSfx } from "../sound";
 import { playHaptic } from "../haptics";
+import { t } from "../i18n";
 
 export function QuestModal({
   state,
@@ -100,8 +101,8 @@ export function QuestModal({
           <ScrollView>
             <View style={styles.top}>
               <View>
-                <Text style={styles.topEyebrow}>오늘의 할 일</Text>
-                <Text style={styles.topTitle}>골목 퀘스트</Text>
+                <Text style={styles.topEyebrow}>{t("오늘의 할 일", "Today's To-Do")}</Text>
+                <Text style={styles.topTitle}>{t("골목 퀘스트", "Alley Quests")}</Text>
               </View>
               <View style={styles.topRight}>
                 {/* Same cream pill as the header's resource chips. */}
@@ -110,7 +111,7 @@ export function QuestModal({
                   <Image source={uiImages.crystal} style={styles.gemIcon} />
                   <Text style={styles.gemText}>{formatGameNumber(shownGems)}</Text>
                 </Animated.View>
-                <GameButton onPress={onClose} style={styles.closeButton}>닫기</GameButton>
+                <GameButton onPress={onClose} style={styles.closeButton}>{t("닫기", "Close")}</GameButton>
               </View>
             </View>
 
@@ -118,9 +119,9 @@ export function QuestModal({
               <>
                 {claimable.length > 0 && (
                   <View ref={tutorialRef("quest-claim-all")} style={styles.claimAllWrap}>
-                    <GameButton variant="green" onPress={claimAll} disabled={claiming !== null} style={styles.claimAll} accessibilityLabel={`보상 ${claimable.length}개 모두 받기`}>
+                    <GameButton variant="green" onPress={claimAll} disabled={claiming !== null} style={styles.claimAll} accessibilityLabel={t(`보상 ${claimable.length}개 모두 받기`, `Claim all ${claimable.length} rewards`)}>
                       <View style={styles.claimAllContent}>
-                        <Text style={styles.claimAllText}>모두 받기</Text>
+                        <Text style={styles.claimAllText}>{t("모두 받기", "Claim All")}</Text>
                         <RewardLabel gems={claimableGems} />
                       </View>
                     </GameButton>
@@ -137,23 +138,23 @@ export function QuestModal({
                       key={item.index}
                       onPress={() => setView(item.index)}
                       accessibilityRole="button"
-                      accessibilityLabel={`${item.title} 열기`}
+                      accessibilityLabel={t(`${item.title} 열기`, `Open ${item.title}`)}
                       style={({ pressed }) => [pressed && styles.pressedRow]}
                     >
                       <Panel slice={item.open ? kit.panel : kit.inset} scale={0.4} style={[styles.chapterItem, !item.open && styles.itemLocked]}>
                         <View style={styles.chapterBadge}>
                           <Text style={styles.chapterBadgeText}>{item.index + 1}</Text>
-                          {item.claimable && <Image source={kitImages.dotRed} style={styles.readyDot} accessibilityLabel="받을 보상 있음" />}
+                          {item.claimable && <Image source={kitImages.dotRed} style={styles.readyDot} accessibilityLabel={t("받을 보상 있음", "Reward ready")} />}
                         </View>
                         <View style={styles.info}>
-                          <Text style={styles.chapterItemTitle}>{item.title.replace(/^\d+장:\s*/, "")}</Text>
+                          <Text style={styles.chapterItemTitle}>{item.title.replace(/^\d+장:\s*/, "").replace(/^Chapter \d+:\s*/, "")}</Text>
                           {item.open ? (
                             <>
                               <ProgressBar progress={(item.claimedCount / item.quests.length) * 100} fill="green" height={10} style={styles.track} />
-                              <Text style={styles.infoSub}>받은 미션 {item.claimedCount} / {item.quests.length}</Text>
+                              <Text style={styles.infoSub}>{t(`받은 미션 ${item.claimedCount} / ${item.quests.length}`, `Missions Claimed ${item.claimedCount} / ${item.quests.length}`)}</Text>
                             </>
                           ) : (
-                            <Text style={styles.infoSub}>Lv.{item.level}에 열려요</Text>
+                            <Text style={styles.infoSub}>{t(`Lv.${item.level}에 열려요`, `Unlocks at Lv.${item.level}`)}</Text>
                           )}
                         </View>
                         <Text style={styles.chevron}>›</Text>
@@ -164,7 +165,7 @@ export function QuestModal({
                 {/* Hidden quests only appear once achieved — a little secret for whoever got there. */}
                 {hidden.length > 0 && (
                   <View style={styles.hiddenSection}>
-                    <Text style={styles.hiddenHeading}>✦ 히든 퀘스트</Text>
+                    <Text style={styles.hiddenHeading}>{t("✦ 히든 퀘스트", "✦ Hidden Quests")}</Text>
                     {hidden.map((quest) => (
                       <FlipIn key={quest.id} fresh={!openedIds.has(quest.id)}>
                         <Panel slice={kit.panelParchment} scale={0.4} style={styles.item}>
@@ -183,7 +184,7 @@ export function QuestModal({
                               style={styles.claimButton}
                               textStyle={styles.claimButtonText}
                             >
-                              {quest.claimed ? "완료" : <RewardLabel gems={quest.reward} />}
+                              {quest.claimed ? t("완료", "Done") : <RewardLabel gems={quest.reward} />}
                             </GameButton>
                           </View>
                         </Panel>
@@ -194,8 +195,8 @@ export function QuestModal({
               </>
             ) : (
               <>
-                <Pressable onPress={() => setView("list")} accessibilityRole="button" accessibilityLabel="장 목록으로" hitSlop={6} style={({ pressed }) => [styles.backRow, pressed && styles.pressedRow]}>
-                  <Text style={styles.backText}>‹ 장 목록</Text>
+                <Pressable onPress={() => setView("list")} accessibilityRole="button" accessibilityLabel={t("장 목록으로", "To Chapter List")} hitSlop={6} style={({ pressed }) => [styles.backRow, pressed && styles.pressedRow]}>
+                  <Text style={styles.backText}>{t("‹ 장 목록", "‹ Chapters")}</Text>
                 </Pressable>
                 <Panel slice={kit.panelParchment} style={styles.storyCard}>
                   <View style={styles.chapterRow}>
@@ -203,7 +204,7 @@ export function QuestModal({
                       onPress={() => canPrev && setChapterIndex(chapterIndex - 1)}
                       disabled={!canPrev}
                       accessibilityRole="button"
-                      accessibilityLabel="이전 장"
+                      accessibilityLabel={t("이전 장", "Previous Chapter")}
                       hitSlop={6}
                       style={({ pressed }) => [pressed && styles.arrowPressed]}
                     >
@@ -214,15 +215,15 @@ export function QuestModal({
                         {chapter.title}
                       </Text>
                       <Text style={styles.storyCount}>
-                        {chapter.open ? `받은 미션 ${claimedCount} / ${quests.length}` : `Lv.${chapter.level}에 열려요`}
+                        {chapter.open ? t(`받은 미션 ${claimedCount} / ${quests.length}`, `Missions Claimed ${claimedCount} / ${quests.length}`) : t(`Lv.${chapter.level}에 열려요`, `Unlocks at Lv.${chapter.level}`)}
                       </Text>
-                      <Text style={styles.storyLine}>{chapter.open ? `"${chapter.line}"` : "아직 열리지 않은 장이에요."}</Text>
+                      <Text style={styles.storyLine}>{chapter.open ? `"${chapter.line}"` : t("아직 열리지 않은 장이에요.", "This chapter hasn't opened yet.")}</Text>
                     </View>
                     <Pressable
                       onPress={() => canNext && setChapterIndex(chapterIndex + 1)}
                       disabled={!canNext}
                       accessibilityRole="button"
-                      accessibilityLabel="다음 장"
+                      accessibilityLabel={t("다음 장", "Next Chapter")}
                       hitSlop={6}
                       style={({ pressed }) => [pressed && styles.arrowPressed]}
                     >
@@ -242,7 +243,7 @@ export function QuestModal({
                             <Image source={getQuestIcon(quest.id)} style={styles.icon} resizeMode="contain" />
                           )}
                           {chapter.open && complete && !quest.claimed && (
-                            <Image source={kitImages.dotRed} style={styles.readyDot} accessibilityLabel="받을 보상 있음" />
+                            <Image source={kitImages.dotRed} style={styles.readyDot} accessibilityLabel={t("받을 보상 있음", "Reward ready")} />
                           )}
                         </Panel>
                         <View style={styles.info}>
@@ -262,7 +263,7 @@ export function QuestModal({
                             style={styles.claimButton}
                             textStyle={styles.claimButtonText}
                           >
-                            {quest.claimed ? "완료" : <RewardLabel gems={quest.reward} />}
+                            {quest.claimed ? t("완료", "Done") : <RewardLabel gems={quest.reward} />}
                           </GameButton>
                         </View>
                       </Panel>

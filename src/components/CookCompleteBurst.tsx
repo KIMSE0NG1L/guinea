@@ -17,6 +17,7 @@ import { playSfx } from "../sound";
 import { playHaptic } from "../haptics";
 import { StrokedText } from "./StrokedText";
 import { GRADE_LABEL, type CookGrade } from "../state/buffs";
+import { t } from "../i18n";
 
 // Badge color per cook-minigame grade — kept entirely separate from `great` below (the
 // pre-existing, orthogonal quantity-double roll): a dish can be 망함-graded and still double,
@@ -142,7 +143,7 @@ export function CookCompleteBurst({
 
   return (
     <Animated.View style={[styles.backdrop, wrapStyle]}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onDone} accessibilityRole="button" accessibilityLabel="닫기" />
+      <Pressable style={StyleSheet.absoluteFill} onPress={onDone} accessibilityRole="button" accessibilityLabel={t("닫기", "Close")} />
       <View style={styles.stage} pointerEvents="none">
         <Animated.View style={[styles.glow, glowStyle]}>
           <Svg width={STAGE} height={STAGE}>
@@ -193,14 +194,14 @@ export function CookCompleteBurst({
       </View>
       <Animated.View style={[styles.copy, titleStyle]} pointerEvents="none">
         <StrokedText style={styles.title} strokeColor={colors.line} strokeWidth={2.5}>
-          {great ? "대성공!" : "완성!"}
+          {great ? t("대성공!", "Great Success!") : t("완성!", "Done!")}
         </StrokedText>
         <StrokedText style={styles.name} strokeColor={colors.line} strokeWidth={1.5}>
           {great ? `${dishName} ×2` : dishName}
         </StrokedText>
         {grade && (
           <StrokedText style={[styles.grade, { color: GRADE_COLOR[grade] }]} strokeColor={colors.line} strokeWidth={1.5}>
-            {GRADE_LABEL[grade]}
+            {t(GRADE_LABEL[grade])}
           </StrokedText>
         )}
         {pageText && (

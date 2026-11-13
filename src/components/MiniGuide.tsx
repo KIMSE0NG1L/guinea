@@ -6,6 +6,7 @@ import { CharacterSprite } from "./CharacterSprite";
 import { ARROW_H, ARROW_W, GuideArrow } from "./GuideArrow";
 import { RichLine, TopicTag, type GuideTopic } from "./TutorialOverlay";
 import { measureTarget, type TargetRect } from "./tutorialTargets";
+import { t } from "../i18n";
 
 // A light-touch guide: no dimming, so the game stays in full view. 모험기니's face pops up
 // with a small speech bubble at the top, and arrows point at the things being talked
@@ -53,7 +54,7 @@ export function MiniGuide({ line, topic, targetIds = [], onTap, tapAnywhere = fa
 
   return (
     <View ref={overlayRef} style={styles.overlay} pointerEvents="box-none">
-      {tapAnywhere && <Pressable style={StyleSheet.absoluteFill} onPress={tap} accessibilityRole="button" accessibilityLabel="눌러서 줍기" />}
+      {tapAnywhere && <Pressable style={StyleSheet.absoluteFill} onPress={tap} accessibilityRole="button" accessibilityLabel={t("눌러서 줍기", "Tap to pick up")} />}
       {holes.map((hole, index) => {
         const below = hole.y < ARROW_H + 12;
         return (
@@ -65,7 +66,7 @@ export function MiniGuide({ line, topic, targetIds = [], onTap, tapAnywhere = fa
         );
       })}
       <Animated.View style={[styles.wrap, popStyle]}>
-        <Pressable onPress={tap} accessibilityRole="button" accessibilityLabel="다음 설명" style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+        <Pressable onPress={tap} accessibilityRole="button" accessibilityLabel={t("다음 설명", "Next tip")} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
           <View style={styles.face}>
             <View style={styles.faceCrop}>
               <CharacterSprite outfit="default" animation="idle" size={72} />

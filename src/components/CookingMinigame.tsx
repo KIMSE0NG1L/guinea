@@ -25,9 +25,16 @@ import {
   type RoundResult,
 } from "../state/cookingMinigame";
 import type { Recipe } from "../state/recipes";
+import type { RecipeTier } from "../state/recipeTiers";
 import type { CookGrade } from "../state/buffs";
 import { playHaptic } from "../haptics";
 import { playSfx } from "../sound";
+import { t } from "../i18n";
+
+// MINIGAME_DIFFICULTY's Korean labels can't go through the shared t(value) dictionary lookup:
+// "보통" here (Normal difficulty) collides with the unrelated cook-grade label "보통" (Good),
+// which the dictionary already maps to a different English word. Keyed by tier instead.
+const DIFFICULTY_LABEL_EN: Record<RecipeTier, string> = { common: "Easy", rare: "Normal", epic: "Hard", legendary: "Very Hard", hidden: "Extreme" };
 
 const TRACK_HEIGHT = 34;
 const TRACK_SCALE = TRACK_HEIGHT / 40;
@@ -44,6 +51,7 @@ const FAIL_HOLD_MS = 1200;
 const FAIL_RETRIES = 2;
 
 const RESULT_TEXT: Record<RoundResult, string> = { perfect: "완벽!", good: "좋아!", miss: "아깝다!" };
+const RESULT_TEXT_EN: Record<RoundResult, string> = { perfect: "Perfect!", good: "Nice!", miss: "So Close!" };
 const RESULT_COLOR: Record<RoundResult, string> = { perfect: "#ffd34d", good: "#bfe08a", miss: "#e07a5f" };
 
 // How many perfects in a row sit at the end of `rounds` right now — purely cosmetic (the
@@ -131,8 +139,8 @@ export function CookingMinigame({
           <NineSlice slice={kit.panelLarge} />
           <View style={styles.top}>
             <Text style={styles.eyebrow}>COOKING</Text>
-            <Text style={styles.title}>{recipe.name}</Text>
-            <Text style={styles.difficulty}>{`난이도 ${difficulty.label}`}</Text>
+            <Text style={styles.title}>{t(recipe.name)}</Text>
+            <Text style={styles.difficulty}>{t(`난이도 ${difficulty.label}`, `Difficulty: ${DIFFICULTY_LABEL_EN[recipe.tier]}`)}</Text>
           </View>
 
           <JigglingChef active={!failed} />
@@ -149,7 +157,7 @@ export function CookingMinigame({
                   its silhouette) — not a dark rectangle laid over it. */}
               <Image source={recipe.image} style={styles.failImage} />
               <StrokedText style={styles.failText} strokeColor={colors.line} strokeWidth={2.5}>
-                망함...
+                {t("망함...", "Failed...")}
               </StrokedText>
             </View>
           ) : showingResult && lastResult ? (
@@ -168,16 +176,19 @@ export function CookingMinigame({
           {failed && retriesLeft > 0 && (
             <RewardedAdModal
               autoStart={false}
-              message={`광고를 보면 한 번 더 도전할 수 있어요. (남은 기회 ${retriesLeft}/${FAIL_RETRIES})`}
-              claimLabel="재도전"
+              message={t(
+                `광고를 보면 한 번 더 도전할 수 있어요. (남은 기회 ${retriesLeft}/${FAIL_RETRIES})`,
+                `Watch an ad to try again. (${retriesLeft}/${FAIL_RETRIES} chances left)`,
+              )}
+              claimLabel={t("재도전", "Try Again")}
               onClaim={retry}
-              secondary={{ label: "포기하기", onPress: () => onFinish("fail") }}
+              secondary={{ label: t("포기하기", "Give Up"), onPress: () => onFinish("fail") }}
             />
           )}
 
           {!failed && (
-            <Pressable onPress={onCancel} style={styles.cancel} accessibilityRole="button" accessibilityLabel="나중에 마무리하기">
-              <Text style={styles.cancelText}>나중에</Text>
+            <Pressable onPress={onCancel} style={styles.cancel} accessibilityRole="button" accessibilityLabel={t("나중에 마무리하기", "Finish later")}>
+              <Text style={styles.cancelText}>{t("나중에", "Later")}</Text>
             </Pressable>
           )}
         </View>
@@ -253,13 +264,13 @@ function ResultReveal({ result, combo }: { result: RoundResult; combo: number })
     <View style={styles.resultWrap}>
       <Animated.View style={textStyle}>
         <StrokedText style={[styles.resultText, { color: RESULT_COLOR[result] }]} strokeColor={colors.line} strokeWidth={2}>
-          {RESULT_TEXT[result]}
+          {t(RESULT_TEXT[result], RESULT_TEXT_EN[result])}
         </StrokedText>
       </Animated.View>
       {combo >= 2 && (
         <Animated.View style={comboStyle}>
           <StrokedText style={styles.comboText} strokeColor={colors.line} strokeWidth={1.5}>
-            {`${combo} 콤보!`}
+            {t(`${combo} 콤보!`, `${combo} Combo!`)}
           </StrokedText>
         </Animated.View>
       )}
@@ -323,7 +334,7 @@ function Round({
 
   return (
     <View style={styles.round}>
-      {drifting && <Text style={styles.driftHint}>타겟이 움직여요!</Text>}
+      {drifting && <Text style={styles.driftHint}>{t("타겟이 움직여요!", "The target is moving!")}</Text>}
       <View style={styles.track}>
         <NineSlice slice={frameKit.barFrame} scale={TRACK_SCALE} />
         <View
@@ -350,12 +361,12 @@ function Round({
       </View>
       <View style={styles.stopButtonWrap}>
         <GameButton variant="green" onPress={stop} style={styles.stopButton} textStyle={styles.stopButtonText}>
-          멈춰!
+          {t("멈춰!", "Stop!")}
         </GameButton>
         {guideActive && (
           <>
             <GuideArrow direction="down" style={styles.guideArrow} />
-            <Text style={styles.guideHint}>지금 눌러서 멈춰 봐!</Text>
+            <Text style={styles.guideHint}>{t("지금 눌러서 멈춰 봐!", "Tap it now to stop!")}</Text>
           </>
         )}
       </View>

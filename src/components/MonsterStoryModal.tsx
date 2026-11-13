@@ -8,6 +8,7 @@ import { EnemySprite } from "./EnemySprite";
 import { BOSS_LORE, MOB_LORE } from "../state/bestiary";
 import { BOSS_NAME, ENEMY_NAME, getStageCode } from "../state/stages";
 import type { EnemyKind } from "../types";
+import { t } from "../i18n";
 
 export function MonsterStoryModal({
   kind,
@@ -30,28 +31,28 @@ export function MonsterStoryModal({
           <NineSlice slice={kit.panelLarge} />
           <View style={styles.top}>
             <View style={[styles.tag, boss ? styles.tagBoss : styles.tagMob]}>
-              <Text style={styles.tagText}>{boss ? "보스" : "일반"}</Text>
+              <Text style={styles.tagText}>{boss ? t("보스", "Boss") : t("일반", "Normal")}</Text>
             </View>
             <Text style={styles.where}>
-              {getStageCode(stageIndex)} {area}
+              {getStageCode(stageIndex)} {t(area)}
             </Text>
           </View>
           <View style={styles.portrait}>
             <EnemySprite boss={boss} kind={kind} animation="idle" size={boss ? 130 : 110} restartKey={`story-${kind}-${boss}`} />
           </View>
-          <Text style={styles.name}>{boss ? BOSS_NAME[kind] : ENEMY_NAME[kind]}</Text>
+          <Text style={styles.name}>{t(boss ? BOSS_NAME[kind] : ENEMY_NAME[kind])}</Text>
           <View style={styles.traits}>
             {lore.traits.map((trait) => (
               <View key={trait} style={styles.trait}>
-                <Text style={styles.traitText}>#{trait}</Text>
+                <Text style={styles.traitText}>#{t(trait)}</Text>
               </View>
             ))}
           </View>
           <Panel slice={kit.inset} scale={0.4} style={styles.storyBox}>
-            <Text style={styles.story}>{lore.story}</Text>
+            <Text style={styles.story}>{t(lore.story)}</Text>
           </Panel>
           <GameButton variant="green" onPress={onClose} style={styles.close}>
-            닫기
+            {t("닫기", "Close")}
           </GameButton>
         </Pressable>
       </Pressable>

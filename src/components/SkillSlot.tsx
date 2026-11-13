@@ -10,6 +10,7 @@ import { formatDuration } from "../state/buffs";
 import { SkillIcon } from "./SkillIcon";
 import { StrokedText } from "./StrokedText";
 import { tutorialRef } from "./tutorialTargets";
+import { t as tr } from "../i18n";
 
 export const SKILL_SLOT_HEIGHT = 44;
 
@@ -40,7 +41,7 @@ export function SkillSlot({
         ref={tutorialRef("skill-slot")}
         onPress={onOpenSkills}
         accessibilityRole="button"
-        accessibilityLabel="스킬 장착하러 가기"
+        accessibilityLabel={tr("스킬 장착하러 가기", "Go equip a skill")}
         hitSlop={6}
         style={({ pressed }) => [styles.empty, pressed && styles.pressed]}
       >
@@ -64,10 +65,10 @@ export function SkillSlot({
       accessibilityRole="button"
       accessibilityLabel={
         skill.passive
-          ? `${skill.name} 상시 적용 중`
+          ? tr(`${skill.name} 상시 적용 중`, `${tr(skill.name)} always active`)
           : cooling
-            ? `${skill.name} 재사용 ${Math.ceil(cooldownLeft / 1000)}초 남음`
-            : `${skill.name} 사용`
+            ? tr(`${skill.name} 재사용 ${Math.ceil(cooldownLeft / 1000)}초 남음`, `${tr(skill.name)} ready again in ${Math.ceil(cooldownLeft / 1000)}s`)
+            : tr(`${skill.name} 사용`, `Use ${tr(skill.name)}`)
       }
       hitSlop={6}
       style={({ pressed }) => [styles.slot, pressed && styles.pressed]}
@@ -92,13 +93,13 @@ export function SkillSlot({
       )}
       {skill.passive && (
         <View style={styles.passiveTag} pointerEvents="none">
-          <Text style={styles.passiveText}>상시</Text>
+          <Text style={styles.passiveText}>{tr("상시", "Always")}</Text>
         </View>
       )}
       {info && inEffect && (
         <InfoBubble
-          title={skill.name}
-          lines={[SKILL_SUMMARY[skillId], skill.passive ? "장착 중 상시 적용" : `${Math.ceil(activeLeft / 1000)}초 남음`]}
+          title={tr(skill.name)}
+          lines={[tr(SKILL_SUMMARY[skillId]), skill.passive ? tr("장착 중 상시 적용", "Always active while equipped") : tr(`${Math.ceil(activeLeft / 1000)}초 남음`, `${Math.ceil(activeLeft / 1000)}s left`)]}
           anchorWidth={SKILL_SLOT_HEIGHT}
           onClose={closeInfo}
         />
@@ -120,7 +121,7 @@ function ReadyFlash() {
       <Animated.View style={[styles.overlay, styles.readyFlash, flashStyle]} pointerEvents="none" />
       <Animated.View style={[styles.readyLabel, textStyle]} pointerEvents="none">
         <StrokedText style={styles.readyText} strokeColor={colors.line} strokeWidth={1.5}>
-          준비!
+          {tr("준비!", "Ready!")}
         </StrokedText>
       </Animated.View>
     </>

@@ -10,7 +10,8 @@ import { CharacterSprite } from "../components/CharacterSprite";
 import { StrokedText } from "../components/StrokedText";
 import { useCountUp } from "../components/motion";
 import { formatGameNumber } from "../state/gameMath";
-import { getPeakAreaStage, getStageLabel } from "../state/stages";
+import { getPeakAreaStage, LAST_STAGE_NUMBER, STAGES } from "../state/stages";
+import { t } from "../i18n";
 import { getCookbookProgress } from "../state/cookbook";
 import { RECIPES } from "../state/recipes";
 import { OUTFIT_NAMES } from "../state/buffs";
@@ -20,16 +21,26 @@ import type { GameState, Outfit } from "../types";
 // How far apart the cards pop in, one after another down the page.
 const POP_GAP = 45;
 
+// getStageLabel (state/stages.ts) concatenates the stage number with the Korean area name
+// directly, so it can't be translated via a one-arg dictionary lookup on the whole string —
+// this rebuilds the same label with the area name translated on its own.
+function stageLabel(stageNumber: number) {
+  const area = STAGES[Math.min(stageNumber, LAST_STAGE_NUMBER)].area;
+  return `${stageNumber + 1} ${t(area)}`;
+}
+
 function formatDuration(ms: number) {
   const minutes = Math.floor(ms / 60000);
   const hours = Math.floor(minutes / 60);
-  if (hours >= 1) return `${formatGameNumber(hours)}시간 ${minutes % 60}분`;
-  return `${minutes}분`;
+  if (hours >= 1) return t(`${formatGameNumber(hours)}시간 ${minutes % 60}분`, `${formatGameNumber(hours)}h ${minutes % 60}m`);
+  return t(`${minutes}분`, `${minutes}m`);
 }
 
 function formatSeconds(ms: number) {
   const seconds = ms / 1000;
-  return seconds < 60 ? `${seconds.toFixed(1)}초` : `${Math.floor(seconds / 60)}분 ${Math.round(seconds % 60)}초`;
+  return seconds < 60
+    ? t(`${seconds.toFixed(1)}초`, `${seconds.toFixed(1)}s`)
+    : t(`${Math.floor(seconds / 60)}분 ${Math.round(seconds % 60)}초`, `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`);
 }
 
 // A card that pops in after `delay`, its number counting up from zero.
@@ -84,7 +95,7 @@ export function StatsScreen({ state }: { state: GameState }) {
 
   return (
     <View style={styles.page}>
-      <PageHeading kicker="PROFILE" title="기니의 발자취" description="지금까지 쌓아 온 것들을 한눈에." />
+      <PageHeading kicker="PROFILE" title={t("기니의 발자취", "Gini's Footprints")} description={t("지금까지 쌓아 온 것들을 한눈에.", "Everything you've built up, at a glance.")} />
 
       {/* 1. The adventurer: the companion out front, where it's got to. */}
       <PopIn delay={0}>
@@ -94,48 +105,48 @@ export function StatsScreen({ state }: { state: GameState }) {
           </View>
           <View style={styles.heroCopy}>
             <Text style={styles.heroName}>
-              Lv.{formatGameNumber(state.level)} {OUTFIT_NAMES[state.equippedOutfit]}
+              Lv.{formatGameNumber(state.level)} {t(OUTFIT_NAMES[state.equippedOutfit])}
             </Text>
-            <Text style={styles.heroStage}>{getStageLabel(state.stageNumber)}에서 모험 중</Text>
+            <Text style={styles.heroStage}>{t(`${stageLabel(state.stageNumber)}에서 모험 중`, `Adventuring in ${stageLabel(state.stageNumber)}`)}</Text>
             <Text style={styles.heroMeta}>
-              모험 {formatGameNumber(days)}일째 · 플레이 {formatDuration(state.playTimeMs ?? 0)}
+              {t(`모험 ${formatGameNumber(days)}일째 · 플레이 ${formatDuration(state.playTimeMs ?? 0)}`, `Day ${formatGameNumber(days)} of the adventure · Played ${formatDuration(state.playTimeMs ?? 0)}`)}
             </Text>
           </View>
         </Panel>
       </PopIn>
 
-      <Section title="모험 기록" />
+      <Section title={t("모험 기록", "Adventure Record")} />
       <View style={styles.grid}>
-        <StatCard delay={next()} icon={icons.star} label="레벨" value={state.level} />
-        <StatCard delay={next()} icon={icons.compass} label="최고 스테이지" text={getStageLabel(highest)} />
-        <StatCard delay={next()} icon={uiImages.swords} label="총 처치 수" value={state.kills} />
-        <StatCard delay={next()} icon={icons.codexMonster} label="보스 처치 수" value={state.bossKills ?? 0} />
-        <StatCard delay={next()} icon={icons.coins} label="누적 획득 골드" value={state.totalGoldEarned} />
-        <StatCard delay={next()} icon={icons.codexBook} label="완성한 요리책" text={`${cookbookDone} / ${RECIPES.length}`} />
-        <StatCard delay={next()} icon={icons.codexIngredient} label="발견한 식재료" value={(state.discoveredItems ?? []).length} />
-        <StatCard delay={next()} icon={icons.trophy} label="함께한 동료" text={`${ownedCompanions} / ${outfits.length}`} />
-        <StatCard delay={next()} icon={icons.questMedal} label="출석한 날" value={state.attendance?.claimed ?? 0} />
+        <StatCard delay={next()} icon={icons.star} label={t("레벨", "Level")} value={state.level} />
+        <StatCard delay={next()} icon={icons.compass} label={t("최고 스테이지", "Furthest Stage")} text={stageLabel(highest)} />
+        <StatCard delay={next()} icon={uiImages.swords} label={t("총 처치 수", "Total Kills")} value={state.kills} />
+        <StatCard delay={next()} icon={icons.codexMonster} label={t("보스 처치 수", "Bosses Defeated")} value={state.bossKills ?? 0} />
+        <StatCard delay={next()} icon={icons.coins} label={t("누적 획득 골드", "Lifetime Gold Earned")} value={state.totalGoldEarned} />
+        <StatCard delay={next()} icon={icons.codexBook} label={t("완성한 요리책", "Cookbook Completed")} text={`${cookbookDone} / ${RECIPES.length}`} />
+        <StatCard delay={next()} icon={icons.codexIngredient} label={t("발견한 식재료", "Ingredients Discovered")} value={(state.discoveredItems ?? []).length} />
+        <StatCard delay={next()} icon={icons.trophy} label={t("함께한 동료", "Companions Met")} text={`${ownedCompanions} / ${outfits.length}`} />
+        <StatCard delay={next()} icon={icons.questMedal} label={t("출석한 날", "Days Attended")} value={state.attendance?.claimed ?? 0} />
       </View>
 
       {/* 2. The odd little counters the game already keeps. */}
-      <Section title="재미 기록" />
+      <Section title={t("재미 기록", "Fun Records")} />
       <View style={styles.grid}>
-        <StatCard delay={next()} icon={icons.codexBook} label="요리한 횟수" value={state.dishesCooked ?? 0} />
-        <StatCard delay={next()} icon={icons.codexIngredient} label="먹은 요리" value={state.dishesEaten ?? 0} />
-        <StatCard delay={next()} icon={uiImages.coin} label="잡은 날아다니는 동전" value={state.coinsCaught ?? 0} />
-        <StatCard delay={next()} icon={uiImages.swords} label="공격력 강화 횟수" value={state.attackUpgrades} />
-        <StatCard delay={next()} icon={icons.chest} label="가방 확장" value={state.bagExpansions ?? 0} />
-        <StatCard delay={next()} icon={icons.chest} label="가방이 꽉 찬 횟수" value={state.bagFullCount ?? 0} />
-        <StatCard delay={next()} icon={icons.star} label="8시간 넘게 푹 잔 횟수" value={state.longNaps ?? 0} />
-        <StatCard delay={next()} icon={icons.codexMonster} label="테토기니 헛스윙" value={state.tetoMisses ?? 0} />
+        <StatCard delay={next()} icon={icons.codexBook} label={t("요리한 횟수", "Dishes Cooked")} value={state.dishesCooked ?? 0} />
+        <StatCard delay={next()} icon={icons.codexIngredient} label={t("먹은 요리", "Dishes Eaten")} value={state.dishesEaten ?? 0} />
+        <StatCard delay={next()} icon={uiImages.coin} label={t("잡은 날아다니는 동전", "Winged Coins Caught")} value={state.coinsCaught ?? 0} />
+        <StatCard delay={next()} icon={uiImages.swords} label={t("공격력 강화 횟수", "Attack Upgrades")} value={state.attackUpgrades} />
+        <StatCard delay={next()} icon={icons.chest} label={t("가방 확장", "Bag Expansions")} value={state.bagExpansions ?? 0} />
+        <StatCard delay={next()} icon={icons.chest} label={t("가방이 꽉 찬 횟수", "Times Bag Was Full")} value={state.bagFullCount ?? 0} />
+        <StatCard delay={next()} icon={icons.star} label={t("8시간 넘게 푹 잔 횟수", "Times Slept 8+ Hours")} value={state.longNaps ?? 0} />
+        <StatCard delay={next()} icon={icons.codexMonster} label={t("테토기니 헛스윙", "Teto Gini Whiffs")} value={state.tetoMisses ?? 0} />
       </View>
 
       {/* 5. Personal bests (tracked from this update on). */}
-      <Section title="최고 기록" />
+      <Section title={t("최고 기록", "Personal Bests")} />
       <View style={styles.grid}>
-        <StatCard delay={next()} icon={uiImages.swords} label="가장 센 한 방" text={state.records?.maxHit ? formatGameNumber(state.records.maxHit) : "기록 없음"} />
-        <StatCard delay={next()} icon={icons.codexMonster} label="가장 빨리 잡은 보스" text={state.records?.fastestBossMs ? formatSeconds(state.records.fastestBossMs) : "기록 없음"} />
-        <StatCard delay={next()} icon={icons.coins} label="최대 오프라인 골드" text={state.records?.bestOfflineGold ? formatGameNumber(state.records.bestOfflineGold) : "기록 없음"} />
+        <StatCard delay={next()} icon={uiImages.swords} label={t("가장 센 한 방", "Hardest Hit")} text={state.records?.maxHit ? formatGameNumber(state.records.maxHit) : t("기록 없음", "No record yet")} />
+        <StatCard delay={next()} icon={icons.codexMonster} label={t("가장 빨리 잡은 보스", "Fastest Boss Kill")} text={state.records?.fastestBossMs ? formatSeconds(state.records.fastestBossMs) : t("기록 없음", "No record yet")} />
+        <StatCard delay={next()} icon={icons.coins} label={t("최대 오프라인 골드", "Best Offline Gold")} text={state.records?.bestOfflineGold ? formatGameNumber(state.records.bestOfflineGold) : t("기록 없음", "No record yet")} />
       </View>
     </View>
   );

@@ -47,6 +47,7 @@ import {
 import { DROP_ARRIVAL_MS, DropItem } from "../components/DropItem";
 import { MonsterSpeechBubble } from "../components/MonsterSpeechBubble";
 import { BOSS_NAME, BOSS_TAGLINE, ENEMY_NAME, STAGE_KILL_TARGET } from "../state/stages";
+import { t as tr } from "../i18n";
 import { SHARDS_PER_BOSS } from "../state/progression";
 import { BOSS_LINES, MOB_LINES } from "../state/monsterLines";
 import { OUTFIT_NAMES } from "../state/buffs";
@@ -723,20 +724,20 @@ export function BattleScene({
                 progress={boss ? bossTimeProgress : stageProgress}
                 fill={boss ? "red" : "gold"}
                 height={18}
-                label={boss ? `${bossSecondsLeft}초` : `${Math.min(stageKills, STAGE_KILL_TARGET)} / ${STAGE_KILL_TARGET}`}
+                label={boss ? tr(`${bossSecondsLeft}초`, `${bossSecondsLeft}s`) : `${Math.min(stageKills, STAGE_KILL_TARGET)} / ${STAGE_KILL_TARGET}`}
                 style={styles.stageBarTrack}
               />
             </View>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="퀘스트"
+              accessibilityLabel={tr("퀘스트", "Quests")}
               onPress={onQuest}
               hitSlop={6}
               style={({ pressed }) => [styles.questButton, pressed && styles.questPressed]}
             >
               <WobblingMedal wobble={questReady} />
-              <IconCaption offset={-5}>퀘스트</IconCaption>
-              {questReady && <Image source={kitImages.dotRed} style={styles.questDot} accessibilityLabel="받을 보상 있음" />}
+              <IconCaption offset={-5}>{tr("퀘스트", "Quests")}</IconCaption>
+              {questReady && <Image source={kitImages.dotRed} style={styles.questDot} accessibilityLabel={tr("받을 보상 있음", "Reward available")} />}
             </Pressable>
           </LinearGradient>
           )}
@@ -748,7 +749,7 @@ export function BattleScene({
           {!preview && giftKills > 0 && (
             <View style={styles.giftBanner} pointerEvents="none">
               <StrokedText style={styles.giftText} strokeColor={colors.line} strokeWidth={2}>
-                {`🎁 선물 버프! 한 방에 쓰러뜨리기 × ${giftKills}`}
+                {tr(`🎁 선물 버프! 한 방에 쓰러뜨리기 × ${giftKills}`, `🎁 Gift Buff! One-Hit Kills × ${giftKills}`)}
               </StrokedText>
             </View>
           )}
@@ -819,24 +820,24 @@ export function BattleScene({
           <Pressable
             onPress={onOpenKitchen}
             accessibilityRole="button"
-            accessibilityLabel="요리 페이지 열기"
+            accessibilityLabel={tr("요리 페이지 열기", "Open kitchen page")}
             hitSlop={8}
             style={({ pressed }) => [styles.kitchenButton, pressed && styles.mapButtonPressed]}
           >
             <Image source={POT_ICON.source} style={fitInBox(POT_ICON)} />
             {kitchenReadyDish !== null && <KitchenReadyBadge dish={kitchenReadyDish} />}
-            <IconCaption>요리</IconCaption>
+            <IconCaption>{tr("요리", "Cook")}</IconCaption>
           </Pressable>
 
           <Pressable
             onPress={onOpenMap}
             accessibilityRole="button"
-            accessibilityLabel="마일스톤 지도 열기"
+            accessibilityLabel={tr("마일스톤 지도 열기", "Open milestone map")}
             hitSlop={8}
             style={({ pressed }) => [styles.mapButton, pressed && styles.mapButtonPressed]}
           >
             <Image source={MAP_ICON.source} style={fitInBox(MAP_ICON)} />
-            <IconCaption shift={5}>지도</IconCaption>
+            <IconCaption shift={5}>{tr("지도", "Map")}</IconCaption>
           </Pressable>
 
           <View style={styles.skillBar}>{skillBar}</View>
@@ -976,7 +977,7 @@ export function BattleScene({
 // Under the stage bar on a level-up that opens a skill — says what just opened.
 function UnlockToast({ level }: { level: number }) {
   const { skills } = getUnlocksAtLevel(level);
-  const lines = skills.map((id) => `새 스킬 해금! ${getSkill(id).name}`);
+  const lines = skills.map((id) => tr(`새 스킬 해금! ${getSkill(id).name}`, `New skill unlocked! ${tr(getSkill(id).name)}`));
   if (lines.length === 0) return null;
   return (
     <View style={styles.unlockToast} pointerEvents="none">
@@ -1047,15 +1048,15 @@ function BagButton({ onPress, dropEvents, full }: { onPress: () => void; dropEve
       onPress={onPress}
       accessibilityRole="button"
       ref={tutorialRef("bag")}
-      accessibilityLabel={full ? "가방 열기 (가득 참)" : "가방 열기"}
+      accessibilityLabel={full ? tr("가방 열기 (가득 참)", "Open bag (full)") : tr("가방 열기", "Open bag")}
       hitSlop={8}
       style={({ pressed }) => [styles.bagButton, pressed && styles.mapButtonPressed]}
     >
       <Animated.Image source={BAG_ICON.source} style={[fitInBox(BAG_ICON), style]} />
-      <IconCaption>가방</IconCaption>
+      <IconCaption>{tr("가방", "Bag")}</IconCaption>
       {full && (
         <View style={styles.bagFull} pointerEvents="none">
-          <Text style={styles.bagFullText}>가득</Text>
+          <Text style={styles.bagFullText}>{tr("가득", "Full")}</Text>
         </View>
       )}
     </Pressable>
@@ -1396,7 +1397,13 @@ function EnemyFighter({
       <View style={[styles.unitLabel, styles.enemyNameplate, styles.enemyNameplateFixed, (boss || miniBoss) && styles.enemyNameplateBoss, miniBoss && (golden ? styles.enemyNameplateGolden : styles.enemyNameplateMini)]}>
         {/* Outlined, since the plate behind it is see-through. */}
         <StrokedText style={styles.unitLabelText} strokeColor={colors.line} strokeWidth={1.5}>
-          {boss ? `${enraged ? "분노한 " : ""}${BOSS_NAME[enemyKind]}` : golden ? `황금 ${ENEMY_NAME[enemyKind]}` : stray ? `길 잃은 ${ENEMY_NAME[enemyKind]}` : ENEMY_NAME[enemyKind]}
+          {boss
+            ? tr(`${enraged ? "분노한 " : ""}${BOSS_NAME[enemyKind]}`, `${enraged ? "Enraged " : ""}${tr(BOSS_NAME[enemyKind])}`)
+            : golden
+              ? tr(`황금 ${ENEMY_NAME[enemyKind]}`, `Golden ${tr(ENEMY_NAME[enemyKind])}`)
+              : stray
+                ? tr(`길 잃은 ${ENEMY_NAME[enemyKind]}`, `Stray ${tr(ENEMY_NAME[enemyKind])}`)
+                : tr(ENEMY_NAME[enemyKind])}
         </StrokedText>
         <ProgressBar progress={(currentHp / maxHp) * 100} fill="red" height={11} style={styles.unitHealthTrack} />
       </View>
@@ -1465,7 +1472,7 @@ function GoldenRewardToast({ gold, gems }: { gold: number; gems: number }) {
   return (
     <Animated.View style={[styles.goldenToast, style]} pointerEvents="none">
       <StrokedText style={styles.goldenToastTitle} strokeColor="#5a3a06" strokeWidth={2.5}>
-        황금 처치!
+        {tr("황금 처치!", "Golden Kill!")}
       </StrokedText>
       <View style={styles.goldenToastRow}>
         <Image source={uiImages.coin} style={styles.goldenToastIcon} />
@@ -1493,12 +1500,12 @@ function BossRewardToast({ stars, gems, companion }: { stars: number; gems: numb
     <Animated.View style={[styles.goldenToast, styles.bossRewardToast, style]} pointerEvents="none">
       {companion && (
         <StrokedText style={styles.goldenToastValue} strokeColor={colors.line} strokeWidth={2}>
-          {`${companion} 조각 +${SHARDS_PER_BOSS}`}
+          {tr(`${companion} 조각 +${SHARDS_PER_BOSS}`, `${tr(companion)} Shard +${SHARDS_PER_BOSS}`)}
         </StrokedText>
       )}
       {stars > 0 && (
         <StrokedText style={styles.goldenToastTitle} strokeColor="#5a3a06" strokeWidth={2.5}>
-          {`${"★".repeat(stars)} 보석 +${gems}`}
+          {tr(`${"★".repeat(stars)} 보석 +${gems}`, `${"★".repeat(stars)} Gems +${gems}`)}
         </StrokedText>
       )}
     </Animated.View>
@@ -1520,7 +1527,7 @@ function KillStreakBanner({ count }: { count: number }) {
   return (
     <Animated.View style={[styles.goldenToast, style]} pointerEvents="none">
       <StrokedText style={styles.streakToastTitle} strokeColor="#7a1f00" strokeWidth={2.5}>
-        {`${formatGameNumber(count)} 연속 처치!`}
+        {tr(`${formatGameNumber(count)} 연속 처치!`, `${formatGameNumber(count)} Kill Streak!`)}
       </StrokedText>
     </Animated.View>
   );
@@ -1552,6 +1559,8 @@ function MiniBossRage({ size, boss, enemyKind, animation, restartKey, golden }: 
 // Picks and shows dialogue once for the currently displayed enemy.
 // What a stray says — always, so it's clear it isn't from around here.
 const STRAY_LINES = ["여기 어디지...?", "우리 동네가 아니잖아?", "길을 잃었나 봐...", "집에 가고 싶어...", "어라, 풍경이 달라졌네?"];
+// English versions, same order — see STRAY_LINES above.
+const STRAY_LINES_EN = ["Where... am I?", "This isn't my neighborhood, is it?", "I think I got lost...", "I want to go home...", "Huh, the scenery looks different?"];
 
 // The enemy that last got its line. The battle page unmounts while another tab is open, and
 // coming back must not replay the greeting — that made a half-beaten boss look freshly
@@ -1563,7 +1572,9 @@ function EnemySpeech({ speechKey, boss, stray, enemyKind, anchor }: { speechKey:
     if (speechKey === lastSpokenKey) return null;
     lastSpokenKey = speechKey;
     const pool = boss ? BOSS_LINES[enemyKind] : stray ? STRAY_LINES : MOB_LINES[enemyKind];
-    return boss || stray || Math.random() < MOB_SPEECH_CHANCE ? pool[Math.floor(Math.random() * pool.length)] : null;
+    if (!(boss || stray || Math.random() < MOB_SPEECH_CHANCE)) return null;
+    const index = Math.floor(Math.random() * pool.length);
+    return stray ? tr(STRAY_LINES[index], STRAY_LINES_EN[index]) : tr(pool[index]);
   });
   return line ? <MonsterSpeechBubble line={line} anchor={anchor} onClose={() => setLine(null)} /> : null;
 }
@@ -1596,7 +1607,7 @@ function KitchenReadyBadge({ dish }: { dish: number }) {
   return (
     <>
       <Animated.Image source={dish} style={[styles.kitchenFloatDish, dishStyle]} />
-      <Animated.Image source={kitImages.dotRed} style={[styles.kitchenDot, dotStyle]} accessibilityLabel="완성된 요리 있음" />
+      <Animated.Image source={kitImages.dotRed} style={[styles.kitchenDot, dotStyle]} accessibilityLabel={tr("완성된 요리 있음", "A finished dish is ready")} />
     </>
   );
 }

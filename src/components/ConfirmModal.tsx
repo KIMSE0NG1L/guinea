@@ -4,14 +4,15 @@ import { colors, fonts } from "../theme";
 import { kit } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
+import { t } from "../i18n";
 
 // Alert.alert is a no-op on web (react-native-web ships an empty stub) — this is the
 // cross-platform replacement for any destructive action that needs a yes/no check.
 export function ConfirmModal({
   title,
   message,
-  confirmLabel = "확인",
-  cancelLabel = "취소",
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   children,
@@ -25,6 +26,8 @@ export function ConfirmModal({
   // Extra content between the message and the buttons (e.g. the exit dialog's banner ad).
   children?: React.ReactNode;
 }) {
+  const resolvedConfirmLabel = confirmLabel ?? t("확인", "OK");
+  const resolvedCancelLabel = cancelLabel ?? t("취소", "Cancel");
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onCancel}>
       <Pressable style={styles.backdrop} onPress={onCancel}>
@@ -34,8 +37,8 @@ export function ConfirmModal({
           <Text style={styles.message}>{message}</Text>
           {children}
           <View style={styles.buttonRow}>
-            <GameButton variant="gray" onPress={onCancel} style={styles.button}>{cancelLabel}</GameButton>
-            <GameButton variant="green" onPress={onConfirm} style={styles.button}>{confirmLabel}</GameButton>
+            <GameButton variant="gray" onPress={onCancel} style={styles.button}>{resolvedCancelLabel}</GameButton>
+            <GameButton variant="green" onPress={onConfirm} style={styles.button}>{resolvedConfirmLabel}</GameButton>
           </View>
         </Pressable>
       </Pressable>

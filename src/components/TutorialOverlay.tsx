@@ -11,15 +11,36 @@ import { frameKit, icons, navIcons, shopKit } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { CharacterSprite } from "./CharacterSprite";
 import { GameButton } from "./GameButton";
+import { t } from "../i18n";
 
 // `**word**` in a line is drawn in red to point out the thing being explained.
 // The intro only sets the scene — everything else is taught in context, as it happens:
 // loot right after the first kill, upgrades once there's gold, the stage bar / boss /
 // quests once the stage is under way, cooking once there are ingredients.
 const STEPS: { line: string; icon?: number; topic: GuideTopic }[] = [
-  { line: "안녕! 나는 **모험기니**야.\n건초만 먹기 지겨워서\n맛있는 끼니를 찾아 모험 중이야!", topic: { feature: "시작", detail: "모험기니 소개" } },
-  { line: "몬스터는 내가 **자동으로** 공격해.\n어떻게 싸우는지는 직접 보면서\n하나씩 알려 줄게!", icon: navIcons.battle, topic: { feature: "전투", detail: "자동 공격" } },
-  { line: "자, 첫 **전투**야! 이건 내가 널 위해\n준비한 **선물**이야.\n잠깐 엄청 강해질 거야!", icon: icons.chest, topic: { feature: "전투", detail: "첫 선물" } },
+  {
+    line: t(
+      "안녕! 나는 **모험기니**야.\n건초만 먹기 지겨워서\n맛있는 끼니를 찾아 모험 중이야!",
+      "Hi! I'm **Adventurer Gini**.\nI got sick of eating only hay,\nso I'm out adventuring for tasty food!",
+    ),
+    topic: { feature: t("시작", "Start"), detail: t("모험기니 소개", "Meet Adventurer Gini") },
+  },
+  {
+    line: t(
+      "몬스터는 내가 **자동으로** 공격해.\n어떻게 싸우는지는 직접 보면서\n하나씩 알려 줄게!",
+      "I attack monsters **automatically**.\nI'll show you how it works\nstep by step as we go!",
+    ),
+    icon: navIcons.battle,
+    topic: { feature: t("전투", "Battle"), detail: t("자동 공격", "Auto Attack") },
+  },
+  {
+    line: t(
+      "자, 첫 **전투**야! 이건 내가 널 위해\n준비한 **선물**이야.\n잠깐 엄청 강해질 거야!",
+      "Here's your first **battle**! This is a\n**gift** I've prepared for you.\nYou'll be super strong for a bit!",
+    ),
+    icon: icons.chest,
+    topic: { feature: t("전투", "Battle"), detail: t("첫 선물", "First Gift") },
+  },
 ];
 
 const SPRITE_SIZE = 132;
@@ -74,7 +95,7 @@ export function TutorialOverlay({ onFinish }: { onFinish: () => void }) {
       dots={{ count: STEPS.length, index: step }}
       onTap={last ? undefined : next}
       onSkip={last ? undefined : onFinish}
-      action={last ? { label: "선물 받기!", onPress: onFinish } : undefined}
+      action={last ? { label: t("선물 받기!", "Get the Gift!"), onPress: onFinish } : undefined}
     />
   );
 }
@@ -175,7 +196,7 @@ export function GuideScene({
           <View style={styles.scrim} />
         )
       ) : (
-        <Pressable style={styles.scrim} onPress={onTap} accessibilityRole={onTap ? "button" : undefined} accessibilityLabel={onTap ? "다음 설명" : undefined}>
+        <Pressable style={styles.scrim} onPress={onTap} accessibilityRole={onTap ? "button" : undefined} accessibilityLabel={onTap ? t("다음 설명", "Next tip") : undefined}>
           {/* Extra darkness behind the guinea and bubble so they read clearly. */}
           <LinearGradient colors={["rgba(20,16,12,0)", "rgba(20,16,12,0.6)"]} style={styles.scrimFade} pointerEvents="none" />
         </Pressable>
@@ -184,8 +205,8 @@ export function GuideScene({
       <View style={[styles.group, atTop ? styles.groupTop : styles.groupBottom]} pointerEvents="box-none">
         <Animated.View style={[styles.bubbleWrap, bubbleStyle]} pointerEvents="box-none">
           {onSkip && (
-            <GameButton variant="pillGray" onPress={onSkip} style={styles.skip} textStyle={styles.skipText} accessibilityLabel="튜토리얼 건너뛰기">
-              건너뛰기 ▸▸
+            <GameButton variant="pillGray" onPress={onSkip} style={styles.skip} textStyle={styles.skipText} accessibilityLabel={t("튜토리얼 건너뛰기", "Skip tutorial")}>
+              {t("건너뛰기 ▸▸", "Skip ▸▸")}
             </GameButton>
           )}
           {/* Only a tap-to-continue bubble is pressable — a disabled Pressable would swallow
@@ -198,7 +219,7 @@ export function GuideScene({
             <NineSlice slice={shopKit.bubble} scale={0.42} />
             <View style={styles.body}>
               <View style={styles.copy}>
-                {topic ? <TopicTag topic={topic} /> : <Text style={styles.speaker}>모험기니</Text>}
+                {topic ? <TopicTag topic={topic} /> : <Text style={styles.speaker}>{t("모험기니")}</Text>}
                 <RichLine text={line} />
               </View>
               {icon !== undefined && (
@@ -219,9 +240,9 @@ export function GuideScene({
                   {action.label}
                 </GameButton>
               ) : targetId && !showcase ? (
-                <Animated.Text style={[styles.hint, hintStyle]}>화살표를 눌러 봐!</Animated.Text>
+                <Animated.Text style={[styles.hint, hintStyle]}>{t("화살표를 눌러 봐!", "Tap the arrow!")}</Animated.Text>
               ) : (
-                onTap && <Animated.Text style={[styles.hint, hintStyle]}>터치해서 계속 ▸</Animated.Text>
+                onTap && <Animated.Text style={[styles.hint, hintStyle]}>{t("터치해서 계속 ▸", "Tap to continue ▸")}</Animated.Text>
               )}
             </View>
           </BubbleBody>
@@ -240,7 +261,7 @@ export function GuideScene({
 function BubbleBody({ onPress, children }: { onPress?: () => void; children: React.ReactNode }) {
   if (!onPress) return <View style={styles.bubble}>{children}</View>;
   return (
-    <Pressable onPress={onPress} style={styles.bubble} accessibilityRole="button" accessibilityLabel="다음 설명">
+    <Pressable onPress={onPress} style={styles.bubble} accessibilityRole="button" accessibilityLabel={t("다음 설명", "Next tip")}>
       {children}
     </Pressable>
   );
@@ -296,7 +317,7 @@ function Spotlight({
       </View>
       {showcase ? (
         // Showing off, not asking for a press: the whole screen (target included) continues.
-        <Pressable style={[styles.blocker, { left: 0, top: 0, width: size.width, height: size.height }]} onPress={onTap} accessibilityRole="button" accessibilityLabel="다음 설명" />
+        <Pressable style={[styles.blocker, { left: 0, top: 0, width: size.width, height: size.height }]} onPress={onTap} accessibilityRole="button" accessibilityLabel={t("다음 설명", "Next tip")} />
       ) : (
         <>
           <View style={[styles.blocker, { left: 0, top: 0, width: size.width, height: Math.max(0, top) }]} />

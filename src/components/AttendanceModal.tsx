@@ -11,6 +11,7 @@ import { GameButton } from "./GameButton";
 import { formatGameNumber } from "../state/gameMath";
 import { ATTENDANCE_REWARDS, type AttendanceReward } from "../state/attendance";
 import { RewardedAdModal } from "./RewardedAdModal";
+import { t } from "../i18n";
 
 const STAMP_MS = 700;
 
@@ -46,11 +47,16 @@ export function AttendanceModal({
   };
 
   if (adOpen && claimed) {
-    const what = [claimed.gems > 0 ? `보석 ${claimed.gems}개` : "", claimed.gold > 0 ? `골드 ${formatGameNumber(claimed.gold)}` : ""].filter(Boolean).join(", ");
+    const what = [
+      claimed.gems > 0 ? t(`보석 ${claimed.gems}개`, `${claimed.gems} gems`) : "",
+      claimed.gold > 0 ? t(`골드 ${formatGameNumber(claimed.gold)}`, `${formatGameNumber(claimed.gold)} gold`) : "",
+    ]
+      .filter(Boolean)
+      .join(", ");
     return (
       <RewardedAdModal
-        message={`대신 섭섭하지 않게 ${what}를 한 번 더 챙겨드릴게요.`}
-        claimLabel="한 번 더 받기"
+        message={t(`대신 섭섭하지 않게 ${what}를 한 번 더 챙겨드릴게요.`, `To make up for it, you'll get ${what} one more time.`)}
+        claimLabel={t("한 번 더 받기", "Claim Once More")}
         onClaim={() => {
           onBonus(claimed);
           onClose();
@@ -67,7 +73,7 @@ export function AttendanceModal({
           <NineSlice slice={panelSlices.leafPlank} scale={0.7} />
           <View style={styles.plank} pointerEvents="none">
             <StrokedText style={styles.title} strokeColor="#4a2408" strokeWidth={2.5}>
-              출석 보상
+              {t("출석 보상", "Attendance Reward")}
             </StrokedText>
           </View>
             <View style={styles.grid}>
@@ -87,13 +93,13 @@ export function AttendanceModal({
             {claimed && stamped ? (
               <>
                 <GameButton variant="beige" onPress={onClose} style={styles.button} textStyle={styles.buttonLabel}>
-                  닫기
+                  {t("닫기", "Close")}
                 </GameButton>
                 <View>
-                  <GameButton variant="green" onPress={() => setAdOpen(true)} accessibilityLabel="광고 보고 한 번 더 받기" style={styles.button}>
+                  <GameButton variant="green" onPress={() => setAdOpen(true)} accessibilityLabel={t("광고 보고 한 번 더 받기", "Watch an ad to claim once more")} style={styles.button}>
                     <View style={styles.adContent}>
-                      <Text style={styles.adSmall}>광고 보고</Text>
-                      <Text style={styles.adLabel}>한 번 더</Text>
+                      <Text style={styles.adSmall}>{t("광고 보고", "Watch Ad")}</Text>
+                      <Text style={styles.adLabel}>{t("한 번 더", "One More")}</Text>
                     </View>
                   </GameButton>
                   <AdBadge />
@@ -101,7 +107,7 @@ export function AttendanceModal({
               </>
             ) : (
               <GameButton variant={claimed ? "gray" : "green"} disabled={claimed !== null} onPress={claim} style={styles.claimButton} textStyle={styles.buttonLabel}>
-                {claimed ? "받았어요!" : "받기"}
+                {claimed ? t("받았어요!", "Claimed!") : t("받기", "Claim")}
               </GameButton>
             )}
           </View>
@@ -146,7 +152,7 @@ function Tile({
     <Animated.View style={[styles.tile, wide && styles.tileWide, todayStyle]}>
       <Panel slice={wide ? panelSlices.goldPill : creamSlices.cell} scale={wide ? 0.3 : 0.28} style={[styles.tileInner, wide && styles.tileInnerWide]}>
         <View style={[styles.dayTag, state === "today" && styles.dayTagToday]}>
-          <Text style={[styles.day, state === "today" && styles.dayToday]}>{day}일</Text>
+          <Text style={[styles.day, state === "today" && styles.dayToday]}>{t(`${day}일`, `Day ${day}`)}</Text>
         </View>
         <View style={[styles.tileBody, state === "done" && styles.tileBodyDone]}>
           <Image source={reward.kind === "gems" ? uiImages.crystal : uiImages.coin} style={[styles.icon, wide && styles.iconWide]} />
@@ -155,7 +161,7 @@ function Tile({
       </Panel>
       {(state === "done" || stamping) && (
         <Animated.View style={[styles.stamp, stampStyle]} pointerEvents="none">
-          <Text style={styles.stampText}>받음</Text>
+          <Text style={styles.stampText}>{t("받음", "Claimed")}</Text>
         </Animated.View>
       )}
     </Animated.View>

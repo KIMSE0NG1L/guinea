@@ -4,6 +4,7 @@ import { colors, fonts } from "../theme";
 import { icons, kit } from "../assets";
 import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
+import { t } from "../i18n";
 
 // Pops up when something couldn't go into a full bag, and points the way to the bag to
 // make room (or buy more slots there).
@@ -14,12 +15,15 @@ export function BagFullModal({ onOpenBag, onClose }: { onOpenBag: () => void; on
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
           <NineSlice slice={kit.panelLarge} />
           <Image source={icons.backpackTrim} style={styles.icon} resizeMode="contain" />
-          <Text style={styles.title}>가방이 꽉 찼어요!</Text>
+          <Text style={styles.title}>{t("가방이 꽉 찼어요!", "Bag is Full!")}</Text>
           <Text style={styles.message}>
-            자리가 없어서 새로 얻은 걸 담지 못했어요.{"\n"}가방에서 요리에 쓰거나, 칸을 늘려 자리를 만들어 주세요.
+            {t(
+              "자리가 없어서 새로 얻은 걸 담지 못했어요.\n가방에서 요리에 쓰거나, 칸을 늘려 자리를 만들어 주세요.",
+              "There was no room for what you just got.\nUse something from your bag to cook, or expand your bag slots.",
+            )}
           </Text>
           <View style={styles.buttonRow}>
-            <GameButton variant="gray" onPress={onClose} style={styles.button}>닫기</GameButton>
+            <GameButton variant="gray" onPress={onClose} style={styles.button}>{t("닫기", "Close")}</GameButton>
             <GameButton
               variant="green"
               onPress={() => {
@@ -28,7 +32,7 @@ export function BagFullModal({ onOpenBag, onClose }: { onOpenBag: () => void; on
               }}
               style={styles.button}
             >
-              가방으로 가기
+              {t("가방으로 가기", "Go to Bag")}
             </GameButton>
           </View>
         </Pressable>

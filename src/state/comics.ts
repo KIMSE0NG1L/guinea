@@ -1,6 +1,7 @@
 import { comics } from "../assets";
 import type { SfxKey } from "../sound";
 import { LAST_STAGE_NUMBER } from "./stages";
+import { t } from "../i18n";
 
 // Short story comics. Each panel is one picture plus the speech bubbles laid over it
 // (lettering lives here rather than in the art, so it can be edited and stays crisp).
@@ -1886,17 +1887,21 @@ export const COMIC_ORDER: ComicId[] = [
 
 // What opens a comic, for the album's locked cards.
 export function getComicUnlockLabel(id: ComicId) {
-  if (id === "opening") return "게임 시작";
-  if (id === "apprenticeGini") return "2회차를 시작하면 열려요";
+  if (id === "opening") return t("게임 시작", "Start the Game");
+  if (id === "apprenticeGini") return t("2회차를 시작하면 열려요", "Unlocks when you start loop 2");
   const loopComic = LOOP_COMICS.find((entry) => entry.comic === id);
   if (loopComic) {
-    const loopLabel = `${loopComic.afterLoop + 1}회차`;
+    const loopNumber = loopComic.afterLoop + 1;
+    const loopLabel = `${loopNumber}회차`;
     return loopComic.afterStage === undefined
-      ? `${loopLabel}의 마지막 보스를 잡으면 열려요`
-      : `${loopLabel}에 ${loopComic.afterStage + 1}스테이지 보스를 잡으면 열려요`;
+      ? t(`${loopLabel}의 마지막 보스를 잡으면 열려요`, `Unlocks on beating loop ${loopNumber}'s last boss`)
+      : t(
+          `${loopLabel}에 ${loopComic.afterStage + 1}스테이지 보스를 잡으면 열려요`,
+          `Unlocks on beating stage ${loopComic.afterStage + 1}'s boss during loop ${loopNumber}`,
+        );
   }
   const stage = Object.entries(COMIC_ON_FIRST_CLEAR).find(([, comic]) => comic === id)?.[0];
-  return stage === undefined ? "" : `${Number(stage) + 1}스테이지 보스를 처음 잡으면 열려요`;
+  return stage === undefined ? "" : t(`${Number(stage) + 1}스테이지 보스를 처음 잡으면 열려요`, `Unlocks on first beating stage ${Number(stage) + 1}'s boss`);
 }
 
 // Comics the player has reached so far (for the album): the opening always, the rest

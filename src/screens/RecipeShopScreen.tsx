@@ -14,8 +14,9 @@ import { getKnownRecipes, getRecipeStage, isRecipeForSale, ITEM_IMAGES, RECIPES,
 import { RECIPE_TIERS } from "../state/recipeTiers";
 import { CoinPrice } from "../components/CoinPrice";
 import { RecipeArt } from "../components/RecipeArt";
+import { t } from "../i18n";
 
-const GREETING = { pose: chef.spoon, line: "어떤 요리를 배워볼래? 레시피는 내가 직접 썼지!" };
+const getGreeting = () => ({ pose: chef.spoon, line: t("어떤 요리를 배워볼래? 레시피는 내가 직접 썼지!", "Which dish do you want to learn? I wrote these recipes myself!") });
 
 export function RecipeShopScreen({
   knownRecipes,
@@ -33,7 +34,7 @@ export function RecipeShopScreen({
   onBack: () => void;
   onOpenGrocery: () => void;
 }) {
-  const { talk, say } = useShopTalk(GREETING);
+  const { talk, say } = useShopTalk(getGreeting());
   const known = getKnownRecipes(knownRecipes);
 
   // Card order is fixed when the shop opens, so a recipe learned here stays put instead
@@ -50,30 +51,31 @@ export function RecipeShopScreen({
 
   // Reports whether it went through, so the card can rattle on short gold.
   const learn = (recipeId: string, name: string) => {
+    const enName = t(name);
     if (known.includes(recipeId)) {
-      say(chef.serve, `${name}? 그건 이미 잘 알잖아!`);
+      say(chef.serve, t(`${name}? 그건 이미 잘 알잖아!`, `${enName}? You already know that one well!`));
       return true;
     }
     if (onLearn(recipeId)) {
-      say(chef.cheer, `좋아! 이제 ${name}도 만들 수 있어!`);
+      say(chef.cheer, t(`좋아! 이제 ${name}도 만들 수 있어!`, `Great! Now you can make ${enName} too!`));
       return true;
     }
-    say(chef.book, "음… 골드가 조금 부족한걸.");
+    say(chef.book, t("음… 골드가 조금 부족한걸.", "Hmm... you're a little short on gold."));
     return false;
   };
 
   return (
     <View style={styles.page}>
-      <ShopTopBar kicker="RECIPES" title="셰프의 레시피" gold={gold} onBack={onBack} backLabel="부엌으로 돌아가기"
-        other={{ label: "재료", keeper: grandma.basket, onPress: onOpenGrocery, accessibilityLabel: "재료 상점으로 가기" }}
+      <ShopTopBar kicker="RECIPES" title={t("셰프의 레시피", "Chef's Recipes")} gold={gold} onBack={onBack} backLabel={t("부엌으로 돌아가기", "Back to Kitchen")}
+        other={{ label: t("재료", "Ingredients"), keeper: grandma.basket, onPress: onOpenGrocery, accessibilityLabel: t("재료 상점으로 가기", "Go to ingredient shop") }}
       />
-      <ShopHero speaker="셰프 기니" talk={talk} />
+      <ShopHero speaker={t("셰프 기니", "Chef Gini")} talk={talk} />
 
       <Text style={styles.count}>
-        배운 레시피 {known.length} / {RECIPES.length}
+        {t(`배운 레시피 ${known.length} / ${RECIPES.length}`, `Recipes Learned ${known.length} / ${RECIPES.length}`)}
       </Text>
 
-      <SearchBox value={query} onChange={setQuery} placeholder="요리나 재료 이름으로 찾기" resultCount={shown.length} />
+      <SearchBox value={query} onChange={setQuery} placeholder={t("요리나 재료 이름으로 찾기", "Search by dish or ingredient name")} resultCount={shown.length} />
       <View style={styles.grid}>
         {/* For sale first, then ones a stage clear away, then already-learned ones. */}
         {shown.map((id) => {
@@ -134,19 +136,19 @@ function RecipeCard({
   return (
     <Panel slice={shopKit.cardWood} scale={0.4} style={styles.card}>
       <View style={[styles.tierBadge, { backgroundColor: tier.color }]}>
-        <Text style={styles.tierText}>{tier.label}</Text>
+        <Text style={styles.tierText}>{t(tier.label)}</Text>
       </View>
       <Animated.View style={[learned && styles.artLearned, unrollStyle]}>
         {sealed && <Animated.View style={[styles.sealGlow, glowStyle]} pointerEvents="none" />}
         <RecipeArt recipe={recipe} size={72} sealed={sealed} />
       </Animated.View>
-      <Text style={styles.name}>{sealed ? "???" : recipe.name}</Text>
+      <Text style={styles.name}>{sealed ? "???" : t(recipe.name)}</Text>
       <View style={styles.ingredients}>
         {sealed ? (
-          <Text style={styles.secret}>재료 비밀</Text>
+          <Text style={styles.secret}>{t("재료 비밀", "Secret Ingredients")}</Text>
         ) : (
           recipe.ingredients.map((ingredient) => (
-            <Image key={ingredient.name} source={ITEM_IMAGES[ingredient.name]} style={styles.ingredient} accessibilityLabel={ingredient.name} />
+            <Image key={ingredient.name} source={ITEM_IMAGES[ingredient.name]} style={styles.ingredient} accessibilityLabel={t(ingredient.name)} />
           ))
         )}
       </View>
@@ -158,15 +160,19 @@ function RecipeCard({
             if (!onLearn()) shake();
           }}
           tutorialId={`learn-${recipe.id}`}
-          accessibilityLabel={learned ? `${recipe.name} 배움` : `${sealed ? "히든" : recipe.name} 레시피 ${recipe.price}골드에 배우기`}
+          accessibilityLabel={
+            learned
+              ? t(`${recipe.name} 배움`, `Learned ${t(recipe.name)}`)
+              : t(`${sealed ? "히든" : recipe.name} 레시피 ${recipe.price}골드에 배우기`, `Learn ${sealed ? "the hidden" : t(recipe.name)} recipe for ${recipe.price} gold`)
+          }
           style={styles.button}
         >
           {learned ? (
-            <Text style={[styles.buttonText, styles.buttonTextLearned]}>배움 ✓</Text>
+            <Text style={[styles.buttonText, styles.buttonTextLearned]}>{t("배움 ✓", "Learned ✓")}</Text>
           ) : forSale ? (
             <CoinPrice amount={recipe.price} textStyle={[styles.buttonText, !affordable && styles.buttonTextOff]} />
           ) : (
-            <Text style={[styles.buttonText, styles.buttonTextOff]}>{`${getRecipeStage(recipe) + 1}스테이지 클리어`}</Text>
+            <Text style={[styles.buttonText, styles.buttonTextOff]}>{t(`${getRecipeStage(recipe) + 1}스테이지 클리어`, `Clear Stage ${getRecipeStage(recipe) + 1}`)}</Text>
           )}
         </GameButton>
       </Animated.View>

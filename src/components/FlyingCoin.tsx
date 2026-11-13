@@ -9,6 +9,7 @@ import { StrokedText } from "./StrokedText";
 import { GameButton } from "./GameButton";
 import { RewardedAdModal } from "./RewardedAdModal";
 import { FLYING_GEM_AD_REWARD } from "../state/useGameState";
+import { t } from "../i18n";
 
 const COIN_W = 58;
 const COIN_H = COIN_W * (144 / 256);
@@ -101,7 +102,7 @@ function Coin({ flight, width, onGone, onTap }: { flight: Flight; width: number;
         onPress={(event) => onTap(event.nativeEvent.pageX, event.nativeEvent.pageY)}
         hitSlop={14}
         accessibilityRole="button"
-        accessibilityLabel={flight.kind === "gem" ? "날아다니는 보석 잡기" : "날아다니는 코인 잡기"}
+        accessibilityLabel={flight.kind === "gem" ? t("날아다니는 보석 잡기", "Catch the flying gem") : t("날아다니는 코인 잡기", "Catch the flying coin")}
       >
         <Image source={flight.kind === "gem" ? uiImages.gemWinged : uiImages.coinWinged} style={styles.coinImage} />
       </Pressable>
@@ -155,13 +156,23 @@ function CatchPopup({ caught, onDone, onClaimGem }: { caught: Catch; onDone: () 
           )}
           {caught.kind === "gem" ? (
             <>
-              <Text style={styles.popupLabel}>보석 발견!</Text>
-              <GameButton variant="green" onPress={openAd} style={styles.adButton}>{`광고 보고 보석 ${FLYING_GEM_AD_REWARD}개 받기`}</GameButton>
+              <Text style={styles.popupLabel}>{t("보석 발견!", "Gem Found!")}</Text>
+              <GameButton variant="green" onPress={openAd} style={styles.adButton}>{t(`광고 보고 보석 ${FLYING_GEM_AD_REWARD}개 받기`, `Watch an ad for ${FLYING_GEM_AD_REWARD} gems`)}</GameButton>
             </>
-          ) : <Text style={styles.popupLabel}>잡았다!</Text>}
+          ) : <Text style={styles.popupLabel}>{t("잡았다!", "Caught it!")}</Text>}
         </Animated.View>
       )}
-      {adOpen && <RewardedAdModal message={`대신 섭섭하지 않게 보석 ${FLYING_GEM_AD_REWARD}개는 그대로 챙겨드릴게요.`} claimLabel={`보석 ${FLYING_GEM_AD_REWARD}개 받기`} onClaim={() => { onClaimGem(); onDone(); }} onCancel={onDone} />}
+      {adOpen && (
+        <RewardedAdModal
+          message={t(`대신 섭섭하지 않게 보석 ${FLYING_GEM_AD_REWARD}개는 그대로 챙겨드릴게요.`, `To make up for it, you'll still get the full ${FLYING_GEM_AD_REWARD} gems.`)}
+          claimLabel={t(`보석 ${FLYING_GEM_AD_REWARD}개 받기`, `Claim ${FLYING_GEM_AD_REWARD} gems`)}
+          onClaim={() => {
+            onClaimGem();
+            onDone();
+          }}
+          onCancel={onDone}
+        />
+      )}
     </View>
   );
 }

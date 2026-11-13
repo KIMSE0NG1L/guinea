@@ -6,6 +6,7 @@ import { colors, fonts } from "../theme";
 import { chef, kit } from "../assets";
 import { GameButton } from "./GameButton";
 import { NineSlice } from "./NineSlice";
+import { t } from "../i18n";
 
 // The last page: a short epilogue once every dish in the book has been tasted.
 export function CookbookEnding({ onClose }: { onClose: () => void }) {
@@ -21,13 +22,16 @@ export function CookbookEnding({ onClose }: { onClose: () => void }) {
         <Animated.View style={[styles.endingPanel, popStyle]}>
           <NineSlice slice={kit.panelLarge} />
           <Image source={chef.cheer} style={styles.endingImage} />
-          <Text style={styles.endingEyebrow}>세상의 모든 맛</Text>
-          <Text style={styles.endingTitle}>마지막 장을 덮다</Text>
+          <Text style={styles.endingEyebrow}>{t("세상의 모든 맛", "Every Flavor in the World")}</Text>
+          <Text style={styles.endingTitle}>{t("마지막 장을 덮다", "Closing the Last Page")}</Text>
           <Text style={styles.endingText}>
-            {"마지막 페이지의 요리를 한 입 맛본 기니는\n천천히 낡은 요리책을 덮었다.\n\n건초만 씹던 날들이 아득하게 느껴졌다.\n뒷산의 젤리부터 여우 신사의 연회까지,\n책 속의 맛은 이제 전부 기니의 것이다.\n\n이번엔 할머니께 이 맛들을 대접할 차례.\n기니의 다음 여행이 시작된다."}
+            {t(
+              "마지막 페이지의 요리를 한 입 맛본 기니는\n천천히 낡은 요리책을 덮었다.\n\n건초만 씹던 날들이 아득하게 느껴졌다.\n뒷산의 젤리부터 여우 신사의 연회까지,\n책 속의 맛은 이제 전부 기니의 것이다.\n\n이번엔 할머니께 이 맛들을 대접할 차례.\n기니의 다음 여행이 시작된다.",
+              "Gini took one last bite of the final page's dish,\nand slowly closed the old cookbook.\n\nThe days of chewing nothing but hay now felt impossibly far away.\nFrom the jelly on the hill out back to the feast at the fox shrine,\nevery flavor in the book now belongs to Gini.\n\nNow it's Grandma's turn to be treated to these flavors.\nGini's next journey begins.",
+            )}
           </Text>
           <GameButton variant="green" onPress={onClose} style={styles.endingButton}>
-            책을 덮는다
+            {t("책을 덮는다", "Close the Book")}
           </GameButton>
         </Animated.View>
       </View>

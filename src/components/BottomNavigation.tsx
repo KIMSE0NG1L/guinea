@@ -8,6 +8,7 @@ import { tutorialRef } from "./tutorialTargets";
 import { playSfx } from "../sound";
 import { StrokedText } from "./StrokedText";
 import type { Tab } from "../types";
+import { t } from "../i18n";
 
 // Only these 5 tabs are reachable from the bottom bar; the rest of the screens open from
 // buttons elsewhere. Five tabs leave no room for a label beside the icon, so every tab —
@@ -22,6 +23,28 @@ const navigation: { id: Tab; label: string; icon: number }[] = [
   { id: "kitchen", label: "요리", icon: food.cookPot },
   { id: "shop", label: "상점", icon: navIcons.shop },
 ];
+
+// Labels above are also used as internal identifiers nowhere else, so this is a plain
+// display map — kept separate from the Korean label (not a dictionary lookup) since this
+// array is built once at module load and t() needs to run at render time to stay reactive.
+const NAV_LABEL_EN: Record<Tab, string> = {
+  companions: "Companions",
+  skills: "Skills",
+  battle: "Battle",
+  kitchen: "Cooking",
+  shop: "Shop",
+  // Tabs not reachable from this bar — never actually looked up, but keeps the Record total.
+  inventory: "Bag",
+  milestone: "Map",
+  grocery: "Grocery",
+  recipes: "Recipes",
+  cookbook: "Cookbook",
+  comics: "Comics",
+  stats: "Stats",
+  guide: "Guide",
+  credits: "Credits",
+  backup: "Backup",
+};
 
 export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSelect: (tab: Tab) => void }) {
   // Each tab is a fixed box with padding on every side, so the icon never hugs the top of
@@ -38,6 +61,7 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
       </View>
       {navigation.map((item) => {
         const active = selected === item.id;
+        const label = t(item.label, NAV_LABEL_EN[item.id]);
         return (
           <Pressable
             key={item.id}
@@ -47,17 +71,17 @@ export function BottomNavigation({ selected, onSelect }: { selected: Tab; onSele
               onSelect(item.id);
             }}
             accessibilityRole="tab"
-            accessibilityLabel={item.label}
+            accessibilityLabel={label}
             accessibilityState={{ selected: active }}
             style={({ pressed }) => [styles.item, pressed && !active && styles.pressed]}
           >
             {active && <NineSlice slice={kit.tabGreen} scale={0.4} />}
             <Image source={item.icon} style={[styles.icon, active && styles.iconActive]} />
             {active ? (
-              <Text style={styles.label}>{item.label}</Text>
+              <Text style={styles.label}>{label}</Text>
             ) : (
               <StrokedText style={styles.caption} strokeColor={colors.line} strokeWidth={1.4}>
-                {item.label}
+                {label}
               </StrokedText>
             )}
           </Pressable>

@@ -12,6 +12,7 @@ import { SettingsModal } from "./SettingsModal";
 import { getCompanionName } from "../screens/CompanionsScreen";
 import { IconCaption } from "./IconCaption";
 import type { GameState } from "../types";
+import { t } from "../i18n";
 
 // The header row is laid out for the 430px app frame (406px inside its padding):
 // profile 158 + two 100px chips + gear and gaps. On narrower phones everything scales
@@ -62,7 +63,7 @@ export function GameHeader({
   return (
     <View style={styles.header}>
       <View style={styles.statusRow}>
-        <Pressable onPress={onOpenStats} accessibilityRole="button" accessibilityLabel="통계 보기" style={({ pressed }) => [pressed && styles.pressed]}>
+        <Pressable onPress={onOpenStats} accessibilityRole="button" accessibilityLabel={t("통계 보기", "View Stats")} style={({ pressed }) => [pressed && styles.pressed]}>
           <Panel slice={headerKit.profile} scale={0.74 * fit} style={[styles.profile, { width: PROFILE_WIDTH * fit, height: 50 * fit }]}>
             <View style={[styles.avatar, { width: 50 * fit, height: 50 * fit }]}>
               <Image source={frameImages.ringGold} style={[styles.avatarRing, { width: 50 * fit, height: 50 * fit }]} />
@@ -85,13 +86,13 @@ export function GameHeader({
           <ResourceBar gold={state.gold} gems={state.gems} onOpenShop={onOpenShop} width={Math.round(CHIP_WIDTH * fit)} />
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="설정"
+            accessibilityLabel={t("설정", "Settings")}
             onPress={() => setSettingsOpen(true)}
             hitSlop={6}
             style={({ pressed }) => [styles.iconButton, { width: 36 * fit }, pressed && styles.pressed]}
           >
             <Image source={icons.settingsGear} style={[styles.headerIcon, { width: 34 * fit, height: 34 * fit }]} />
-            <IconCaption size={12} offset={-9}>설정</IconCaption>
+            <IconCaption size={12} offset={-9}>{t("설정", "Settings")}</IconCaption>
           </Pressable>
         </View>
       </View>
@@ -117,9 +118,12 @@ export function GameHeader({
       )}
       {confirmingReset && (
         <ConfirmModal
-          title="세이브 초기화"
-          message="지금까지 쌓은 진행도가 전부 사라지고 처음부터 다시 시작해요. 정말 초기화할까요?"
-          confirmLabel="초기화"
+          title={t("세이브 초기화", "Reset Save")}
+          message={t(
+            "지금까지 쌓은 진행도가 전부 사라지고 처음부터 다시 시작해요. 정말 초기화할까요?",
+            "All your progress so far will be erased and you'll start over from the beginning. Are you sure you want to reset?",
+          )}
+          confirmLabel={t("초기화", "Reset")}
           onConfirm={() => {
             setConfirmingReset(false);
             onReset();

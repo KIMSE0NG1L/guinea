@@ -3,6 +3,7 @@ import { navIcons, skillImages } from "../assets";
 import { GuideScene } from "./TutorialOverlay";
 import type { SkillId, SkillTimers } from "../state/skills";
 import type { Tab } from "../types";
+import { t } from "../i18n";
 
 const STEPS = 4;
 
@@ -47,30 +48,36 @@ export function SkillTutorial({
   if (equipped) {
     if (tab !== "battle") {
       return scene(2, {
-      topic: { feature: "스킬", detail: "전투로 돌아가기" },
-        line: "장착 완료! 이제 **전투**로 돌아가서\n스킬을 써 보자.",
+      topic: { feature: t("스킬", "Skill"), detail: t("전투로 돌아가기", "Back to Battle") },
+        line: t("장착 완료! 이제 **전투**로 돌아가서\n스킬을 써 보자.", "Equipped! Now let's go back to\n**Battle** and use the skill."),
         icon: navIcons.battle,
         targetId: "nav-battle",
       });
     }
     return scene(3, {
-      topic: { feature: "스킬", detail: "스킬 쓰기" },
-      line: "아래 **스킬 슬롯**을 눌러서\n훔치기를 써 봐!",
+      topic: { feature: t("스킬", "Skill"), detail: t("스킬 쓰기", "Using a Skill") },
+      line: t("아래 **스킬 슬롯**을 눌러서\n훔치기를 써 봐!", "Tap the **skill slot** below\nto use Steal!"),
       icon: skillImages.steal,
       targetId: "skill-slot",
     });
   }
   if (tab === "skills") {
     return scene(1, {
-      topic: { feature: "스킬", detail: "스킬 장착하기" },
-      line: "**훔치기**는 때릴 때마다 처치\n골드의 10%를 더 주는 스킬이야.\n**장착** 버튼을 눌러 봐!",
+      topic: { feature: t("스킬", "Skill"), detail: t("스킬 장착하기", "Equipping a Skill") },
+      line: t(
+        "**훔치기**는 때릴 때마다 처치\n골드의 10%를 더 주는 스킬이야.\n**장착** 버튼을 눌러 봐!",
+        "**Steal** is a skill that gives you\nan extra 10% of kill gold per hit.\nTap the **Equip** button!",
+      ),
       icon: skillImages.steal,
       targetId: "equip-steal",
     });
   }
   return scene(0, {
-      topic: { feature: "스킬", detail: "스킬 탭 열기" },
-    line: "레벨이 올라서 첫 **스킬**을\n쓸 수 있게 됐어! 아래\n**스킬** 버튼을 눌러 보자.",
+      topic: { feature: t("스킬", "Skill"), detail: t("스킬 탭 열기", "Opening the Skills Tab") },
+    line: t(
+      "레벨이 올라서 첫 **스킬**을\n쓸 수 있게 됐어! 아래\n**스킬** 버튼을 눌러 보자.",
+      "You leveled up and can now use\nyour first **skill**! Let's tap the\n**Skills** button below.",
+    ),
     icon: navIcons.skills,
     targetId: "nav-skills",
   });

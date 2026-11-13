@@ -4,6 +4,7 @@ import { Text } from "./GameText";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
+import { t } from "../i18n";
 
 const EXIT_MS = 200;
 
@@ -61,7 +62,7 @@ export function BossEntranceBanner({ bossName, tagline, onStart }: { bossName: s
         style={StyleSheet.absoluteFill}
         onPress={start}
         accessibilityRole="button"
-        accessibilityLabel={`보스 ${bossName} 등장. 터치해서 도전하기`}
+        accessibilityLabel={t(`보스 ${bossName} 등장. 터치해서 도전하기`, `Boss ${t(bossName)} has appeared. Tap to take it on`)}
       >
         {/* Dark over the player, thinning out toward the boss on the right. */}
         <LinearGradient
@@ -76,11 +77,11 @@ export function BossEntranceBanner({ bossName, tagline, onStart }: { bossName: s
           <Animated.View style={[styles.ring, styles.ringSolid, ringBStyle]} />
           <Animated.View style={[styles.title, punchStyle]}>
             <Text style={styles.badge}>BOSS</Text>
-            <Text style={styles.name}>{bossName}</Text>
-            <Text style={styles.sub}>{tagline}</Text>
+            <Text style={styles.name}>{t(bossName)}</Text>
+            <Text style={styles.sub}>{t(tagline)}</Text>
           </Animated.View>
           <Animated.View style={[styles.prompt, promptStyle]}>
-            <Text style={styles.promptText}>터치해서 도전!</Text>
+            <Text style={styles.promptText}>{t("터치해서 도전!", "Tap to Fight!")}</Text>
           </Animated.View>
         </View>
       </Pressable>

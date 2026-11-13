@@ -35,6 +35,7 @@ import { RewardedAdModal } from "../components/RewardedAdModal";
 import { COMPANION_ATTACK_PER_LEVEL, COMPANION_MAX_LEVEL, COMPANION_SHARD_STAGE, getCompanionLevel, getCompanionShards, getShardCost, SHARD_AD_REWARD, SHARD_ADS_PER_DAY, SHARDS_PER_BOSS } from "../state/progression";
 import { BOSS_NAME, getEnemyKind, getStageCode } from "../state/stages";
 import type { GameState, Outfit } from "../types";
+import { t } from "../i18n";
 
 // Each entry swaps the battle sprite to that companion's art and grants whichever of these
 // quirks apply for as long as it stays equipped.
@@ -43,21 +44,22 @@ function companionDetail(outfit: Outfit) {
   const buff = OUTFIT_BUFFS[outfit];
   if (buff) parts.push(describeEffect(buff));
   const missChance = OUTFIT_MISS_CHANCE[outfit];
-  if (missChance) parts.push(`${missChance}% 확률로 공격 빗나감`);
+  if (missChance) parts.push(t(`${missChance}% 확률로 공격 빗나감`, `${missChance}% chance to whiff`));
   const hitCount = OUTFIT_HIT_COUNT[outfit];
-  if (hitCount) parts.push(`한 번에 ${hitCount}타씩 타격`);
+  if (hitCount) parts.push(t(`한 번에 ${hitCount}타씩 타격`, `Strikes ${hitCount} times per hit`));
   const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
-  if (foodDurationBonus) parts.push(`음식 효과시간 +${foodDurationBonus}초`);
+  if (foodDurationBonus) parts.push(t(`음식 효과시간 +${foodDurationBonus}초`, `+${foodDurationBonus}s food buff duration`));
   const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
-  if (firstStrike) parts.push(`적마다 첫 공격은 일반 공격 ×${firstStrike} (치명타 없음)`, "수동 공격 불가");
-  if (OUTFIT_SURE_DROPS[outfit]) parts.push("재료 드랍 확률 100%");
+  if (firstStrike)
+    parts.push(t(`적마다 첫 공격은 일반 공격 ×${firstStrike} (치명타 없음)`, `First hit on each enemy is ×${firstStrike} a normal attack (no crit)`), t("수동 공격 불가", "No manual attacking"));
+  if (OUTFIT_SURE_DROPS[outfit]) parts.push(t("재료 드랍 확률 100%", "100% ingredient drop rate"));
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
-  if (cooldownReduction) parts.push(`스킬 쿨타임 -${cooldownReduction / 60}분`);
+  if (cooldownReduction) parts.push(t(`스킬 쿨타임 -${cooldownReduction / 60}분`, `Skill cooldown -${cooldownReduction / 60}min`));
   const skillPower = OUTFIT_SKILL_POWER[outfit];
-  if (skillPower) parts.push(`스킬 효과 ×${skillPower} (기니빔 보스 피해 최대 80%)`);
-  if (OUTFIT_FORCED_MANUAL[outfit]) parts.push("항상 수동 전투 (탭해서 공격)");
-  if (OUTFIT_NO_OFFLINE[outfit]) parts.push("휴식(오프라인) 중에는 사냥 안 함");
-  return parts.length > 0 ? parts.join(" · ") : "동료 없이 다닐 때";
+  if (skillPower) parts.push(t(`스킬 효과 ×${skillPower} (기니빔 보스 피해 최대 80%)`, `Skill power ×${skillPower} (Guinea Beam up to 80% boss damage)`));
+  if (OUTFIT_FORCED_MANUAL[outfit]) parts.push(t("항상 수동 전투 (탭해서 공격)", "Always manual combat (tap to attack)"));
+  if (OUTFIT_NO_OFFLINE[outfit]) parts.push(t("휴식(오프라인) 중에는 사냥 안 함", "Doesn't hunt while resting (offline)"));
+  return parts.length > 0 ? parts.join(" · ") : t("동료 없이 다닐 때", "Traveling without a companion");
 }
 
 // The same quirks as companionDetail, each with an icon — the companion cards lead with the
@@ -77,22 +79,23 @@ function companionEffects(outfit: Outfit): { icon: number; text: string }[] {
   const buff = OUTFIT_BUFFS[outfit];
   if (buff) for (const part of describeEffectParts(buff)) parts.push({ icon: EFFECT_ICONS[part.key] ?? icons.star, text: part.text });
   const missChance = OUTFIT_MISS_CHANCE[outfit];
-  if (missChance) parts.push({ icon: statIcons.criticalChance, text: `${missChance}% 빗나감` });
+  if (missChance) parts.push({ icon: statIcons.criticalChance, text: t(`${missChance}% 빗나감`, `${missChance}% whiff`) });
   const hitCount = OUTFIT_HIT_COUNT[outfit];
-  if (hitCount) parts.push({ icon: uiImages.swords, text: `${hitCount}연타` });
+  if (hitCount) parts.push({ icon: uiImages.swords, text: t(`${hitCount}연타`, `${hitCount}-hit combo`) });
   const foodDurationBonus = OUTFIT_FOOD_DURATION_BONUS_SEC[outfit];
-  if (foodDurationBonus) parts.push({ icon: food.cookPotTrim, text: `음식 시간 +${foodDurationBonus}초` });
+  if (foodDurationBonus) parts.push({ icon: food.cookPotTrim, text: t(`음식 시간 +${foodDurationBonus}초`, `+${foodDurationBonus}s food duration`) });
   const firstStrike = OUTFIT_FIRST_STRIKE[outfit];
-  if (firstStrike) parts.push({ icon: skillImages.execute, text: `첫 공격 ×${firstStrike}` }, { icon: skillImages.barrage, text: "수동 공격 불가" });
-  if (OUTFIT_SURE_DROPS[outfit]) parts.push({ icon: icons.chest, text: "재료 드랍 100%" });
+  if (firstStrike)
+    parts.push({ icon: skillImages.execute, text: t(`첫 공격 ×${firstStrike}`, `First hit ×${firstStrike}`) }, { icon: skillImages.barrage, text: t("수동 공격 불가", "No manual attack") });
+  if (OUTFIT_SURE_DROPS[outfit]) parts.push({ icon: icons.chest, text: t("재료 드랍 100%", "100% ingredient drop") });
   const cooldownReduction = OUTFIT_COOLDOWN_REDUCTION_SEC[outfit];
-  if (cooldownReduction) parts.push({ icon: icons.energy, text: `쿨타임 -${cooldownReduction / 60}분` });
+  if (cooldownReduction) parts.push({ icon: icons.energy, text: t(`쿨타임 -${cooldownReduction / 60}분`, `Cooldown -${cooldownReduction / 60}min`) });
   const skillPower = OUTFIT_SKILL_POWER[outfit];
-  if (skillPower) parts.push({ icon: skillImages.beam, text: `스킬 효과 ×${skillPower}` });
-  if (OUTFIT_FORCED_MANUAL[outfit]) parts.push({ icon: skillImages.barrage, text: "항상 수동 전투" });
-  if (OUTFIT_NO_OFFLINE[outfit]) parts.push({ icon: icons.home, text: "휴식 중 사냥 안 함" });
-  if (outfit === "witchGini") parts.push({ icon: icons.potionBlue, text: "모든 공격이 마법" });
-  return parts.length > 0 ? parts : [{ icon: icons.heart, text: "동료 없이" }];
+  if (skillPower) parts.push({ icon: skillImages.beam, text: t(`스킬 효과 ×${skillPower}`, `Skill power ×${skillPower}`) });
+  if (OUTFIT_FORCED_MANUAL[outfit]) parts.push({ icon: skillImages.barrage, text: t("항상 수동 전투", "Always manual combat") });
+  if (OUTFIT_NO_OFFLINE[outfit]) parts.push({ icon: icons.home, text: t("휴식 중 사냥 안 함", "Doesn't hunt while resting") });
+  if (outfit === "witchGini") parts.push({ icon: icons.potionBlue, text: t("모든 공격이 마법", "Every attack is magic") });
+  return parts.length > 0 ? parts : [{ icon: icons.heart, text: t("동료 없이", "No companion") }];
 }
 
 // A big icon with a small caption beside it.
@@ -105,6 +108,9 @@ function IconFact({ icon, caption, children }: { icon?: number; caption: string;
   );
 }
 
+// `detail` isn't translated here (module-scope, evaluated once at import — baking in
+// whatever language was active then) — call companionDetail(outfit) fresh at display time
+// instead (see the preview panel below), which is what every other reader of this array uses.
 export const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: string }[] = [
   { outfit: "default", name: "모험기니", blurb: "건초에 지쳐 새로운 끼니를 찾아 세상을 모험하는 기니.", detail: companionDetail("default") },
   {
@@ -158,17 +164,21 @@ export const COMPANIONS: { outfit: Outfit; name: string; blurb: string; detail: 
   },
 ];
 
+// witchGini's extra " · 모든 공격이 마법" suffix on its detail (baked in above) — translated
+// separately so the live companionDetail() call at display time can append it too.
+const WITCH_EXTRA_DETAIL = "모든 공격이 마법";
+
 // Dishes whose buff this companion boosts (DISH_PARTNERS), with their icons.
 function PartnerDishes({ outfit, light = false }: { outfit: Outfit; light?: boolean }) {
   const dishes = RECIPES.filter((recipe) => DISH_PARTNERS[recipe.id] === outfit);
   if (dishes.length === 0) return null;
   return (
     <View style={styles.partners}>
-      <Text style={[styles.partnerLabel, light && styles.partnerLabelLight]}>궁합 요리 ×{PARTNER_MULTIPLIER}</Text>
+      <Text style={[styles.partnerLabel, light && styles.partnerLabelLight]}>{t(`궁합 요리 ×${PARTNER_MULTIPLIER}`, `Paired Dish ×${PARTNER_MULTIPLIER}`)}</Text>
       {dishes.map((recipe) => (
         <View style={styles.partner} key={recipe.id}>
           <Image source={recipe.image} style={styles.partnerImage} />
-          <Text style={[styles.partnerName, light && styles.partnerNameLight]}>{recipe.name}</Text>
+          <Text style={[styles.partnerName, light && styles.partnerNameLight]}>{t(recipe.name)}</Text>
         </View>
       ))}
     </View>
@@ -253,14 +263,20 @@ function unlockCondition(outfit: Outfit) {
   const gemOnlyPrice = OUTFIT_GEM_PRICE[outfit];
   const loopGrant = OUTFIT_LOOP_GRANT[outfit];
   if (gemOnlyPrice !== undefined) {
-    return loopGrant !== undefined ? `보석 ${gemOnlyPrice}개로 해금 · ${loopGrant}회차 완료 시 무료 합류` : `보석 ${gemOnlyPrice}개로 해금`;
+    return loopGrant !== undefined
+      ? t(`보석 ${gemOnlyPrice}개로 해금 · ${loopGrant}회차 완료 시 무료 합류`, `Unlock for ${gemOnlyPrice} gems · joins free after loop ${loopGrant}`)
+      : t(`보석 ${gemOnlyPrice}개로 해금`, `Unlock for ${gemOnlyPrice} gems`);
   }
-  if (loopGrant !== undefined) return `${loopGrant}회차 완료 시 합류`;
-  return `${OUTFIT_UNLOCK_STAGE[outfit]}스테이지 도달 시 합류 · 보석 ${OUTFIT_EARLY_UNLOCK_GEMS}개로 미리 해금`;
+  if (loopGrant !== undefined) return t(`${loopGrant}회차 완료 시 합류`, `Joins after loop ${loopGrant}`);
+  return t(
+    `${OUTFIT_UNLOCK_STAGE[outfit]}스테이지 도달 시 합류 · 보석 ${OUTFIT_EARLY_UNLOCK_GEMS}개로 미리 해금`,
+    `Joins on reaching stage ${OUTFIT_UNLOCK_STAGE[outfit]} · unlock early for ${OUTFIT_EARLY_UNLOCK_GEMS} gems`,
+  );
 }
 
 export function getCompanionName(outfit: Outfit) {
-  return COMPANIONS.find((item) => item.outfit === outfit)?.name ?? outfit;
+  const name = COMPANIONS.find((item) => item.outfit === outfit)?.name;
+  return name ? t(name) : outfit;
 }
 
 export function CompanionsScreen({
@@ -313,7 +329,7 @@ export function CompanionsScreen({
 
   return (
     <View style={styles.page}>
-      <PageHeading kicker="FRIENDS" title="동료" description="혼자보다 덜 쓸쓸하고, 조금 더 세다." />
+      <PageHeading kicker="FRIENDS" title={t("동료", "Companions")} description={t("혼자보다 덜 쓸쓸하고, 조금 더 세다.", "Less lonely than alone, and a little stronger.")} />
 
       {/* Wooden frame around a slice of the forest stage, with the companion standing on its
           ground and a dark scrim behind the copy that fades out toward the right. */}
@@ -335,10 +351,12 @@ export function CompanionsScreen({
             pointerEvents="none"
           />
           <View style={styles.previewCopy}>
-            <Text style={styles.previewLabel}>함께하는 중</Text>
-            <Text style={styles.previewTitle}>{equippedItem.name}</Text>
-            <Text style={styles.previewBlurb}>{equippedItem.blurb}</Text>
-            <Text style={styles.previewSub}>{equippedItem.detail}</Text>
+            <Text style={styles.previewLabel}>{t("함께하는 중", "Traveling With")}</Text>
+            <Text style={styles.previewTitle}>{t(equippedItem.name)}</Text>
+            <Text style={styles.previewBlurb}>{t(equippedItem.blurb)}</Text>
+            <Text style={styles.previewSub}>
+              {equippedItem.outfit === "witchGini" ? `${companionDetail(equippedItem.outfit)} · ${t(WITCH_EXTRA_DETAIL, "Every attack is magic")}` : companionDetail(equippedItem.outfit)}
+            </Text>
             <PartnerDishes outfit={equippedItem.outfit} light />
           </View>
           <View style={styles.previewSprite}>
@@ -349,7 +367,9 @@ export function CompanionsScreen({
         </View>
       </Panel>
 
-      <Text style={styles.shardHint}>{`동료마다 전담 보스가 있어요. 그 보스를 쓰러뜨리면 조각 ${SHARDS_PER_BOSS}개를 얻어요.`}</Text>
+      <Text style={styles.shardHint}>
+        {t(`동료마다 전담 보스가 있어요. 그 보스를 쓰러뜨리면 조각 ${SHARDS_PER_BOSS}개를 얻어요.`, `Each companion has its own boss — defeat it for ${SHARDS_PER_BOSS} shards.`)}
+      </Text>
       <GameButton
         variant={shardAdsLeft > 0 ? "green" : "gray"}
         disabled={shardAdsLeft === 0}
@@ -357,7 +377,10 @@ export function CompanionsScreen({
         style={styles.shardAdButton}
         textStyle={styles.equipButtonText}
       >
-        {`광고 보고 ${equippedItem.name} 조각 +${SHARD_AD_REWARD} (오늘 ${shardAdsLeft}/${SHARD_ADS_PER_DAY})`}
+        {t(
+          `광고 보고 ${equippedItem.name} 조각 +${SHARD_AD_REWARD} (오늘 ${shardAdsLeft}/${SHARD_ADS_PER_DAY})`,
+          `Watch an ad for +${SHARD_AD_REWARD} ${t(equippedItem.name)} shards (${shardAdsLeft}/${SHARD_ADS_PER_DAY} today)`,
+        )}
       </GameButton>
 
       <View style={styles.list}>
@@ -389,13 +412,13 @@ export function CompanionsScreen({
                 {freshlyUnlocked.includes(item.outfit) && <BreakingLock />}
               </View>
               <View style={styles.cardCopy}>
-                {!locked && <Text style={styles.cardSmall}>{equipped ? "함께하는 중" : "같이 다닐 수 있음"}</Text>}
-                <Text style={styles.cardStrong}>{locked ? "???" : item.name}</Text>
+                {!locked && <Text style={styles.cardSmall}>{equipped ? t("함께하는 중", "Traveling With") : t("같이 다닐 수 있음", "Available")}</Text>}
+                <Text style={styles.cardStrong}>{locked ? "???" : t(item.name)}</Text>
                 {locked ? (
                   // The one thing a locked companion does say: how to get it.
                   <Text style={styles.cardBlurb}>{unlockCondition(item.outfit)}</Text>
                 ) : (
-                  <Text style={styles.cardBlurb}>{item.blurb}</Text>
+                  <Text style={styles.cardBlurb}>{t(item.blurb)}</Text>
                 )}
               </View>
               {locked && gemPrice !== undefined ? (
@@ -406,11 +429,11 @@ export function CompanionsScreen({
                   onPress={() => setBuying(item.outfit)}
                   style={styles.equipButton}
                   textStyle={styles.equipButtonText}
-                  accessibilityLabel={`보석 ${gemPrice}개로 동료 열기`}
+                  accessibilityLabel={t(`보석 ${gemPrice}개로 동료 열기`, `Unlock companion for ${gemPrice} gems`)}
                 >
                   <View style={styles.gemCost}>
                     <Image source={uiImages.crystal} style={styles.gemIcon} />
-                    <Text style={[styles.gemButtonText, !affordable && styles.gemButtonTextOff]}>{`${gemPrice}개로 열기`}</Text>
+                    <Text style={[styles.gemButtonText, !affordable && styles.gemButtonTextOff]}>{t(`${gemPrice}개로 열기`, `Unlock for ${gemPrice}`)}</Text>
                   </View>
                 </GameButton>
               ) : (
@@ -421,37 +444,54 @@ export function CompanionsScreen({
                   style={styles.equipButton}
                   textStyle={styles.equipButtonText}
                 >
-                  {equipped ? "함께 중" : locked ? (loopGrant !== undefined ? `${loopGrant}회차 완료` : `${unlockStage}스테이지`) : "함께하기"}
+                  {equipped
+                    ? t("함께 중", "Traveling")
+                    : locked
+                      ? loopGrant !== undefined
+                        ? t(`${loopGrant}회차 완료`, `Loop ${loopGrant} Complete`)
+                        : t(`${unlockStage}스테이지`, `Stage ${unlockStage}`)
+                      : t("함께하기", "Travel Together")}
                 </GameButton>
               )}
               </View>
               {/* What the companion does, as little cards rather than lines of text — kept
                   hidden until it joins. */}
               {!locked && <View style={styles.tiles}>
-                <InfoTile label="적용 효과">
+                <InfoTile label={t("적용 효과", "Effects")}>
                   {companionEffects(item.outfit).map((effect) => (
                     <IconFact key={effect.text} icon={effect.icon} caption={effect.text} />
                   ))}
                 </InfoTile>
                 {partnerDishes(item.outfit).length > 0 && (
-                  <InfoTile label={`궁합 요리 ×${PARTNER_MULTIPLIER}`}>
+                  <InfoTile label={t(`궁합 요리 ×${PARTNER_MULTIPLIER}`, `Paired Dish ×${PARTNER_MULTIPLIER}`)}>
                     {partnerDishes(item.outfit).map((recipe) => (
-                      <IconFact key={recipe.id} icon={recipe.image} caption={recipe.name} />
+                      <IconFact key={recipe.id} icon={recipe.image} caption={t(recipe.name)} />
                     ))}
                   </InfoTile>
                 )}
-                <InfoTile label="조각 획득">
-                  <IconFact caption={`${BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])]}\n${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}스테이지 보스`}>
+                <InfoTile label={t("조각 획득", "Get Shards")}>
+                  <IconFact
+                    caption={t(
+                      `${BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])]}\n${getStageCode(COMPANION_SHARD_STAGE[item.outfit])}스테이지 보스`,
+                      `${t(BOSS_NAME[getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])])}\nStage ${getStageCode(COMPANION_SHARD_STAGE[item.outfit])} Boss`,
+                    )}
+                  >
                     <View style={styles.factSprite}>
                       <EnemySprite boss kind={getEnemyKind(COMPANION_SHARD_STAGE[item.outfit])} animation="idle" size={44} restartKey={`shard-${item.outfit}`} />
                     </View>
                   </IconFact>
                 </InfoTile>
-                <InfoTile label={`레벨 ${level}${maxed ? " · 최고" : ""}`}>
-                  <IconFact icon={statIcons.attack} caption={`공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n조각 ${shards}/${shardCost}`}`} />
+                <InfoTile label={t(`레벨 ${level}${maxed ? " · 최고" : ""}`, `Level ${level}${maxed ? " · Max" : ""}`)}>
+                  <IconFact
+                    icon={statIcons.attack}
+                    caption={t(
+                      `공격력 +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\n조각 ${shards}/${shardCost}`}`,
+                      `Attack +${level * COMPANION_ATTACK_PER_LEVEL}%${maxed ? "" : `\nShards ${shards}/${shardCost}`}`,
+                    )}
+                  />
                   {canUpgrade && (
-                    <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={`${item.name} 승급`}>
-                      승급
+                    <GameButton variant="green" onPress={() => onUpgrade(item.outfit)} style={styles.upgradeButton} textStyle={styles.equipButtonText} accessibilityLabel={t(`${item.name} 승급`, `Upgrade ${t(item.name)}`)}>
+                      {t("승급", "Upgrade")}
                     </GameButton>
                   )}
                 </InfoTile>
@@ -462,8 +502,8 @@ export function CompanionsScreen({
       </View>
       {shardAdOpen && (
         <RewardedAdModal
-          message={`지금은 광고가 없네요. 그래도 조각 ${SHARD_AD_REWARD}개를 챙겨드릴게요.`}
-          claimLabel={`조각 ${SHARD_AD_REWARD}개 받기`}
+          message={t(`지금은 광고가 없네요. 그래도 조각 ${SHARD_AD_REWARD}개를 챙겨드릴게요.`, `No ad available right now. We'll still give you ${SHARD_AD_REWARD} shards.`)}
+          claimLabel={t(`조각 ${SHARD_AD_REWARD}개 받기`, `Claim ${SHARD_AD_REWARD} Shards`)}
           onClaim={() => {
             onClaimShardAd();
             setShardAdOpen(false);
@@ -477,13 +517,16 @@ export function CompanionsScreen({
         return (
           <ConfirmModal
             // Still locked, so the name stays hidden here too.
-            title="??? 데려오기"
+            title={t("??? 데려오기", "Bring Along ???")}
             message={
               gemOnly
-                ? `보석 ${price}개로 이 동료를 데려올까요?`
-                : `보석 ${price}개로 이 동료를 지금 바로 데려올까요? (${OUTFIT_UNLOCK_STAGE[buying]}스테이지에 도착하면 무료로 합류해요)`
+                ? t(`보석 ${price}개로 이 동료를 데려올까요?`, `Bring this companion along for ${price} gems?`)
+                : t(
+                    `보석 ${price}개로 이 동료를 지금 바로 데려올까요? (${OUTFIT_UNLOCK_STAGE[buying]}스테이지에 도착하면 무료로 합류해요)`,
+                    `Bring this companion along right now for ${price} gems? (It joins free on reaching stage ${OUTFIT_UNLOCK_STAGE[buying]})`,
+                  )
             }
-            confirmLabel={`보석 ${price}개 쓰기`}
+            confirmLabel={t(`보석 ${price}개 쓰기`, `Spend ${price} Gems`)}
             onConfirm={() => {
               onPurchase(buying);
               setBuying(null);

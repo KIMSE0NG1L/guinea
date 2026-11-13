@@ -9,6 +9,7 @@ import { CoinPrice } from "./CoinPrice";
 import { ITEM_IMAGES } from "../state/recipes";
 import { getSellPrice } from "../state/grocery";
 import { playSfx } from "../sound";
+import { t } from "../i18n";
 
 // Tapping an ingredient in the bag: pick how many to sell (starts at 1), see the gold it
 // brings in, and sell. Prices come from getSellPrice (a tenth of the grocery price).
@@ -35,38 +36,38 @@ export function SellIngredientModal({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
           <NineSlice slice={kit.panelLarge} />
-          <Text style={styles.eyebrow}>재료 팔기</Text>
+          <Text style={styles.eyebrow}>{t("재료 팔기", "Sell Ingredient")}</Text>
           {image !== undefined ? <Image source={image} style={styles.image} /> : <View style={styles.material} />}
-          <Text style={styles.name}>{name}</Text>
+          <Text style={styles.name}>{t(name)}</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.info}>가지고 있는 개수 {owned}개</Text>
+            <Text style={styles.info}>{t(`가지고 있는 개수 ${owned}개`, `Owned: ${owned}`)}</Text>
             <Text style={styles.info}>·</Text>
-            <Text style={styles.info}>1개당</Text>
+            <Text style={styles.info}>{t("1개당", "Each")}</Text>
             <CoinPrice amount={unit} textStyle={styles.info} />
           </View>
 
           <View style={styles.stepper}>
-            <StepButton label="−" onPress={() => change(count - 1)} disabled={count <= 1} accessibilityLabel="1개 줄이기" />
+            <StepButton label="−" onPress={() => change(count - 1)} disabled={count <= 1} accessibilityLabel={t("1개 줄이기", "Decrease by 1")} />
             <Text style={styles.count}>{count}</Text>
-            <StepButton label="+" onPress={() => change(count + 1)} disabled={count >= owned} accessibilityLabel="1개 늘리기" />
+            <StepButton label="+" onPress={() => change(count + 1)} disabled={count >= owned} accessibilityLabel={t("1개 늘리기", "Increase by 1")} />
           </View>
           <View style={styles.quickRow}>
             <GameButton variant="cream" onPress={() => change(count + 10)} disabled={count >= owned} style={styles.quick} textStyle={styles.quickText}>
               +10
             </GameButton>
             <GameButton variant="cream" onPress={() => change(owned)} disabled={count >= owned} style={styles.quick} textStyle={styles.quickText}>
-              전부
+              {t("전부", "All")}
             </GameButton>
           </View>
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>받는 골드</Text>
+            <Text style={styles.totalLabel}>{t("받는 골드", "Gold You Get")}</Text>
             <CoinPrice amount={unit * count} textStyle={styles.total} />
           </View>
 
           <View style={styles.actions}>
             <GameButton variant="cream" onPress={onClose} style={styles.action}>
-              취소
+              {t("취소", "Cancel")}
             </GameButton>
             <GameButton
               variant="green"
@@ -75,10 +76,10 @@ export function SellIngredientModal({
                 onSell(count);
                 onClose();
               }}
-              accessibilityLabel={`${name} ${count}개를 ${unit * count}골드에 팔기`}
+              accessibilityLabel={t(`${name} ${count}개를 ${unit * count}골드에 팔기`, `Sell ${count} ${t(name)} for ${unit * count} gold`)}
               style={styles.action}
             >
-              {`${count}개 팔기`}
+              {t(`${count}개 팔기`, `Sell ${count}`)}
             </GameButton>
           </View>
         </Pressable>

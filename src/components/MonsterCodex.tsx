@@ -10,6 +10,7 @@ import { getDropTable } from "../state/drops";
 import { ITEM_IMAGES } from "../state/recipes";
 import { BOSS_NAME, ENEMY_NAME, getStageCode, STAGES } from "../state/stages";
 import type { EnemyKind } from "../types";
+import { t } from "../i18n";
 
 // Every stage's mob and boss. A mob is discovered once its stage is reached, a boss once
 // it's been beaten; undiscovered ones show as a dark silhouette with "???".
@@ -24,7 +25,7 @@ export function MonsterCodex({ highestStageNumber }: { highestStageNumber: numbe
   return (
     <View>
       <Text style={styles.count}>
-        발견한 몬스터 {found} / {entries.length}
+        {t("발견한 몬스터", "Monsters Found")} {found} / {entries.length}
       </Text>
       <View style={styles.grid}>
         {entries.map((entry) => (
@@ -67,12 +68,12 @@ function CodexCard({
       onPress={onPress}
       disabled={!found}
       accessibilityRole="button"
-      accessibilityLabel={found ? `${boss ? BOSS_NAME[kind] : ENEMY_NAME[kind]} 이야기 보기` : "아직 만나지 못한 몬스터"}
+      accessibilityLabel={found ? t(`${boss ? BOSS_NAME[kind] : ENEMY_NAME[kind]} 이야기 보기`, `View ${t(boss ? BOSS_NAME[kind] : ENEMY_NAME[kind])}'s story`) : t("아직 만나지 못한 몬스터", "A monster you haven't met yet")}
       style={({ pressed }) => [styles.cardWrap, pressed && styles.pressed]}
     >
       <Panel slice={found ? kit.panel : kit.inset} scale={0.4} style={styles.card}>
         <View style={[styles.tag, boss ? styles.tagBoss : styles.tagMob]}>
-          <Text style={styles.tagText}>{boss ? "보스" : "일반"}</Text>
+          <Text style={styles.tagText}>{boss ? t("보스", "Boss") : t("일반", "Normal")}</Text>
         </View>
         <Text style={styles.stage}>{getStageCode(index)}</Text>
         <View style={styles.portrait}>
@@ -86,14 +87,14 @@ function CodexCard({
           />
         </View>
         <Text style={styles.name} numberOfLines={1}>
-          {found ? (boss ? BOSS_NAME[kind] : ENEMY_NAME[kind]) : "???"}
+          {found ? t(boss ? BOSS_NAME[kind] : ENEMY_NAME[kind]) : "???"}
         </Text>
-        <Text style={styles.area} numberOfLines={1}>{found ? area : "아직 만나지 못했어요"}</Text>
+        <Text style={styles.area} numberOfLines={1}>{found ? t(area) : t("아직 만나지 못했어요", "Haven't met this one yet")}</Text>
         {found && (
           <View style={styles.drops}>
             {getDropTable(kind, boss).map((drop) => (
               <View key={drop.name} style={styles.drop}>
-                <Image source={ITEM_IMAGES[drop.name]} style={styles.dropIcon} accessibilityLabel={drop.name} />
+                <Image source={ITEM_IMAGES[drop.name]} style={styles.dropIcon} accessibilityLabel={t(drop.name)} />
                 <Text style={styles.dropChance}>{Math.round(drop.chance * 100)}%</Text>
               </View>
             ))}

@@ -11,13 +11,32 @@ import { MonsterCodex } from "../components/MonsterCodex";
 import { IconCaption } from "../components/IconCaption";
 import { BOSS_NAME, ENEMY_NAME, getStageCode, STAGES } from "../state/stages";
 import { countStars, STAR_GEMS } from "../state/progression";
+import { t } from "../i18n";
 
 type Page = "map" | "monsters";
 
-const HEADINGS: Record<Page, { kicker: string; title: string; description: string; icon: number; open: string; caption: string }> = {
-  map: { kicker: "MILESTONE", title: "모험 지도", description: "보스를 쓰러뜨리면 다음 스테이지가 열려요.", icon: icons.map, open: "모험 지도로 돌아가기", caption: "지도" },
-  monsters: { kicker: "BESTIARY", title: "몬스터 도감", description: "만난 몬스터와 떨어뜨리는 재료를 모아봐요.", icon: icons.codexMonster, open: "몬스터 도감 열기", caption: "몬스터 도감" },
-};
+// A function (not a module-level constant) so every field re-translates on each render —
+// t() needs to run at render/call time to react to a language switch.
+function getHeadings(): Record<Page, { kicker: string; title: string; description: string; icon: number; open: string; caption: string }> {
+  return {
+    map: {
+      kicker: "MILESTONE",
+      title: t("모험 지도", "Adventure Map"),
+      description: t("보스를 쓰러뜨리면 다음 스테이지가 열려요.", "Defeat the boss to open the next stage."),
+      icon: icons.map,
+      open: t("모험 지도로 돌아가기", "Back to Adventure Map"),
+      caption: t("지도", "Map"),
+    },
+    monsters: {
+      kicker: "BESTIARY",
+      title: t("몬스터 도감", "Monster Codex"),
+      description: t("만난 몬스터와 떨어뜨리는 재료를 모아봐요.", "Collect the monsters you've met and what they drop."),
+      icon: icons.codexMonster,
+      open: t("몬스터 도감 열기", "Open Monster Codex"),
+      caption: t("몬스터 도감", "Monster Codex"),
+    },
+  };
+}
 
 export function MilestoneScreen({
   stageNumber,
@@ -45,7 +64,8 @@ export function MilestoneScreen({
   onBack: () => void;
 }) {
   const [view, setView] = useState<Page>("map");
-  const heading = HEADINGS[view];
+  const headings = getHeadings();
+  const heading = headings[view];
   // A stage opened since the last visit: its path draws in and its badge drops onto the map.
   const [newStage] = useState(() => (seenStage !== undefined && highestStageNumber > seenStage ? highestStageNumber : null));
   const latest = useRef({ highestStageNumber, onSeen });
@@ -69,23 +89,23 @@ export function MilestoneScreen({
                 key={item}
                 onPress={() => setView(item)}
                 accessibilityRole="button"
-                accessibilityLabel={HEADINGS[item].open}
+                accessibilityLabel={headings[item].open}
                 hitSlop={6}
                 style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
               >
-                <Image source={HEADINGS[item].icon} style={styles.toggleIcon} />
-                <IconCaption shift={item === "map" ? 4 : 0}>{HEADINGS[item].caption}</IconCaption>
+                <Image source={headings[item].icon} style={styles.toggleIcon} />
+                <IconCaption shift={item === "map" ? 4 : 0}>{headings[item].caption}</IconCaption>
               </Pressable>
             ))}
           <Pressable
             onPress={onOpenComics}
             accessibilityRole="button"
-            accessibilityLabel="추억 앨범 열기"
+            accessibilityLabel={t("추억 앨범 열기", "Open Memory Album")}
             hitSlop={6}
             style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
           >
             <Image source={icons.scroll} style={styles.toggleIcon} />
-            <IconCaption>만화보기</IconCaption>
+            <IconCaption>{t("만화보기", "View Comics")}</IconCaption>
           </Pressable>
         </View>
       </View>
@@ -93,7 +113,12 @@ export function MilestoneScreen({
         <MonsterCodex highestStageNumber={codexStageNumber} />
       ) : (
       <View style={styles.list}>
-        <Text style={styles.starGuide}>{`★ 보스 처치 · ★ 분노한 보스를 40초 안에 처치 · ★ 음식 없이 처치 (별마다 보석 ${STAR_GEMS}개)`}</Text>
+        <Text style={styles.starGuide}>
+          {t(
+            `★ 보스 처치 · ★ 분노한 보스를 40초 안에 처치 · ★ 음식 없이 처치 (별마다 보석 ${STAR_GEMS}개)`,
+            `★ Defeat the boss · ★ Defeat the enraged boss within 40s · ★ Defeat it with no food buff (${STAR_GEMS} gems per star)`,
+          )}
+        </Text>
         {STAGES.map((stage, index) => {
           const current = index === stageNumber;
           const unlocked = index <= highestStageNumber;
@@ -110,27 +135,37 @@ export function MilestoneScreen({
                 </StageBadge>
                 <View style={styles.cardCopy}>
                   <View style={styles.titleRow}>
-                    <Text style={styles.cardStrong}>{stage.area}</Text>
+                    <Text style={styles.cardStrong}>{t(stage.area)}</Text>
                     {cleared && <WavingStar delay={index * 120} />}
-                    {unlocked && <Text style={styles.stars} accessibilityLabel={`별 ${countStars(stageStars?.[String(index)] ?? 0)}개`}>{"★".repeat(countStars(stageStars?.[String(index)] ?? 0)) + "☆".repeat(3 - countStars(stageStars?.[String(index)] ?? 0))}</Text>}
+                    {unlocked && (
+                      <Text
+                        style={styles.stars}
+                        accessibilityLabel={t(
+                          `별 ${countStars(stageStars?.[String(index)] ?? 0)}개`,
+                          `${countStars(stageStars?.[String(index)] ?? 0)} stars`,
+                        )}
+                      >
+                        {"★".repeat(countStars(stageStars?.[String(index)] ?? 0)) + "☆".repeat(3 - countStars(stageStars?.[String(index)] ?? 0))}
+                      </Text>
+                    )}
                   </View>
-                  <Text style={styles.cardSpan}>{unlocked ? stage.story : "이전 스테이지 보스를 처치하세요"}</Text>
+                  <Text style={styles.cardSpan}>{unlocked ? t(stage.story) : t("이전 스테이지 보스를 처치하세요", "Defeat the previous stage's boss")}</Text>
                   {unlocked && (
                     <Text style={styles.cardMonsters}>
-                      {ENEMY_NAME[stage.enemyKind]} · 보스 {BOSS_NAME[stage.enemyKind]}
+                      {t(ENEMY_NAME[stage.enemyKind])} · {t(`보스 ${BOSS_NAME[stage.enemyKind]}`, `Boss ${t(BOSS_NAME[stage.enemyKind])}`)}
                     </Text>
                   )}
                 </View>
                 {current ? (
                   <GameButton variant="green" style={styles.moveButton} textStyle={styles.moveButtonText} onPress={onBack}>
-                    진행 중
+                    {t("진행 중", "In Progress")}
                   </GameButton>
                 ) : unlocked ? (
                   <GameButton variant="beige" style={styles.moveButton} textStyle={styles.moveButtonText} onPress={() => onSelectStage(index)}>
-                    이동
+                    {t("이동", "Go")}
                   </GameButton>
                 ) : (
-                  <Image source={icons.key} style={styles.lockIcon} accessibilityLabel="잠김" />
+                  <Image source={icons.key} style={styles.lockIcon} accessibilityLabel={t("잠김", "Locked")} />
                 )}
               </Panel>
               {!isLast && <TrailPath locked={index >= highestStageNumber} draw={index + 1 === newStage} />}

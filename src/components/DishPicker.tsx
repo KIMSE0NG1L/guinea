@@ -8,6 +8,7 @@ import { NineSlice, Panel } from "./NineSlice";
 import { BUFFS, DISH_PARTNERS, GRADE_DURATION_MS, GRADE_LABEL, describeDish, describeDishLinks, formatDuration, INSTANT_DISHES, PARTNER_MULTIPLIER, peekGrade, type BuffSlot, type DishQuality } from "../state/buffs";
 import { getItemQuantity, RECIPES } from "../state/recipes";
 import type { GameState, Outfit } from "../types";
+import { t } from "../i18n";
 
 // Choose a cooked dish from the bag to eat into a buff slot.
 export function DishPicker({
@@ -47,16 +48,16 @@ export function DishPicker({
           <View style={styles.top}>
             <View>
               <Text style={styles.eyebrow}>FOOD BUFF</Text>
-              <Text style={styles.title}>무엇을 먹을까?</Text>
+              <Text style={styles.title}>{t("무엇을 먹을까?", "What should we eat?")}</Text>
             </View>
-            <GameButton onPress={onClose} style={styles.closeButton}>닫기</GameButton>
+            <GameButton onPress={onClose} style={styles.closeButton}>{t("닫기", "Close")}</GameButton>
           </View>
 
           {dishes.length === 0 ? (
             <Panel slice={kit.inset} style={styles.empty}>
-              <Text style={styles.emptyText}>가방에 요리한 음식이 없어요.</Text>
+              <Text style={styles.emptyText}>{t("가방에 요리한 음식이 없어요.", "There's no cooked food in your bag.")}</Text>
               <GameButton variant="red" onPress={onGoCook} style={styles.emptyButton}>
-                부엌에서 요리하기
+                {t("부엌에서 요리하기", "Cook in the Kitchen")}
               </GameButton>
             </Panel>
           ) : (
@@ -72,14 +73,16 @@ export function DishPicker({
                     </View>
                     <View style={styles.info}>
                       <Text style={styles.name}>
-                        {recipe.name} <Text style={styles.count}>x{getItemQuantity(inventory, recipe.name)}</Text>
+                        {t(recipe.name)} <Text style={styles.count}>x{getItemQuantity(inventory, recipe.name)}</Text>
                       </Text>
                       <Text style={styles.effect}>{describeDish(recipe.id)}</Text>
                       <Text style={styles.duration}>
                         {[
-                          INSTANT_DISHES[recipe.id] ? `즉시 효과 · ${GRADE_LABEL[grade]}` : `${GRADE_LABEL[grade]} · ${formatDuration(GRADE_DURATION_MS[grade])} 지속`,
+                          INSTANT_DISHES[recipe.id]
+                            ? t(`즉시 효과 · ${GRADE_LABEL[grade]}`, `Instant Effect · ${t(GRADE_LABEL[grade])}`)
+                            : t(`${GRADE_LABEL[grade]} · ${formatDuration(GRADE_DURATION_MS[grade])} 지속`, `${t(GRADE_LABEL[grade])} · Lasts ${formatDuration(GRADE_DURATION_MS[grade])}`),
                           ...describeDishLinks(recipe.id),
-                          ...(DISH_PARTNERS[recipe.id] === outfit ? [`효과 ×${PARTNER_MULTIPLIER}`] : []),
+                          ...(DISH_PARTNERS[recipe.id] === outfit ? [t(`효과 ×${PARTNER_MULTIPLIER}`, `Effect ×${PARTNER_MULTIPLIER}`)] : []),
                         ].join(" · ")}
                       </Text>
                     </View>
@@ -91,7 +94,7 @@ export function DishPicker({
                         style={styles.eatButton}
                         textStyle={styles.eatText}
                       >
-                        {busy ? "효과 중" : "먹기"}
+                        {busy ? t("효과 중", "Active") : t("먹기", "Eat")}
                       </GameButton>
                       {recipe.id === guideRecipeId && !busy && <GuideArrow direction="right" style={styles.guideArrow} />}
                     </View>

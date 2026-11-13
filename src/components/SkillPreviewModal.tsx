@@ -8,6 +8,7 @@ import { GameButton } from "./GameButton";
 import { BattleScene } from "../screens/BattleScene";
 import { BEAM_TIMING, CARROT_THROW_HIT_MS, CHILI_THROW_DOT_TICK_MS, CHILI_THROW_DOT_TICKS, CHILI_THROW_HIT_MS, getSkill, METEOR_HIT_MS, type SkillId } from "../state/skills";
 import type { BattlePhase, EnemyKind, Outfit } from "../types";
+import { t } from "../i18n";
 
 const MAX_HP = 1000;
 const HIT = 80; // a plain swing's damage on the stand-in enemy
@@ -163,9 +164,9 @@ export function SkillPreviewModal({ skillId, enemyKind, outfit, onClose }: { ski
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
           <NineSlice slice={kit.panelLarge} />
-          <Text style={styles.eyebrow}>스킬 미리보기</Text>
-          <Text style={styles.title}>{skill.name}</Text>
-          <Text style={styles.message}>{skill.description}</Text>
+          <Text style={styles.eyebrow}>{t("스킬 미리보기", "Skill Preview")}</Text>
+          <Text style={styles.title}>{t(skill.name)}</Text>
+          <Text style={styles.message}>{t(skill.description)}</Text>
           <View style={styles.sceneWrap} pointerEvents="none">
             <BattleScene
               preview
@@ -219,7 +220,7 @@ export function SkillPreviewModal({ skillId, enemyKind, outfit, onClose }: { ski
               bossReviveId={0}
             />
           </View>
-          <GameButton variant="green" onPress={onClose} style={styles.closeButton}>닫기</GameButton>
+          <GameButton variant="green" onPress={onClose} style={styles.closeButton}>{t("닫기", "Close")}</GameButton>
         </Pressable>
       </Pressable>
     </Modal>

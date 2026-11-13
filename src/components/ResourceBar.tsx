@@ -6,6 +6,7 @@ import { Panel } from "./NineSlice";
 import { formatGameNumber } from "../state/gameMath";
 import { useBumpOnChange, useRollingNumber } from "./motion";
 import { tutorialRef } from "./tutorialTargets";
+import { t } from "../i18n";
 
 // Sized for a 7-character value (e.g. "12,345b") at full width; GameHeader passes a
 // smaller `width` on narrow phones.
@@ -25,8 +26,8 @@ export function ResourceBar({
 }) {
   return (
     <View style={styles.bar}>
-      <ResourceChip icon={uiImages.coin} value={gold} label="골드" targetId="header-gold" onPlus={onOpenShop} width={width} />
-      <ResourceChip icon={uiImages.crystal} value={gems} label="보석" targetId="header-gems" onPlus={onOpenShop} width={width} />
+      <ResourceChip icon={uiImages.coin} value={gold} label={t("골드", "Gold")} targetId="header-gold" onPlus={onOpenShop} width={width} />
+      <ResourceChip icon={uiImages.crystal} value={gems} label={t("보석", "Gems")} targetId="header-gems" onPlus={onOpenShop} width={width} />
     </View>
   );
 }
@@ -67,7 +68,7 @@ function ResourceChip({
       <Pressable
         onPress={onPlus}
         accessibilityRole="button"
-        accessibilityLabel={`${label} 충전하러 상점 가기`}
+        accessibilityLabel={t(`${label} 충전하러 상점 가기`, `Go to shop to get more ${label}`)}
         hitSlop={6}
         style={({ pressed }) => [styles.plus, pressed && styles.pressed]}
       >

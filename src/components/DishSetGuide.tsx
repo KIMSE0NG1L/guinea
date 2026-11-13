@@ -6,6 +6,7 @@ import { kit } from "../assets";
 import { DISH_SETS, describeEffect } from "../state/buffs";
 import { RECIPES } from "../state/recipes";
 import { Panel } from "./NineSlice";
+import { t } from "../i18n";
 
 // The kitchen's set codex: each set's bonus and the dishes in it (unlearned ones dimmed).
 // Folded by default so it doesn't push the recipes down.
@@ -16,18 +17,20 @@ export function DishSetGuide({ known }: { known: string[] }) {
       <Pressable
         onPress={() => setOpen((value) => !value)}
         accessibilityRole="button"
-        accessibilityLabel={open ? "세트 도감 접기" : "세트 도감 펼치기"}
+        accessibilityLabel={open ? t("세트 도감 접기", "Collapse Set Codex") : t("세트 도감 펼치기", "Expand Set Codex")}
         hitSlop={6}
         style={styles.header}
       >
-        <Text style={styles.title}>세트 도감</Text>
-        <Text style={styles.hint}>{open ? "접기 ▲" : "같은 세트 요리 아무거나 3개를 동시에 먹으면 보너스! ▼"}</Text>
+        <Text style={styles.title}>{t("세트 도감", "Set Codex")}</Text>
+        <Text style={styles.hint}>
+          {open ? t("접기 ▲", "Collapse ▲") : t("같은 세트 요리 아무거나 3개를 동시에 먹으면 보너스! ▼", "Eat any 3 dishes from the same set at once for a bonus! ▼")}
+        </Text>
       </Pressable>
       {open &&
         DISH_SETS.map((set) => (
           <View style={styles.set} key={set.id}>
             <View style={styles.setTop}>
-              <Text style={styles.setName}>{set.name}</Text>
+              <Text style={styles.setName}>{t(set.name)}</Text>
               <Text style={styles.bonus}>{describeEffect(set.bonus)}</Text>
             </View>
             <View style={styles.dishes}>
@@ -39,7 +42,7 @@ export function DishSetGuide({ known }: { known: string[] }) {
                   <View style={styles.dish} key={id}>
                     <Image source={recipe.image} style={[styles.dishImage, !learned && styles.unlearned]} />
                     <Text style={[styles.dishName, !learned && styles.dishNameDim]} numberOfLines={1}>
-                      {learned ? recipe.name : "???"}
+                      {learned ? t(recipe.name) : "???"}
                     </Text>
                   </View>
                 );

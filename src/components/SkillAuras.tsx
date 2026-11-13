@@ -15,6 +15,7 @@ import { effects, food, uiImages } from "../assets";
 import { CARROT_THROW_HIT_MS, CHILI_THROW_BURN_MS, CHILI_THROW_HIT_MS, METEOR_HIT_MS } from "../state/skills";
 import { Flash, Sparks, SpriteBurst, type Point } from "./ExecuteEffect";
 import { SkillCallout } from "./SkillCallout";
+import { t as tr } from "../i18n";
 
 // Steal is green and coin-gold, Focus is gold on deep blue — matching their icons.
 const STEAL_GREEN = "#5fd35a";
@@ -43,7 +44,7 @@ export function StealCastEffect({ at }: { at: Point }) {
       <CastDim />
       <Sparks at={at} delay={20} color={STEAL_GREEN} />
       <Sparks at={at} delay={80} color="#ffe27a" />
-      <SkillCallout text="훔치기!" color="#8af07a" strokeColor="#123d10" holdMs={420} />
+      <SkillCallout text={tr("훔치기!", "Steal!")} color="#8af07a" strokeColor="#123d10" holdMs={420} />
     </View>
   );
 }
@@ -55,7 +56,7 @@ export function FocusCastEffect({ at }: { at: Point }) {
       <Ring at={at} color={FOCUS_GOLD} delay={40} />
       <Ring at={at} color="#9cc8ff" delay={140} />
       <Sparks at={at} delay={60} color={FOCUS_GOLD} />
-      <SkillCallout text="집중!" color="#ffe07a" strokeColor="#13265c" holdMs={420} />
+      <SkillCallout text={tr("집중!", "Focus!")} color="#ffe07a" strokeColor="#13265c" holdMs={420} />
     </View>
   );
 }
@@ -79,7 +80,7 @@ export function BarrageCastEffect({ at }: { at: Point }) {
       />
       <Sparks at={at} delay={40} color={BARRAGE_RED} />
       <Sparks at={at} delay={100} color={BARRAGE_GOLD} />
-      <SkillCallout text="난타!!" color="#ffb24a" strokeColor="#4a1200" holdMs={420} />
+      <SkillCallout text={tr("난타!!", "Flurry!!")} color="#ffb24a" strokeColor="#4a1200" holdMs={420} />
     </View>
   );
 }
@@ -160,7 +161,7 @@ export function ShoutCastEffect({ mouth, enemy }: { mouth: Point; enemy: Point }
       <Ring at={mouth} color={SHOUT_RED} delay={180} />
       <Sparks at={enemy} delay={160} color={SHOUT_RED} />
       <Sparks at={enemy} delay={220} color="#ffd0c4" />
-      <SkillCallout text="찍찍!!" color="#ff6b5a" strokeColor="#4a0a06" holdMs={420} />
+      <SkillCallout text={tr("찍찍!!", "Squeak!!")} color="#ff6b5a" strokeColor="#4a0a06" holdMs={420} />
     </View>
   );
 }
@@ -186,7 +187,7 @@ export function CarrotThrowEffect({ from, to }: { from: Point; to: Point }) {
       />
       <Sparks at={to} delay={CARROT_THROW_HIT_MS} color={CARROT_ORANGE} />
       <Sparks at={to} delay={CARROT_THROW_HIT_MS + 40} color={CARROT_GREEN} />
-      <SkillCallout text="당근던지기!!" color="#ffb24a" strokeColor="#5a2a00" holdMs={CARROT_THROW_HIT_MS + 100} />
+      <SkillCallout text={tr("당근던지기!!", "Carrot Throw!!")} color="#ffb24a" strokeColor="#5a2a00" holdMs={CARROT_THROW_HIT_MS + 100} />
     </View>
   );
 }
@@ -228,7 +229,7 @@ export function ChiliThrowEffect({ from, to }: { from: Point; to: Point }) {
       <Sparks at={to} delay={CHILI_THROW_HIT_MS} color={CHILI_RED} />
       <Sparks at={to} delay={CHILI_THROW_HIT_MS + 40} color={CHILI_YELLOW} />
       <ChiliBurnOverlay at={to} />
-      <SkillCallout text="고추던지기!!" color="#ff8a5c" strokeColor="#4a0f00" holdMs={CHILI_THROW_HIT_MS + 100} />
+      <SkillCallout text={tr("고추던지기!!", "Chili Throw!!")} color="#ff8a5c" strokeColor="#4a0f00" holdMs={CHILI_THROW_HIT_MS + 100} />
     </View>
   );
 }

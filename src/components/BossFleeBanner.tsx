@@ -4,6 +4,7 @@ import { Text } from "./GameText";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
+import { t } from "../i18n";
 
 // Shown when the boss fight's timer runs out — mirrors StageAdvanceBanner's reveal timing
 // but in a warning red tone, and mount fresh via `key={bossFledKey}` at the call site.
@@ -26,8 +27,8 @@ export function BossFleeBanner() {
       <LinearGradient colors={["#5c1f1fcc", "#3d1414d9", "#200b0beb"]} locations={[0, 0.58, 1]} style={StyleSheet.absoluteFill} />
       <View style={styles.content}>
         <Text style={styles.badge}>TIME OVER</Text>
-        <Text style={styles.title}>보스가 도망쳤다!</Text>
-        <Text style={styles.sub}>몹을 처음부터 다시 잡아야 해요</Text>
+        <Text style={styles.title}>{t("보스가 도망쳤다!", "The boss fled!")}</Text>
+        <Text style={styles.sub}>{t("몹을 처음부터 다시 잡아야 해요", "You'll have to fight mobs again from the start")}</Text>
       </View>
     </Animated.View>
   );

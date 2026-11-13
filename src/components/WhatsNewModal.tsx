@@ -8,6 +8,7 @@ import { GameButton } from "./GameButton";
 import { StrokedText } from "./StrokedText";
 import { CharacterSprite } from "./CharacterSprite";
 import { LATEST_UPDATE } from "../state/updates";
+import { t } from "../i18n";
 
 const FRAME = panelSlices.redRibbon;
 
@@ -32,12 +33,12 @@ export function WhatsNewModal({ gift, onClose }: { gift: boolean; onClose: () =>
               {/* The ribbon's flat middle, between its folded tails. */}
               <View style={[styles.ribbon, { top: 12 * scale, height: 44 * scale }]} pointerEvents="none">
                 <StrokedText style={styles.ribbonText} strokeColor="#7a2414" strokeWidth={2}>
-                  업데이트 소식
+                  {t("업데이트 소식", "What's New")}
                 </StrokedText>
               </View>
             </>
           )}
-          <Text style={styles.title}>{LATEST_UPDATE.title}</Text>
+          <Text style={styles.title}>{t(LATEST_UPDATE.title)}</Text>
           <View style={styles.list}>
             {LATEST_UPDATE.items.map((item) => (
               <Panel key={item.text} slice={creamSlices.row} scale={0.28} style={styles.item}>
@@ -48,7 +49,7 @@ export function WhatsNewModal({ gift, onClose }: { gift: boolean; onClose: () =>
                     <Image source={item.image} style={styles.icon} />
                   )}
                 </View>
-                <Text style={styles.text}>{item.text}</Text>
+                <Text style={styles.text}>{t(item.text)}</Text>
               </Panel>
             ))}
           </View>
@@ -56,14 +57,14 @@ export function WhatsNewModal({ gift, onClose }: { gift: boolean; onClose: () =>
             {gift ? (
               // The gems are the point: a big gem bursting out of the button and a bold count.
               <View style={styles.gift}>
-                <Text style={styles.giftText}>업데이트 보상</Text>
+                <Text style={styles.giftText}>{t("업데이트 보상", "Update Reward")}</Text>
                 <Image source={uiImages.crystal} style={styles.gem} />
                 <StrokedText style={styles.giftAmount} strokeColor="#2f4a1c" strokeWidth={2}>
                   {`×${LATEST_UPDATE.gems}`}
                 </StrokedText>
               </View>
             ) : (
-              "닫기"
+              t("닫기", "Close")
             )}
           </GameButton>
         </View>

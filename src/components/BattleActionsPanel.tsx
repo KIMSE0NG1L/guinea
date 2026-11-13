@@ -5,6 +5,7 @@ import { fonts } from "../theme";
 import { icons, uiImages } from "../assets";
 import { GameButton } from "./GameButton";
 import { formatDuration } from "../state/buffs";
+import { t } from "../i18n";
 
 export function BattleActionsPanel({
   isAutoBattle,
@@ -36,8 +37,8 @@ export function BattleActionsPanel({
         <View style={styles.autoContent}>
           <Image source={isAutoBattle ? icons.energy : uiImages.swords} style={styles.autoIcon} />
           <View style={styles.stack}>
-            <Text style={[styles.actionSmall, isAutoBattle && styles.actionSmallOnGreen]}>{isAutoBattle ? "자동 전투" : "난타 중"}</Text>
-            <Text style={[styles.actionLabel, isAutoBattle && styles.actionLabelOnGreen]}>{autoLocked ? "고정" : isAutoBattle ? "진행 중" : "직접 공격"}</Text>
+            <Text style={[styles.actionSmall, isAutoBattle && styles.actionSmallOnGreen]}>{isAutoBattle ? t("자동 전투", "Auto Battle") : t("난타 중", "Flurry Active")}</Text>
+            <Text style={[styles.actionLabel, isAutoBattle && styles.actionLabelOnGreen]}>{autoLocked ? t("고정", "Locked") : isAutoBattle ? t("진행 중", "Running") : t("직접 공격", "Manual Attack")}</Text>
           </View>
         </View>
       </GameButton>
@@ -48,8 +49,8 @@ export function BattleActionsPanel({
         <View style={styles.autoContent}>
           {!speedBoostActive && <Image source={uiImages.adClapper} style={styles.adIcon} />}
           <View style={styles.stack}>
-            <Text style={styles.actionSmall}>{speedBoostActive ? "2배속 중" : "광고 보고"}</Text>
-            <Text style={styles.actionLabel}>{speedBoostActive ? formatDuration(speedBoostRemainingMs) : "2배속"}</Text>
+            <Text style={styles.actionSmall}>{speedBoostActive ? t("2배속 중", "2x Active") : t("광고 보고", "Watch Ad")}</Text>
+            <Text style={styles.actionLabel}>{speedBoostActive ? formatDuration(speedBoostRemainingMs) : t("2배속", "2x Speed")}</Text>
           </View>
         </View>
       </GameButton>

@@ -15,6 +15,7 @@ import { IconCaption } from "../components/IconCaption";
 import { tutorialRef } from "../components/tutorialTargets";
 import { SellIngredientModal } from "../components/SellIngredientModal";
 import type { GameState } from "../types";
+import { t } from "../i18n";
 
 type InventoryItem = GameState["inventory"][number];
 
@@ -91,21 +92,21 @@ export function InventoryScreen({
       <View style={styles.headingRow}>
         <View style={styles.heading}>
           {codex ? (
-            <PageHeading kicker="PANTRY" title="식재료 도감" description="한 번이라도 손에 넣은 식재료가 기록돼요." />
+            <PageHeading kicker="PANTRY" title={t("식재료 도감", "Ingredient Codex")} description={t("한 번이라도 손에 넣은 식재료가 기록돼요.", "Every ingredient you've ever held gets recorded here.")} />
           ) : (
-            <PageHeading kicker="BAG" title="가방" description="주운 건 일단 넣고 본다." />
+            <PageHeading kicker="BAG" title={t("가방", "Bag")} description={t("주운 건 일단 넣고 본다.", "Grab it first, sort it out later.")} />
           )}
         </View>
         {/* Bare icon: the green book opens the ingredient codex, the bag icon comes back. */}
         <Pressable
           onPress={() => setCodex((current) => !current)}
           accessibilityRole="button"
-          accessibilityLabel={codex ? "가방으로 돌아가기" : "식재료 도감 열기"}
+          accessibilityLabel={codex ? t("가방으로 돌아가기", "Back to Bag") : t("식재료 도감 열기", "Open Ingredient Codex")}
           hitSlop={6}
           style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
         >
           <Image source={codex ? icons.backpackTrim : icons.codexIngredient} style={styles.toggleIcon} resizeMode="contain" />
-          <IconCaption>{codex ? "가방" : "식재료 도감"}</IconCaption>
+          <IconCaption>{codex ? t("가방", "Bag") : t("식재료 도감", "Ingredient Codex")}</IconCaption>
         </Pressable>
       </View>
       {codex ? (
@@ -115,8 +116,8 @@ export function InventoryScreen({
       <Panel slice={kit.buttonBeige} style={styles.summary}>
         <View style={styles.capacity}>
           <View style={styles.capacityRow}>
-            <Text style={styles.summarySpan}>가방 칸</Text>
-            {full && <Text style={styles.fullText}>가득 찼어요!</Text>}
+            <Text style={styles.summarySpan}>{t("가방 칸", "Bag Slots")}</Text>
+            {full && <Text style={styles.fullText}>{t("가득 찼어요!", "Full!")}</Text>}
           </View>
           <ProgressBar
             progress={(used / capacity) * 100}
@@ -125,22 +126,24 @@ export function InventoryScreen({
             label={`${used} / ${capacity}`}
           />
           <Text style={styles.summaryHint}>
-            {canSell ? "같은 아이템은 64개씩 쌓여요. 재료를 누르면 팔 수 있어요." : "같은 아이템은 한 칸에 64개까지 쌓여요."}
+            {canSell
+              ? t("같은 아이템은 64개씩 쌓여요. 재료를 누르면 팔 수 있어요.", "Items stack in 64s. Tap an ingredient to sell it.")
+              : t("같은 아이템은 한 칸에 64개까지 쌓여요.", "Items stack up to 64 per slot.")}
           </Text>
         </View>
         {maxed ? (
           <View style={styles.maxed}>
-            <Text style={styles.maxedText}>최대 크기</Text>
+            <Text style={styles.maxedText}>{t("최대 크기", "Max Size")}</Text>
           </View>
         ) : (
           <GameButton
             variant={affordable ? "green" : "gray"}
             onPress={affordable ? onExpand : onOpenShop}
-            accessibilityLabel={`보석 ${cost}개로 가방 ${BAG_EXPAND_SLOTS}칸 늘리기`}
+            accessibilityLabel={t(`보석 ${cost}개로 가방 ${BAG_EXPAND_SLOTS}칸 늘리기`, `Spend ${cost} gems to add ${BAG_EXPAND_SLOTS} bag slots`)}
             style={styles.expand}
           >
             <View style={styles.expandContent}>
-              <Text style={[styles.expandTitle, !affordable && styles.expandTitleDim]}>+{BAG_EXPAND_SLOTS}칸</Text>
+              <Text style={[styles.expandTitle, !affordable && styles.expandTitleDim]}>{t(`+${BAG_EXPAND_SLOTS}칸`, `+${BAG_EXPAND_SLOTS}`)}</Text>
               <View style={styles.expandCost}>
                 <Image source={uiImages.crystal} style={styles.gem} />
                 <Text style={[styles.expandCostText, !affordable && styles.expandTitleDim]}>{cost}</Text>
@@ -161,7 +164,7 @@ export function InventoryScreen({
               disabled={!item || !canSell || item.type !== "food"}
               onPress={() => item && setSelling(item.name)}
               accessibilityRole={item && canSell && item.type === "food" ? "button" : undefined}
-              accessibilityLabel={item && canSell && item.type === "food" ? `${item.name} 팔기` : undefined}
+              accessibilityLabel={item && canSell && item.type === "food" ? t(`${item.name} 팔기`, `Sell ${t(item.name)}`) : undefined}
               style={({ pressed }) => pressed && styles.cellPressed}
             >
             <Panel slice={item ? frameKit.squareGold : frameKit.squareWood} scale={0.5} style={styles.cell}>
@@ -170,7 +173,7 @@ export function InventoryScreen({
                   {/* The first stack of each item can be pointed at by the tutorial. */}
                   {item.key.endsWith("-0") && <View ref={tutorialRef(`bag-item-${item.name}`)} style={styles.tutorialAnchor} pointerEvents="none" />}
                   <ItemShape name={item.name} />
-                  <Text style={styles.cellName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.cellName} numberOfLines={1}>{t(item.name)}</Text>
                   <View style={styles.cellQty}>
                     <Text style={styles.cellQtyText}>x{item.quantity}</Text>
                   </View>
@@ -182,7 +185,7 @@ export function InventoryScreen({
           </PopIn>
         ))}
       </View>
-      {shown < capacity && <Text style={styles.moreSlots}>빈 칸 {capacity - shown}개 더 있어요</Text>}
+      {shown < capacity && <Text style={styles.moreSlots}>{t(`빈 칸 ${capacity - shown}개 더 있어요`, `${capacity - shown} more empty slots`)}</Text>}
       {sellingItem && (
         <SellIngredientModal
           name={sellingItem.name}

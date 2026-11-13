@@ -6,6 +6,7 @@ import { RECIPES, STARTER_RECIPES } from "./recipes";
 import { getCookbookProgress } from "./cookbook";
 import { GROCERY } from "./grocery";
 import { isOutfitUnlocked, OUTFIT_UNLOCK_STAGE } from "./unlocks";
+import { t } from "../i18n";
 
 // What a mission measures — always a lifetime number read straight off the save, so a
 // mission is done the moment that number reaches its target (even if that happened before
@@ -29,36 +30,36 @@ type Metric =
   | "companions";
 
 const METRICS: Record<Metric, { icon: number; title: (target: number) => string; read: (state: GameState) => number }> = {
-  kills: { icon: navIcons.battle, title: (n) => `적 ${formatGameNumber(n)}마리 처치`, read: (s) => s.kills },
-  gold: { icon: icons.coins, title: (n) => `골드 ${formatGameNumber(n)} 획득`, read: (s) => s.totalGoldEarned },
-  bossKills: { icon: icons.trophy, title: (n) => `보스 ${formatGameNumber(n)}마리 처치`, read: (s) => s.bossKills ?? 0 },
+  kills: { icon: navIcons.battle, title: (n) => t(`적 ${formatGameNumber(n)}마리 처치`, `Defeat ${formatGameNumber(n)} Enemies`), read: (s) => s.kills },
+  gold: { icon: icons.coins, title: (n) => t(`골드 ${formatGameNumber(n)} 획득`, `Earn ${formatGameNumber(n)} Gold`), read: (s) => s.totalGoldEarned },
+  bossKills: { icon: icons.trophy, title: (n) => t(`보스 ${formatGameNumber(n)}마리 처치`, `Defeat ${formatGameNumber(n)} Bosses`), read: (s) => s.bossKills ?? 0 },
   stage: {
     icon: icons.mapTrim,
-    title: (n) => `${STAGES[n - 1].area}(${n}) 도착`,
+    title: (n) => t(`${STAGES[n - 1].area}(${n}) 도착`, `Reach ${t(STAGES[n - 1].area)} (${n})`),
     read: (s) => getPeakAreaStage(s) + 1,
   },
-  attackUpgrades: { icon: statIcons.attack, title: (n) => `공격력 ${formatGameNumber(n)}회 강화`, read: (s) => s.attackUpgrades },
+  attackUpgrades: { icon: statIcons.attack, title: (n) => t(`공격력 ${formatGameNumber(n)}회 강화`, `Upgrade Attack ${formatGameNumber(n)} Times`), read: (s) => s.attackUpgrades },
   critDamageLevel: {
     icon: statIcons.criticalDamage,
-    title: (n) => `치명타 피해 Lv.${formatGameNumber(n)} 달성`,
+    title: (n) => t(`치명타 피해 Lv.${formatGameNumber(n)} 달성`, `Reach Crit Damage Lv.${formatGameNumber(n)}`),
     read: (s) => getStatLevel(s, "criticalDamage"),
   },
-  level: { icon: icons.star, title: (n) => `기니 Lv.${formatGameNumber(n)} 달성`, read: (s) => s.level },
-  cooked: { icon: food.cookPotTrim, title: (n) => `요리 ${formatGameNumber(n)}회 만들기`, read: (s) => s.dishesCooked ?? 0 },
-  eaten: { icon: food.dishBananaMilk, title: (n) => `버프 요리 ${formatGameNumber(n)}회 먹기`, read: (s) => s.dishesEaten ?? 0 },
+  level: { icon: icons.star, title: (n) => t(`기니 Lv.${formatGameNumber(n)} 달성`, `Reach Gini Lv.${formatGameNumber(n)}`), read: (s) => s.level },
+  cooked: { icon: food.cookPotTrim, title: (n) => t(`요리 ${formatGameNumber(n)}회 만들기`, `Cook ${formatGameNumber(n)} Dishes`), read: (s) => s.dishesCooked ?? 0 },
+  eaten: { icon: food.dishBananaMilk, title: (n) => t(`버프 요리 ${formatGameNumber(n)}회 먹기`, `Eat ${formatGameNumber(n)} Buff Dishes`), read: (s) => s.dishesEaten ?? 0 },
   recipes: {
     icon: icons.scroll,
-    title: (n) => `레시피 ${n}개 배우기`,
+    title: (n) => t(`레시피 ${n}개 배우기`, `Learn ${n} Recipes`),
     read: (s) => (s.knownRecipes ?? []).filter((id) => !STARTER_RECIPES.includes(id)).length,
   },
-  cookbook: { icon: icons.codexBook, title: (n) => `요리책 ${n}장 채우기`, read: (s) => getCookbookProgress(s.cookedRecipes) },
-  ingredients: { icon: icons.codexIngredient, title: (n) => `식재료 ${n}종 모으기`, read: (s) => (s.discoveredItems ?? []).length },
-  coinsCaught: { icon: uiImages.coinWinged, title: (n) => `날개 코인 ${n}개 잡기`, read: (s) => s.coinsCaught ?? 0 },
-  foodSlots: { icon: frameImages.slotPlus, title: (n) => `음식 슬롯 ${n}칸 열기`, read: (s) => s.buffSlotsUnlocked ?? 1 },
-  bagExpansions: { icon: icons.backpackTrim, title: (n) => `가방 ${n}번 늘리기`, read: (s) => s.bagExpansions ?? 0 },
+  cookbook: { icon: icons.codexBook, title: (n) => t(`요리책 ${n}장 채우기`, `Fill ${n} Cookbook Pages`), read: (s) => getCookbookProgress(s.cookedRecipes) },
+  ingredients: { icon: icons.codexIngredient, title: (n) => t(`식재료 ${n}종 모으기`, `Collect ${n} Ingredient Types`), read: (s) => (s.discoveredItems ?? []).length },
+  coinsCaught: { icon: uiImages.coinWinged, title: (n) => t(`날개 코인 ${n}개 잡기`, `Catch ${n} Winged Coins`), read: (s) => s.coinsCaught ?? 0 },
+  foodSlots: { icon: frameImages.slotPlus, title: (n) => t(`음식 슬롯 ${n}칸 열기`, `Open ${n} Food Slots`), read: (s) => s.buffSlotsUnlocked ?? 1 },
+  bagExpansions: { icon: icons.backpackTrim, title: (n) => t(`가방 ${n}번 늘리기`, `Expand Bag ${n} Times`), read: (s) => s.bagExpansions ?? 0 },
   companions: {
     icon: navIcons.companions,
-    title: (n) => `동료 ${n}명 만나기`,
+    title: (n) => t(`동료 ${n}명 만나기`, `Meet ${n} Companions`),
     read: (s) =>
       (Object.keys(OUTFIT_UNLOCK_STAGE) as Outfit[]).filter(
         (outfit) => outfit !== "default" && isOutfitUnlocked(outfit, getPeakAreaStage(s), s.purchasedOutfits),
@@ -258,8 +259,8 @@ export function getChapterInfo(state: GameState, chapter: number) {
   const quests = getChapterQuests(state, chapter);
   return {
     index: chapter,
-    title: CHAPTERS[chapter].title,
-    line: CHAPTERS[chapter].line,
+    title: t(CHAPTERS[chapter].title),
+    line: t(CHAPTERS[chapter].line),
     level: CHAPTERS[chapter].level,
     total: CHAPTERS.length,
     open: isChapterOpen(state, chapter),
@@ -321,6 +322,8 @@ export function getRevealedHiddenQuests(state: GameState) {
   const claimed = state.hiddenClaimed ?? [];
   return HIDDEN_QUESTS.filter((quest) => quest.read(state) >= quest.target).map((quest) => ({
     ...quest,
+    title: t(quest.title),
+    flavor: t(quest.flavor),
     claimed: claimed.includes(quest.id),
   }));
 }

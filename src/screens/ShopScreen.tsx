@@ -10,13 +10,16 @@ import { NineSlice, Panel } from "../components/NineSlice";
 import { ShopHero, useShopTalk } from "../components/ShopScene";
 import { formatGameNumber } from "../state/gameMath";
 import { AD_GEMS_REWARD, SHOP_ADS_PER_DAY, type UseGameState } from "../state/useGameState";
+import { t } from "../i18n";
 
 type AdKind = "gems" | "gold";
 type PackKind = "gem" | "gold";
 type Pack = { tier: number; name: string; amount: string };
 
 // What the store will sell once payments open. Shown now so the shop isn't empty, but every
-// one is locked behind the "추후 오픈" notice — nothing here can be bought yet.
+// one is locked behind the "추후 오픈" notice — nothing here can be bought yet. Module-level
+// consts stay Korean; the EN tables below are read via t(ko, en) at render time so the
+// language toggle stays reactive.
 const PACKS: Record<PackKind, Pack[]> = {
   gem: [
     { tier: 2, name: "보석 한 줌", amount: "보석 300" },
@@ -31,17 +34,37 @@ const PACKS: Record<PackKind, Pack[]> = {
     { tier: 5, name: "골드 수레", amount: "몹 20,000마리분" },
   ],
 };
+const PACKS_EN: Record<PackKind, { name: string; amount: string }[]> = {
+  gem: [
+    { name: "A Handful of Gems", amount: "300 Gems" },
+    { name: "A Pouch of Gems", amount: "1,000 Gems" },
+    { name: "A Box of Gems", amount: "3,000 Gems" },
+    { name: "A Cart of Gems", amount: "10,000 Gems" },
+  ],
+  gold: [
+    { name: "A Handful of Gold", amount: "Worth 500 Mobs" },
+    { name: "A Pouch of Gold", amount: "Worth 2,000 Mobs" },
+    { name: "A Sack of Gold", amount: "Worth 6,000 Mobs" },
+    { name: "A Cart of Gold", amount: "Worth 20,000 Mobs" },
+  ],
+};
 
 const TABS: { id: PackKind; label: string }[] = [
   { id: "gem", label: "보석" },
   { id: "gold", label: "골드" },
 ];
+const TAB_LABEL_EN: Record<PackKind, string> = { gem: "Gems", gold: "Gold" };
 
 const GREETING = { pose: merchantImages.wave, line: "어서 와요! 광고 한 편이면 오늘 몫을 공짜로 챙겨 드려요." };
+const GREETING_EN = "Welcome! Watch one ad and today's share is yours for free.";
 // The merchant holds up whatever the open tab sells.
 const TAB_TALK: Record<PackKind, { pose: number; line: string }> = {
   gem: { pose: merchantImages.gem, line: "반짝반짝 보석은 결제가 열리면 팔게요. 조금만 기다려 줘요!" },
   gold: { pose: merchantImages.gold, line: "묵직한 골드도 결제가 열리면 바로 내놓을게요!" },
+};
+const TAB_TALK_EN: Record<PackKind, string> = {
+  gem: "I'll sell these sparkly gems once payments open. Just hang tight a bit longer!",
+  gold: "I'll put out the heavy gold too, the moment payments open!",
 };
 
 // A full-width store frame. Its slices keep the gem crown whole by never stretching sideways,
@@ -61,13 +84,16 @@ function StoreFrame({ slice, title, style, children }: { slice: UiSlice; title: 
 export function ShopScreen({ game }: { game: UseGameState }) {
   const [watching, setWatching] = useState<AdKind | null>(null);
   const [tab, setTab] = useState<PackKind>("gem");
-  const { talk, say } = useShopTalk(GREETING);
-  const reward = (kind: AdKind) => (kind === "gems" ? `보석 ${AD_GEMS_REWARD}개` : `골드 ${formatGameNumber(game.adGoldReward)}`);
+  const { talk, say } = useShopTalk({ ...GREETING, line: t(GREETING.line, GREETING_EN) });
+  const reward = (kind: AdKind) =>
+    kind === "gems"
+      ? t(`보석 ${AD_GEMS_REWARD}개`, `${AD_GEMS_REWARD} Gems`)
+      : t(`골드 ${formatGameNumber(game.adGoldReward)}`, `${formatGameNumber(game.adGoldReward)} Gold`);
   const icons = tab === "gem" ? currencyImages.gem : currencyImages.gold;
 
   const selectTab = (id: PackKind) => {
     setTab(id);
-    say(TAB_TALK[id].pose, TAB_TALK[id].line);
+    say(TAB_TALK[id].pose, t(TAB_TALK[id].line, TAB_TALK_EN[id]));
   };
 
   return (
@@ -75,12 +101,12 @@ export function ShopScreen({ game }: { game: UseGameState }) {
       {/* Same opening as the grocery and recipe shops: title, then the shopkeeper's scene. */}
       <View style={styles.titleCopy}>
         <Text style={styles.kicker}>SHOP</Text>
-        <Text style={styles.title}>골목 상점</Text>
+        <Text style={styles.title}>{t("골목 상점", "Back-Alley Shop")}</Text>
       </View>
-      <ShopHero speaker="상인 기니" talk={talk} background={merchantImages.background} />
+      <ShopHero speaker={t("상인 기니", "Merchant Gini")} talk={talk} background={merchantImages.background} />
 
       {/* The one thing you can actually get here today, so it wears the ornate frame. */}
-      <StoreFrame slice={storeSlices.ornate} title="오늘의 무료 보상" style={styles.freeFrame}>
+      <StoreFrame slice={storeSlices.ornate} title={t("오늘의 무료 보상", "Today's Free Reward")} style={styles.freeFrame}>
         <View style={styles.freeRow}>
           {(["gems", "gold"] as const).map((kind) => {
             const left = game.shopAdsLeft[kind];
@@ -90,7 +116,7 @@ export function ShopScreen({ game }: { game: UseGameState }) {
                 <Text style={styles.freeAmount} numberOfLines={1} adjustsFontSizeToFit>
                   {reward(kind)}
                 </Text>
-                <Text style={styles.freeLeft}>{`오늘 ${left}/${SHOP_ADS_PER_DAY}`}</Text>
+                <Text style={styles.freeLeft}>{t(`오늘 ${left}/${SHOP_ADS_PER_DAY}`, `Today ${left}/${SHOP_ADS_PER_DAY}`)}</Text>
                 <View style={styles.freeButtonWrap}>
                   <GameButton
                     variant={left > 0 ? "green" : "gray"}
@@ -98,9 +124,9 @@ export function ShopScreen({ game }: { game: UseGameState }) {
                     onPress={() => setWatching(kind)}
                     style={styles.freeButton}
                     textStyle={styles.freeButtonText}
-                    accessibilityLabel={`광고 보고 ${reward(kind)} 받기`}
+                    accessibilityLabel={t(`광고 보고 ${reward(kind)} 받기`, `Watch an ad for ${reward(kind)}`)}
                   >
-                    {left > 0 ? "광고 보기" : "내일 다시"}
+                    {left > 0 ? t("광고 보기", "Watch Ad") : t("내일 다시", "Try Tomorrow")}
                   </GameButton>
                   {left > 0 && <AdBadge />}
                 </View>
@@ -117,22 +143,22 @@ export function ShopScreen({ game }: { game: UseGameState }) {
           return (
             <Pressable key={item.id} onPress={() => selectTab(item.id)} accessibilityRole="tab" accessibilityState={{ selected: active }}>
               <ImageBackground source={active ? shopImages.tabRed : shopImages.tabCream} resizeMode="stretch" style={styles.tab}>
-                <Text style={[styles.tabText, active && styles.tabTextActive]}>{item.label}</Text>
+                <Text style={[styles.tabText, active && styles.tabTextActive]}>{t(item.label, TAB_LABEL_EN[item.id])}</Text>
               </ImageBackground>
             </Pressable>
           );
         })}
       </View>
-      <StoreFrame slice={storeSlices.simple} title={tab === "gem" ? "보석 상품" : "골드 상품"} style={styles.packFrame}>
-        <Text style={styles.notice}>결제 시스템은 추후 오픈할 예정이에요.</Text>
+      <StoreFrame slice={storeSlices.simple} title={tab === "gem" ? t("보석 상품", "Gem Packages") : t("골드 상품", "Gold Packages")} style={styles.packFrame}>
+        <Text style={styles.notice}>{t("결제 시스템은 추후 오픈할 예정이에요.", "Payments will open in a future update.")}</Text>
         <View style={styles.grid}>
-          {PACKS[tab].map((pack) => (
+          {PACKS[tab].map((pack, index) => (
             <Panel key={pack.tier} slice={creamSlices.cell} scale={0.3} style={styles.pack}>
               <Image source={icons[pack.tier - 1]} style={styles.packIcon} />
-              <Text style={styles.packName}>{pack.name}</Text>
-              <Text style={styles.packAmount}>{pack.amount}</Text>
+              <Text style={styles.packName}>{t(pack.name, PACKS_EN[tab][index].name)}</Text>
+              <Text style={styles.packAmount}>{t(pack.amount, PACKS_EN[tab][index].amount)}</Text>
               <GameButton variant="gray" disabled style={styles.packButton} textStyle={styles.packButtonText}>
-                추후 오픈
+                {t("추후 오픈", "Coming Soon")}
               </GameButton>
             </Panel>
           ))}
@@ -141,11 +167,11 @@ export function ShopScreen({ game }: { game: UseGameState }) {
 
       {watching && (
         <RewardedAdModal
-          message={`대신 섭섭하지 않게 ${reward(watching)}는 그대로 챙겨드릴게요.`}
-          claimLabel={`${reward(watching)} 받기`}
+          message={t(`대신 섭섭하지 않게 ${reward(watching)}는 그대로 챙겨드릴게요.`, `No hard feelings — you'll still get ${reward(watching)} either way.`)}
+          claimLabel={t(`${reward(watching)} 받기`, `Claim ${reward(watching)}`)}
           onClaim={() => {
             game.watchShopAd(watching);
-            say(merchantImages.wave, `${reward(watching)} 여기 있어요. 내일 또 와요!`);
+            say(merchantImages.wave, t(`${reward(watching)} 여기 있어요. 내일 또 와요!`, `Here's your ${reward(watching)}. Come back tomorrow!`));
             setWatching(null);
           }}
           onCancel={() => setWatching(null)}

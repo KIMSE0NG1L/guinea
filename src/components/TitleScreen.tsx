@@ -7,6 +7,7 @@ import { StrokedText } from "./StrokedText";
 import { RisingMotes } from "./RisingMotes";
 import { images } from "../assets";
 import { playSfx } from "../sound";
+import { t } from "../i18n";
 import appConfig from "../../app.json";
 
 // Version shown in the corner. Policy pages live on the game site (repo guinea_web, deployed on Vercel).
@@ -27,6 +28,19 @@ const TIPS = [
   "보스를 처음 잡으면 보석 보너스를 받을 수 있어요.",
   "강화는 골드가 모일 때마다 틈틈이 해 두세요.",
   "가방이 꽉 차면 재료가 떨어지지 않아요.",
+];
+// English versions, same order — see TIPS above.
+const TIPS_EN = [
+  "When a boss shows up, tap the screen to take it on.",
+  "Eat dishes from the same set together for a bonus set effect.",
+  "Every companion has different abilities — switch to match the boss.",
+  "Tap the flying coin in the sky to grab some gold.",
+  "Gini keeps hunting even while you're away.",
+  "You can only equip one skill at a time — pick the right one for the moment.",
+  "Fill up the cookbook to earn quest rewards.",
+  "Beat a boss for the first time to get a gem bonus.",
+  "Spend gold on upgrades whenever it piles up.",
+  "A full bag means dropped ingredients get lost.",
 ];
 const TIP_MS = 7000;
 const DUST_COUNT = 22;
@@ -124,7 +138,7 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
     // desktop web preview shows a phone-width column instead of the art stretched edge
     // to edge — on an actual phone this shell is invisible (the frame already fills it).
     <View style={styles.shell}>
-      <Pressable style={styles.frame} onPress={start} accessibilityRole="button" accessibilityLabel="터치하여 시작">
+      <Pressable style={styles.frame} onPress={start} accessibilityRole="button" accessibilityLabel={t("터치하여 시작", "Tap to Start")}>
         <Animated.View style={[StyleSheet.absoluteFill, zoomStyle]}>
           <Image source={BACKGROUND[timeOfDay]} style={[StyleSheet.absoluteFill, styles.background]} resizeMode="cover" />
         </Animated.View>
@@ -134,28 +148,28 @@ export function TitleScreen({ onStart }: { onStart: () => void }) {
             <Animated.Text style={[styles.sparkle, styles.sparkleLeft, sparkleStyle]}>✦</Animated.Text>
             <Animated.Text style={[styles.sparkle, styles.sparkleRight, sparkleStyle]}>✧</Animated.Text>
             <StrokedText style={styles.title} strokeColor={colors.line} strokeWidth={3}>
-              기니 키우기
+              {t("기니 키우기", "Guinea Life")}
             </StrokedText>
           </TitleLogo>
 
         </View>
         <Animated.View style={[styles.tipWrap, tipStyle]} pointerEvents="none">
           <StrokedText style={styles.tipText} strokeColor={colors.line} strokeWidth={1.5}>
-            {`TIP · ${TIPS[tipIndex]}`}
+            {`TIP · ${t(TIPS[tipIndex], TIPS_EN[tipIndex])}`}
           </StrokedText>
         </Animated.View>
         <Animated.View style={[styles.startWrap, pulseStyle]} pointerEvents="none">
           <StrokedText style={styles.start} strokeColor={colors.line} strokeWidth={2}>
-            터치하여 시작
+            {t("터치하여 시작", "Tap to Start")}
           </StrokedText>
         </Animated.View>
         <View style={styles.footer}>
           <Text style={styles.footerText}>v{APP_VERSION}</Text>
           <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8} accessibilityRole="link">
-            <Text style={[styles.footerText, styles.footerLink]}>개인정보처리방침</Text>
+            <Text style={[styles.footerText, styles.footerLink]}>{t("개인정보처리방침", "Privacy Policy")}</Text>
           </Pressable>
           <Pressable onPress={() => Linking.openURL(TERMS_URL)} hitSlop={8} accessibilityRole="link">
-            <Text style={[styles.footerText, styles.footerLink]}>이용약관</Text>
+            <Text style={[styles.footerText, styles.footerLink]}>{t("이용약관", "Terms of Service")}</Text>
           </Pressable>
         </View>
         <Animated.View style={[StyleSheet.absoluteFill, styles.flash, flashStyle]} pointerEvents="none" />

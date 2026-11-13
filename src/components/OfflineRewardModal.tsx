@@ -14,6 +14,7 @@ import { AdBadge } from "./AdBadge";
 import { formatGameNumber } from "../state/gameMath";
 import type { OfflineSummary } from "../state/offline";
 import { ITEM_IMAGES } from "../state/recipes";
+import { t } from "../i18n";
 
 // When each part of the summary lands (ms after opening): gold and kills count up first,
 // then the ingredients pop in one by one, then the level-up.
@@ -55,8 +56,11 @@ export function OfflineRewardModal({
   if (adOpen) {
     return (
       <RewardedAdModal
-        message={`대신 섭섭하지 않게 골드 2배는 그대로 챙겨드릴게요.\n+${formatGameNumber(summary.goldEarned * 2)} 골드`}
-        claimLabel="2배 받기"
+        message={t(
+          `대신 섭섭하지 않게 골드 2배는 그대로 챙겨드릴게요.\n+${formatGameNumber(summary.goldEarned * 2)} 골드`,
+          `To make up for it, you'll still get double gold.\n+${formatGameNumber(summary.goldEarned * 2)} gold`,
+        )}
+        claimLabel={t("2배 받기", "Claim Double")}
         onClaim={onClaimDouble}
         onCancel={() => {
           setAdOpen(false);
@@ -74,7 +78,7 @@ export function OfflineRewardModal({
           <NineSlice slice={panelSlices.woodBolts} scale={0.62} />
 
           {/* Title on the same red ribbon the boss first-clear uses. */}
-          <TitleRibbon>기니가 혼자 사냥했어요!</TitleRibbon>
+          <TitleRibbon>{t("기니가 혼자 사냥했어요!", "Gini was hunting while you were away!")}</TitleRibbon>
           {/* The haul on plain cream plates (no frames inside the big wood frame): one cream card, gold / ingredients / level-up split by thin lines. */}
           <Panel slice={creamSlices.card} scale={0.3} style={styles.card}>
             <View style={styles.goldRow}>
@@ -101,12 +105,12 @@ export function OfflineRewardModal({
                   {summary.items.length > MAX_ITEMS && (
                     <PopIn delay={ITEMS_AT + MAX_ITEMS * ITEM_GAP}>
                       <Panel slice={creamSlices.cell} scale={0.28} style={[styles.itemCell, styles.moreCell]}>
-                        <Text style={styles.moreText}>+{summary.items.length - MAX_ITEMS}종</Text>
+                        <Text style={styles.moreText}>{t(`+${summary.items.length - MAX_ITEMS}종`, `+${summary.items.length - MAX_ITEMS}`)}</Text>
                       </Panel>
                     </PopIn>
                   )}
                 </View>
-                {summary.bagFull && <Text style={styles.bagFull}>가방이 꽉 차서 일부 재료는 두고 왔어요</Text>}
+                {summary.bagFull && <Text style={styles.bagFull}>{t("가방이 꽉 차서 일부 재료는 두고 왔어요", "The bag was full, so some ingredients got left behind")}</Text>}
               </>
             )}
 
@@ -124,13 +128,13 @@ export function OfflineRewardModal({
           </Panel>
 
           <View style={styles.buttons}>
-            <GameButton variant="beige" onPress={onClaim} style={styles.claimButton} textStyle={styles.claimLabel}>받기</GameButton>
+            <GameButton variant="beige" onPress={onClaim} style={styles.claimButton} textStyle={styles.claimLabel}>{t("받기", "Claim")}</GameButton>
             {summary.goldEarned > 0 && (
               <View>
-                <GameButton variant="green" disabled={doubling} onPress={startDouble} accessibilityLabel="광고 보고 골드 2배 받기" style={styles.claimButton}>
+                <GameButton variant="green" disabled={doubling} onPress={startDouble} accessibilityLabel={t("광고 보고 골드 2배 받기", "Watch an ad to double gold")} style={styles.claimButton}>
                   <View style={styles.doubleContent}>
-                    <Text style={styles.doubleSmall}>광고 보고</Text>
-                    <Text style={styles.doubleLabel}>2배 받기</Text>
+                    <Text style={styles.doubleSmall}>{t("광고 보고", "Watch Ad")}</Text>
+                    <Text style={styles.doubleLabel}>{t("2배 받기", "Claim Double")}</Text>
                   </View>
                 </GameButton>
                 <AdBadge />

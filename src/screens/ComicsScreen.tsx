@@ -5,6 +5,22 @@ import { icons, kit } from "../assets";
 import { Panel } from "../components/NineSlice";
 import { PageHeading } from "../components/PageHeading";
 import { COMIC_ORDER, COMICS, getComicUnlockLabel, getUnlockedComics, type ComicId } from "../state/comics";
+import { t } from "../i18n";
+
+// getComicUnlockLabel (state/comics.ts) builds its Korean text dynamically (with numbers
+// baked in), so it can't be translated via a one-arg dictionary lookup — this re-derives
+// the English version from the same few template shapes without touching that file.
+function unlockLabelEn(ko: string): string {
+  if (ko === "게임 시작") return "Game Start";
+  if (ko === "2회차를 시작하면 열려요") return "Unlocks when loop 2 begins";
+  let match = ko.match(/^(\d+)회차의 마지막 보스를 잡으면 열려요$/);
+  if (match) return `Unlocks on defeating loop ${match[1]}'s final boss`;
+  match = ko.match(/^(\d+)회차에 (\d+)스테이지 보스를 잡으면 열려요$/);
+  if (match) return `Unlocks on defeating stage ${match[2]}'s boss in loop ${match[1]}`;
+  match = ko.match(/^(\d+)스테이지 보스를 처음 잡으면 열려요$/);
+  if (match) return `Unlocks on first defeating stage ${match[1]}'s boss`;
+  return ko;
+}
 
 // 추억 앨범: every story comic in story order. Reached ones show their first panel and play
 // on tap (a "NEW" tag until watched); the rest stay covered with what opens them.
@@ -31,14 +47,14 @@ export function ComicsScreen({
     <View style={styles.page}>
       <View style={styles.headingRow}>
         <View style={styles.heading}>
-          <PageHeading kicker="ALBUM" title="추억 앨범" description="지나온 이야기를 다시 볼 수 있어요." />
+          <PageHeading kicker="ALBUM" title={t("추억 앨범", "Memory Album")} description={t("지나온 이야기를 다시 볼 수 있어요.", "Relive the stories you've already been through.")} />
         </View>
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="모험 지도로 돌아가기" hitSlop={6} style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
+        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={t("모험 지도로 돌아가기", "Back to Adventure Map")} hitSlop={6} style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
           <Image source={icons.map} style={styles.backIcon} />
         </Pressable>
       </View>
       <Text style={styles.count}>
-        모은 이야기 {COMIC_ORDER.filter(isOpen).length} / {COMIC_ORDER.length}
+        {t(`모은 이야기 ${COMIC_ORDER.filter(isOpen).length} / ${COMIC_ORDER.length}`, `Stories Collected ${COMIC_ORDER.filter(isOpen).length} / ${COMIC_ORDER.length}`)}
       </Text>
       <View style={styles.list}>
         {COMIC_ORDER.map((id, index) => {
@@ -51,7 +67,11 @@ export function ComicsScreen({
               disabled={!open}
               onPress={() => onPlay(id)}
               accessibilityRole="button"
-              accessibilityLabel={open ? `${comic.title} 보기` : `잠긴 이야기, ${getComicUnlockLabel(id)}`}
+              accessibilityLabel={
+                open
+                  ? t(`${comic.title} 보기`, `View ${t(comic.title)}`)
+                  : t(`잠긴 이야기, ${getComicUnlockLabel(id)}`, `Locked story, ${t(getComicUnlockLabel(id), unlockLabelEn(getComicUnlockLabel(id)))}`)
+              }
               style={({ pressed }) => [pressed && styles.pressed]}
             >
               <Panel slice={open ? kit.panel : kit.inset} scale={0.4} style={styles.card}>
@@ -69,11 +89,11 @@ export function ComicsScreen({
                   )}
                 </View>
                 <View style={styles.copy}>
-                  <Text style={styles.episode}>{index + 1}화</Text>
+                  <Text style={styles.episode}>{t(`${index + 1}화`, `Ep. ${index + 1}`)}</Text>
                   <Text style={[styles.title, !open && styles.titleLocked]} numberOfLines={1}>
-                    {open ? comic.title : "???"}
+                    {open ? t(comic.title) : "???"}
                   </Text>
-                  <Text style={styles.condition}>{open ? "터치해서 다시 보기 ▶" : getComicUnlockLabel(id)}</Text>
+                  <Text style={styles.condition}>{open ? t("터치해서 다시 보기 ▶", "Tap to Rewatch ▶") : t(getComicUnlockLabel(id), unlockLabelEn(getComicUnlockLabel(id)))}</Text>
                 </View>
               </Panel>
             </Pressable>

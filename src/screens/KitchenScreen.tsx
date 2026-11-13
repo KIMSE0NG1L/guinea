@@ -26,6 +26,10 @@ import { IconCaption } from "../components/IconCaption";
 import { CoinPrice } from "../components/CoinPrice";
 import { getShortfall } from "../state/grocery";
 import type { GameState } from "../types";
+import { t } from "../i18n";
+import type { RecipeTier } from "../state/recipeTiers";
+
+const DIFFICULTY_LABEL_EN: Record<RecipeTier, string> = { common: "Easy", rare: "Normal", epic: "Hard", legendary: "Very Hard", hidden: "Extreme" };
 
 export type KitchenLayout = "list" | "grid";
 
@@ -140,19 +144,19 @@ export function KitchenScreen({
     <View style={styles.page}>
       <View style={styles.headingRow}>
         <View style={styles.heading}>
-          <PageHeading kicker="COOKING" title="기니의 부엌" description="재료를 모아 배고픈 기니에게 한 끼를." />
+          <PageHeading kicker="COOKING" title={t("기니의 부엌", "Gini's Kitchen")} description={t("재료를 모아 배고픈 기니에게 한 끼를.", "Gather ingredients and cook a meal for a hungry Gini.")} />
         </View>
         <View style={styles.shopButtons}>
-          <GameButton variant="red" onPress={onOpenGrocery} accessibilityLabel="재료 상점 열기" style={styles.shopButton}>
+          <GameButton variant="red" onPress={onOpenGrocery} accessibilityLabel={t("재료 상점 열기", "Open ingredient shop")} style={styles.shopButton}>
             <View style={styles.shopContent}>
               <Image source={grandma.basket} style={styles.shopImage} />
-              <Text style={styles.shopText}>재료</Text>
+              <Text style={styles.shopText}>{t("재료", "Shop")}</Text>
             </View>
           </GameButton>
-          <GameButton variant="pillCream" onPress={onOpenRecipes} tutorialId="kitchen-recipes" accessibilityLabel="레시피 상점 열기" style={styles.shopButton}>
+          <GameButton variant="pillCream" onPress={onOpenRecipes} tutorialId="kitchen-recipes" accessibilityLabel={t("레시피 상점 열기", "Open recipe shop")} style={styles.shopButton}>
             <View style={styles.shopContent}>
               <Image source={chef.spoon} style={styles.shopImage} />
-              <Text style={[styles.shopText, styles.shopTextDark]}>레시피</Text>
+              <Text style={[styles.shopText, styles.shopTextDark]}>{t("레시피", "Recipes")}</Text>
             </View>
           </GameButton>
         </View>
@@ -170,14 +174,14 @@ export function KitchenScreen({
       <Pressable
         onPress={onOpenCookbook}
         accessibilityRole="button"
-        accessibilityLabel="요리책 열기"
+        accessibilityLabel={t("요리책 열기", "Open cookbook")}
         style={({ pressed }) => [styles.cookbook, pressed && styles.pressed]}
       >
         <Panel slice={kit.panelParchment} scale={0.5} style={styles.cookbookCard}>
           <Image source={chef.book} style={styles.cookbookImage} />
           <View style={styles.cookbookCopy}>
             <Text style={styles.cookbookTitle}>
-              요리책 《세상의 모든 맛》 <Text style={styles.cookbookCount}>{getCookbookProgress(cookedRecipes)} / {RECIPES.length}</Text>
+              {t("요리책 《세상의 모든 맛》", "Cookbook: Every Flavor in the World")} <Text style={styles.cookbookCount}>{getCookbookProgress(cookedRecipes)} / {RECIPES.length}</Text>
             </Text>
             <ProgressBar progress={(getCookbookProgress(cookedRecipes) / RECIPES.length) * 100} height={12} />
           </View>
@@ -186,14 +190,14 @@ export function KitchenScreen({
       <DishSetGuide known={known} />
 
       <View style={styles.toolbar}>
-        <Text style={styles.toolbarText}>아는 레시피 {recipes.length}개</Text>
+        <Text style={styles.toolbarText}>{t(`아는 레시피 ${recipes.length}개`, `${recipes.length} Known Recipes`)}</Text>
         <View style={styles.layoutToggle}>
           {(["list", "grid"] as KitchenLayout[]).map((mode) => (
             <Pressable
               key={mode}
               onPress={() => onLayoutChange(mode)}
               accessibilityRole="button"
-              accessibilityLabel={mode === "list" ? "목록으로 보기" : "카드로 보기"}
+              accessibilityLabel={mode === "list" ? t("목록으로 보기", "View as list") : t("카드로 보기", "View as cards")}
               accessibilityState={{ selected: layout === mode }}
               hitSlop={4}
               style={({ pressed }) => [styles.layoutButton, pressed && styles.pressed]}
@@ -203,13 +207,13 @@ export function KitchenScreen({
               <View>
                 <LayoutIcon mode={mode} active={layout === mode} />
               </View>
-              <IconCaption size={12} offset={-12}>{mode === "list" ? "목록" : "카드"}</IconCaption>
+              <IconCaption size={12} offset={-12}>{mode === "list" ? t("목록", "List") : t("카드", "Cards")}</IconCaption>
             </Pressable>
           ))}
         </View>
       </View>
 
-      <SearchBox value={query} onChange={setQuery} placeholder="요리나 재료 이름으로 찾기" resultCount={shown.length} />
+      <SearchBox value={query} onChange={setQuery} placeholder={t("요리나 재료 이름으로 찾기", "Search by dish or ingredient name")} resultCount={shown.length} />
       <View style={layout === "grid" ? styles.grid : styles.list}>
         {shown.map((recipe) => {
           const ready = canCook(inventory, recipe);
@@ -217,7 +221,7 @@ export function KitchenScreen({
           // Bag room is checked when the dish comes out of the pot, not when it goes in.
           const cookable = ready && freePot;
           const ingredientLabels = recipe.ingredients.map(
-            (ingredient) => `${layout === "grid" ? "" : `${ingredient.name} `}${getItemQuantity(inventory, ingredient.name)}/${ingredient.quantity}`,
+            (ingredient) => `${layout === "grid" ? "" : `${t(ingredient.name)} `}${getItemQuantity(inventory, ingredient.name)}/${ingredient.quantity}`,
           );
           const ingredientChips = recipe.ingredients.map((ingredient, index) => (
             <View style={styles.ingredient} key={ingredient.name}>
@@ -248,11 +252,14 @@ export function KitchenScreen({
               disabled={!affordable}
               onPress={() => startCooking(recipe, true)}
               tutorialId={`cook-${recipe.id}`}
-              accessibilityLabel={`부족한 재료를 ${shortfall.cost}골드에 사서 ${recipe.name} 요리하기`}
+              accessibilityLabel={t(
+                `부족한 재료를 ${shortfall.cost}골드에 사서 ${recipe.name} 요리하기`,
+                `Buy missing ingredients for ${shortfall.cost} gold and cook ${t(recipe.name)}`,
+              )}
               style={layout === "grid" ? styles.gridCookButton : styles.cookButton}
             >
               <View style={styles.buyCook}>
-                <Text style={[styles.cookButtonText, styles.buyCookText]}>사서 요리</Text>
+                <Text style={[styles.cookButtonText, styles.buyCookText]}>{t("사서 요리", "Buy & Cook")}</Text>
                 <CoinPrice amount={shortfall.cost} textStyle={[styles.buyCookCost, !affordable && styles.buyCookCostShort]} />
               </View>
             </GameButton>
@@ -265,10 +272,10 @@ export function KitchenScreen({
               style={layout === "grid" ? styles.gridCookButton : styles.cookButton}
               textStyle={styles.cookButtonText}
             >
-              {!ready ? "재료 부족" : freePot ? "요리하기" : "냄비 가득"}
+              {!ready ? t("재료 부족", "Missing Ingredients") : freePot ? t("요리하기", "Cook") : t("냄비 가득", "Pots Full")}
             </GameButton>
           );
-          const effectParts = [...describeBuffParts(recipe.id), `🎯${MINIGAME_DIFFICULTY[recipe.tier].label}`];
+          const effectParts = [...describeBuffParts(recipe.id), `🎯${t(MINIGAME_DIFFICULTY[recipe.tier].label, DIFFICULTY_LABEL_EN[recipe.tier])}`];
           const effect = (
             <BalancedRows
               items={effectParts}
@@ -286,12 +293,12 @@ export function KitchenScreen({
               <Panel slice={ready ? kit.panel : kit.inset} scale={0.4} style={styles.gridCard} key={recipe.id}>
                 {owned > 0 && (
                   <View style={styles.ownedTag}>
-                    <Text style={styles.ownedTagText}>보유 {owned}</Text>
+                    <Text style={styles.ownedTagText}>{t(`보유 ${owned}`, `Have ${owned}`)}</Text>
                   </View>
                 )}
                 <Image source={recipe.image} style={[styles.gridDish, !ready && styles.dishShort]} />
-                <Text style={styles.gridName} numberOfLines={1}>{recipe.name}</Text>
-                <Text style={styles.gridDescription} numberOfLines={2}>{recipe.description}</Text>
+                <Text style={styles.gridName} numberOfLines={1}>{t(recipe.name)}</Text>
+                <Text style={styles.gridDescription} numberOfLines={2}>{t(recipe.description)}</Text>
                 {effect}
                 <View style={[styles.ingredients, styles.gridIngredients]}>{ingredients}</View>
                 {cookButton}
@@ -303,10 +310,10 @@ export function KitchenScreen({
               <Image source={recipe.image} style={[styles.dish, !ready && styles.dishShort]} />
               <View style={styles.cardCopy}>
                 <View style={styles.titleRow}>
-                  <Text style={styles.cardStrong}>{recipe.name}</Text>
-                  {owned > 0 && <Text style={styles.owned}>보유 {owned}</Text>}
+                  <Text style={styles.cardStrong}>{t(recipe.name)}</Text>
+                  {owned > 0 && <Text style={styles.owned}>{t(`보유 ${owned}`, `Have ${owned}`)}</Text>}
                 </View>
-                <Text style={styles.cardSpan}>{recipe.description}</Text>
+                <Text style={styles.cardSpan}>{t(recipe.description)}</Text>
                 {effect}
                 <View style={styles.ingredients}>{ingredients}</View>
               </View>
@@ -318,18 +325,18 @@ export function KitchenScreen({
           (layout === "grid" ? (
             <Panel slice={kit.inset} scale={0.4} style={styles.gridCard}>
               <Image source={SEALED_RECIPE} style={styles.gridDish} />
-              <Text style={styles.gridName}>배울 레시피 {unlearned}개</Text>
-              <Text style={styles.gridDescription} numberOfLines={2}>셰프 기니한테 새 요리를 배워 봐요.</Text>
+              <Text style={styles.gridName}>{t(`배울 레시피 ${unlearned}개`, `${unlearned} Recipes to Learn`)}</Text>
+              <Text style={styles.gridDescription} numberOfLines={2}>{t("셰프 기니한테 새 요리를 배워 봐요.", "Learn new dishes from Chef Gini.")}</Text>
               <GameButton variant="red" onPress={onOpenRecipes} style={styles.gridCookButton} textStyle={styles.cookButtonText}>
-                배우러 가기
+                {t("배우러 가기", "Go Learn")}
               </GameButton>
             </Panel>
           ) : (
             <Panel slice={kit.inset} style={styles.more}>
               <Image source={SEALED_RECIPE} style={styles.moreImage} />
-              <Text style={styles.moreText}>아직 배우지 않은 레시피가 {unlearned}개 있어요.</Text>
+              <Text style={styles.moreText}>{t(`아직 배우지 않은 레시피가 ${unlearned}개 있어요.`, `There are ${unlearned} recipes you haven't learned yet.`)}</Text>
               <GameButton variant="red" onPress={onOpenRecipes} style={styles.cookButton} textStyle={styles.cookButtonText}>
-                배우러 가기
+                {t("배우러 가기", "Go Learn")}
               </GameButton>
             </Panel>
           ))}

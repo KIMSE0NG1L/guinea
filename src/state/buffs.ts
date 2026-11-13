@@ -1,6 +1,7 @@
 import type { Outfit } from "../types";
 import { RECIPES } from "./recipes";
 import type { RecipeTier } from "./recipeTiers";
+import { t } from "../i18n";
 
 // Food buffs: eating a cooked dish into a battle slot grants its effect for a while.
 
@@ -229,7 +230,9 @@ export const OUTFIT_NAMES: Record<Outfit, string> = {
 export function describeDishLinks(recipeId: string) {
   const set = getDishSet(recipeId);
   const partner = DISH_PARTNERS[recipeId];
-  return [set && `세트: ${set.name}`, partner && `궁합: ${OUTFIT_NAMES[partner]}`].filter((part): part is string => !!part);
+  return [set && t(`세트: ${set.name}`, `Set: ${t(set.name)}`), partner && t(`궁합: ${OUTFIT_NAMES[partner]}`, `Pairs With: ${t(OUTFIT_NAMES[partner])}`)].filter(
+    (part): part is string => !!part,
+  );
 }
 
 export function runningSlots(slots: BuffSlot[] | undefined, now: number) {
@@ -314,29 +317,30 @@ export const OUTFIT_NO_OFFLINE: Partial<Record<Outfit, boolean>> = {
 const signed = (value: number) => `${value >= 0 ? "+" : ""}${value}`;
 
 const EFFECT_LABELS: Record<keyof BuffEffect, (value: number) => string> = {
-  attack: (value) => `공격력 ${signed(value)}%`,
-  criticalChance: (value) => (value <= -100 ? "치명타 없음" : `치명타 확률 ${signed(value)}%`),
-  criticalDamage: (value) => `치명타 피해 ${signed(value)}%`,
-  gold: (value) => `골드 획득 ${signed(value)}%`,
-  attackSpeed: (value) => `공격 속도 ${signed(value)}%`,
-  bossDamage: (value) => `보스 피해 ${signed(value)}%`,
-  exp: (value) => `경험치 ${signed(value)}%`,
-  extraHit: (value) => `추가 타격 ${value}%`,
-  missReduction: (value) => `빗나감 -${value}%`,
-  skillCooldown: (value) => `스킬 쿨타임 -${value}초`,
-  execute: (value) => `처형 기준 +${value}%`,
-  dropRate: (value) => `재료 드롭 ${signed(value)}%`,
-  dropDouble: (value) => `재료 2배 ${value}%`,
-  vegetableDrop: (value) => `채소 드롭 ${signed(value)}%`,
-  seafoodDrop: (value) => `해산물 드롭 ${signed(value)}%`,
-  bossDropSure: () => "보스 재료 확정",
-  cookSpeed: (value) => `성공 범위 +${value}%`,
-  greatSuccess: (value) => `요리 대성공 ${value}%`,
-  ingredientSave: (value) => `재료 절약 ${value}%`,
-  groceryDiscount: (value) => `재료 상점 -${value}%`,
-  offlineGold: (value) => `오프라인 골드 ${signed(value)}%`,
-  offlineBuffs: () => "자는 동안 버프 유지",
-  skillReset: () => "먹으면 스킬 즉시 충전",
+  attack: (value) => t(`공격력 ${signed(value)}%`, `Attack ${signed(value)}%`),
+  criticalChance: (value) =>
+    value <= -100 ? t("치명타 없음", "No crits") : t(`치명타 확률 ${signed(value)}%`, `Crit Chance ${signed(value)}%`),
+  criticalDamage: (value) => t(`치명타 피해 ${signed(value)}%`, `Crit Damage ${signed(value)}%`),
+  gold: (value) => t(`골드 획득 ${signed(value)}%`, `Gold Gain ${signed(value)}%`),
+  attackSpeed: (value) => t(`공격 속도 ${signed(value)}%`, `Attack Speed ${signed(value)}%`),
+  bossDamage: (value) => t(`보스 피해 ${signed(value)}%`, `Boss Damage ${signed(value)}%`),
+  exp: (value) => t(`경험치 ${signed(value)}%`, `EXP ${signed(value)}%`),
+  extraHit: (value) => t(`추가 타격 ${value}%`, `Extra Hit ${value}%`),
+  missReduction: (value) => t(`빗나감 -${value}%`, `Miss Chance -${value}%`),
+  skillCooldown: (value) => t(`스킬 쿨타임 -${value}초`, `Skill Cooldown -${value}s`),
+  execute: (value) => t(`처형 기준 +${value}%`, `Execute Threshold +${value}%`),
+  dropRate: (value) => t(`재료 드롭 ${signed(value)}%`, `Item Drop Rate ${signed(value)}%`),
+  dropDouble: (value) => t(`재료 2배 ${value}%`, `Double Drop ${value}%`),
+  vegetableDrop: (value) => t(`채소 드롭 ${signed(value)}%`, `Vegetable Drop ${signed(value)}%`),
+  seafoodDrop: (value) => t(`해산물 드롭 ${signed(value)}%`, `Seafood Drop ${signed(value)}%`),
+  bossDropSure: () => t("보스 재료 확정", "Guaranteed Boss Drop"),
+  cookSpeed: (value) => t(`성공 범위 +${value}%`, `Success Zone +${value}%`),
+  greatSuccess: (value) => t(`요리 대성공 ${value}%`, `Great Success ${value}%`),
+  ingredientSave: (value) => t(`재료 절약 ${value}%`, `Ingredient Save ${value}%`),
+  groceryDiscount: (value) => t(`재료 상점 -${value}%`, `Grocery Discount -${value}%`),
+  offlineGold: (value) => t(`오프라인 골드 ${signed(value)}%`, `Offline Gold ${signed(value)}%`),
+  offlineBuffs: () => t("자는 동안 버프 유지", "Buffs Keep Running While Away"),
+  skillReset: () => t("먹으면 스킬 즉시 충전", "Resets Skill Cooldown on Eating"),
 };
 
 const EFFECT_KEYS = Object.keys(EFFECT_LABELS) as (keyof BuffEffect)[];
@@ -355,7 +359,7 @@ export function describeEffect(effect: BuffEffect) {
 // What a dish does, for UI copy — an instant snack describes its payout instead.
 export function describeDish(recipeId: string) {
   const instant = INSTANT_DISHES[recipeId];
-  if (instant) return `먹으면 즉시 골드 (몹 ${instant.goldKills}마리분)`;
+  if (instant) return t(`먹으면 즉시 골드 (몹 ${instant.goldKills}마리분)`, `Instant gold on eating (worth ${instant.goldKills} mobs)`);
   return describeEffect(BUFFS[recipeId]?.effect ?? {});
 }
 

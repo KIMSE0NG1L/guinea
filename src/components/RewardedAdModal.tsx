@@ -7,6 +7,7 @@ import { NineSlice } from "./NineSlice";
 import { GameButton } from "./GameButton";
 import { AdBadge } from "./AdBadge";
 import { getLastAdError, showRewardedAd } from "../ads";
+import { t } from "../i18n";
 
 type Phase = "prompt" | "loading" | "fallback";
 
@@ -72,10 +73,10 @@ export function RewardedAdModal({
         <Pressable style={styles.panel} onPress={(event) => event.stopPropagation()}>
           <NineSlice slice={kit.panelLarge} />
           <Image source={icons.energy} style={styles.heroIcon} />
-          <Text style={styles.eyebrow}>광고 안내</Text>
+          <Text style={styles.eyebrow}>{t("광고 안내", "Ad")}</Text>
           {phase === "loading" && (
             <>
-              <Text style={styles.title}>광고를 불러오는 중이에요</Text>
+              <Text style={styles.title}>{t("광고를 불러오는 중이에요", "Loading the ad")}</Text>
               <ActivityIndicator color={colors.green} style={styles.spinner} />
             </>
           )}
@@ -90,7 +91,7 @@ export function RewardedAdModal({
                   <View>
                     <GameButton variant="green" onPress={play} style={styles.choiceButton}>
                       <View style={styles.choiceContent}>
-                        <Text style={styles.choiceSmall}>광고 보고</Text>
+                        <Text style={styles.choiceSmall}>{t("광고 보고", "Watch Ad")}</Text>
                         <Text style={styles.choiceLabel}>{claimLabel}</Text>
                       </View>
                     </GameButton>
@@ -104,10 +105,10 @@ export function RewardedAdModal({
           )}
           {phase === "fallback" && (
             <>
-              <Text style={styles.title}>앗, 지금은 보여드릴 광고가 없어요!</Text>
-              <Text style={styles.message}>{autoStart ? message : "대신 섭섭하지 않게 보상은 그대로 챙겨드릴게요."}</Text>
+              <Text style={styles.title}>{t("앗, 지금은 보여드릴 광고가 없어요!", "Oops, there's no ad to show right now!")}</Text>
+              <Text style={styles.message}>{autoStart ? message : t("대신 섭섭하지 않게 보상은 그대로 챙겨드릴게요.", "To make up for it, you'll still get the reward anyway.")}</Text>
               <GameButton variant="green" onPress={onClaim} style={styles.claimButton}>{claimLabel}</GameButton>
-              {getLastAdError() !== null && <Text style={styles.errorCode}>광고 오류: {getLastAdError()}</Text>}
+              {getLastAdError() !== null && <Text style={styles.errorCode}>{t(`광고 오류: ${getLastAdError()}`, `Ad error: ${getLastAdError()}`)}</Text>}
             </>
           )}
         </Pressable>

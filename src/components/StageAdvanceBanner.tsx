@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { colors, fonts } from "../theme";
 import { StrokedText } from "./StrokedText";
+import { t } from "../i18n";
 
 // Approximates the web's `radial-gradient(circle, #f2c44b88, #3d513ad9 58%, #263525eb)` as a
 // 3-stop linear gradient (see plan: true radial has no core RN primitive, not worth
@@ -69,7 +70,7 @@ export function StageAdvanceBanner({ stageLabel, onContinue }: { stageLabel: str
     <Animated.View style={[styles.overlay, revealStyle]} pointerEvents={onContinue ? "auto" : "none"}>
       {/* The press target wraps everything, so the backdrop and rings drawn inside it can't
           sit on top of it and swallow the tap. */}
-      <Pressable style={styles.press} onPress={proceed} disabled={!onContinue} accessibilityRole="button" accessibilityLabel={`${stageLabel}로 출발하기`}>
+      <Pressable style={styles.press} onPress={proceed} disabled={!onContinue} accessibilityRole="button" accessibilityLabel={t(`${stageLabel}로 출발하기`, `Head to ${stageLabel}`)}>
       <LinearGradient
         colors={["#f2c44bcc", "#3d513ad9", "#263525eb"]}
         locations={[0, 0.58, 1]}
@@ -97,10 +98,10 @@ export function StageAdvanceBanner({ stageLabel, onContinue }: { stageLabel: str
             <View style={styles.ruleLine} />
           </Animated.View>
         </View>
-        <Text style={styles.sub}>다음 지역으로 출발!</Text>
+        <Text style={styles.sub}>{t("다음 지역으로 출발!", "Heading to the next area!")}</Text>
         {onContinue && (
           <Animated.View style={[styles.prompt, promptStyle]}>
-            <Text style={styles.promptText}>터치해서 계속</Text>
+            <Text style={styles.promptText}>{t("터치해서 계속", "Tap to Continue")}</Text>
           </Animated.View>
         )}
       </View>
