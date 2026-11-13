@@ -26,5 +26,3 @@ export function showInterstitial(): Promise<boolean> {
 export function showRewardedAd(): Promise<AdResult> {
   return Promise.resolve("failed");
 }
-
-export function launchAdTestSuite() {}

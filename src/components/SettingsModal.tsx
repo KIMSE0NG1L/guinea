@@ -7,7 +7,6 @@ import { GameButton } from "./GameButton";
 import { VolumeSlider } from "./VolumeSlider";
 import { playSfx, setBgmVolume, setSfxVolume, useBgmVolume, useSfxVolume } from "../sound";
 import { playHaptic, setHapticsEnabled, useHapticsEnabled } from "../haptics";
-import { launchAdTestSuite } from "../ads";
 
 export function SettingsModal({
   onSkipToBoss,
@@ -226,9 +225,6 @@ export function SettingsModal({
                 style={styles.button}
               >
                 만화 다 열기
-              </GameButton>
-              <GameButton variant="green" onPress={launchAdTestSuite} style={styles.button}>
-                광고 테스트 스위트 (가짜 광고만, 안전함)
               </GameButton>
               </>
             )}
