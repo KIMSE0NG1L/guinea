@@ -227,6 +227,7 @@ export function launchAdTestSuite() {
 // Shows the preloaded interstitial if there is one; resolves true once it was shown and closed.
 export async function showInterstitial(): Promise<boolean> {
   if (showing) return false;
+  await initAds();
   if (!(await interstitialAd.isAdReady())) {
     loadInterstitial();
     return false;
