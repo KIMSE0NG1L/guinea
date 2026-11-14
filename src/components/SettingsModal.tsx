@@ -8,6 +8,7 @@ import { VolumeSlider } from "./VolumeSlider";
 import { playSfx, setBgmVolume, setSfxVolume, useBgmVolume, useSfxVolume } from "../sound";
 import { playHaptic, setHapticsEnabled, useHapticsEnabled } from "../haptics";
 import { setLanguage, t, useLanguage, type Lang } from "../i18n";
+import { launchAdTestSuite } from "../ads";
 
 const LANGUAGES: [Lang, string][] = [
   ["ko", "한국어"],
@@ -252,6 +253,9 @@ export function SettingsModal({
                 style={styles.button}
               >
                 {t("만화 다 열기", "Unlock All Comics")}
+              </GameButton>
+              <GameButton variant="green" onPress={launchAdTestSuite} style={styles.button}>
+                광고 테스트 스위트 (가짜 광고만, 안전함)
               </GameButton>
               </>
             )}

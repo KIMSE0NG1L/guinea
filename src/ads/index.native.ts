@@ -217,6 +217,13 @@ export async function showRewardedAd(): Promise<AdResult> {
   });
 }
 
+// Opens Unity's Test Suite debug screen: shows fake test ads (not real ones) per ad unit, so
+// integration can be checked (does init succeed, does each placement load) without any risk of
+// tapping a real ad. Dev-build only, wired to a hidden settings button (see SettingsModal).
+export function launchAdTestSuite() {
+  initAds().then(() => LevelPlay.launchTestSuite());
+}
+
 // Shows the preloaded interstitial if there is one; resolves true once it was shown and closed.
 export async function showInterstitial(): Promise<boolean> {
   if (showing) return false;
