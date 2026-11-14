@@ -13,9 +13,9 @@ type Phase = "prompt" | "loading" | "fallback";
 
 // Every "watch an ad for X" button goes through this. It plays a real rewarded ad (src/ads):
 // - watched to the end: onClaim hands the reward out.
-// - closed early: onCancel (or, without one, back to the prompt to try again).
-// - no ad to show (offline, no fill yet, web): the old "no ad right now" panel with
-//   `message` (the "we'll give it to you anyway" line), and the reward is handed out anyway.
+// - closed early, or no ad to show (offline, no fill yet, web): no reward — onCancel (or,
+//   without one, back to the prompt to try again). The "no ad right now" panel just explains
+//   why and dismisses; it never hands the reward out on its own.
 // `autoStart` false shows the message with a button first (the boss retry prompt, which
 // opens on its own when the boss timer runs out; an ad must never start unasked).
 export function RewardedAdModal({
@@ -42,13 +42,19 @@ export function RewardedAdModal({
     callbacks.current = { onClaim, onCancel };
   });
 
+  // No ad watched to the end: no reward. "failed" (load/display failure, no fill) still shows
+  // the fallback panel to explain why before dismissing; "dismissed" (closed early) skips
+  // straight to it.
+  const dismissNoReward = () => {
+    if (callbacks.current.onCancel) callbacks.current.onCancel();
+    else setPhase("prompt");
+  };
   const start = () => {
     showRewardedAd().then((result) => {
       if (!mounted.current) return;
       if (result === "earned") callbacks.current.onClaim();
       else if (result === "failed") setPhase("fallback");
-      else if (callbacks.current.onCancel) callbacks.current.onCancel();
-      else setPhase("prompt");
+      else dismissNoReward();
     });
   };
   const play = () => {
@@ -65,7 +71,7 @@ export function RewardedAdModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const dismiss = phase === "fallback" ? onClaim : phase === "prompt" ? onCancel : undefined;
+  const dismiss = phase === "fallback" ? dismissNoReward : phase === "prompt" ? onCancel : undefined;
 
   return (
     <Modal visible animationType="fade" transparent onRequestClose={() => dismiss?.()}>
@@ -106,8 +112,8 @@ export function RewardedAdModal({
           {phase === "fallback" && (
             <>
               <Text style={styles.title}>{t("앗, 지금은 보여드릴 광고가 없어요!", "Oops, there's no ad to show right now!")}</Text>
-              <Text style={styles.message}>{autoStart ? message : t("대신 섭섭하지 않게 보상은 그대로 챙겨드릴게요.", "To make up for it, you'll still get the reward anyway.")}</Text>
-              <GameButton variant="green" onPress={onClaim} style={styles.claimButton}>{claimLabel}</GameButton>
+              <Text style={styles.message}>{t("잠시 후 다시 시도해주세요.", "Please try again in a bit.")}</Text>
+              <GameButton variant="green" onPress={dismissNoReward} style={styles.claimButton}>{t("확인", "OK")}</GameButton>
               {getLastAdError() !== null && <Text style={styles.errorCode}>{t(`광고 오류: ${getLastAdError()}`, `Ad error: ${getLastAdError()}`)}</Text>}
             </>
           )}
