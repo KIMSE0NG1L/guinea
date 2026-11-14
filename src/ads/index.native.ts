@@ -2,10 +2,11 @@ import { Platform } from "react-native";
 import {
   LevelPlay,
   LevelPlayInitRequest,
+  LevelPlayPrivacySettings,
   LevelPlayRewardedAd,
   LevelPlayInterstitialAd,
 } from "unity-levelplay-mediation";
-import type { LevelPlayAdError } from "unity-levelplay-mediation";
+import type { LevelPlayAdError, LevelPlayInitError } from "unity-levelplay-mediation";
 import { requestTrackingPermissionsAsync } from "expo-tracking-transparency";
 import { setBgmSuspended } from "../sound";
 
@@ -32,6 +33,10 @@ const INTERSTITIAL_UNIT_ID = Platform.select({
 const LOAD_TIMEOUT_MS = 8000;
 
 let initPromise: Promise<unknown> | null = null;
+// Guards loadRewarded()/loadInterstitial() against ever calling the native loadAd() before (or
+// after a failed) LevelPlay.init() — that's what throws the SDK's own "Load must be called
+// after init success callback" error.
+let initSucceeded = false;
 let showing = false;
 // Why the last ad couldn't be loaded or shown, shown small on the "no ad right now" panel so a
 // missing ad can be diagnosed from a release build.
@@ -60,7 +65,7 @@ export function getLastAdError() {
   return lastAdError;
 }
 
-function describeError(error: LevelPlayAdError | null | undefined) {
+function describeError(error: LevelPlayAdError | LevelPlayInitError | null | undefined) {
   const text = error?.errorMessage || `code ${error?.errorCode ?? "unknown"}`;
   return text.slice(0, 60);
 }
@@ -83,13 +88,14 @@ let pendingRewardedShow: ((result: AdResult) => void) | null = null;
 let rewardEarned = false;
 
 function loadRewarded() {
-  if (rewardedLoading) return;
+  if (!initSucceeded || rewardedLoading) return;
   rewardedLoading = true;
   rewardedAd.loadAd();
 }
 
 async function waitForRewardedReady(timeoutMs: number): Promise<boolean> {
   if (await rewardedAd.isAdReady()) return true;
+  if (!initSucceeded) return false;
   loadRewarded();
   return new Promise((resolve) => {
     let settled = false;
@@ -112,7 +118,7 @@ let interstitialLoading = false;
 let pendingInterstitialShow: ((shown: boolean) => void) | null = null;
 
 function loadInterstitial() {
-  if (interstitialLoading) return;
+  if (!initSucceeded || interstitialLoading) return;
   interstitialLoading = true;
   interstitialAd.loadAd();
 }
@@ -181,19 +187,37 @@ export function initAds() {
     // personalized or non-personalized ads based on the user's answer on its own.
     initPromise = requestTrackingPermissionsAsync()
       .catch(() => null)
+      // The SDK's own README says these privacy calls must happen before LevelPlay.init(),
+      // not after — no CMP/consent UI of our own yet, so this is a placeholder consent answer
+      // (matches the README's own example), not a real per-region GDPR decision.
+      .then(() =>
+        Promise.all([
+          LevelPlayPrivacySettings.setGDPRConsent(true),
+          LevelPlayPrivacySettings.setCCPA(false),
+          LevelPlayPrivacySettings.setCOPPA(false),
+        ]).catch(() => null),
+      )
       .then(
         () =>
-          new Promise<void>((resolve) => {
+          new Promise<boolean>((resolve) => {
             LevelPlay.init(LevelPlayInitRequest.builder(APP_KEY).build(), {
-              onInitSuccess: () => resolve(),
-              onInitFailed: () => resolve(),
+              onInitSuccess: () => resolve(true),
+              onInitFailed: (error) => {
+                lastAdError = `init: ${describeError(error)}`;
+                resolve(false);
+              },
             });
           }),
       )
-      .catch(() => null);
-    initPromise.then(() => {
-      loadRewarded();
-      loadInterstitial();
+      .catch(() => false);
+    // Loading ads after a failed init just reproduces the SDK's own "Load must be called
+    // after init success callback" error — skip it and leave ads as simply unavailable.
+    initPromise.then((success) => {
+      initSucceeded = success === true;
+      if (initSucceeded) {
+        loadRewarded();
+        loadInterstitial();
+      }
     });
   }
   return initPromise;

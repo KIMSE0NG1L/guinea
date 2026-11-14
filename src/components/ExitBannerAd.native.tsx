@@ -20,7 +20,9 @@ export function ExitBannerAd() {
     initAds();
   }, []);
   const loadAd = useCallback(() => {
-    initAds().then(() => bannerRef.current?.loadAd());
+    initAds().then((success) => {
+      if (success) bannerRef.current?.loadAd();
+    });
   }, []);
   if (failed) return null;
   return (

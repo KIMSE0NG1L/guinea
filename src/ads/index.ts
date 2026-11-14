@@ -4,11 +4,12 @@
 
 export type AdResult = "earned" | "dismissed" | "failed";
 
-// Returns a resolved promise (not void) so callers that do `initAds().then(...)` — needed
-// because the native module's initAds() is genuinely async — type-check here too; plain `tsc`
-// doesn't know about the .native.ts platform convention and resolves imports to this file.
-export function initAds(): Promise<void> {
-  return Promise.resolve();
+// Returns a resolved promise (not void) so callers that do `initAds().then((success) => ...)` —
+// needed because the native module's initAds() is genuinely async and resolves with whether
+// LevelPlay.init() succeeded — type-check here too; plain `tsc` doesn't know about the
+// .native.ts platform convention and resolves imports to this file.
+export function initAds(): Promise<boolean> {
+  return Promise.resolve(true);
 }
 
 export function getLastAdError(): string | null {
